@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Ruby Bundler
+.bundle/
+
 # cocoapods-generate
 gen/
 
