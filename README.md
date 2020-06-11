@@ -1,5 +1,6 @@
 # workflow
 
+![Swift CI](https://github.com/square/workflow/workflows/Swift%20CI/badge.svg)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![CocoaPods compatible](https://img.shields.io/cocoapods/v/Workflow.svg)](https://cocoapods.org/pods/Workflow)
 
@@ -21,11 +22,7 @@ frameborder="0" allowfullscreen></iframe>
 
 ## Using Workflows in your project
 
-### Swift
-
-![Swift CI](https://github.com/square/workflow/workflows/Swift%20CI/badge.svg)
-
-#### Swift Package Manager
+### Swift Package Manager
 
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-orange.svg)](#swift-package-manager)
 
@@ -41,7 +38,7 @@ dependencies: [
 In Xcode 11+, add Workflow directly as a dependency to your project with
 `File` > `Swift Packages` > `Add Package Dependency...`. Provide the git URL when prompted: `git@github.com:square/workflow.git`.
 
-#### Cocoapods
+### Cocoapods
 
 [![CocoaPods compatible](https://img.shields.io/cocoapods/v/Workflow.svg)](https://cocoapods.org/pods/Workflow)
 
@@ -52,10 +49,6 @@ Podfile:
 pod 'Workflow'
 pod 'WorkflowUI'
 ```
-
-### Kotlin
-
-See the [square/workflow-kotlin](https://github.com/square/workflow-kotlin) repository.
 
 ## Resources
 
