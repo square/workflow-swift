@@ -27,22 +27,22 @@ let package = Package(
         .target(
             name: "Workflow",
             dependencies: ["ReactiveSwift"],
-            path: "swift/Workflow/Sources"
+            path: "Workflow/Sources"
         ),
         .testTarget(
             name: "WorkflowTests",
             dependencies: ["Workflow"],
-            path: "swift/Workflow/Tests"
+            path: "Workflow/Tests"
         ),
         .target(
             name: "WorkflowUI",
             dependencies: ["Workflow"],
-            path: "swift/WorkflowUI/Sources"
+            path: "WorkflowUI/Sources"
         ),
         .testTarget(
             name: "WorkflowUITests",
             dependencies: ["WorkflowUI"],
-            path: "swift/WorkflowUI/Tests"
+            path: "WorkflowUI/Tests"
         ),
     ],
     swiftLanguageVersions: [.v5]

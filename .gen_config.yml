@@ -1,9 +1,9 @@
 local_sources:
   - .
-  - swift/Samples/SplitScreenContainer
-  - swift/Samples/BackStackContainer
-  - swift/Samples/ModalContainer
-  - swift/Samples/AlertContainer
+  - Samples/SplitScreenContainer
+  - Samples/BackStackContainer
+  - Samples/ModalContainer
+  - Samples/AlertContainer
 
 platforms:
   - ios
