@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
   s.name         = 'Tutorial3'
   s.version      = '1.0.0.LOCAL'
   s.summary      = 'See the README.'
-  s.homepage     = 'https://github.com/square/workflow'
+  s.homepage     = 'https://github.com/square/workflow-swift'
   s.license      = 'Apache License, Version 2.0'
   s.author       = 'Square'
   s.source       = { git: 'Not Published', tag: "podify/#{s.version}" }

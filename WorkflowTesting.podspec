@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
   s.name         = 'WorkflowTesting'
   s.version      = '0.29.0'
   s.summary      = 'Reactive application architecture'
-  s.homepage     = 'https://www.github.com/square/workflow'
+  s.homepage     = 'https://www.github.com/square/workflow-swift'
   s.license      = 'Apache License, Version 2.0'
   s.author       = 'Square'
   s.source       = { :git => 'https://github.com/square/workflow-swift.git', :tag => "v#{s.version}" }

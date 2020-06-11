@@ -7,7 +7,7 @@
 ***Before you begin:*** *Please make sure you are set up with 
 [`pod trunk`](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) and your CocoaPods
 account is a contributor to both the Workflow and WorkflowUI pods. If you need to be added as a
-contributor, please [open a ticket requesting access](https://github.com/square/workflow/issues/new),
+contributor, please [open a ticket requesting access](https://github.com/square/workflow-swift/issues/new),
 and assign it to @bencochran or @aquageek.*
 
 ---
@@ -44,7 +44,7 @@ and assign it to @bencochran or @aquageek.*
    ```
 
 1. Create the release on GitHub:
-   1. Go to the [Releases](https://github.com/square/workflow/releases) page for the GitHub
+   1. Go to the [Releases](https://github.com/square/workflow-swift/releases) page for the GitHub
       project.
    1. Click "Draft a new release".
    1. Enter the tag name you just pushed.
