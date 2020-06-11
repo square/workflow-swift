@@ -5,7 +5,7 @@ _Refactoring and rebalancing a tree of Workflows_
 ## Setup
 
 To follow this tutorial:
-- Open your terminal and run `bundle exec pod install` in the `swift/Samples/Tutorial` directory.
+- Open your terminal and run `bundle exec pod install` in the `Samples/Tutorial` directory.
 - Open `Tutorial.xcworkspace` and build the `Tutorial` Scheme.
 
 Start from implementation of `Tutorial3` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial3` instead of `TutorialBase`.

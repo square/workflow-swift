@@ -14,14 +14,14 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '10.0'
   s.osx.deployment_target = '10.12'
 
-  s.source_files = 'swift/WorkflowTesting/Sources/*.swift'
+  s.source_files = 'WorkflowTesting/Sources/*.swift'
 
   s.dependency 'ReactiveSwift', '~> 6.0.0'
   s.dependency 'Workflow', "#{s.version}"
   s.framework = 'XCTest'
 
   s.test_spec 'Tests' do |test_spec|
-    test_spec.source_files = 'swift/WorkflowTesting/Tests/**/*.swift'
+    test_spec.source_files = 'WorkflowTesting/Tests/**/*.swift'
     test_spec.framework = 'XCTest'
     test_spec.libraries = 'swiftDispatch', 'swiftFoundation', 'swiftos'
   end

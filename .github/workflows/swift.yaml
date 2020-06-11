@@ -9,7 +9,7 @@ on:
       - '*.podspec'
       - 'Gemfile*'
       - 'Package.swift'
-      - 'swift/**'
+      - './**'
       - '.github/workflows/swift.yaml'
       - '.buildscript/build_swift_docs.sh'
   pull_request:
@@ -17,7 +17,7 @@ on:
       - '*.podspec'
       - 'Gemfile*'
       - 'Package.swift'
-      - 'swift/**'
+      - './**'
       - '.github/workflows/swift.yaml'
       - '.buildscript/build_swift_docs.sh'
 
@@ -92,7 +92,7 @@ jobs:
 
     - name: Tutorial App
       run: |
-        cd swift/Samples/Tutorial
+        cd Samples/Tutorial
         bundle exec pod install
         set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=13.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
