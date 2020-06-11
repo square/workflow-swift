@@ -2,8 +2,8 @@ project 'Tutorial.xcodeproj'
 platform :ios, '11.0'
 
 target 'Tutorial' do
-    pod 'Workflow', path: '../../../Workflow.podspec', :testspecs => ['Tests']
-    pod 'WorkflowUI', path: '../../../WorkflowUI.podspec', :testspecs => ['Tests']
+    pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']
+    pod 'WorkflowUI', path: '../../WorkflowUI.podspec', :testspecs => ['Tests']
     pod 'BackStackContainer', path: '../BackStackContainer/BackStackContainer.podspec'
 
     pod 'TutorialViews', path: 'Frameworks/TutorialViews/TutorialViews.podspec'
@@ -16,5 +16,5 @@ target 'Tutorial' do
 end
 
 target 'TutorialTests' do
-    pod 'WorkflowTesting', path: '../../../WorkflowTesting.podspec', :testspecs => ['Tests']
+    pod 'WorkflowTesting', path: '../../WorkflowTesting.podspec', :testspecs => ['Tests']
 end
