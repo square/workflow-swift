@@ -3,7 +3,7 @@ name: Swift CI
 on:
   push:
     branches:
-      - trunk
+      - main
     paths:
       - '*.podspec'
       - 'Gemfile*'
