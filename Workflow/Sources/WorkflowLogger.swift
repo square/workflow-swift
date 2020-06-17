@@ -16,7 +16,7 @@
 
 import os.signpost
 
-fileprivate extension OSLog {
+private extension OSLog {
     static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
     static let worker = OSLog(subsystem: "com.squareup.Workflow", category: "Worker")
 }
@@ -34,8 +34,14 @@ final class WorkflowLogger {
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
         if #available(iOS 12.0, macOS 10.14, *) {
             let signpostID = OSSignpostID(log: .workflow, object: ref)
-            os_signpost(.begin, log: .workflow, name: "Alive", signpostID: signpostID,
-                        "Workflow: %{public}@", String(describing: WorkflowType.self))
+            os_signpost(
+                .begin,
+                log: .workflow,
+                name: "Alive",
+                signpostID: signpostID,
+                "Workflow: %{public}@",
+                String(describing: WorkflowType.self)
+            )
         }
     }
 
@@ -49,8 +55,14 @@ final class WorkflowLogger {
     static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
         if #available(iOS 12.0, macOS 10.14, *) {
             let signpostID = OSSignpostID(log: .workflow, object: ref)
-            os_signpost(.event, log: .workflow, name: "Sink Event", signpostID: signpostID,
-                        "Event for workflow: %{public}@", String(describing: Action.WorkflowType.self))
+            os_signpost(
+                .event,
+                log: .workflow,
+                name: "Sink Event",
+                signpostID: signpostID,
+                "Event for workflow: %{public}@",
+                String(describing: Action.WorkflowType.self)
+            )
         }
     }
 
@@ -59,8 +71,14 @@ final class WorkflowLogger {
     static func logWorkflowStartedRendering<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
         if #available(iOS 12.0, macOS 10.14, *) {
             let signpostID = OSSignpostID(log: .workflow, object: ref)
-            os_signpost(.begin, log: .workflow, name: "Render", signpostID: signpostID,
-                        "Render Workflow: %{public}@", String(describing: WorkflowType.self))
+            os_signpost(
+                .begin,
+                log: .workflow,
+                name: "Render",
+                signpostID: signpostID,
+                "Render Workflow: %{public}@",
+                String(describing: WorkflowType.self)
+            )
         }
     }
 
@@ -76,8 +94,14 @@ final class WorkflowLogger {
     static func logWorkerStartedRunning<WorkerType>(ref: AnyObject, workerType: WorkerType.Type) {
         if #available(iOS 12.0, macOS 10.14, *) {
             let signpostID = OSSignpostID(log: .worker, object: ref)
-            os_signpost(.begin, log: .worker, name: "Running", signpostID: signpostID,
-                        "Worker: %{public}@", String(describing: WorkerType.self))
+            os_signpost(
+                .begin,
+                log: .worker,
+                name: "Running",
+                signpostID: signpostID,
+                "Worker: %{public}@",
+                String(describing: WorkerType.self)
+            )
         }
     }
 
@@ -88,11 +112,11 @@ final class WorkflowLogger {
         }
     }
 
-    static func logWorkerOutput<WorkerType: Worker>(ref: AnyObject, workerType: WorkerType.Type) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            let signpostID = OSSignpostID(log: .worker, object: ref)
-            os_signpost(.event, log: .worker, name: "Worker Event", signpostID: signpostID,
-                        "Event: %{public}@", String(describing: WorkerType.self))
-        }
-    }
+//    static func logWorkerOutput<WorkerType: Worker>(ref: AnyObject, workerType: WorkerType.Type) {
+//        if #available(iOS 12.0, macOS 10.14, *) {
+//            let signpostID = OSSignpostID(log: .worker, object: ref)
+//            os_signpost(.event, log: .worker, name: "Worker Event", signpostID: signpostID,
+//                        "Event: %{public}@", String(describing: WorkerType.self))
+//        }
+//    }
 }

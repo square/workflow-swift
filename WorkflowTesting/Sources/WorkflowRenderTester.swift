@@ -277,7 +277,7 @@
             return sink
         }
 
-        func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, RenderTestContext<T>.WorkflowType == Action.WorkflowType {
+        func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: ReactiveSwiftWorker, Action: WorkflowAction, RenderTestContext<T>.WorkflowType == Action.WorkflowType {
             guard let workerIndex = expectations.expectedWorkers.firstIndex(where: { (expectedWorker) -> Bool in
                 expectedWorker.isEquivalent(to: worker)
             }) else {

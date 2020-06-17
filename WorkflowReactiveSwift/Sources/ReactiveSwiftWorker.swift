@@ -15,6 +15,7 @@
  */
 
 import ReactiveSwift
+import Workflow
 
 /// Workers define a unit of asynchronous work.
 ///
@@ -24,7 +25,7 @@ import ReactiveSwift
 /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
 ///
 /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-public protocol Worker {
+public protocol ReactiveSwiftWorker: AnyWorkflowConvertible {
     /// The type of output events returned by this worker.
     associatedtype Output
 
@@ -32,12 +33,46 @@ public protocol Worker {
     func run() -> SignalProducer<Output, Never>
 
     /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
-    /// account whatever data is meaninful to the task. For example, a worker that loads a user account from a server
+    /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
     /// would not be equivalent to another worker with a different user ID.
     func isEquivalent(to otherWorker: Self) -> Bool
 }
 
-extension Worker where Self: Equatable {
+extension ReactiveSwiftWorker {
+    public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+        SignalProducerWorkerWorkflow(worker: self).asAnyWorkflow()
+    }
+}
+
+private struct SignalProducerWorkerWorkflow<WorkerType: ReactiveSwiftWorker>: Workflow {
+    var worker: WorkerType
+
+    typealias Output = WorkerType.Output
+
+    typealias State = UUID
+
+    func makeInitialState() -> State {
+        return UUID()
+    }
+
+    func workflowDidChange(from previousWorkflow: SignalProducerWorkerWorkflow<WorkerType>, state: inout UUID) {
+        if !worker.isEquivalent(to: previousWorkflow.worker) {
+            state = UUID()
+        }
+    }
+
+    typealias Rendering = Void
+
+    func render(state: State, context: RenderContext<SignalProducerWorkerWorkflow>) -> Rendering {
+        SignalProducer(value: 0)
+            .flatMap(.latest) { [worker] _ -> SignalProducer<WorkerType.Output, Never> in
+                worker.run()
+            }.map { AnyWorkflowAction(sendingOutput: $0) }
+            .running(with: context, key: state.uuidString)
+    }
+}
+
+extension ReactiveSwiftWorker where Self: Equatable {
     public func isEquivalent(to otherWorker: Self) -> Bool {
         return self == otherWorker
     }

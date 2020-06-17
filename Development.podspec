@@ -11,6 +11,7 @@ Pod::Spec.new do |s|
   s.swift_version = '5.0'
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
+  s.dependency 'WorkflowReactiveSwift'
   s.source_files = 'Samples/Dummy.swift'
 
   s.subspec 'Dummy' do |ss|

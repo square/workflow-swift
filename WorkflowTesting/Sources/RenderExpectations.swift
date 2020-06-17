@@ -34,8 +34,8 @@ public struct RenderExpectations<WorkflowType: Workflow> {
     ) {
         self.expectedState = expectedState
         self.expectedOutput = expectedOutput
-        self.expectedWorkers = expectedWorkers
         self.expectedWorkflows = expectedWorkflows
+        self.expectedWorkers = expectedWorkers
         self.expectedSideEffects = expectedSideEffects.reduce(into: [AnyHashable: ExpectedSideEffect<WorkflowType>]()) { res, expectedSideEffect in
             res[expectedSideEffect.key] = expectedSideEffect
         }

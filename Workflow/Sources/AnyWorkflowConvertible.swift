@@ -41,6 +41,10 @@ extension AnyWorkflowConvertible {
         return asAnyWorkflow().render(context: context, key: key, outputMap: { AnyWorkflowAction($0) })
     }
 
+    public func rendered<Parent, Action>(with context: RenderContext<Parent>, key: String = "", outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+        return asAnyWorkflow().render(context: context, key: key, outputMap: { AnyWorkflowAction(outputMap($0)) })
+    }
+
     public func rendered<Parent>(with context: RenderContext<Parent>, key: String = "") -> Rendering where Output == AnyWorkflowAction<Parent> {
         return asAnyWorkflow().render(context: context, key: key, outputMap: { $0 })
     }
@@ -65,5 +69,17 @@ extension AnyWorkflowConvertible where Output == Never {
                 key: key,
                 outputMap: { _ -> AnyWorkflowAction<T> in }
             )
+    }
+}
+
+extension AnyWorkflowConvertible where Rendering == Void {
+    public func running<Parent, Action>(with context: RenderContext<Parent>, key: String = "", outputMap: @escaping (Output) -> Action) where Action: WorkflowAction, Action.WorkflowType == Parent {
+        _ = rendered(with: context, key: key, outputMap: outputMap)
+    }
+}
+
+extension AnyWorkflowConvertible where Rendering == Void, Output: WorkflowAction {
+    public func running<Parent>(with context: RenderContext<Parent>, key: String = "") where Parent: Workflow, Output.WorkflowType == Parent {
+        _ = rendered(with: context, key: key)
     }
 }

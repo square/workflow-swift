@@ -19,6 +19,7 @@ import BackStackContainer
 import ModalContainer
 import ReactiveSwift
 import Workflow
+import WorkflowReactiveSwift
 import WorkflowUI
 
 // MARK: Input and Output
@@ -106,7 +107,7 @@ extension AuthenticationWorkflow {
 // MARK: Workers
 
 extension AuthenticationWorkflow {
-    struct AuthorizingEmailPasswordWorker: Worker {
+    struct AuthorizingEmailPasswordWorker: ReactiveSwiftWorker {
         typealias Output = Action
 
         var authenticationService: AuthenticationService
@@ -130,7 +131,7 @@ extension AuthenticationWorkflow {
         }
     }
 
-    struct AuthorizingTwoFactorWorker: Worker {
+    struct AuthorizingTwoFactorWorker: ReactiveSwiftWorker {
         typealias Output = Action
 
         var authenticationService: AuthenticationService
@@ -198,11 +199,12 @@ extension AuthenticationWorkflow {
             }
 
         case let .authorizingEmailPassword(email: email, password: password):
-            context.awaitResult(for: AuthorizingEmailPasswordWorker(
+            AuthorizingEmailPasswordWorker(
                 authenticationService: authenticationService,
                 email: email,
                 password: password
-            ))
+            ).running(with: context)
+
             modals.append(ModalContainerScreenModal(screen: AnyScreen(LoadingScreen()), style: .fullScreen, key: "", animated: false))
 
         case let .twoFactor(intermediateSession: intermediateSession, authenticationError: authenticationError):
@@ -213,12 +215,11 @@ extension AuthenticationWorkflow {
             ))
 
         case let .authorizingTwoFactor(twoFactorCode: twoFactorCode, intermediateSession: intermediateSession):
-            context.awaitResult(
-                for: AuthorizingTwoFactorWorker(
-                    authenticationService: authenticationService,
-                    intermediateToken: intermediateSession,
-                    twoFactorCode: twoFactorCode
-                ))
+            AuthorizingTwoFactorWorker(
+                authenticationService: authenticationService,
+                intermediateToken: intermediateSession,
+                twoFactorCode: twoFactorCode
+            ).running(with: context)
 
             backStackItems.append(twoFactorScreen(error: nil, intermediateSession: intermediateSession, sink: sink))
             modals.append(ModalContainerScreenModal(screen: AnyScreen(LoadingScreen()), style: .fullScreen, key: "", animated: false))
@@ -226,7 +227,8 @@ extension AuthenticationWorkflow {
         return AlertContainerScreen(
             baseScreen: ModalContainerScreen(
                 baseScreen: BackStackScreen(
-                    items: backStackItems),
+                    items: backStackItems
+                ),
                 modals: modals
             ),
             alert: alert
@@ -259,7 +261,8 @@ extension AuthenticationWorkflow {
                     handler: {
                         sink.send(.back)
                     }
-                ))))
+                ))
+            ))
         )
     }
 }

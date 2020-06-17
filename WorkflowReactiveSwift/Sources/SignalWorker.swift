@@ -17,7 +17,7 @@
 import ReactiveSwift
 
 /// A `Worker` that wraps a `Signal`
-public struct SignalWorker<Key: Equatable, Value>: Worker {
+public struct SignalWorker<Key: Equatable, Value>: ReactiveSwiftWorker {
     let key: Key
     let signal: Signal<Value, Never>
 
