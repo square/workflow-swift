@@ -446,7 +446,7 @@ extension RootWorkflow {
                         return .logout
                     }
                 })
-                .rendered(with: context)
+                .rendered(in: context)
 
             // Add the todoBackStackItems to our BackStackItems.
             backStackItems.append(contentsOf: todoBackStackItems)
@@ -600,7 +600,7 @@ extension TodoListWorkflow {
                         return .saveChanges(todo: todo, index: index)
                     }
                 })
-                .rendered(with: context)
+                .rendered(in: context)
 
             return [todoListItem, todoEditItem]
         }

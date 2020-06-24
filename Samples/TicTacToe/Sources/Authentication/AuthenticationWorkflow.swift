@@ -175,7 +175,7 @@ extension AuthenticationWorkflow {
             case let .login(email: email, password: password):
                 return .login(email: email, password: password)
             }
-        }.rendered(with: context)
+        }.rendered(in: context)
         backStackItems.append(BackStackScreen.Item(screen: loginScreen.asAnyScreen(), barVisibility: .hidden))
 
         switch state {

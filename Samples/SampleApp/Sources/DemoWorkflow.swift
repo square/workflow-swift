@@ -150,7 +150,7 @@ extension DemoWorkflow {
             refreshEnabled = true
 
             title = ReversingWorkflow(text: title)
-                .rendered(with: context)
+                .rendered(in: context)
 
         case .loading:
             refreshText = "Loading..."

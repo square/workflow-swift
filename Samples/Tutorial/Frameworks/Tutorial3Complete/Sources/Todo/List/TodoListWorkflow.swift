@@ -166,7 +166,7 @@ extension TodoListWorkflow {
                         return .saveChanges(todo: todo, index: index)
                     }
                 }
-                .rendered(with: context)
+                .rendered(in: context)
 
             return [todoListItem, todoEditItem]
         }

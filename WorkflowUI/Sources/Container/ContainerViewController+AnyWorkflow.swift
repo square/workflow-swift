@@ -42,7 +42,7 @@
         func render(state: State, context: RenderContext<WrapperWorkflow>) -> Rendering {
             return wrapped
                 .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
-                .rendered(with: context)
+                .rendered(in: context)
         }
     }
 

@@ -109,7 +109,7 @@ extension RunGameWorkflow {
                 playerX: state.playerX,
                 playerO: state.playerO
             )
-            .rendered(with: context)
+            .rendered(in: context)
             backStackItems.append(BackStackScreen.Item(
                 screen: takeTurnsScreen.asAnyScreen(),
                 barVisibility: .visible(BackStackScreen.BarContent(
@@ -128,7 +128,7 @@ extension RunGameWorkflow {
                 playerX: state.playerX,
                 playerO: state.playerO
             )
-            .rendered(with: context)
+            .rendered(in: context)
             backStackItems.append(BackStackScreen.Item(
                 screen: takeTurnsScreen.asAnyScreen(),
                 barVisibility: .visible(BackStackScreen.BarContent(
@@ -150,7 +150,7 @@ extension RunGameWorkflow {
                         return .back
                     }
                 }
-                .rendered(with: context)
+                .rendered(in: context)
             alert = confirmQuitAlert
             modals.append(ModalContainerScreenModal(screen: AnyScreen(confirmQuitScreen), style: .fullScreen, key: "0", animated: true))
         }

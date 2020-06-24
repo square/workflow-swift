@@ -299,10 +299,10 @@ extension CompositeWorkflow {
         return Rendering(
             aRendering: a
                 .mapOutput { Event.a($0) }
-                .rendered(with: context, key: "a"),
+                .rendered(in: context, key: "a"),
             bRendering: b
                 .mapOutput { Event.b($0) }
-                .rendered(with: context, key: "b")
+                .rendered(in: context, key: "b")
         )
     }
 }
