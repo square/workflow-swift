@@ -60,10 +60,10 @@ extension RunGameWorkflow {
 
         func apply(toState state: inout RunGameWorkflow.State) -> RunGameWorkflow.Output? {
             switch self {
-            case let .updatePlayerX(name):
+            case .updatePlayerX(let name):
                 state.playerX = name
 
-            case let .updatePlayerO(name):
+            case .updatePlayerO(let name):
                 state.playerO = name
 
             case .startGame:
@@ -169,10 +169,10 @@ extension RunGameWorkflow {
                 case .startGame:
                     sink.send(.startGame)
 
-                case let .playerXChanged(name):
+                case .playerXChanged(let name):
                     sink.send(.updatePlayerX(name))
 
-                case let .playerOChanged(name):
+                case .playerOChanged(let name):
                     sink.send(.updatePlayerO(name))
                 }
             }

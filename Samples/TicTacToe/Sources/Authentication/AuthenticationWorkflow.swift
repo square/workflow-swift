@@ -71,13 +71,13 @@ extension AuthenticationWorkflow {
                     fatalError("Unexpected back in state \(state)")
                 }
 
-            case let .login(email: email, password: password):
+            case .login(email: let email, password: let password):
                 state = .authorizingEmailPassword(email: email, password: password)
 
-            case let .verifySecondFactor(intermediateSession: intermediateSession, twoFactorCode: twoFactorCode):
+            case .verifySecondFactor(intermediateSession: let intermediateSession, twoFactorCode: let twoFactorCode):
                 state = .authorizingTwoFactor(twoFactorCode: twoFactorCode, intermediateSession: intermediateSession)
 
-            case let .authenticationSucceeded(response: response):
+            case .authenticationSucceeded(response: let response):
                 if response.secondFactorRequired {
                     state = .twoFactor(intermediateSession: response.token, authenticationError: nil)
                 } else {
@@ -87,7 +87,7 @@ extension AuthenticationWorkflow {
             case .dismissAuthenticationAlert:
                 state = .emailPassword
 
-            case let .authenticationError(error):
+            case .authenticationError(let error):
                 switch state {
                 case .authorizingEmailPassword:
                     state = .authenticationErrorAlert(error: error)
@@ -172,7 +172,7 @@ extension AuthenticationWorkflow {
 
         let loginScreen = LoginWorkflow().mapOutput { output -> Action in
             switch output {
-            case let .login(email: email, password: password):
+            case .login(email: let email, password: let password):
                 return .login(email: email, password: password)
             }
         }.rendered(in: context)
@@ -182,7 +182,7 @@ extension AuthenticationWorkflow {
         case .emailPassword:
             break
 
-        case let .authenticationErrorAlert(error: error):
+        case .authenticationErrorAlert(error: let error):
             if let error = error {
                 alert = Alert(
                     title: "Error",
@@ -197,7 +197,7 @@ extension AuthenticationWorkflow {
                 )
             }
 
-        case let .authorizingEmailPassword(email: email, password: password):
+        case .authorizingEmailPassword(email: let email, password: let password):
             context.awaitResult(for: AuthorizingEmailPasswordWorker(
                 authenticationService: authenticationService,
                 email: email,
@@ -205,14 +205,14 @@ extension AuthenticationWorkflow {
             ))
             modals.append(ModalContainerScreenModal(screen: AnyScreen(LoadingScreen()), style: .fullScreen, key: "", animated: false))
 
-        case let .twoFactor(intermediateSession: intermediateSession, authenticationError: authenticationError):
+        case .twoFactor(intermediateSession: let intermediateSession, authenticationError: let authenticationError):
             backStackItems.append(twoFactorScreen(
                 error: authenticationError,
                 intermediateSession: intermediateSession,
                 sink: sink
             ))
 
-        case let .authorizingTwoFactor(twoFactorCode: twoFactorCode, intermediateSession: intermediateSession):
+        case .authorizingTwoFactor(twoFactorCode: let twoFactorCode, intermediateSession: let intermediateSession):
             context.awaitResult(
                 for: AuthorizingTwoFactorWorker(
                     authenticationService: authenticationService,

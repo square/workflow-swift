@@ -47,7 +47,7 @@ extension RootWorkflow {
 
         func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
             switch self {
-            case let .login(name: name):
+            case .login(name: let name):
                 state = .demo(name: name)
             }
 
@@ -68,14 +68,14 @@ extension RootWorkflow {
                 base: WelcomeWorkflow()
                     .mapOutput { output -> Action in
                         switch output {
-                        case let .login(name: name):
+                        case .login(name: let name):
                             return .login(name: name)
                         }
                     }
                     .rendered(in: context)
             )
 
-        case let .demo(name: name):
+        case .demo(name: let name):
             return CrossFadeScreen(
                 base: DemoWorkflow(name: name)
                     .rendered(in: context)

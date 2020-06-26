@@ -313,7 +313,7 @@
             case (.none, .some):
                 XCTFail("Expected an output, but received none.", file: file, line: line)
 
-            case let (.some(output), .some(expectedOutput)):
+            case (.some(let output), .some(let expectedOutput)):
                 XCTAssertTrue(expectedOutput.isEquivalent(output, expectedOutput.output), "expect output of \(expectedOutput.output) but received \(output)", file: file, line: line)
             }
             expectations.expectedOutput = nil

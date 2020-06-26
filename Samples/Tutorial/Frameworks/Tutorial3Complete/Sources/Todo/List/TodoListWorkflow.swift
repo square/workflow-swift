@@ -76,7 +76,7 @@ extension TodoListWorkflow {
                 // When a `.onBack` action is received, emit a `.back` output
                 return .back
 
-            case let .selectTodo(index: index):
+            case .selectTodo(index: let index):
                 // When a todo item is selected, edit it.
                 state.step = .edit(index: index)
                 return nil
@@ -86,7 +86,7 @@ extension TodoListWorkflow {
                 state.step = .list
                 return nil
 
-            case let .saveChanges(todo: todo, index: index):
+            case .saveChanges(todo: let todo, index: let index):
                 // When changes are saved, update the state of that `todo` item and return to the list.
                 state.todos[index] = todo
 
@@ -151,7 +151,7 @@ extension TodoListWorkflow {
             // On the "list" step, return just the list screen.
             return [todoListItem]
 
-        case let .edit(index: index):
+        case .edit(index: let index):
             // On the "edit" step, return both the list and edit screens.
             let todoEditItem = TodoEditWorkflow(
                 initialTodo: state.todos[index])
@@ -161,7 +161,7 @@ extension TodoListWorkflow {
                         // Send the discardChanges action when the discard output is received.
                         return .discardChanges
 
-                    case let .save(todo):
+                    case .save(let todo):
                         // Send the saveChanges action when the save output is received.
                         return .saveChanges(todo: todo, index: index)
                     }

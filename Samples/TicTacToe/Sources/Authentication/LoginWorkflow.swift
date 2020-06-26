@@ -51,10 +51,10 @@ extension LoginWorkflow {
 
         func apply(toState state: inout LoginWorkflow.State) -> LoginWorkflow.Output? {
             switch self {
-            case let .emailUpdated(email):
+            case .emailUpdated(let email):
                 state.email = email
 
-            case let .passwordUpdated(password):
+            case .passwordUpdated(let password):
                 state.password = password
 
             case .login:

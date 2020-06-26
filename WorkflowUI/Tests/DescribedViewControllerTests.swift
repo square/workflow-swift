@@ -244,13 +244,13 @@
 
         func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
             switch self {
-            case let .counter(count):
+            case .counter(let count):
                 return ViewControllerDescription(
                     build: { CounterViewController(count: count) },
                     update: { $0.count = count }
                 )
 
-            case let .message(message):
+            case .message(let message):
                 return ViewControllerDescription(
                     build: { MessageViewController(message: message) },
                     update: { $0.message = message }

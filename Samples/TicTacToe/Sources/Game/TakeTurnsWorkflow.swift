@@ -49,9 +49,9 @@ extension TakeTurnsWorkflow {
 
         func apply(toState state: inout TakeTurnsWorkflow.State) -> TakeTurnsWorkflow.Output? {
             switch state.gameState {
-            case let .ongoing(turn: turn):
+            case .ongoing(turn: let turn):
                 switch self {
-                case let .selected(row: row, col: col):
+                case .selected(row: let row, col: let col):
                     if !state.board.isEmpty(row: row, col: col) {
                         return nil
                     }

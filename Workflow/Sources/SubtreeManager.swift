@@ -350,7 +350,7 @@ extension WorkflowNode.SubtreeManager {
             case .queued:
                 fatalError("[\(WorkflowType.self)] Action sent to pipe while already in the `queueing` state.")
 
-            case let .valid(handler: handler):
+            case .valid(handler: let handler):
                 handler(event)
 
             case .invalid:
@@ -366,7 +366,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func pendingOutput() -> Output? {
-            if case let .queued(output) = validationState {
+            if case .queued(let output) = validationState {
                 return output
             } else {
                 return nil
@@ -445,7 +445,7 @@ extension WorkflowNode.SubtreeManager {
                 .observe(on: QueueScheduler.workflowExecution)
                 .start { [weak self] event in
                     switch event {
-                    case let .value(output):
+                    case .value(let output):
                         WorkflowLogger.logWorkerOutput(ref: signpostRef, workerType: W.self)
 
                         self?.handle(output: output)

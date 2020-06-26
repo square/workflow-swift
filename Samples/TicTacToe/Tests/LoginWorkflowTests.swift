@@ -79,7 +79,7 @@ class LoginWorkflowTests: XCTestCase {
                 outputAssertions: { output in
                     XCTAssertNotNil(output)
                     switch output! {
-                    case let .login(email, password):
+                    case .login(let email, let password):
                         XCTAssertEqual(email, "reza@example.com")
                         XCTAssertEqual(password, "password")
                     }

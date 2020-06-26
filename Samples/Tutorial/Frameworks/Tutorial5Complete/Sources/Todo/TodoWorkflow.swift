@@ -73,7 +73,7 @@ extension TodoWorkflow {
             case .back:
                 return .back
 
-            case let .editTodo(index: index):
+            case .editTodo(index: let index):
                 state.step = .edit(index: index)
 
             case .newTodo:
@@ -103,7 +103,7 @@ extension TodoWorkflow {
             case .discardChanges:
                 state.step = .list
 
-            case let .saveChanges(index: index, todo: updatedTodo):
+            case .saveChanges(index: let index, todo: let updatedTodo):
                 state.todos[index] = updatedTodo
             }
             // Return to the list view for either a discard or save action.
@@ -145,7 +145,7 @@ extension TodoWorkflow {
             case .back:
                 return .back
 
-            case let .selectTodo(index: index):
+            case .selectTodo(index: let index):
                 return .editTodo(index: index)
 
             case .newTodo:
@@ -159,7 +159,7 @@ extension TodoWorkflow {
             // Return only the list item.
             return [todoListItem]
 
-        case let .edit(index: index):
+        case .edit(index: let index):
 
             let todoEditItem = TodoEditWorkflow(
                 initialTodo: state.todos[index])
@@ -168,7 +168,7 @@ extension TodoWorkflow {
                     case .discard:
                         return .discardChanges
 
-                    case let .save(updatedTodo):
+                    case .save(let updatedTodo):
                         return .saveChanges(index: index, todo: updatedTodo)
                     }
                 }

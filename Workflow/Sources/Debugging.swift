@@ -42,10 +42,10 @@ extension WorkflowUpdateDebugInfo.Kind: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {
-        case let .didUpdate(source):
+        case .didUpdate(let source):
             try container.encode("didUpdate", forKey: .type)
             try container.encode(source, forKey: .source)
-        case let .childDidUpdate(info):
+        case .childDidUpdate(let info):
             try container.encode("childDidUpdate", forKey: .type)
             try container.encode(info, forKey: .childUpdate)
         }
@@ -94,7 +94,7 @@ extension WorkflowUpdateDebugInfo.Source: Codable {
             try container.encode("external", forKey: .type)
         case .worker:
             try container.encode("worker", forKey: .type)
-        case let .subtree(debugInfo):
+        case .subtree(let debugInfo):
             try container.encode("subtree", forKey: .type)
             try container.encode(debugInfo, forKey: .debugInfo)
         case .sideEffect:

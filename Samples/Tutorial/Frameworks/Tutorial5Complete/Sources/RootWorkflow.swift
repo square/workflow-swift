@@ -55,7 +55,7 @@ extension RootWorkflow {
 
         func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
             switch self {
-            case let .login(name: name):
+            case .login(name: let name):
                 // When the `login` action is received, change the state to `todo`.
                 state = .todo(name: name)
             case .logout:
@@ -98,7 +98,7 @@ extension RootWorkflow {
             .mapOutput { output -> Action in
                 switch output {
                 // When `WelcomeWorkflow` emits `didLogin`, turn it into our `login` action.
-                case let .didLogin(name: name):
+                case .didLogin(name: let name):
                     return .login(name: name)
                 }
             }
@@ -121,7 +121,7 @@ extension RootWorkflow {
             break
 
         // When the state is `.todo`, defer to the TodoListWorkflow.
-        case let .todo(name: name):
+        case .todo(name: let name):
 
             // was: let todoBackStackItems = TodoListWorkflow(name: name)
             let todoBackStackItems = TodoWorkflow(name: name)

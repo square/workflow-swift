@@ -31,7 +31,7 @@ class MainWorkflowTests: XCTestCase {
             .tester(withState: .authenticating)
             .send(action: .authenticated(sessionToken: "token"))
             .assertState { state in
-                if case let MainWorkflow.State.runningGame(token) = state {
+                if case MainWorkflow.State.runningGame(let token) = state {
                     XCTAssertEqual(token, "token")
                 } else {
                     XCTFail("Invalid state after authenticated")

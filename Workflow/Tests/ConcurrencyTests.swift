@@ -613,7 +613,7 @@ final class ConcurrencyTests: XCTestCase {
                     .update
                 }
 
-            case let .doubleSubscribing(secondSignal: signal2):
+            case .doubleSubscribing(secondSignal: let signal2):
                 context.awaitResult(for: signal2.signal.asWorker(key: "signal2")) { _ -> Action in
                     .secondUpdate
                 }

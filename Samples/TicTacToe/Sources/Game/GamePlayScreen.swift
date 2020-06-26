@@ -99,7 +99,7 @@ final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
 
         let title: String
         switch screen.gameState {
-        case let .ongoing(turn: turn):
+        case .ongoing(turn: let turn):
             switch turn {
             case .x:
                 title = "\(screen.playerX), place your 🙅"
@@ -110,7 +110,7 @@ final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
         case .tie:
             title = "It's a Tie!"
 
-        case let .win(player):
+        case .win(let player):
             switch player {
             case .x:
                 title = "The 🙅's have it, \(screen.playerX) wins!"
@@ -126,7 +126,7 @@ final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
                 switch cols[col] {
                 case .empty:
                     cells[row][col].setTitle("", for: .normal)
-                case let .taken(player):
+                case .taken(let player):
                     switch player {
                     case .x:
                         cells[row][col].setTitle("🙅", for: .normal)

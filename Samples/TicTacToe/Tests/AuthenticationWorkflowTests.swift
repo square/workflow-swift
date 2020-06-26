@@ -39,7 +39,7 @@ class AuthenticationWorkflowTests: XCTestCase {
             .tester(withState: .emailPassword)
             .send(action: .login(email: "reza@example.com", password: "password"))
             .assertState { state in
-                if case let .authorizingEmailPassword(email, password) = state {
+                if case .authorizingEmailPassword(let email, let password) = state {
                     XCTAssertEqual(email, "reza@example.com")
                     XCTAssertEqual(password, "password")
                 } else {
@@ -59,7 +59,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 )
             )
             .assertState { state in
-                if case let .authorizingTwoFactor(twoFactorCode, intermediateSession) = state {
+                if case .authorizingTwoFactor(let twoFactorCode, let intermediateSession) = state {
                     XCTAssertEqual(intermediateSession, "intermediateSession")
                     XCTAssertEqual(twoFactorCode, "twoFactorCode")
                 } else {
@@ -81,7 +81,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 )
             )
             .assertState { state in
-                if case let .twoFactor(intermediateSession, authenticationError) = state {
+                if case .twoFactor(let intermediateSession, let authenticationError) = state {
                     XCTAssertEqual(intermediateSession, "token")
                     XCTAssertNil(authenticationError)
                 } else {
@@ -101,7 +101,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 ), outputAssertions: { output in
                     XCTAssertNotNil(output)
                     switch output! {
-                    case let .authorized(session: session):
+                    case .authorized(session: let session):
                         XCTAssertEqual(session, "token")
                     }
                 }
@@ -124,7 +124,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidUserPassword)
             )
             .assertState { state in
-                if case let .authenticationErrorAlert(error) = state {
+                if case .authenticationErrorAlert(let error) = state {
                     XCTAssertNotNil(error)
                     XCTAssertEqual(error, AuthenticationService.AuthenticationError.invalidUserPassword)
                 } else {
@@ -150,7 +150,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidUserPassword)
             )
             .assertState { state in
-                if case let .authenticationErrorAlert(error) = state {
+                if case .authenticationErrorAlert(let error) = state {
                     XCTAssertNotNil(error)
                     XCTAssertEqual(error, AuthenticationService.AuthenticationError.invalidUserPassword)
                 } else {
@@ -170,7 +170,7 @@ class AuthenticationWorkflowTests: XCTestCase {
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidTwoFactor)
             )
             .assertState { state in
-                if case let .twoFactor(intermediateSession, error) = state {
+                if case .twoFactor(let intermediateSession, let error) = state {
                     XCTAssertNotNil(intermediateSession)
                     XCTAssertNotNil(error)
                     XCTAssertEqual(error, AuthenticationService.AuthenticationError.invalidTwoFactor)
