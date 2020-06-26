@@ -267,7 +267,7 @@ extension TodoWorkflow {
                     return .newTodo
                 }
             })
-            .rendered(with: context)
+            .rendered(in: context)
 
         return [todoListItem]
 
@@ -306,7 +306,7 @@ extension RootWorkflow {
                         return .logout
                     }
                 })
-                .rendered(with: context)
+                .rendered(in: context)
 
             backStackItems.append(contentsOf: todoBackStackItems)
         }
@@ -392,7 +392,7 @@ extension TodoWorkflow {
                     return .newTodo
                 }
             })
-            .rendered(with: context)
+            .rendered(in: context)
 
         switch state.step {
 
@@ -413,7 +413,7 @@ extension TodoWorkflow {
                         return .saveChanges(index: index, todo: updatedTodo)
                     }
                 })
-                .rendered(with: context)
+                .rendered(in: context)
 
             // Return both the list item and edit.
             return [todoListItem, todoEditItem]

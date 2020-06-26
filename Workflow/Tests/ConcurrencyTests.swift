@@ -253,7 +253,7 @@ final class ConcurrencyTests: XCTestCase {
                             return .update
                         }
                     }
-                    .rendered(with: context)
+                    .rendered(in: context)
 
                 childScreen.count += state.count
                 return childScreen

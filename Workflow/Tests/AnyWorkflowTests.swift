@@ -50,7 +50,7 @@ extension PassthroughWorkflow {
     }
 
     func render(state: State, context: RenderContext<PassthroughWorkflow<Rendering>>) -> Rendering {
-        return child.rendered(with: context)
+        return child.rendered(in: context)
     }
 }
 

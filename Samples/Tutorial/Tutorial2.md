@@ -200,10 +200,10 @@ extension RootWorkflow {
     typealias Rendering = WelcomeScreen
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
-        // Render a child workflow of type `WelcomeWorkflow`. When `rendered(with:)` is called, the infrastructure will create
+        // Render a child workflow of type `WelcomeWorkflow`. When `rendered(in:)` is called, the infrastructure will create
         // a child workflow with state if one is not already running.
         let welcomeScreen = WelcomeWorkflow()
-            .rendered(with: context)
+            .rendered(in: context)
 
         return welcomeScreen
     }
@@ -385,7 +385,7 @@ extension RootWorkflow {
     typealias Rendering = WelcomeScreen
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
-        // Render a child workflow of type `WelcomeWorkflow`. When `rendered(with:)` is called, the infrastructure will create
+        // Render a child workflow of type `WelcomeWorkflow`. When `rendered(in:)` is called, the infrastructure will create
         // a child workflow with state if one is not already running.
         let welcomeScreen = WelcomeWorkflow()
             .mapOutput({ output -> Action in
@@ -395,7 +395,7 @@ extension RootWorkflow {
                     return .login(name: name)
                 }
             })
-            .rendered(with: context)
+            .rendered(in: context)
 
         return welcomeScreen
     }
@@ -431,7 +431,7 @@ extension RootWorkflow {
         switch state {
             // When the state is `.welcome`, defer to the WelcomeWorkflow
         case .welcome:
-            // Render a child workflow of type `WelcomeWorkflow`. When `rendered(with:)` is called, the infrastructure will create
+            // Render a child workflow of type `WelcomeWorkflow`. When `rendered(in:)` is called, the infrastructure will create
             // a child workflow with state if one is not already running.
             let welcomeScreen = WelcomeWorkflow()
                 .mapOutput({ output -> Action in
@@ -441,14 +441,14 @@ extension RootWorkflow {
                         return .login(name: name)
                     }
                 })
-                .rendered(with: context)
+                .rendered(in: context)
 
             return AnyScreen(welcomeScreen)
 
         case .todo(name: let name):
             // When the state is `.todo`, defer to the TodoListWorkflow.
             let todoListScreen = TodoListWorkflow()
-                .rendered(with: context)
+                .rendered(in: context)
 
             return AnyScreen(todoListScreen)
         }
@@ -535,7 +535,7 @@ extension RootWorkflow {
                     return .login(name: name)
                 }
             })
-            .rendered(with: context)
+            .rendered(in: context)
 
         let welcomeBackStackItem = BackStackScreen.Item(
             key: "welcome",
@@ -556,7 +556,7 @@ extension RootWorkflow {
         case .todo(name: let name):
 
             let todoListScreen = TodoListWorkflow()
-                .rendered(with: context)
+                .rendered(in: context)
 
             let todoListBackStackItem = BackStackScreen.Item(
                 key: "todoList",

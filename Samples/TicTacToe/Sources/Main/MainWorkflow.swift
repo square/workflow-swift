@@ -77,10 +77,10 @@ extension MainWorkflow {
                         return .authenticated(sessionToken: sessionToken)
                     }
                 }
-                .rendered(with: context)
+                .rendered(in: context)
 
         case .runningGame:
-            return RunGameWorkflow().rendered(with: context)
+            return RunGameWorkflow().rendered(in: context)
         }
     }
 }

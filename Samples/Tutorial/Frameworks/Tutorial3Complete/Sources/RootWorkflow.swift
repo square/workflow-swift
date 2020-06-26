@@ -102,7 +102,7 @@ extension RootWorkflow {
                     return .login(name: name)
                 }
             }
-            .rendered(with: context)
+            .rendered(in: context)
 
         let welcomeBackStackItem = BackStackScreen.Item(
             key: "welcome",
@@ -131,7 +131,7 @@ extension RootWorkflow {
                         return .logout
                     }
                 }
-                .rendered(with: context)
+                .rendered(in: context)
 
             // Add the todoBackStackItems to our BackStackItems.
             backStackItems.append(contentsOf: todoBackStackItems)

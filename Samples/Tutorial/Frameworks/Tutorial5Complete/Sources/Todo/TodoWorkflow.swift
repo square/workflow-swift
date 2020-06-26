@@ -152,7 +152,7 @@ extension TodoWorkflow {
                 return .newTodo
             }
         }
-        .rendered(with: context)
+        .rendered(in: context)
 
         switch state.step {
         case .list:
@@ -172,7 +172,7 @@ extension TodoWorkflow {
                         return .saveChanges(index: index, todo: updatedTodo)
                     }
                 }
-                .rendered(with: context)
+                .rendered(in: context)
 
             // Return both the list item and edit.
             return [todoListItem, todoEditItem]

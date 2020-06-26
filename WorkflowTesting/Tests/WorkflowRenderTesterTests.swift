@@ -428,7 +428,7 @@ private struct ParentWorkflow: Workflow {
                     return .childFailure
                 }
             }
-            .rendered(with: context)
+            .rendered(in: context)
     }
 }
 
