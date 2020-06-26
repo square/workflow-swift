@@ -15,6 +15,7 @@
  */
 
 import Workflow
+import XCTest
 
 /// A set of expectations for use with the `WorkflowRenderTester`. All of the expectations must be fulfilled
 /// for a `render` test to pass.
@@ -123,15 +124,44 @@ extension ExpectedSideEffect {
 }
 
 public struct ExpectedWorkflow {
-    let workflowType: Any.Type
-    let key: String
     let rendering: Any
     let output: Any?
+    let doesMatch: (_ childWorkflow: Any, _ childKey: String) -> Bool
+    let notFoundAssertion: (_ file: StaticString, _ line: UInt) -> Void
 
-    public init<WorkflowType: Workflow>(type: WorkflowType.Type, key: String = "", rendering: WorkflowType.Rendering, output: WorkflowType.Output? = nil) {
-        self.workflowType = type
-        self.key = key
+    public init<WorkflowType: Workflow>(
+        type: WorkflowType.Type,
+        key: String = "",
+        rendering: WorkflowType.Rendering,
+        output: WorkflowType.Output? = nil
+    ) {
         self.rendering = rendering
         self.output = output
+
+        self.doesMatch = { child, childKey in
+            guard child is WorkflowType,
+                key == childKey
+            else {
+                return false
+            }
+
+            return true
+        }
+
+        self.notFoundAssertion = { file, line in
+            XCTFail("Expected child workflow of type: \(type) key: \(key)", file: file, line: line)
+        }
+    }
+
+    public init(
+        rendering: Any,
+        output: Any?,
+        doesMatch: @escaping (_ childWorkflow: Any, _ childKey: String) -> Bool,
+        notFoundAssertion: @escaping (_ file: StaticString, _ line: UInt) -> Void
+    ) {
+        self.rendering = rendering
+        self.output = output
+        self.doesMatch = doesMatch
+        self.notFoundAssertion = notFoundAssertion
     }
 }

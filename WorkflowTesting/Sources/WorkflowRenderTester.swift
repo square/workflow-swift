@@ -249,7 +249,7 @@
 
         func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, RenderTestContext<T>.WorkflowType == Action.WorkflowType {
             guard let workflowIndex = expectations.expectedWorkflows.firstIndex(where: { expectedWorkflow -> Bool in
-                type(of: workflow) == expectedWorkflow.workflowType && key == expectedWorkflow.key
+                expectedWorkflow.doesMatch(workflow, key)
             }) else {
                 XCTFail("Unexpected child workflow of type \(workflow.self)", file: file, line: line)
                 fatalError()
@@ -337,7 +337,7 @@
 
             if !expectations.expectedWorkflows.isEmpty {
                 for expectedWorkflow in expectations.expectedWorkflows {
-                    XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType) key: \(expectedWorkflow.key)", file: file, line: line)
+                    expectedWorkflow.notFoundAssertion(file, line)
                 }
             }
 
