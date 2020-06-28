@@ -48,7 +48,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             let leftOverExpectedFailures = expectedFailureStrings
             expectedFailureStrings = []
             for failure in leftOverExpectedFailures {
-                XCTFail("Expected failure matching \"\(failure)\"", file: file, line: line)
+                XCTFail(#"Expected failure matching "\#(failure)""#, file: file, line: line)
             }
         }
         return result
@@ -76,7 +76,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 }
             )
 
-        expectingFailure("Expected child workflow of type: TestChildWorkflow, key: \"\"") {
+        expectingFailure(#"Expected child workflow of type: TestChildWorkflow, key: """#) {
             tester.render { _ in }
         }
     }
@@ -90,7 +90,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 worker: TestWorker(input: "input")
             )
 
-        expectingFailure("Expected worker TestWorker(input: \"input\")") {
+        expectingFailure(#"Expected worker TestWorker(input: "input")"#) {
             tester.render { _ in }
         }
     }
@@ -103,8 +103,8 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             )
 
         expectingFailures([
-            "Unexpected worker during render TestWorker(input: \"actual\"). Expected TestWorker(input: \"expected\").",
-            "Expected worker TestWorker(input: \"expected\")",
+            #"Unexpected worker during render TestWorker(input: "actual"). Expected TestWorker(input: "expected")."#,
+            #"Expected worker TestWorker(input: "expected")"#,
         ]) {
             tester.render { _ in }
         }
@@ -114,7 +114,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         let tester = TestWorkflow()
             .renderTester(initialState: .worker(param: "input"))
 
-        expectingFailure("Unexpected worker during render TestWorker(input: \"input\")") {
+        expectingFailure(#"Unexpected worker during render TestWorker(input: "input")"#) {
             tester.render { _ in }
         }
     }
@@ -126,7 +126,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .renderTester(initialState: .idle)
             .expectSideEffect(key: "side-effect")
 
-        expectingFailure("Expected side-effect with key: \"side-effect\"") {
+        expectingFailure(#"Expected side-effect with key: "side-effect""#) {
             tester.render { _ in }
         }
     }
@@ -137,8 +137,8 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .expectSideEffect(key: "expected")
 
         expectingFailures([
-            "Unexpected side-effect with key \"actual\"",
-            "Expected side-effect with key: \"expected\"",
+            #"Unexpected side-effect with key "actual""#,
+            #"Expected side-effect with key: "expected""#,
         ]) {
             tester.render { _ in }
         }
@@ -148,7 +148,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         let tester = TestWorkflow()
             .renderTester(initialState: .sideEffect(key: "input"))
 
-        expectingFailure("Unexpected side-effect with key \"input\"") {
+        expectingFailure(#"Unexpected side-effect with key "input""#) {
             tester.render { _ in }
         }
     }
@@ -162,7 +162,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doNoopAction(10)
             }
 
-        expectingFailure("(\"noop(10)\") is not equal to (\"noop(70)\")") {
+        expectingFailure(#"("noop(10)") is not equal to ("noop(70)")"#) {
             result.verify(action: TestAction.noop(70))
         }
 
@@ -207,7 +207,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
 
-        expectingFailure("(\"sendOutput(\"second\")\") is not equal to (\"noop(0)\")") {
+        expectingFailure(#"("sendOutput("second")") is not equal to ("noop(0)")"#) {
             result.verify(action: TestAction.noop(0))
         }
 
@@ -217,7 +217,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
 
-        expectingFailure("Expected no action, but got sendOutput(\"second\")") {
+        expectingFailure(#"Expected no action, but got sendOutput("second")"#) {
             result.verifyNoAction()
         }
     }
@@ -231,7 +231,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doOutput("hello")
             }
 
-        expectingFailure("(\"string(\"hello\")\") is not equal to (\"string(\"nope\")\")") {
+        expectingFailure(#"("string("hello")") is not equal to ("string("nope")")"#) {
             result.verify(output: .string("nope"))
         }
 
@@ -241,7 +241,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
 
-        expectingFailure("Expected no output, but got string(\"hello\")") {
+        expectingFailure(#"Expected no output, but got string("hello")"#) {
             result.verifyNoOutput()
         }
     }
@@ -269,7 +269,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .renderTester(initialState: .idle)
             .render { _ in }
 
-        expectingFailure("(\"idle\") is not equal to (\"worker(param: \"wrong\")\")") {
+        expectingFailure(#"("idle") is not equal to ("worker(param: "wrong")")"#) {
             result.verify(state: .worker(param: "wrong"))
         }
 
