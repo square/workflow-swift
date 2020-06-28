@@ -60,34 +60,28 @@ class ConfirmQuitWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_confirmOnce() {
-        let confirmQuitWorkflow = ConfirmQuitWorkflow()
-        confirmQuitWorkflow
+        ConfirmQuitWorkflow()
             .renderTester(initialState: ConfirmQuitWorkflow.State(step: .confirmOnce))
-            .render(
-                assertions: { screen in
-                    XCTAssertNotNil(screen)
-                    XCTAssertNotNil(screen.0)
-                    XCTAssertNil(screen.1)
-                    XCTAssertEqual(screen.0.question, "Are you sure you want to quit?")
-                }
-            )
+            .render { screen in
+                XCTAssertNotNil(screen)
+                XCTAssertNotNil(screen.0)
+                XCTAssertNil(screen.1)
+                XCTAssertEqual(screen.0.question, "Are you sure you want to quit?")
+            }
     }
 
     func test_render_confirmTwice() {
-        let confirmQuitWorkflow = ConfirmQuitWorkflow()
-        confirmQuitWorkflow
+        ConfirmQuitWorkflow()
             .renderTester(initialState: ConfirmQuitWorkflow.State(step: .confirmTwice))
-            .render(
-                assertions: { screen in
-                    XCTAssertNotNil(screen)
-                    XCTAssertNotNil(screen.0)
-                    XCTAssertNotNil(screen.1)
-                    XCTAssertEqual(screen.1!.title, "Confirm Again")
-                    XCTAssertEqual(screen.1!.message, "Do you really want to quit?")
-                    XCTAssertEqual(screen.0.question, "Are you sure you want to quit?")
-                    XCTAssertEqual(screen.1!.actions[0].title, "Not really")
-                    XCTAssertEqual(screen.1!.actions[1].title, "Yes, please!")
-                }
-            )
+            .render { screen in
+                XCTAssertNotNil(screen)
+                XCTAssertNotNil(screen.0)
+                XCTAssertNotNil(screen.1)
+                XCTAssertEqual(screen.1!.title, "Confirm Again")
+                XCTAssertEqual(screen.1!.message, "Do you really want to quit?")
+                XCTAssertEqual(screen.0.question, "Are you sure you want to quit?")
+                XCTAssertEqual(screen.1!.actions[0].title, "Not really")
+                XCTAssertEqual(screen.1!.actions[1].title, "Yes, please!")
+            }
     }
 }

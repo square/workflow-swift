@@ -183,184 +183,113 @@ class AuthenticationWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_initial() {
-        let authenticationWorkFlow = AuthenticationWorkflow(authenticationService: AuthenticationService())
-        let expectedState = ExpectedState<AuthenticationWorkflow>(state: .emailPassword)
-
-        let expectedWorkflow = ExpectedWorkflow(
-            type: LoginWorkflow.self,
-            rendering: LoginScreen(
-                title: "",
-                email: "",
-                onEmailChanged: { _ in },
-                password: "",
-                onPasswordChanged: { _ in },
-                onLoginTapped: {}
-            ),
-            output: nil
-        )
-
-        let renderExpectations = RenderExpectations<AuthenticationWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: [expectedWorkflow]
-        )
-
-        authenticationWorkFlow
+        AuthenticationWorkflow(authenticationService: AuthenticationService())
             .renderTester(initialState: .emailPassword)
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: LoginWorkflow.self,
+                producingRendering: LoginScreen(
+                    title: "",
+                    email: "",
+                    onEmailChanged: { _ in },
+                    password: "",
+                    onPasswordChanged: { _ in },
+                    onLoginTapped: {}
+                )
             )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .verifyNoAction()
     }
 
     func test_render_AuthorizingEmailPasswordWorker() {
         let authenticationService = AuthenticationService()
-        let authenticationWorkFlow = AuthenticationWorkflow(authenticationService: authenticationService)
 
-        let expectedState = ExpectedState<AuthenticationWorkflow>(
-            state: .authorizingEmailPassword(
-                email: "reza@example.com",
-                password: "password"
-            )
-        )
-
-        let expectedWorkflow = ExpectedWorkflow(
-            type: LoginWorkflow.self,
-            rendering: LoginScreen(
-                title: "",
-                email: "",
-                onEmailChanged: { _ in },
-                password: "",
-                onPasswordChanged: { _ in },
-                onLoginTapped: {}
-            ),
-            output: nil
-        )
-
-        let expectedWorker = ExpectedWorker(
-            worker: AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
-                authenticationService: authenticationService,
-                email: "reza@example.com",
-                password: "password"
-            )
-        )
-
-        let renderExpectations = RenderExpectations<AuthenticationWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [expectedWorker],
-            expectedWorkflows: [expectedWorkflow]
-        )
-
-        authenticationWorkFlow
+        AuthenticationWorkflow(authenticationService: authenticationService)
             .renderTester(
                 initialState: .authorizingEmailPassword(
                     email: "reza@example.com",
                     password: "password"
                 )
             )
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: LoginWorkflow.self,
+                producingRendering: LoginScreen(
+                    title: "",
+                    email: "",
+                    onEmailChanged: { _ in },
+                    password: "",
+                    onPasswordChanged: { _ in },
+                    onLoginTapped: {}
+                )
             )
+            .expect(
+                worker: AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
+                    authenticationService: authenticationService,
+                    email: "reza@example.com",
+                    password: "password"
+                )
+            )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .verifyNoAction()
     }
 
     func test_render_authorizingTwoFactorWorker() {
         let authenticationService = AuthenticationService()
-        let authenticationWorkFlow = AuthenticationWorkflow(authenticationService: authenticationService)
 
-        let expectedState = ExpectedState<AuthenticationWorkflow>(
-            state: .authorizingTwoFactor(
-                twoFactorCode: "twoFactorCode",
-                intermediateSession: "intermediateSession"
-            )
-        )
-
-        let expectedWorkflow = ExpectedWorkflow(
-            type: LoginWorkflow.self,
-            rendering: LoginScreen(
-                title: "",
-                email: "",
-                onEmailChanged: { _ in },
-                password: "",
-                onPasswordChanged: { _ in },
-                onLoginTapped: {}
-            ),
-            output: nil
-        )
-
-        let expectedWorker = ExpectedWorker(
-            worker: AuthenticationWorkflow.AuthorizingTwoFactorWorker(
-                authenticationService: authenticationService,
-                intermediateToken: "intermediateSession",
-                twoFactorCode: "twoFactorCode"
-            )
-        )
-
-        let renderExpectations = RenderExpectations<AuthenticationWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [expectedWorker],
-            expectedWorkflows: [expectedWorkflow]
-        )
-
-        authenticationWorkFlow
+        AuthenticationWorkflow(authenticationService: authenticationService)
             .renderTester(
                 initialState: .authorizingTwoFactor(
                     twoFactorCode: "twoFactorCode",
                     intermediateSession: "intermediateSession"
                 )
             )
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: LoginWorkflow.self,
+                producingRendering: LoginScreen(
+                    title: "",
+                    email: "",
+                    onEmailChanged: { _ in },
+                    password: "",
+                    onPasswordChanged: { _ in },
+                    onLoginTapped: {}
+                )
             )
+            .expect(
+                worker: AuthenticationWorkflow.AuthorizingTwoFactorWorker(
+                    authenticationService: authenticationService,
+                    intermediateToken: "intermediateSession",
+                    twoFactorCode: "twoFactorCode"
+                )
+            )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .verifyNoAction()
     }
 
     func test_render_authenticationErrorAlert() {
         let authenticationService = AuthenticationService()
-        let authenticationWorkFlow = AuthenticationWorkflow(authenticationService: authenticationService)
 
-        let expectedState = ExpectedState<AuthenticationWorkflow>(
-            state: .authenticationErrorAlert(error: AuthenticationService.AuthenticationError.invalidUserPassword)
-        )
-
-        let expectedWorkflow = ExpectedWorkflow(
-            type: LoginWorkflow.self,
-            rendering: LoginScreen(
-                title: "",
-                email: "",
-                onEmailChanged: { _ in },
-                password: "",
-                onPasswordChanged: { _ in },
-                onLoginTapped: {}
-            ),
-            output: nil
-        )
-
-        let renderExpectations = RenderExpectations<AuthenticationWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: [expectedWorkflow]
-        )
-
-        authenticationWorkFlow
+        AuthenticationWorkflow(authenticationService: authenticationService)
             .renderTester(
                 initialState: .authenticationErrorAlert(error: AuthenticationService.AuthenticationError.invalidUserPassword)
             )
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNotNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: LoginWorkflow.self,
+                producingRendering: LoginScreen(
+                    title: "",
+                    email: "",
+                    onEmailChanged: { _ in },
+                    password: "",
+                    onPasswordChanged: { _ in },
+                    onLoginTapped: {}
+                )
             )
+            .render { screen in
+                XCTAssertNotNil(screen.alert)
+            }
     }
 }

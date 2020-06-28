@@ -90,14 +90,12 @@ class LoginWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_initial() {
-        let loginWorkflow = LoginWorkflow()
-        loginWorkflow
+        LoginWorkflow()
             .renderTester(initialState: LoginWorkflow.State(email: "reza@example.com", password: "password"))
-            .render(assertions: { screen in
+            .render { screen in
                 XCTAssertEqual(screen.title, "Welcome! Please log in to play TicTacToe!")
                 XCTAssertEqual(screen.email, "reza@example.com")
                 XCTAssertEqual(screen.password, "password")
             }
-            )
     }
 }
