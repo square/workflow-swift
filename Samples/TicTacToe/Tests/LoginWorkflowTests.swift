@@ -32,13 +32,9 @@ class LoginWorkflowTests: XCTestCase {
                     password: "password"
                 )
             )
-            .send(
-                action: .emailUpdated("square@example.com"),
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .send(action: .emailUpdated("square@example.com"))
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.email, "square@example.com")
                 XCTAssertEqual(state.password, "password")
             }
@@ -53,13 +49,9 @@ class LoginWorkflowTests: XCTestCase {
                     password: "password"
                 )
             )
-            .send(
-                action: .passwordUpdated("drowssap"),
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .send(action: .passwordUpdated("drowssap"))
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.email, "reza@example.com")
                 XCTAssertEqual(state.password, "drowssap")
             }
@@ -74,17 +66,14 @@ class LoginWorkflowTests: XCTestCase {
                     password: "password"
                 )
             )
-            .send(
-                action: .login,
-                outputAssertions: { output in
-                    XCTAssertNotNil(output)
-                    switch output! {
-                    case .login(let email, let password):
-                        XCTAssertEqual(email, "reza@example.com")
-                        XCTAssertEqual(password, "password")
-                    }
+            .send(action: .login)
+            .verifyOutput { output in
+                switch output {
+                case .login(let email, let password):
+                    XCTAssertEqual(email, "reza@example.com")
+                    XCTAssertEqual(password, "password")
                 }
-            )
+            }
     }
 
     // MARK: Render Tests

@@ -23,28 +23,31 @@ class TodoListWorkflowTests: XCTestCase {
         TodoListWorkflow
             .Action
             .tester(withState: TodoListWorkflow.State())
-            .send(action: .onBack) { output in
+            .send(action: .onBack)
+            .verifyOutput { output in
                 // The `.onBack` action should emit an output of `.back`.
                 switch output {
-                case .back?:
+                case .back:
                     break // Expected
                 default:
                     XCTFail("Expected an output of `.back`")
                 }
             }
-            .send(action: .selectTodo(index: 7)) { output in
+            .send(action: .selectTodo(index: 7))
+            .verifyOutput { output in
                 // The `.selectTodo` action should emit a `.selectTodo` output.
                 switch output {
-                case .selectTodo(let index)?:
+                case .selectTodo(let index):
                     XCTAssertEqual(7, index)
                 default:
                     XCTFail("Expected an output of `.selectTodo`")
                 }
             }
-            .send(action: .new) { output in
+            .send(action: .new)
+            .verifyOutput { output in
                 // The`.new` action should emit a `.newTodo` output.
                 switch output {
-                case .newTodo?:
+                case .newTodo:
                     break // Expected
                 default:
                     XCTFail("Expected an output of `.newTodo`")

@@ -22,15 +22,14 @@ class WelcomeWorkflowTests: XCTestCase {
     func testNameUpdates() {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .assertState { state in
+            .verifyState { state in
                 // The initial state provided was an empty name.
                 XCTAssertEqual("", state.name)
             }
-            .send(action: .nameChanged(name: "myName")) { output in
-                // No output is expected when the name changes.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .nameChanged(name: "myName"))
+            // No output is expected when the name changes.
+            .assertNoOutput()
+            .verifyState { state in
                 // The `name` has been updated from the action.
                 XCTAssertEqual("myName", state.name)
             }
@@ -39,29 +38,26 @@ class WelcomeWorkflowTests: XCTestCase {
     func testLogin() {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .didLogin) { output in
-                // Since the name is empty, `.didLogin` will not emit an output.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .didLogin)
+            // Since the name is empty, `.didLogin` will not emit an output.
+            .assertNoOutput()
+            .verifyState { state in
                 // The name is empty, as was specified in the initial state.
                 XCTAssertEqual("", state.name)
             }
-            .send(action: .nameChanged(name: "MyName")) { output in
-                // Update the name.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .nameChanged(name: "MyName"))
+            // Update the name, no output expected.
+            .assertNoOutput()
+            .verifyState { state in
                 // Validate the name was updated.
                 XCTAssertEqual("MyName", state.name)
             }
-            .send(action: .didLogin) { output in
+            .send(action: .didLogin)
+            .verifyOutput { output in
                 // Now a `.didLogin` output should be emitted when the `.didLogin` action was received.
                 switch output {
-                case .didLogin(let name)?:
+                case .didLogin(let name):
                     XCTAssertEqual("MyName", name)
-                case nil:
-                    XCTFail("Did not receive an output for .didLogin")
                 }
             }
     }

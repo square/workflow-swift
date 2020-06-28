@@ -30,7 +30,7 @@ class MainWorkflowTests: XCTestCase {
             .Action
             .tester(withState: .authenticating)
             .send(action: .authenticated(sessionToken: "token"))
-            .assertState { state in
+            .verifyState { state in
                 if case MainWorkflow.State.runningGame(let token) = state {
                     XCTAssertEqual(token, "token")
                 } else {
@@ -44,9 +44,7 @@ class MainWorkflowTests: XCTestCase {
             .Action
             .tester(withState: .runningGame(sessionToken: "token"))
             .send(action: .logout)
-            .assertState { state in
-                XCTAssertEqual(state, .authenticating)
-            }
+            .assert(state: .authenticating)
     }
 
     // MARK: Render Tests

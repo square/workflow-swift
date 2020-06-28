@@ -30,23 +30,16 @@ class RunGameWorkflowTests: XCTestCase {
         RunGameWorkflow
             .Action
             .tester(withState: initalState)
-            .send(
-                action: .updatePlayerX("❌"),
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .send(action: .updatePlayerX("❌"))
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.playerX, "❌")
                 XCTAssertEqual(state.playerO, "O")
                 XCTAssertEqual(state.step, .newGame)
-            }.send(
-                action: .updatePlayerO("🅾️"),
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            }
+            .send(action: .updatePlayerO("🅾️"))
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.playerX, "❌")
                 XCTAssertEqual(state.playerO, "🅾️")
                 XCTAssertEqual(state.step, .newGame)
@@ -54,7 +47,7 @@ class RunGameWorkflowTests: XCTestCase {
     }
 
     func test_action_startGame() {
-        let initalState = RunGameWorkflow.State(
+        let initialState = RunGameWorkflow.State(
             playerX: "X",
             playerO: "O",
             step: .newGame
@@ -62,14 +55,10 @@ class RunGameWorkflowTests: XCTestCase {
 
         RunGameWorkflow
             .Action
-            .tester(withState: initalState)
-            .send(
-                action: .startGame,
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .tester(withState: initialState)
+            .send(action: .startGame)
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.playerX, "X")
                 XCTAssertEqual(state.playerO, "O")
                 XCTAssertEqual(state.step, .playing)
@@ -86,13 +75,9 @@ class RunGameWorkflowTests: XCTestCase {
         RunGameWorkflow
             .Action
             .tester(withState: playingState)
-            .send(
-                action: .back,
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .send(action: .back)
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.playerX, "X")
                 XCTAssertEqual(state.playerO, "O")
                 XCTAssertEqual(state.step, .newGame)
@@ -109,13 +94,9 @@ class RunGameWorkflowTests: XCTestCase {
         RunGameWorkflow
             .Action
             .tester(withState: playingState)
-            .send(
-                action: .confirmQuit,
-                outputAssertions: { output in
-                    XCTAssertNil(output)
-                }
-            )
-            .assertState { state in
+            .send(action: .confirmQuit)
+            .assertNoOutput()
+            .verifyState { state in
                 XCTAssertEqual(state.playerX, "X")
                 XCTAssertEqual(state.playerO, "O")
                 XCTAssertEqual(state.step, .maybeQuit)
