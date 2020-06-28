@@ -19,7 +19,7 @@ import XCTest
 
 /// The result of a `RenderTester` rendering. Used to verify state, output, and actions that were produced as a result of
 /// actions performed during the render (such as child workflow output being produced).
-public final class RenderTesterResult<WorkflowType: Workflow> {
+public struct RenderTesterResult<WorkflowType: Workflow> {
     let state: WorkflowType.State
     let appliedAction: AppliedAction<WorkflowType>?
     let output: WorkflowType.Output?

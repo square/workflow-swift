@@ -208,7 +208,7 @@ final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
             }
     }
 
-    func test_implict_expectations() {
+    func test_impplict_expectations() {
         TestWorkflow(initialText: "hello")
             .renderTester()
             .render(
@@ -223,6 +223,44 @@ final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
                 expectedWorkflows: [],
                 assertions: { rendering in
                     XCTAssertEqual("hello", rendering.text)
+                }
+            )
+    }
+
+    func test_multiple_renders() {
+        ParentWorkflow(initialText: "hello")
+            .renderTester()
+            .render(
+                expectedState: ExpectedState(
+                    state: ParentWorkflow.State(text: "Failed")
+                ),
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: .failure
+                    ),
+                ],
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
+            )
+            .assert { state in
+                XCTAssertEqual("Failed", state.text)
+            }
+            .render(
+                expectedState: ExpectedState(
+                    state: ParentWorkflow.State(text: "deliaF")
+                ),
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: .success
+                    ),
+                ],
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
                 }
             )
     }

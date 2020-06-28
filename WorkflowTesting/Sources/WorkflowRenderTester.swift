@@ -118,17 +118,26 @@
     ///     )
     ///     .render { _ in }
     /// ```
-    public final class RenderTester<WorkflowType: Workflow> {
+    public struct RenderTester<WorkflowType: Workflow> {
         let workflow: WorkflowType
         let state: WorkflowType.State
 
-        private var expectedWorkflows: [AnyExpectedWorkflow] = []
-        private var expectedWorkers: [AnyExpectedWorker] = []
-        private var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>] = [:]
+        private let expectedWorkflows: [AnyExpectedWorkflow]
+        private let expectedWorkers: [AnyExpectedWorker]
+        private let expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
 
-        init(workflow: WorkflowType, state: WorkflowType.State) {
+        init(
+            workflow: WorkflowType,
+            state: WorkflowType.State,
+            expectedWorkflows: [AnyExpectedWorkflow] = [],
+            expectedWorkers: [AnyExpectedWorker] = [],
+            expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>] = [:]
+        ) {
             self.workflow = workflow
             self.state = state
+            self.expectedWorkflows = expectedWorkflows
+            self.expectedWorkers = expectedWorkers
+            self.expectedSideEffects = expectedSideEffects
         }
 
         /// Expect the given workflow type in the next rendering.
@@ -146,15 +155,19 @@
             producingOutput output: ExpectedWorkflowType.Output? = nil,
             assertions: (ExpectedWorkflowType) -> Void = { _ in }
         ) -> RenderTester<WorkflowType> {
-            expectedWorkflows
-                .append(
+            return RenderTester(
+                workflow: workflow,
+                state: state,
+                expectedWorkflows: expectedWorkflows.appending(
                     ExpectedWorkflow<ExpectedWorkflowType>(
                         key: key,
                         rendering: rendering,
                         output: output
                     )
-                )
-            return self
+                ),
+                expectedWorkers: expectedWorkers,
+                expectedSideEffects: expectedSideEffects
+            )
         }
 
         /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
@@ -166,23 +179,34 @@
             worker: ExpectedWorkerType,
             producingOutput output: ExpectedWorkerType.Output? = nil
         ) -> RenderTester<WorkflowType> {
-            expectedWorkers
-                .append(
+            return RenderTester(
+                workflow: workflow,
+                state: state,
+                expectedWorkflows: expectedWorkflows,
+                expectedWorkers: expectedWorkers.appending(
                     ExpectedWorker(
                         worker: worker,
                         output: output
                     )
-                )
-            return self
+                ),
+                expectedSideEffects: expectedSideEffects
+            )
         }
 
         /// Expect a side-effect for the given key.
         ///
         /// - Parameter key: The key to expect.
         public func expectSideEffect(key: AnyHashable) -> RenderTester<WorkflowType> {
-            // TODO: Assert not already expecting
-            expectedSideEffects[key] = ExpectedSideEffect(key: key)
-            return self
+            return RenderTester(
+                workflow: workflow,
+                state: state,
+                expectedWorkflows: expectedWorkflows,
+                expectedWorkers: expectedWorkers,
+                expectedSideEffects: expectedSideEffects.setting(
+                    key: key,
+                    value: ExpectedSideEffect(key: key)
+                )
+            )
         }
 
         /// Expect a side-effect for the given key, and produce the given action when it is requested.
@@ -194,11 +218,19 @@
             key: AnyHashable,
             producingAction action: ActionType
         ) -> RenderTester<WorkflowType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
-            expectedSideEffects[key] = ExpectedSideEffectWithAction(key: key, action: action)
-            return self
+            return RenderTester(
+                workflow: workflow,
+                state: state,
+                expectedWorkflows: expectedWorkflows,
+                expectedWorkers: expectedWorkers,
+                expectedSideEffects: expectedSideEffects.setting(
+                    key: key,
+                    value: ExpectedSideEffectWithAction(key: key, action: action)
+                )
+            )
         }
 
-        /// Render the workflow under test. At this point, you should have set up all expecatations.
+        /// Render the workflow under test. At this point, you should have set up all expectations.
         ///
         /// The given `assertions` closure will be called with the produced rendering, allowing you to assert its properties or
         /// perform actions on it (such as closures that are wired up to a `Sink` inside the workflow.
@@ -231,6 +263,20 @@
                 appliedAction: contextImplementation.appliedAction,
                 output: contextImplementation.producedOutput
             )
+        }
+    }
+
+    extension Collection {
+        fileprivate func appending(_ element: Element) -> [Element] {
+            return self + [element]
+        }
+    }
+
+    extension Dictionary {
+        fileprivate func setting(key: Key, value: Value) -> [Key: Value] {
+            var newDictionary = self
+            newDictionary[key] = value
+            return newDictionary
         }
     }
 

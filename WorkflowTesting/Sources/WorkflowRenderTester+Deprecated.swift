@@ -22,19 +22,21 @@
         @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
         @discardableResult
         public func render(file: StaticString = #file, line: UInt = #line, with expectations: RenderExpectations<WorkflowType>, assertions: (WorkflowType.Rendering) -> Void) -> RenderTester<WorkflowType> {
+            var tester = self
+
             for expectedWorkflow in expectations.expectedWorkflows {
-                expectedWorkflow.expect(in: self)
+                expectedWorkflow.expect(in: &tester)
             }
 
             for expectedWorker in expectations.expectedWorkers {
-                expectedWorker.expect(in: self)
+                expectedWorker.expect(in: &tester)
             }
 
             for (_, expectedSideEffect) in expectations.expectedSideEffects {
-                expectedSideEffect.expect(in: self)
+                expectedSideEffect.expect(in: &tester)
             }
 
-            let result = render(assertions: assertions)
+            let result = tester.render(assertions: assertions)
 
             if let expectedState = expectations.expectedState {
                 expectedState.verify(in: result, file: file, line: line)
@@ -45,7 +47,7 @@
             }
 
             return RenderTester(
-                workflow: workflow,
+                workflow: tester.workflow,
                 state: result.state
             )
         }
