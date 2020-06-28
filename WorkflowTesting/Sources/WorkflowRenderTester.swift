@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
+// WorkflowTesting only available in Debug mode.
+//
+// `@testable import Workflow` will fail compilation in Release mode.
 #if DEBUG
 
-    // WorkflowTesting only available in Debug mode.
-//
-    // `@testable import Workflow` will fail compilation in Release mode.
-    @testable import Workflow
-
-    import ReactiveSwift
-    import class Workflow.Lifetime
     import XCTest
+    @testable import Workflow
 
     extension Workflow {
         /// Returns a `RenderTester` with a specified initial state.
@@ -39,313 +36,201 @@
 
     /// Testing helper for validating the behavior of calls to `render`.
     ///
-    /// Usage: Set up a set of `RenderExpectations` and then validate with a call to `render`.
+    /// Usage: `expect` workflows and side effects then validate with a call to `render` and
+    /// the resulting `RenderTesterResult`.
     /// Side-effects may be performed against the rendering to validate the behavior of actions.
-    ///
-    /// There is also a convenience `render` method where each expectation
-    /// is an individual parameter.
-    ///
-    /// Child workflows will always be rendered based upon their initial state.
     ///
     /// To directly test actions and their effects, use the `WorkflowActionTester`.
     ///
     /// ```
     /// workflow
     ///     .renderTester(initialState: TestWorkflow.State())
-    ///     .render(
-    ///         with: RenderExpectations(
-    ///         expectedState: ExpectedState(state: TestWorkflow.State()),
-    ///         expectedOutput: ExpectedOutput(output: TestWorkflow.Output.finished),
-    ///         expectedWorkers: [
-    ///             ExpectedWorker(
-    ///                 worker: TestWorker(),
-    ///                 output: TestWorker.Output.success),
-    ///             ...,
-    ///         ]
-    ///         expectedWorkflows: [
-    ///             ExpectedWorkflow(
-    ///                 type: ChildWorkflow.self,
-    ///                 key: "key",
-    ///                 rendering: "rendering",
-    ///                 output: ChildWorkflow.Output.success),
-    ///             ...,
-    ///         ]),
-    ///         assertions: { rendering in
-    ///             XCTAssertEqual("expected text on rendering", rendering.text)
-    ///         }
-    ///     .render(...) // continue testing. The state will be updated based on actions or outputs.
-    /// ```
-    ///
-    /// Using the convenience API
-    /// ```
-    /// workflow
-    ///     .renderTester(initialState: TestWorkflow.State())
-    ///     .render(
-    ///         expectedState: ExpectedState(state: TestWorkflow.State()),
-    ///         expectedOutput: ExpectedOutput(output: TestWorkflow.Output.finished),
-    ///         expectedWorkers: [
-    ///             ExpectedWorker(
-    ///                 worker: TestWorker(),
-    ///                 output: TestWorker.Output.success),
-    ///             ...,
-    ///         ]
-    ///         expectedWorkflows: [
-    ///             ExpectedWorkflow(
-    ///                 type: ChildWorkflow.self,
-    ///                 key: "key",
-    ///                 rendering: "rendering",
-    ///                 output: ChildWorkflow.Output.success)
-    ///             ...,
-    ///         ],
-    ///         assertions: { rendering in
-    ///             XCTAssertEqual("expected text on rendering", rendering.text)
-    ///         }
-    ///     .render(...) // continue testing. The state will be updated based on actions or outputs.
+    ///     .expect(
+    ///         worker: TestWorker(),
+    ///         output: TestWorker.Output.success
+    ///     )
+    ///     .expectWorkflow(
+    ///         type: ChildWorkflow.self,
+    ///         key: "key",
+    ///         rendering: "rendering",
+    ///         output: ChildWorkflow.Output.success
+    ///     )
+    ///     .render { rendering in
+    ///         XCTAssertEqual("expected text on rendering", rendering.text)
+    ///     }
+    ///     .verify(state: TestWorkflow.State())
+    ///     .verify(output: TestWorkflow.Output.finished)
     /// ```
     ///
     /// Validating the rendering only from the initial state provided by the workflow:
     /// ```
     /// workflow
     ///     .renderTester()
-    ///     .render(
-    ///         with: RenderExpectations(),
-    ///         assertions: { rendering in
-    ///             XCTAssertEqual("expected text on rendering", rendering.text)
-    ///         }
+    ///     .render { rendering in
+    ///         XCTAssertEqual("expected text on rendering", rendering.text)
+    ///     }
     /// ```
     ///
     /// Validate the state was updated from a callback on the rendering:
     /// ```
     /// workflow
     ///     .renderTester()
-    ///     .render(
-    ///         with: RenderExpectations(
-    ///         expectedState: ExpectedState(state: TestWorkflow.State(text: "updated")),
-    ///         assertions: { rendering in
-    ///             XCTAssertEqual("expected text on rendering", rendering.text)
-    ///             rendering.updateText("updated")
-    ///         }
+    ///     .render { rendering in
+    ///         XCTAssertEqual("expected text on rendering", rendering.text)
+    ///         rendering.updateText("updated")
+    ///     }
+    ///     .verify(
+    ///         state: TestWorkflow.State(text: "updated")
+    ///     )
     /// ```
     ///
     /// Validate an output was received from the workflow. The `action()` on the rendering will cause an action that will return an output.
     /// ```
     /// workflow
     ///     .renderTester()
-    ///     .render(
-    ///         with: RenderExpectations(
-    ///         expectedState: ExpectedOutput(output: .success)
-    ///         assertions: { rendering in
-    ///             rendering.action()
-    ///         }
+    ///     .render { rendering in
+    ///         rendering.action()
+    ///     }
+    ///     .verify(
+    ///        output: .success
+    ///     )
     /// ```
     ///
     /// Validate a worker is running, and simulate the effect of its output:
     /// ```
     /// workflow
     ///     .renderTester(initialState: TestWorkflow.State(loadingState: .loading))
-    ///     .render(
-    ///         with: RenderExpectations(
-    ///         expectedState: ExpectedState(state: TestWorkflow.State(loadingState: .idle)),
-    ///         expectedWorkers: [
-    ///             ExpectedWorker(
-    ///                 worker: TestWorker(),
-    ///                 output: TestWorker.Output.success),
-    ///             ...,
-    ///         ]),
-    ///         assertions: {}
+    ///     .expect(
+    ///         worker: TestWorker(),
+    ///         output: TestWorker.Output.success
+    ///     )
+    ///     .render { _ in }
     /// ```
     ///
     /// Validate a child workflow is run, and simulate the effect of its output:
     /// ```
     /// workflow
     ///     .renderTester(initialState: TestWorkflow.State(loadingState: .loading))
-    ///     .render(
-    ///         with: RenderExpectations(
-    ///         expectedState: ExpectedState(state: TestWorkflow.State(loadingState: .idle)),
-    ///         expectedWorkflows: [
-    ///             ExpectedWorkflow(
-    ///                 type: ChildWorkflow.self,
-    ///                 rendering: "rendering",
-    ///                 output: ChildWorkflow.Output.success
-    ///         ]),
-    ///         assertions: {}
+    ///     .expectWorkflow(
+    ///         type: ChildWorkflow.self,
+    ///         rendering: "rendering",
+    ///         output: ChildWorkflow.Output.success
+    ///     )
+    ///     .render { _ in }
     /// ```
     public final class RenderTester<WorkflowType: Workflow> {
-        private var workflow: WorkflowType
-        private var state: WorkflowType.State
+        let workflow: WorkflowType
+        let state: WorkflowType.State
+
+        private var expectedWorkflows: [AnyExpectedWorkflow] = []
+        private var expectedWorkers: [AnyExpectedWorker] = []
+        private var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>] = [:]
 
         init(workflow: WorkflowType, state: WorkflowType.State) {
             self.workflow = workflow
             self.state = state
         }
 
-        /// Call `render` with a set of expectations. If the expectations have not been fulfilled, the test will fail.
-        @discardableResult
-        public func render(file: StaticString = #file, line: UInt = #line, with expectations: RenderExpectations<WorkflowType>, assertions: (WorkflowType.Rendering) -> Void) -> RenderTester<WorkflowType> {
-            let testContext = RenderTestContext<WorkflowType>(
-                state: state,
-                expectations: expectations,
-                file: file,
-                line: line
-            )
-
-            let context = RenderContext.make(implementation: testContext)
-            let rendering = workflow.render(state: testContext.state, context: context)
-
-            assertions(rendering)
-            testContext.assertExpectations()
-
-            state = testContext.state
-
+        /// Expect the given workflow type in the next rendering.
+        ///
+        /// - Parameters:
+        ///   - type: The type of the expected workflow.
+        ///   - key: The key of the expected workflow (if specified).
+        ///   - rendering: The rendering result that should be returned when the workflow of this type is rendered.
+        ///   - output: An output that should be returned after the workflow of this type is rendered, if any.
+        ///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
+        public func expectWorkflow<ExpectedWorkflowType: Workflow>(
+            type: ExpectedWorkflowType.Type,
+            key: String = "",
+            producingRendering rendering: ExpectedWorkflowType.Rendering,
+            producingOutput output: ExpectedWorkflowType.Output? = nil,
+            assertions: (ExpectedWorkflowType) -> Void = { _ in }
+        ) -> RenderTester<WorkflowType> {
+            expectedWorkflows
+                .append(
+                    ExpectedWorkflow<ExpectedWorkflowType>(
+                        key: key,
+                        rendering: rendering,
+                        output: output
+                    )
+                )
             return self
         }
 
-        /// Convenience method for testing without creating an explicit RenderExpectation.
+        /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
+
+        /// - Parameters:
+        ///   - worker: The worker to be expected
+        ///   - output: An output that should be returned when this worker is requested, if any.
+        public func expect<ExpectedWorkerType: Worker>(
+            worker: ExpectedWorkerType,
+            producingOutput output: ExpectedWorkerType.Output? = nil
+        ) -> RenderTester<WorkflowType> {
+            expectedWorkers
+                .append(
+                    ExpectedWorker(
+                        worker: worker,
+                        output: output
+                    )
+                )
+            return self
+        }
+
+        /// Expect a side-effect for the given key.
+        ///
+        /// - Parameter key: The key to expect.
+        public func expectSideEffect(key: AnyHashable) -> RenderTester<WorkflowType> {
+            // TODO: Assert not already expecting
+            expectedSideEffects[key] = ExpectedSideEffect(key: key)
+            return self
+        }
+
+        /// Expect a side-effect for the given key, and produce the given action when it is requested.
+        ///
+        /// - Parameters:
+        ///   - key: The key to expect.
+        ///   - action: The action to produce when this side-effect is requested.
+        public func expectSideEffect<ActionType>(
+            key: AnyHashable,
+            producingAction action: ActionType
+        ) -> RenderTester<WorkflowType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
+            expectedSideEffects[key] = ExpectedSideEffectWithAction(key: key, action: action)
+            return self
+        }
+
+        /// Render the workflow under test. At this point, you should have set up all expecatations.
+        ///
+        /// The given `assertions` closure will be called with the produced rendering, allowing you to assert its properties or
+        /// perform actions on it (such as closures that are wired up to a `Sink` inside the workflow.
+        ///
+        /// - Parameters:
+        ///   - assertions: A closure called with the produced rendering for verification
+        /// - Returns: A `RenderTesterResult` that can be used to verify expected resulting state or outputs.
         @discardableResult
         public func render(
             file: StaticString = #file, line: UInt = #line,
-            expectedState: ExpectedState<WorkflowType>? = nil,
-            expectedOutput: ExpectedOutput<WorkflowType>? = nil,
-            expectedWorkers: [ExpectedWorker] = [],
-            expectedWorkflows: [ExpectedWorkflow] = [],
-            expectedSideEffects: [ExpectedSideEffect<WorkflowType>] = [],
             assertions: (WorkflowType.Rendering) -> Void
-        ) -> RenderTester<WorkflowType> {
-            let expectations = RenderExpectations(
-                expectedState: expectedState,
-                expectedOutput: expectedOutput,
-                expectedWorkers: expectedWorkers,
+        ) -> RenderTesterResult<WorkflowType> {
+            let contextImplementation = TestContext(
+                state: state,
                 expectedWorkflows: expectedWorkflows,
-                expectedSideEffects: expectedSideEffects
+                expectedWorkers: expectedWorkers,
+                expectedSideEffects: expectedSideEffects,
+                file: file,
+                line: line
             )
+            let context = RenderContext.make(implementation: contextImplementation)
+            let rendering = workflow.render(state: contextImplementation.state, context: context)
 
-            return render(file: file, line: line, with: expectations, assertions: assertions)
-        }
+            contextImplementation.assertNoLeftOverExpectations()
 
-        /// Assert the internal state.
-        @discardableResult
-        public func assert(state assertions: (WorkflowType.State) -> Void) -> RenderTester<WorkflowType> {
-            assertions(state)
-            return self
-        }
-    }
+            assertions(rendering)
 
-    fileprivate final class RenderTestContext<T: Workflow>: RenderContextType {
-        typealias WorkflowType = T
-
-        private var (lifetime, token) = ReactiveSwift.Lifetime.make()
-
-        var state: WorkflowType.State
-        var expectations: RenderExpectations<WorkflowType>
-        let file: StaticString
-        let line: UInt
-
-        init(state: WorkflowType.State, expectations: RenderExpectations<WorkflowType>, file: StaticString, line: UInt) {
-            self.state = state
-            self.expectations = expectations
-            self.file = file
-            self.line = line
-        }
-
-        func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, RenderTestContext<T>.WorkflowType == Action.WorkflowType {
-            guard let workflowIndex = expectations.expectedWorkflows.firstIndex(where: { expectedWorkflow -> Bool in
-                type(of: workflow) == expectedWorkflow.workflowType && key == expectedWorkflow.key
-            }) else {
-                XCTFail("Unexpected child workflow of type \(workflow.self)", file: file, line: line)
-                fatalError()
-            }
-
-            let expectedWorkflow = expectations.expectedWorkflows.remove(at: workflowIndex)
-            if let childOutput = expectedWorkflow.output as? Child.Output {
-                apply(action: outputMap(childOutput))
-            }
-            return expectedWorkflow.rendering as! Child.Rendering
-        }
-
-        func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, T == Action.WorkflowType {
-            let (signal, observer) = Signal<AnyWorkflowAction<WorkflowType>, Never>.pipe()
-            let sink = Sink<Action> { action in
-                observer.send(value: AnyWorkflowAction(action))
-            }
-
-            signal
-                .take(during: lifetime)
-                .observeValues { [weak self] action in
-                    self?.apply(action: action)
-                }
-
-            return sink
-        }
-
-        func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, RenderTestContext<T>.WorkflowType == Action.WorkflowType {
-            guard let workerIndex = expectations.expectedWorkers.firstIndex(where: { (expectedWorker) -> Bool in
-                expectedWorker.isEquivalent(to: worker)
-            }) else {
-                XCTFail("Unexpected worker during render \(worker)", file: file, line: line)
-                return
-            }
-
-            let expectedWorker = expectations.expectedWorkers.remove(at: workerIndex)
-            if let action = expectedWorker.outputAction(outputMap: outputMap) {
-                apply(action: action)
-            }
-        }
-
-        func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
-            guard let sideEffect = expectations.expectedSideEffects.removeValue(forKey: key) else {
-                XCTFail("Unexpected side-effect during render \(key)", file: file, line: line)
-                return
-            }
-
-            sideEffect.action?(RenderContext.make(implementation: self))
-        }
-
-        private func apply<Action>(action: Action) where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
-            let output = action.apply(toState: &state)
-            switch (output, expectations.expectedOutput) {
-            case (.none, .none):
-                // No expected output, no output received.
-                break
-
-            case (.some, .none):
-                XCTFail("Received an output, but expected no output.", file: file, line: line)
-
-            case (.none, .some):
-                XCTFail("Expected an output, but received none.", file: file, line: line)
-
-            case (.some(let output), .some(let expectedOutput)):
-                XCTAssertTrue(expectedOutput.isEquivalent(output, expectedOutput.output), "expect output of \(expectedOutput.output) but received \(output)", file: file, line: line)
-            }
-            expectations.expectedOutput = nil
-        }
-
-        /// Validate the expectations were fulfilled, or fail if not.
-        func assertExpectations() {
-            if let expectedState = expectations.expectedState {
-                XCTAssertTrue(expectedState.isEquivalent(expectedState.state, state), "State: \(state) was not equivalent to expected state: \(expectedState.state)", file: file, line: line)
-            }
-
-            if let outputExpectation = expectations.expectedOutput {
-                XCTFail("Expected output of '\(outputExpectation.output)' but received none.", file: file, line: line)
-            }
-
-            if !expectations.expectedWorkers.isEmpty {
-                for expectedWorker in expectations.expectedWorkers {
-                    XCTFail("Expected worker \(expectedWorker.worker)", file: file, line: line)
-                }
-            }
-
-            if !expectations.expectedWorkflows.isEmpty {
-                for expectedWorkflow in expectations.expectedWorkflows {
-                    XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType) key: \(expectedWorkflow.key)", file: file, line: line)
-                }
-            }
-
-            if !expectations.expectedSideEffects.isEmpty {
-                for expectedSideEffect in expectations.expectedSideEffects {
-                    XCTFail("Expected side-effect with key: \(expectedSideEffect.key)", file: file, line: line)
-                }
-            }
+            return RenderTesterResult<WorkflowType>(
+                state: contextImplementation.state,
+                appliedAction: contextImplementation.appliedAction,
+                output: contextImplementation.producedOutput
+            )
         }
     }
 
