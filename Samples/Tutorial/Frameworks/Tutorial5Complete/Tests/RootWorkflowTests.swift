@@ -197,15 +197,15 @@ class RootWorkflowTests: XCTestCase {
             case .hidden:
                 XCTFail("Expected a visible navigation bar")
 
-            case let .visible(barContent):
+            case .visible(let barContent):
                 switch barContent.rightItem {
                 case .none:
                     XCTFail("Expected a right bar button")
 
-                case let .button(button):
+                case .button(let button):
 
                     switch button.content {
-                    case let .text(text):
+                    case .text(let text):
                         XCTAssertEqual("Save", text)
 
                     case .icon:

@@ -96,9 +96,9 @@ extension DemoWorkflow {
 
             case .refreshButtonTapped:
                 state.loadingState = .loading
-            case let .refreshComplete(message):
+            case .refreshComplete(let message):
                 state.loadingState = .idle(title: message)
-            case let .refreshError(error):
+            case .refreshError(let error):
                 state.loadingState = .idle(title: error.localizedDescription)
             }
             return nil
@@ -145,7 +145,7 @@ extension DemoWorkflow {
         let refreshEnabled: Bool
 
         switch state.loadingState {
-        case let .idle(title: refreshTitle):
+        case .idle(title: let refreshTitle):
             refreshText = refreshTitle
             refreshEnabled = true
 
@@ -158,9 +158,9 @@ extension DemoWorkflow {
 
             context.awaitResult(for: RefreshWorker()) { output -> Action in
                 switch output {
-                case let .success(result):
+                case .success(let result):
                     return .refreshComplete(result)
-                case let .error(error):
+                case .error(let error):
                     return .refreshError(error)
                 }
             }

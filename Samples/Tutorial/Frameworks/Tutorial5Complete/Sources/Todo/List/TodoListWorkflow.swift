@@ -62,7 +62,7 @@ extension TodoListWorkflow {
                 // When a `.onBack` action is received, emit a `.back` output
                 return .back
 
-            case let .selectTodo(index: index):
+            case .selectTodo(index: let index):
                 // Tell our parent that a todo item was selected.
                 return .selectTodo(index: index)
 

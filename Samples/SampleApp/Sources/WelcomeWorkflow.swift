@@ -48,7 +48,7 @@ extension WelcomeWorkflow {
 
         func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
             switch self {
-            case let .nameChanged(updatedName):
+            case .nameChanged(let updatedName):
                 state.name = updatedName
                 return nil
 

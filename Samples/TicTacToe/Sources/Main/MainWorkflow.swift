@@ -50,7 +50,7 @@ extension MainWorkflow {
 
         func apply(toState state: inout MainWorkflow.State) -> MainWorkflow.Output? {
             switch self {
-            case let .authenticated(sessionToken: sessionToken):
+            case .authenticated(sessionToken: let sessionToken):
                 state = .runningGame(sessionToken: sessionToken)
 
             case .logout:
@@ -73,7 +73,7 @@ extension MainWorkflow {
             return AuthenticationWorkflow(authenticationService: AuthenticationService())
                 .mapOutput { output -> Action in
                     switch output {
-                    case let .authorized(session: sessionToken):
+                    case .authorized(session: let sessionToken):
                         return .authenticated(sessionToken: sessionToken)
                     }
                 }

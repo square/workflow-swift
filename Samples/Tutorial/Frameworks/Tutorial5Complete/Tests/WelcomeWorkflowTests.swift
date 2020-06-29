@@ -58,7 +58,7 @@ class WelcomeWorkflowTests: XCTestCase {
             .send(action: .didLogin) { output in
                 // Now a `.didLogin` output should be emitted when the `.didLogin` action was received.
                 switch output {
-                case let .didLogin(name)?:
+                case .didLogin(let name)?:
                     XCTAssertEqual("MyName", name)
                 case nil:
                     XCTFail("Did not receive an output for .didLogin")

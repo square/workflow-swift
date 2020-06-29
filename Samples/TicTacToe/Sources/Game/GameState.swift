@@ -21,7 +21,7 @@ enum GameState: Equatable {
 
     mutating func toggle() {
         switch self {
-        case let .ongoing(turn: player):
+        case .ongoing(turn: let player):
             switch player {
             case .x:
                 self = .ongoing(turn: .o)

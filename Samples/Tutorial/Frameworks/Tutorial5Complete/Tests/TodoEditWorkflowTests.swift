@@ -60,7 +60,7 @@ class TodoEditWorkflowTests: XCTestCase {
             // Send a `.saveChanges` action, which will emit a `.save` output with the updated todo model.
             .send(action: .saveChanges) { output in
                 switch output {
-                case let .save(todo)?:
+                case .save(let todo)?:
                     XCTAssertEqual("Updated Title", todo.title)
                     XCTAssertEqual("Updated Note", todo.note)
                 default:

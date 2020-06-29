@@ -139,16 +139,16 @@ final class WorkflowNodeTests: XCTestCase {
         switch debugInfo.kind {
         case .childDidUpdate:
             XCTFail()
-        case let .didUpdate(source):
+        case .didUpdate(let source):
             switch source {
             case .external, .worker, .sideEffect:
                 XCTFail()
-            case let .subtree(childInfo):
+            case .subtree(let childInfo):
                 XCTAssert(childInfo.workflowType == "\(EventEmittingWorkflow.self)")
                 switch childInfo.kind {
                 case .childDidUpdate:
                     XCTFail()
-                case let .didUpdate(source):
+                case .didUpdate(let source):
                     switch source {
                     case .external:
                         break
@@ -283,9 +283,9 @@ extension CompositeWorkflow {
 
         func apply(toState state: inout CompositeWorkflow<A, B>.State) -> CompositeWorkflow<A, B>.Output? {
             switch self {
-            case let .a(childOutput):
+            case .a(let childOutput):
                 return .childADidSomething(childOutput)
-            case let .b(childOutput):
+            case .b(let childOutput):
                 return .childBDidSomething(childOutput)
             }
         }
@@ -317,9 +317,9 @@ extension CompositeWorkflow.Rendering: Equatable where A.Rendering: Equatable, B
 extension CompositeWorkflow.Output: Equatable where A.Output: Equatable, B.Output: Equatable {
     fileprivate static func == (lhs: CompositeWorkflow.Output, rhs: CompositeWorkflow.Output) -> Bool {
         switch (lhs, rhs) {
-        case let (.childADidSomething(l), .childADidSomething(r)):
+        case (.childADidSomething(let l), .childADidSomething(let r)):
             return l == r
-        case let (.childBDidSomething(l), .childBDidSomething(r)):
+        case (.childBDidSomething(let l), .childBDidSomething(let r)):
             return l == r
         default:
             return false

@@ -50,7 +50,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
         let output: Output
 
         switch subtreeOutput {
-        case let .update(event, source):
+        case .update(let event, let source):
             /// Apply the update to the current state
             let outputEvent = event.apply(toState: &state)
 
@@ -63,7 +63,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
                 )
             )
 
-        case let .childDidUpdate(debugInfo):
+        case .childDidUpdate(let debugInfo):
             output = Output(
                 outputEvent: nil,
                 debugInfo: WorkflowUpdateDebugInfo(

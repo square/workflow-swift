@@ -64,7 +64,7 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
     private func update(barVisibility: BackStackScreen<ScreenType>.BarVisibility) {
         navigationItem.setHidesBackButton(true, animated: false)
 
-        guard case let .visible(barContent) = barVisibility else {
+        guard case .visible(let barContent) = barVisibility else {
             return
         }
 
@@ -74,7 +74,7 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
                 navigationItem.setLeftBarButton(nil, animated: true)
             }
 
-        case let .button(button):
+        case .button(let button):
             if let leftItem = navigationItem.leftBarButtonItem as? CallbackBarButtonItem {
                 leftItem.update(with: button)
             } else {
@@ -88,7 +88,7 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
                 navigationItem.setRightBarButton(nil, animated: true)
             }
 
-        case let .button(button):
+        case .button(let button):
             if let rightItem = navigationItem.rightBarButtonItem as? CallbackBarButtonItem {
                 rightItem.update(with: button)
             } else {
@@ -100,7 +100,7 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
         switch barContent.title {
         case .none:
             title = ""
-        case let .text(text):
+        case .text(let text):
             title = text
         }
         navigationItem.title = title
@@ -132,10 +132,10 @@ extension ScreenWrapperViewController {
 
         func update(with button: BackStackScreen<ScreenType>.BarContent.Button) {
             switch button.content {
-            case let .text(title):
+            case .text(let title):
                 self.title = title
 
-            case let .icon(image):
+            case .icon(let image):
                 self.image = image
             }
 

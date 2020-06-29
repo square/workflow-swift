@@ -35,7 +35,7 @@ class TodoListWorkflowTests: XCTestCase {
             .send(action: .selectTodo(index: 7)) { output in
                 // The `.selectTodo` action should emit a `.selectTodo` output.
                 switch output {
-                case let .selectTodo(index)?:
+                case .selectTodo(let index)?:
                     XCTAssertEqual(7, index)
                 default:
                     XCTFail("Expected an output of `.selectTodo`")

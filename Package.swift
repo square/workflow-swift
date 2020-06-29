@@ -21,7 +21,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.44.9"),
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.44.14"),
     ],
     targets: [
         .target(

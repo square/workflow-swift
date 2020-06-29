@@ -67,10 +67,10 @@ extension TodoEditWorkflow {
 
         func apply(toState state: inout TodoEditWorkflow.State) -> TodoEditWorkflow.Output? {
             switch self {
-            case let .titleChanged(title):
+            case .titleChanged(let title):
                 state.todo.title = title
 
-            case let .noteChanged(note):
+            case .noteChanged(let note):
                 state.todo.note = note
 
             case .discardChanges:
