@@ -37,6 +37,7 @@ jobs:
     strategy:
       matrix:
         scheme: 
+        - Development-Unit-WorkflowTesting
         - Development-Unit-WorkflowTests
         - Development-Unit-WorkflowUITests
         - Development-Unit-SplitScreenTests
