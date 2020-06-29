@@ -289,6 +289,18 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
+    func test_verifyWorkflow_assertion_fails() {
+        let tester = TestWorkflow()
+            .renderTester(initialState: .workflow(param: "", key: ""))
+            .expectWorkflow(type: TestChildWorkflow.self, key: "", producingRendering: "", producingOutput: nil) { workflow in
+                XCTFail("Workflow Assertion Fired")
+            }
+
+        expectingFailure("Workflow Assertion Fired") {
+            tester.render { _ in }
+        }
+    }
+
     // MARK: State
 
     func test_verifyState() {

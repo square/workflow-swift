@@ -36,10 +36,12 @@
         internal class ExpectedWorkflow<ExpectedWorkflowType: Workflow>: AnyExpectedWorkflow {
             let rendering: ExpectedWorkflowType.Rendering
             let output: ExpectedWorkflowType.Output?
+            let assertions: (ExpectedWorkflowType) -> Void
 
-            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, file: StaticString, line: UInt) {
+            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }, file: StaticString, line: UInt) {
                 self.rendering = rendering
                 self.output = output
+                self.assertions = assertions
                 super.init(workflowType: ExpectedWorkflowType.self, key: key, file: file, line: line)
             }
         }
