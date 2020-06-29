@@ -52,56 +52,29 @@ class MainWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_authenticating() {
-        let mainWorkflow = MainWorkflow()
-
-        let expectedState = ExpectedState<MainWorkflow>(state: .authenticating)
-
-        let expectedWorkflow = ExpectedWorkflow(
-            type: AuthenticationWorkflow.self,
-            rendering: AuthenticationWorkflow.Rendering(
-                baseScreen: ModalContainerScreen(
-                    baseScreen: BackStackScreen(items: []), modals: []
-                ),
-                alert: nil
-            )
-        )
-
-        let renderExpectations = RenderExpectations(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: [expectedWorkflow]
-        )
-
-        mainWorkflow
+        MainWorkflow()
             .renderTester()
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: AuthenticationWorkflow.self,
+                producingRendering: AuthenticationWorkflow.Rendering(
+                    baseScreen: ModalContainerScreen(
+                        baseScreen: BackStackScreen(items: []), modals: []
+                    ),
+                    alert: nil
+                )
             )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .assertNoAction()
     }
 
     func disabled_test_render_runningGame() {
-        let mainWorkflow = MainWorkflow()
-
-        let expectedState = ExpectedState<MainWorkflow>(state: .runningGame(sessionToken: "token"))
-
-        let renderExpectations = RenderExpectations(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: []
-        )
-
-        mainWorkflow
+        MainWorkflow()
             .renderTester()
-            .render(
-                with: renderExpectations,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
-            )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .assert(state: .runningGame(sessionToken: "token"))
     }
 }

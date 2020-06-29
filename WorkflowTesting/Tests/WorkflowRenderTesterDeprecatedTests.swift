@@ -19,71 +19,92 @@ import Workflow
 import WorkflowTesting
 import XCTest
 
-final class WorkflowRenderTesterTests: XCTestCase {
+final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
+    func test_assertState() {
+        let renderTester = TestWorkflow(initialText: "initial").renderTester()
+        var testedAssertion = false
+
+        renderTester.assert { state in
+            XCTAssertEqual("initial", state.text)
+            XCTAssertEqual(.idle, state.substate)
+            testedAssertion = true
+        }
+        XCTAssertTrue(testedAssertion)
+    }
+
     func test_render() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
         var testedAssertion = false
 
-        renderTester
-            .render { screen in
+        renderTester.render(
+            with: RenderExpectations(
+                expectedState: ExpectedState(
+                    state: TestWorkflow.State(
+                        text: "initial",
+                        substate: .idle
+                    )
+                )
+            ),
+            assertions: { screen in
                 XCTAssertEqual("initial", screen.text)
                 testedAssertion = true
             }
-            .assert(
-                state: TestWorkflow.State(
-                    text: "initial",
-                    substate: .idle
-                )
-            )
-
+        )
         XCTAssertTrue(testedAssertion)
     }
 
     func test_simple_render() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
-        renderTester
-            .render { screen in
-                XCTAssertEqual("initial", screen.text)
-            }
-            .assertNoAction()
+        renderTester.render { screen in
+            XCTAssertEqual("initial", screen.text)
+        }
     }
 
     func test_action() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
-        renderTester
-            .render { screen in
+        renderTester.render(
+            with: RenderExpectations(
+                expectedState: ExpectedState(
+                    state: TestWorkflow.State(
+                        text: "initial",
+                        substate: .waiting
+                    )
+                )
+            ),
+            assertions: { screen in
                 XCTAssertEqual("initial", screen.text)
                 screen.tapped()
             }
-            .assert(
-                state: TestWorkflow.State(
-                    text: "initial",
-                    substate: .waiting
-                )
-            )
+        )
     }
 
     func test_sideEffects() {
         let renderTester = SideEffectWorkflow().renderTester()
 
-        renderTester
-            .expectSideEffect(
-                key: TestSideEffectKey(),
-                producingAction: SideEffectWorkflow.Action.testAction
-            )
-            .render { _ in }
-            .assert(state: .success)
+        renderTester.render(
+            with: RenderExpectations(
+                expectedState: ExpectedState(state: .success),
+                expectedSideEffects: [
+                    ExpectedSideEffect(key: TestSideEffectKey(), action: SideEffectWorkflow.Action.testAction),
+                ]
+            ),
+            assertions: { _ in }
+        )
     }
 
     func test_output() {
         OutputWorkflow()
             .renderTester()
-            .render { rendering in
-                rendering.tapped()
-            }
-            .assert(output: .success)
+            .render(
+                with: RenderExpectations(
+                    expectedOutput: ExpectedOutput(output: .success)
+                ),
+                assertions: { rendering in
+                    rendering.tapped()
+                }
+            )
     }
 
     func test_workers() {
@@ -95,12 +116,17 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 )
             )
 
-        renderTester
-            .expect(worker: TestWorker(text: "otherText"))
-            .render { screen in
+        let expectedWorker = ExpectedWorker(worker: TestWorker(text: "otherText"))
+
+        renderTester.render(
+            with: RenderExpectations(
+                expectedState: nil,
+                expectedWorkers: [expectedWorker]
+            ),
+            assertions: { screen in
                 XCTAssertEqual("otherText", screen.text)
             }
-            .assertNoAction()
+        )
     }
 
     func test_workerOutput() {
@@ -110,46 +136,133 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 substate: .waiting
             ))
 
-        renderTester
-            .expect(
-                worker: TestWorker(text: "otherText"),
-                producingOutput: .success
-            )
-            .render { screen in
+        let expectedWorker = ExpectedWorker(worker: TestWorker(text: "otherText"), output: .success)
+        let expectedState = ExpectedState<TestWorkflow>(state: TestWorkflow.State(text: "otherText", substate: .idle))
+
+        renderTester.render(
+            with: RenderExpectations(
+                expectedState: expectedState,
+                expectedWorkers: [expectedWorker]
+            ),
+            assertions: { screen in
                 XCTAssertEqual("otherText", screen.text)
             }
-            .assert(state: TestWorkflow.State(text: "otherText", substate: .idle))
+        )
     }
 
     func test_childWorkflow() {
+        // Test the child independently from the parent.
+        ChildWorkflow(text: "hello")
+            .renderTester()
+            .render(
+                with: RenderExpectations<ChildWorkflow>(
+                    expectedOutput: ExpectedOutput(output: .success),
+                    expectedWorkers: [
+                        ExpectedWorker(
+                            worker: TestWorker(text: "hello"),
+                            output: .success
+                        ),
+                    ]
+                ),
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
+            )
+
+        // Test the parent simulating the behavior of the child. The worker would run, but because the child is simulated, does not run.
         ParentWorkflow(initialText: "hello")
             .renderTester()
-            .expectWorkflow(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh"
+            .render(
+                with: RenderExpectations<ParentWorkflow>(expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: nil
+                    ),
+                ]),
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
             )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }
-            .assertNoAction()
     }
 
     func test_childWorkflowOutput() {
         // Test that a child emitting an output is handled as an action by the parent
         ParentWorkflow(initialText: "hello")
             .renderTester()
-            .expectWorkflow(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh",
-                producingOutput: .failure
+            .render(
+                expectedState: ExpectedState(state: ParentWorkflow.State(text: "Failed")),
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: .failure
+                    ),
+                ],
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
             )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }
-            .assertNoOutput()
-            .verifyState { state in
+            .assert { state in
                 XCTAssertEqual("Failed", state.text)
             }
+    }
+
+    func test_impplict_expectations() {
+        TestWorkflow(initialText: "hello")
+            .renderTester()
+            .render(
+                expectedState: ExpectedState<TestWorkflow>(
+                    state: TestWorkflow.State(
+                        text: "hello",
+                        substate: .idle
+                    )
+                ),
+                expectedOutput: nil,
+                expectedWorkers: [],
+                expectedWorkflows: [],
+                assertions: { rendering in
+                    XCTAssertEqual("hello", rendering.text)
+                }
+            )
+    }
+
+    func test_multiple_renders() {
+        ParentWorkflow(initialText: "hello")
+            .renderTester()
+            .render(
+                expectedState: ExpectedState(
+                    state: ParentWorkflow.State(text: "Failed")
+                ),
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: .failure
+                    ),
+                ],
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
+            )
+            .assert { state in
+                XCTAssertEqual("Failed", state.text)
+            }
+            .render(
+                expectedState: ExpectedState(
+                    state: ParentWorkflow.State(text: "deliaF")
+                ),
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: ChildWorkflow.self,
+                        rendering: "olleh",
+                        output: .success
+                    ),
+                ],
+                assertions: { rendering in
+                    XCTAssertEqual("olleh", rendering)
+                }
+            )
     }
 }
 

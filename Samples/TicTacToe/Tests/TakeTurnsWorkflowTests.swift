@@ -217,25 +217,9 @@ class TakeTurnsWorkflowTests: XCTestCase {
             gameState: .ongoing(turn: .x)
         )
 
-        let expectedState = ExpectedState<TakeTurnsWorkflow>(state: emptyBoardState)
-
-        let renderExpectation = RenderExpectations<TakeTurnsWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: []
-        )
-
-        let workflow = TakeTurnsWorkflow(
-            playerX: "X",
-            playerO: "O"
-        )
-
-        workflow
-            .renderTester()
-            .render(
-                with: renderExpectation
-            ) { screen in
+        TakeTurnsWorkflow(playerX: "X", playerO: "O")
+            .renderTester(initialState: emptyBoardState)
+            .render { screen in
 
                 // The display value for player X should match what was passed to the workflow.
                 XCTAssertEqual(screen.playerX, "X")
@@ -250,6 +234,30 @@ class TakeTurnsWorkflowTests: XCTestCase {
                     XCTFail("x should start the game since the board is setup with ongoing(turn: .x)")
                 }
                 XCTAssertEqual(screen.board, Board().rows)
+            }
+            .assertNoAction()
+    }
+
+    // Empty board with X making the first move.
+    func test_render_initialBoard_action() {
+        let emptyBoardState = TakeTurnsWorkflow.State(
+            board: Board(),
+            gameState: .ongoing(turn: .x)
+        )
+
+        TakeTurnsWorkflow(playerX: "X", playerO: "O")
+            .renderTester(initialState: emptyBoardState)
+            .render { screen in
+                // Select a tile
+                screen.onSelected(1, 1)
+            }
+            .verifyAction { (action: TakeTurnsWorkflow.Action) in
+                switch action {
+                case .selected(row: 1, col: 1):
+                    break
+                default:
+                    XCTFail("Expected .selected(row: 1, col: 1), got \(action)")
+                }
             }
     }
 
@@ -272,25 +280,9 @@ class TakeTurnsWorkflowTests: XCTestCase {
             gameState: .win(.o)
         )
 
-        let expectedState = ExpectedState<TakeTurnsWorkflow>(state: boardState)
-
-        let renderExpectation = RenderExpectations<TakeTurnsWorkflow>(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: []
-        )
-
-        let workflow = TakeTurnsWorkflow(
-            playerX: "X",
-            playerO: "O"
-        )
-
-        workflow
+        TakeTurnsWorkflow(playerX: "X", playerO: "O")
             .renderTester(initialState: boardState)
-            .render(
-                with: renderExpectation
-            ) { screen in
+            .render { screen in
 
                 // The display value for player X should match what was passed to the workflow.
                 XCTAssertEqual(screen.playerX, "X")
@@ -305,5 +297,6 @@ class TakeTurnsWorkflowTests: XCTestCase {
                     XCTFail("o should win the game")
                 }
             }
+            .assertNoAction()
     }
 }

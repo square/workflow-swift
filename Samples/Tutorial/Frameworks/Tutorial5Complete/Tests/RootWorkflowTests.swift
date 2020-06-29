@@ -28,75 +28,58 @@ class RootWorkflowTests: XCTestCase {
         RootWorkflow()
             // Start in the `.welcome` state
             .renderTester(initialState: RootWorkflow.State.welcome)
-            .render(
-                // Expect the state to stay as `.welcome`.
-                expectedState: ExpectedState(state: RootWorkflow.State.welcome),
-                // No output is expected from the root workflow.
-                expectedOutput: nil,
-                // There are no workers that should be run.
-                expectedWorkers: [],
-                // The `WelcomeWorkflow` is expected to be started in this render.
-                expectedWorkflows: [
-                    ExpectedWorkflow(
-                        type: WelcomeWorkflow.self,
-                        // Simulate this as the `WelcomeScreen` returned by the `WelcomeWorkflow`. The callback can be stubbed out, as they won't be used.
-                        rendering: WelcomeScreen(
-                            name: "MyName",
-                            onNameChanged: { _ in },
-                            onLoginTapped: {}
-                        )
-                    ),
-                ],
-                // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen.
-                assertions: { rendering in
-                    XCTAssertEqual(1, rendering.items.count)
-                    guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
-                        XCTFail("Expected first screen to be a `WelcomeScreen`")
-                        return
-                    }
-                    XCTAssertEqual("MyName", welcomeScreen.name)
-                }
+            // The `WelcomeWorkflow` is expected to be started in this render.
+            .expectWorkflow(
+                type: WelcomeWorkflow.self,
+                // Simulate this as the `WelcomeScreen` returned by the `WelcomeWorkflow`. The callback can be stubbed out, as they won't be used.
+                producingRendering: WelcomeScreen(
+                    name: "MyName",
+                    onNameChanged: { _ in },
+                    onLoginTapped: {}
+                )
             )
+            // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen.
+            .render { rendering in
+                XCTAssertEqual(1, rendering.items.count)
+                guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
+                    XCTFail("Expected first screen to be a `WelcomeScreen`")
+                    return
+                }
+                XCTAssertEqual("MyName", welcomeScreen.name)
+            }
+            // No output should be produced from the root workflow.
+            .assertNoOutput()
+            // Assert that the state to stays as `.welcome`.
+            .assert(state: .welcome)
     }
 
     func testLogin() {
         RootWorkflow()
             // Start in the `.welcome` state
             .renderTester(initialState: RootWorkflow.State.welcome)
-            .render(
-                // Expect the state to transition to `.todo`
-                expectedState: ExpectedState(state: RootWorkflow.State.todo(name: "MyName")),
-                // No output is expected from the root workflow.
-                expectedOutput: nil,
-                // There are no workers that should be run.
-                expectedWorkers: [],
-                // The `WelcomeWorkflow` is expected to be started in this render.
-                expectedWorkflows: [
-                    ExpectedWorkflow(
-                        type: WelcomeWorkflow.self,
-                        // Simulate this as the `WelcomeScreen` returned by the `WelcomeWorkflow`. The callback can be stubbed out, as they won't be used.
-                        rendering: WelcomeScreen(
-                            name: "MyName",
-                            onNameChanged: { _ in },
-                            onLoginTapped: {}
-                        ),
-                        // Simulate the `WelcomeWorkflow` sending an output of `.didLogin` as if the login button was tapped.
-                        output: .didLogin(name: "MyName")
-                    ),
-                ],
-                // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen (prior to the output).
-                assertions: { rendering in
-                    XCTAssertEqual(1, rendering.items.count)
-                    guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
-                        XCTFail("Expected first screen to be a `WelcomeScreen`")
-                        return
-                    }
-                    XCTAssertEqual("MyName", welcomeScreen.name)
-                }
+            // The `WelcomeWorkflow` is expected to be started in this render.
+            .expectWorkflow(
+                type: WelcomeWorkflow.self,
+                producingRendering: WelcomeScreen(
+                    name: "MyName",
+                    onNameChanged: { _ in },
+                    onLoginTapped: {}
+                ),
+                // Simulate the `WelcomeWorkflow` sending an output of `.didLogin` as if the login button was tapped.
+                producingOutput: .didLogin(name: "MyName")
             )
-            .assert(state: { state in
-                XCTAssertEqual(.todo(name: "MyName"), state)
-        })
+            // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen (prior to the output).
+            .render { rendering in
+                XCTAssertEqual(1, rendering.items.count)
+                guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
+                    XCTFail("Expected first screen to be a `WelcomeScreen`")
+                    return
+                }
+                XCTAssertEqual("MyName", welcomeScreen.name)
+            }
+            // No output should be produced from the root workflow.
+            .assertNoOutput()
+            .assert(state: .todo(name: "MyName"))
     }
 
     func testAppFlow() {

@@ -125,105 +125,76 @@ class RunGameWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_newGame() {
-        let playingState = RunGameWorkflow.State(
-            playerX: "X",
-            playerO: "O",
-            step: .newGame
-        )
-
-        let runGameWorkflow = RunGameWorkflow()
-
-        runGameWorkflow
-            .renderTester(initialState: playingState)
-            .render(
-                assertions: { screen in
-                }
+        RunGameWorkflow()
+            .renderTester(
+                initialState: RunGameWorkflow.State(
+                    playerX: "X",
+                    playerO: "O",
+                    step: .newGame
+                )
             )
+            .render { screen in
+            }
+            .assertNoAction()
     }
 
     func test_render_playing() {
-        let playingState = RunGameWorkflow.State(
-            playerX: "X",
-            playerO: "O",
-            step: .playing
-        )
-
-        let runGameWorkflow = RunGameWorkflow()
-
-        let expectedState = ExpectedState<RunGameWorkflow>(
-            state: RunGameWorkflow.State(
-                playerX: "X",
-                playerO: "O",
-                step: .playing
+        RunGameWorkflow()
+            .renderTester(
+                initialState: RunGameWorkflow.State(
+                    playerX: "X",
+                    playerO: "O",
+                    step: .playing
+                )
             )
-        )
-
-        let expectedTakeTurnWorkflow = ExpectedWorkflow(
-            type: TakeTurnsWorkflow.self,
-            rendering: TakeTurnsWorkflow.Rendering(gameState: .tie, playerX: "", playerO: "", board: [], onSelected: { _, _ in })
-        )
-
-        let expectedRender = RenderExpectations(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: [expectedTakeTurnWorkflow]
-        )
-
-        runGameWorkflow
-            .renderTester(initialState: playingState)
-            .render(
-                with: expectedRender,
-                assertions: { screen in
-                    XCTAssertNil(screen.alert)
-                }
+            .expectWorkflow(
+                type: TakeTurnsWorkflow.self,
+                producingRendering: TakeTurnsWorkflow.Rendering(
+                    gameState: .tie,
+                    playerX: "",
+                    playerO: "",
+                    board: [],
+                    onSelected: { _, _ in }
+                )
             )
+            .render { screen in
+                XCTAssertNil(screen.alert)
+            }
+            .assertNoAction()
     }
 
     func test_render_maybeQuit() {
-        let playingState = RunGameWorkflow.State(
-            playerX: "X",
-            playerO: "O",
-            step: .maybeQuit
-        )
-
-        let runGameWorkflow = RunGameWorkflow()
-
-        let expectedState = ExpectedState<RunGameWorkflow>(
-            state: RunGameWorkflow.State(
-                playerX: "X",
-                playerO: "O",
-                step: .maybeQuit
+        RunGameWorkflow()
+            .renderTester(
+                initialState: RunGameWorkflow.State(
+                    playerX: "X",
+                    playerO: "O",
+                    step: .maybeQuit
+                )
             )
-        )
-
-        let expectedConfirmQuitWorkflow = ExpectedWorkflow(
-            type: ConfirmQuitWorkflow.self,
-            rendering: ConfirmQuitWorkflow.Rendering(ConfirmQuitScreen(question: ""), Alert(title: "title", message: "message", actions: []))
-        )
-
-        let expectedTakeTurnWorkflow = ExpectedWorkflow(
-            type: TakeTurnsWorkflow.self,
-            rendering: TakeTurnsWorkflow.Rendering(gameState: .tie, playerX: "", playerO: "", board: [], onSelected: { _, _ in })
-        )
-
-        let expectedRender = RenderExpectations(
-            expectedState: expectedState,
-            expectedOutput: nil,
-            expectedWorkers: [],
-            expectedWorkflows: [expectedConfirmQuitWorkflow, expectedTakeTurnWorkflow]
-        )
-
-        runGameWorkflow
-            .renderTester(initialState: playingState)
-            .render(
-                with: expectedRender,
-                assertions: { screen in
-                    XCTAssertNotNil(screen.alert)
-                    XCTAssertEqual(screen.alert!.title, "title")
-                    XCTAssertEqual(screen.alert!.message, "message")
-                    XCTAssertEqual(screen.baseScreen.modals.count, 1)
-                }
+            .expectWorkflow(
+                type: ConfirmQuitWorkflow.self,
+                producingRendering: (
+                    ConfirmQuitScreen(question: ""),
+                    Alert(title: "title", message: "message", actions: [])
+                )
             )
+            .expectWorkflow(
+                type: TakeTurnsWorkflow.self,
+                producingRendering: TakeTurnsWorkflow.Rendering(
+                    gameState: .tie,
+                    playerX: "",
+                    playerO: "",
+                    board: [],
+                    onSelected: { _, _ in }
+                )
+            )
+            .render { screen in
+                XCTAssertNotNil(screen.alert)
+                XCTAssertEqual(screen.alert!.title, "title")
+                XCTAssertEqual(screen.alert!.message, "message")
+                XCTAssertEqual(screen.baseScreen.modals.count, 1)
+            }
+            .assertNoAction()
     }
 }

@@ -70,24 +70,32 @@ class WelcomeWorkflowTests: XCTestCase {
         WelcomeWorkflow()
             // Use the initial state provided by the welcome workflow
             .renderTester()
-            .render(assertions: { screen in
+            .render { screen in
                 XCTAssertEqual("", screen.name)
                 // Simulate tapping the login button. No output will be emitted, as the name is empty:
                 screen.onLoginTapped()
-        })
-            // Next, simulate the name updating, expecting the state to be changed to reflect the updated name:
-            .render(
-                expectedState: ExpectedState(state: WelcomeWorkflow.State(name: "myName")),
-                assertions: { screen in
-                    screen.onNameChanged("myName")
-                }
-            )
-            // Finally, validate that `.didLogin` is sent when login is tapped with a non-empty name:
-            .render(
-                expectedOutput: ExpectedOutput(output: .didLogin(name: "myName")),
-                assertions: { screen in
-                    screen.onLoginTapped()
-                }
-            )
+            }
+            .assertNoOutput()
+            .assert(state: WelcomeWorkflow.State(name: ""))
+
+        // Next, simulate the name updating, expecting the state to be changed to reflect the updated name:
+        WelcomeWorkflow()
+            .renderTester(initialState: WelcomeWorkflow.State(name: ""))
+            .render { screen in
+                screen.onNameChanged("myName")
+            }
+            .assert(state: WelcomeWorkflow.State(name: "myName"))
+            .assertNoOutput()
+
+        // Finally, validate that `.didLogin` is sent when login is tapped with a non-empty name:
+        WelcomeWorkflow()
+            .renderTester(initialState: WelcomeWorkflow.State(name: "myName"))
+            .render { screen in
+                XCTAssertEqual("myName", screen.name)
+                // Simulate tapping the login button. No output will be emitted, as the name is empty:
+                screen.onLoginTapped()
+            }
+            .assert(output: .didLogin(name: "myName"))
+            .assert(state: WelcomeWorkflow.State(name: "myName"))
     }
 }
