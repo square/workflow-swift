@@ -153,6 +153,7 @@
             key: String = "",
             producingRendering rendering: ExpectedWorkflowType.Rendering,
             producingOutput output: ExpectedWorkflowType.Output? = nil,
+            file: StaticString = #file, line: UInt = #line,
             assertions: (ExpectedWorkflowType) -> Void = { _ in }
         ) -> RenderTester<WorkflowType> {
             return RenderTester(
@@ -162,7 +163,9 @@
                     ExpectedWorkflow<ExpectedWorkflowType>(
                         key: key,
                         rendering: rendering,
-                        output: output
+                        output: output,
+                        file: file,
+                        line: line
                     )
                 ),
                 expectedWorkers: expectedWorkers,
@@ -177,7 +180,8 @@
         ///   - output: An output that should be returned when this worker is requested, if any.
         public func expect<ExpectedWorkerType: Worker>(
             worker: ExpectedWorkerType,
-            producingOutput output: ExpectedWorkerType.Output? = nil
+            producingOutput output: ExpectedWorkerType.Output? = nil,
+            file: StaticString = #file, line: UInt = #line
         ) -> RenderTester<WorkflowType> {
             return RenderTester(
                 workflow: workflow,
@@ -186,7 +190,9 @@
                 expectedWorkers: expectedWorkers.appending(
                     ExpectedWorker(
                         worker: worker,
-                        output: output
+                        output: output,
+                        file: file,
+                        line: line
                     )
                 ),
                 expectedSideEffects: expectedSideEffects
@@ -196,7 +202,10 @@
         /// Expect a side-effect for the given key.
         ///
         /// - Parameter key: The key to expect.
-        public func expectSideEffect(key: AnyHashable) -> RenderTester<WorkflowType> {
+        public func expectSideEffect(
+            key: AnyHashable,
+            file: StaticString = #file, line: UInt = #line
+        ) -> RenderTester<WorkflowType> {
             return RenderTester(
                 workflow: workflow,
                 state: state,
@@ -204,7 +213,11 @@
                 expectedWorkers: expectedWorkers,
                 expectedSideEffects: expectedSideEffects.setting(
                     key: key,
-                    value: ExpectedSideEffect(key: key)
+                    value: ExpectedSideEffect(
+                        key: key,
+                        file: file,
+                        line: line
+                    )
                 )
             )
         }
@@ -216,7 +229,8 @@
         ///   - action: The action to produce when this side-effect is requested.
         public func expectSideEffect<ActionType>(
             key: AnyHashable,
-            producingAction action: ActionType
+            producingAction action: ActionType,
+            file: StaticString = #file, line: UInt = #line
         ) -> RenderTester<WorkflowType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
             return RenderTester(
                 workflow: workflow,
@@ -225,7 +239,12 @@
                 expectedWorkers: expectedWorkers,
                 expectedSideEffects: expectedSideEffects.setting(
                     key: key,
-                    value: ExpectedSideEffectWithAction(key: key, action: action)
+                    value: ExpectedSideEffectWithAction(
+                        key: key,
+                        action: action,
+                        file: file,
+                        line: line
+                    )
                 )
             )
         }

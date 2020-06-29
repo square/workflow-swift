@@ -22,9 +22,14 @@
         internal class AnyExpectedWorkflow {
             let workflowType: Any.Type
             let key: String
-            fileprivate init(workflowType: Any.Type, key: String) {
+            let file: StaticString
+            let line: UInt
+
+            fileprivate init(workflowType: Any.Type, key: String, file: StaticString, line: UInt) {
                 self.workflowType = workflowType
                 self.key = key
+                self.file = file
+                self.line = line
             }
         }
 
@@ -32,10 +37,10 @@
             let rendering: ExpectedWorkflowType.Rendering
             let output: ExpectedWorkflowType.Output?
 
-            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?) {
+            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, file: StaticString, line: UInt) {
                 self.rendering = rendering
                 self.output = output
-                super.init(workflowType: ExpectedWorkflowType.self, key: key)
+                super.init(workflowType: ExpectedWorkflowType.self, key: key, file: file, line: line)
             }
         }
     }
@@ -44,9 +49,14 @@
         internal class AnyExpectedWorker {
             let erasedWorker: Any
             let workerType: Any.Type
-            fileprivate init(workerType: Any.Type, erasedWorker: Any) {
+            let file: StaticString
+            let line: UInt
+
+            fileprivate init(workerType: Any.Type, erasedWorker: Any, file: StaticString, line: UInt) {
                 self.workerType = workerType
                 self.erasedWorker = erasedWorker
+                self.file = file
+                self.line = line
             }
         }
 
@@ -54,10 +64,10 @@
             let worker: WorkerType
             let output: WorkerType.Output?
 
-            internal init(worker: WorkerType, output: WorkerType.Output?) {
+            internal init(worker: WorkerType, output: WorkerType.Output?, file: StaticString, line: UInt) {
                 self.worker = worker
                 self.output = output
-                super.init(workerType: WorkerType.self, erasedWorker: worker)
+                super.init(workerType: WorkerType.self, erasedWorker: worker, file: file, line: line)
             }
         }
     }
@@ -65,9 +75,13 @@
     extension RenderTester {
         internal class ExpectedSideEffect<WorkflowType: Workflow> {
             let key: AnyHashable
+            let file: StaticString
+            let line: UInt
 
-            init(key: AnyHashable) {
+            init(key: AnyHashable, file: StaticString, line: UInt) {
                 self.key = key
+                self.file = file
+                self.line = line
             }
 
             func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {}
@@ -76,9 +90,9 @@
         internal final class ExpectedSideEffectWithAction<WorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<WorkflowType> where ActionType.WorkflowType == WorkflowType {
             let action: ActionType
 
-            internal init(key: AnyHashable, action: ActionType) {
+            internal init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {
                 self.action = action
-                super.init(key: key)
+                super.init(key: key, file: file, line: line)
             }
 
             override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {

@@ -120,15 +120,15 @@
             /// Validate the expectations were fulfilled, or fail if not.
             func assertNoLeftOverExpectations() {
                 for expectedWorker in expectedWorkers {
-                    XCTFail("Expected worker \(expectedWorker.erasedWorker)", file: file, line: line)
+                    XCTFail("Expected worker \(expectedWorker.erasedWorker)", file: expectedWorker.file, line: expectedWorker.line)
                 }
 
                 for expectedWorkflow in expectedWorkflows {
-                    XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType), key: \"\(expectedWorkflow.key)\"", file: file, line: line)
+                    XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType), key: \"\(expectedWorkflow.key)\"", file: file, line: expectedWorkflow.line)
                 }
 
-                for (key, _) in expectedSideEffects {
-                    XCTFail("Expected side-effect with key: \"\(key)\"", file: file, line: line)
+                for (key, expectedSideEffect) in expectedSideEffects {
+                    XCTFail("Expected side-effect with key: \"\(key)\"", file: expectedSideEffect.file, line: expectedSideEffect.line)
                 }
             }
 
