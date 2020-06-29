@@ -54,14 +54,41 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         return result
     }
 
-    override func record(_ issue: XCTIssue) {
-        if let matchedIndex = expectedFailureStrings.firstIndex(where: { issue.compactDescription.contains($0) }) {
+    /// Check for the given failure description and remove it if there’s a matching expected failure
+    /// - Parameter description: The failure description to check & remove
+    /// - Returns: `true` if the failure was expected and removed, otherwise `false`
+    private func removeFailure(withDescription description: String) -> Bool {
+        if let matchedIndex = expectedFailureStrings.firstIndex(where: { description.contains($0) }) {
             expectedFailureStrings.remove(at: matchedIndex)
-            // Don’t forward the issue, it was expected
+            return true
         } else {
-            super.record(issue)
+            return false
         }
     }
+
+    #if swift(>=5.3)
+
+        // Undeprecated API on Xcode 12+ (which ships with Swift 5.3)
+        override func record(_ issue: XCTIssue) {
+            if removeFailure(withDescription: issue.compactDescription) {
+                // Don’t forward the issue, it was expected
+            } else {
+                super.record(issue)
+            }
+        }
+
+    #else
+
+        // Otherwise, use old API
+        override func recordFailure(withDescription description: String, inFile filePath: String, atLine lineNumber: Int, expected: Bool) {
+            if removeFailure(withDescription: description) {
+                // Don’t forward the failure, it was expected
+            } else {
+                super.recordFailure(withDescription: description, inFile: filePath, atLine: lineNumber, expected: expected)
+            }
+        }
+
+    #endif
 
     // MARK: Child workflows
 
