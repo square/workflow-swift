@@ -28,10 +28,6 @@
                 expectedWorkflow.expect(in: &tester, file: file, line: line)
             }
 
-            for expectedWorker in expectations.expectedWorkers {
-                expectedWorker.expect(in: &tester, file: file, line: line)
-            }
-
             for (_, expectedSideEffect) in expectations.expectedSideEffects {
                 expectedSideEffect.expect(in: &tester, file: file, line: line)
             }
@@ -58,7 +54,6 @@
             file: StaticString = #file, line: UInt = #line,
             expectedState: ExpectedState<WorkflowType>? = nil,
             expectedOutput: ExpectedOutput<WorkflowType>? = nil,
-            expectedWorkers: [WorkflowTesting.ExpectedWorker] = [],
             expectedWorkflows: [WorkflowTesting.ExpectedWorkflow] = [],
             expectedSideEffects: [WorkflowTesting.ExpectedSideEffect<WorkflowType>] = [],
             assertions: (WorkflowType.Rendering) -> Void
@@ -66,7 +61,6 @@
             let expectations = RenderExpectations(
                 expectedState: expectedState,
                 expectedOutput: expectedOutput,
-                expectedWorkers: expectedWorkers,
                 expectedWorkflows: expectedWorkflows,
                 expectedSideEffects: expectedSideEffects
             )

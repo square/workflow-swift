@@ -23,7 +23,6 @@
         internal final class TestContext: RenderContextType {
             var state: WorkflowType.State
             var expectedWorkflows: [AnyExpectedWorkflow]
-            var expectedWorkers: [AnyExpectedWorker]
             var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
             var appliedAction: AppliedAction<WorkflowType>?
             var producedOutput: WorkflowType.Output?
@@ -33,14 +32,12 @@
             internal init(
                 state: WorkflowType.State,
                 expectedWorkflows: [AnyExpectedWorkflow],
-                expectedWorkers: [AnyExpectedWorker],
                 expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>],
                 file: StaticString,
                 line: UInt
             ) {
                 self.state = state
                 self.expectedWorkflows = expectedWorkflows
-                self.expectedWorkers = expectedWorkers
                 self.expectedSideEffects = expectedSideEffects
                 self.file = file
                 self.line = line
@@ -84,31 +81,6 @@
                 }
             }
 
-            func awaitResult<WorkerType, Action>(for worker: WorkerType, outputMap: @escaping (WorkerType.Output) -> Action) where WorkerType: Worker, Action: WorkflowAction, Action.WorkflowType == WorkflowType {
-                let matchingTypes = expectedWorkers.compactMap { $0 as? ExpectedWorker<WorkerType> }
-
-                guard let expectedWorker = matchingTypes.first(where: { $0.worker.isEquivalent(to: worker) }) else {
-                    let diagnosticMessage: String
-
-                    let matchingTypeWorkers = matchingTypes.map { $0.worker }
-                    if matchingTypes.count == 1 {
-                        diagnosticMessage = "Expected \(matchingTypeWorkers[0])."
-                    } else if matchingTypes.count > 1 {
-                        diagnosticMessage = "Expected one of \(matchingTypeWorkers)."
-                    } else {
-                        diagnosticMessage = ""
-                    }
-                    XCTFail("Unexpected worker during render \(worker). \(diagnosticMessage)", file: file, line: line)
-                    return
-                }
-
-                expectedWorkers.removeAll(where: { $0 === expectedWorker })
-
-                if let output = expectedWorker.output {
-                    apply(action: outputMap(output))
-                }
-            }
-
             func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
                 guard let sideEffect = expectedSideEffects.removeValue(forKey: key) else {
                     XCTFail("Unexpected side-effect with key \"\(key)\"", file: file, line: line)
@@ -120,10 +92,6 @@
 
             /// Validate the expectations were fulfilled, or fail if not.
             func assertNoLeftOverExpectations() {
-                for expectedWorker in expectedWorkers {
-                    XCTFail("Expected worker \(expectedWorker.erasedWorker)", file: expectedWorker.file, line: expectedWorker.line)
-                }
-
                 for expectedWorkflow in expectedWorkflows {
                     XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType), key: \"\(expectedWorkflow.key)\"", file: file, line: expectedWorkflow.line)
                 }

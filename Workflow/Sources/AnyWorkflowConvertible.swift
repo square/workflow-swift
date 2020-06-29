@@ -74,13 +74,13 @@ extension AnyWorkflowConvertible where Output == Never {
 
 extension AnyWorkflowConvertible where Rendering == Void {
     public func running<Parent, Action>(in context: RenderContext<Parent>, key: String = "", outputMap: @escaping (Output) -> Action) where Action: WorkflowAction, Action.WorkflowType == Parent {
-        _ = rendered(in: context, key: key, outputMap: outputMap)
+        rendered(in: context, key: key, outputMap: outputMap)
     }
 }
 
 extension AnyWorkflowConvertible where Rendering == Void, Output: WorkflowAction {
     public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where Parent: Workflow, Output.WorkflowType == Parent {
-        _ = rendered(in: context, key: key)
+        rendered(in: context, key: key)
     }
 }
 

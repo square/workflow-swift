@@ -86,41 +86,6 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assert(output: .success)
     }
 
-    func test_workers() {
-        let renderTester = TestWorkflow(initialText: "initial")
-            .renderTester(
-                initialState: TestWorkflow.State(
-                    text: "otherText",
-                    substate: .waiting
-                )
-            )
-
-        renderTester
-            .expect(worker: TestWorker(text: "otherText"))
-            .render { screen in
-                XCTAssertEqual("otherText", screen.text)
-            }
-            .assertNoAction()
-    }
-
-    func test_workerOutput() {
-        let renderTester = TestWorkflow(initialText: "initial")
-            .renderTester(initialState: TestWorkflow.State(
-                text: "otherText",
-                substate: .waiting
-            ))
-
-        renderTester
-            .expect(
-                worker: TestWorker(text: "otherText"),
-                producingOutput: .success
-            )
-            .render { screen in
-                XCTAssertEqual("otherText", screen.text)
-            }
-            .assert(state: TestWorkflow.State(text: "otherText", substate: .idle))
-    }
-
     func test_childWorkflow() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
@@ -182,9 +147,7 @@ private struct TestWorkflow: Workflow {
         case .idle:
             break
         case .waiting:
-            context.awaitResult(for: TestWorker(text: state.text)) { output -> Action in
-                .asyncSuccess
-            }
+            break
         }
 
         return TestScreen(
@@ -289,23 +252,6 @@ private struct SideEffectWorkflow: Workflow {
     }
 }
 
-private struct TestWorker: Worker {
-    var text: String
-
-    enum Output {
-        case success
-        case failure
-    }
-
-    func run() -> SignalProducer<Output, Never> {
-        return SignalProducer(value: .success)
-    }
-
-    func isEquivalent(to otherWorker: TestWorker) -> Bool {
-        return text == otherWorker.text
-    }
-}
-
 private struct TestScreen {
     var text: String
     var tapped: () -> Void
@@ -372,13 +318,6 @@ private struct ChildWorkflow: Workflow {
     }
 
     func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
-        context.awaitResult(
-            for: TestWorker(text: text),
-            onOutput: { (output, state) -> Output in
-                .success
-            }
-        )
-
         return String(text.reversed())
     }
 }

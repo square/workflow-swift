@@ -48,33 +48,6 @@
     }
 
     extension RenderTester {
-        internal class AnyExpectedWorker {
-            let erasedWorker: Any
-            let workerType: Any.Type
-            let file: StaticString
-            let line: UInt
-
-            fileprivate init(workerType: Any.Type, erasedWorker: Any, file: StaticString, line: UInt) {
-                self.workerType = workerType
-                self.erasedWorker = erasedWorker
-                self.file = file
-                self.line = line
-            }
-        }
-
-        internal final class ExpectedWorker<WorkerType: Worker>: AnyExpectedWorker {
-            let worker: WorkerType
-            let output: WorkerType.Output?
-
-            internal init(worker: WorkerType, output: WorkerType.Output?, file: StaticString, line: UInt) {
-                self.worker = worker
-                self.output = output
-                super.init(workerType: WorkerType.self, erasedWorker: worker, file: file, line: line)
-            }
-        }
-    }
-
-    extension RenderTester {
         internal class ExpectedSideEffect<WorkflowType: Workflow> {
             let key: AnyHashable
             let file: StaticString

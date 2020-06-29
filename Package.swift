@@ -18,6 +18,10 @@ let package = Package(
             name: "WorkflowUI",
             targets: ["WorkflowUI"]
         ),
+        .library(
+            name: "WorkflowReactiveSwift",
+            targets: ["WorkflowReactiveSwift"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
@@ -41,8 +45,13 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowUITests",
-            dependencies: ["WorkflowUI"],
+            dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
             path: "WorkflowUI/Tests"
+        ),
+        .target(
+            name: "WorkflowReactiveSwift",
+            dependencies: ["ReactiveSwift", "Workflow"],
+            path: "WorkflowReactiveSwift/Sources"
         ),
     ],
     swiftLanguageVersions: [.v5]

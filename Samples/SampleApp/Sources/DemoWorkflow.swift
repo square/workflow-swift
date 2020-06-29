@@ -16,6 +16,7 @@
 
 import ReactiveSwift
 import Workflow
+import WorkflowReactiveSwift
 import WorkflowUI
 
 // MARK: Input and Output
@@ -156,14 +157,15 @@ extension DemoWorkflow {
             refreshText = "Loading..."
             refreshEnabled = false
 
-            context.awaitResult(for: RefreshWorker()) { output -> Action in
-                switch output {
-                case .success(let result):
-                    return .refreshComplete(result)
-                case .error(let error):
-                    return .refreshError(error)
-                }
-            }
+            RefreshWorker()
+                .mapOutput { output -> Action in
+                    switch output {
+                    case .success(let result):
+                        return .refreshComplete(result)
+                    case .error(let error):
+                        return .refreshError(error)
+                    }
+                }.running(in: context)
         }
 
         let subscribeTitle: String
@@ -173,9 +175,10 @@ extension DemoWorkflow {
             subscribeTitle = "Subscribe"
         case .subscribing:
             // Subscribe to the timer signal, simulating the title being tapped.
-            context.awaitResult(for: state.signal.signal.asWorker(key: "Timer")) { _ -> Action in
-                .titleButtonTapped
-            }
+            state.signal.signal.asWorker(key: "Timer")
+                .mapOutput { _ in
+                    Action.titleButtonTapped
+                }.running(in: context)
             subscribeTitle = "Stop"
         }
 

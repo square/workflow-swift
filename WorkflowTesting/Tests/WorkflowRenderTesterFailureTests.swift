@@ -108,44 +108,6 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
-    // MARK: Workers
-
-    func test_worker_missing() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .idle)
-            .expect(
-                worker: TestWorker(input: "input")
-            )
-
-        expectingFailure(#"Expected worker TestWorker(input: "input")"#) {
-            tester.render { _ in }
-        }
-    }
-
-    func test_worker_mismatch() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .worker(param: "actual"))
-            .expect(
-                worker: TestWorker(input: "expected")
-            )
-
-        expectingFailures([
-            #"Unexpected worker during render TestWorker(input: "actual"). Expected TestWorker(input: "expected")."#,
-            #"Expected worker TestWorker(input: "expected")"#,
-        ]) {
-            tester.render { _ in }
-        }
-    }
-
-    func test_worker_unexpected() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .worker(param: "input"))
-
-        expectingFailure(#"Unexpected worker during render TestWorker(input: "input")"#) {
-            tester.render { _ in }
-        }
-    }
-
     // MARK: Side effects
 
     func test_sideEffect_missing() {
@@ -308,10 +270,6 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .renderTester(initialState: .idle)
             .render { _ in }
 
-        expectingFailure(#"("idle") is not equal to ("worker(param: "wrong")")"#) {
-            result.assert(state: .worker(param: "wrong"))
-        }
-
         expectingFailure("My own little state error") {
             result.verifyState { state in
                 XCTAssertEqual(state, .sideEffect(key: "nah"), "My own little state error")
@@ -327,7 +285,6 @@ private struct TestWorkflow: Workflow {
 
     enum State: Equatable {
         case idle
-        case worker(param: String)
         case workflow(param: String, key: String = "")
         case sideEffect(key: String)
     }
@@ -340,11 +297,6 @@ private struct TestWorkflow: Workflow {
         switch state {
         case .idle:
             break
-        case .worker(let param):
-            context.awaitResult(
-                for: TestWorker(input: param),
-                outputMap: { TestAction.sendOutput($0) }
-            )
         case .workflow(let param, let key):
             _ = TestChildWorkflow(input: param)
                 .rendered(in: context, key: key)
@@ -385,21 +337,6 @@ private enum TestAction: WorkflowAction, Equatable {
 private struct TestRendering {
     var doNoopAction: (Int) -> Void
     var doOutput: (String) -> Void
-}
-
-private struct TestWorker: Worker {
-    var input: String
-
-    typealias Output = String
-
-    func run() -> SignalProducer<Output, Never> {
-        XCTFail("Worker should never be called")
-        return .empty
-    }
-
-    func isEquivalent(to otherWorker: TestWorker) -> Bool {
-        return input == otherWorker.input
-    }
 }
 
 private struct TestChildWorkflow: Workflow {

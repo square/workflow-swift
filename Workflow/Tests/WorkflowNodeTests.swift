@@ -195,63 +195,6 @@ final class WorkflowNodeTests: XCTestCase {
 
         XCTAssertEqual(snapshot, expectedSnapshot)
     }
-
-    func test_handlesRepeatedWorkerOutputs() {
-        struct WF: Workflow {
-            struct State {}
-
-            typealias Output = Int
-
-            typealias Rendering = Void
-
-            func makeInitialState() -> WF.State {
-                return State()
-            }
-
-            func render(state: WF.State, context: RenderContext<WF>) {
-                context.awaitResult(for: TestWorker()) { output in
-                    AnyWorkflowAction(sendingOutput: output)
-                }
-            }
-        }
-
-        struct TestWorker: Worker {
-            func isEquivalent(to otherWorker: TestWorker) -> Bool {
-                return true
-            }
-
-            func run() -> SignalProducer<Int, Never> {
-                return SignalProducer { observer, lifetime in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        observer.send(value: 1)
-                        observer.send(value: 2)
-                        observer.sendCompleted()
-                    }
-                }
-            }
-        }
-
-        let expectation = XCTestExpectation(description: "Test Worker")
-        var outputs: [Int] = []
-
-        let node = WorkflowNode(workflow: WF())
-        node.onOutput = { output in
-            if let outputInt = output.outputEvent {
-                outputs.append(outputInt)
-
-                if outputs.count == 2 {
-                    expectation.fulfill()
-                }
-            }
-        }
-
-        node.render()
-        node.enableEvents()
-
-        wait(for: [expectation], timeout: 1.0)
-
-        XCTAssertEqual(outputs, [1, 2])
-    }
 }
 
 /// Renders two child state machines of types `A` and `B`.

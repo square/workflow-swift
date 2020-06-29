@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import Foundation
 import ReactiveSwift
+import Workflow
 
 /// Workers define a unit of asynchronous work.
 ///
@@ -24,7 +26,7 @@ import ReactiveSwift
 /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
 ///
 /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-public protocol Worker {
+public protocol Worker: AnyWorkflowConvertible {
     /// The type of output events returned by this worker.
     associatedtype Output
 
@@ -32,9 +34,41 @@ public protocol Worker {
     func run() -> SignalProducer<Output, Never>
 
     /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
-    /// account whatever data is meaninful to the task. For example, a worker that loads a user account from a server
+    /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
     /// would not be equivalent to another worker with a different user ID.
     func isEquivalent(to otherWorker: Self) -> Bool
+}
+
+extension Worker {
+    public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+        WorkerWorkflow(worker: self).asAnyWorkflow()
+    }
+}
+
+struct WorkerWorkflow<WorkerType: Worker>: Workflow {
+    let worker: WorkerType
+
+    typealias Output = WorkerType.Output
+    typealias Rendering = Void
+    typealias State = UUID
+
+    func makeInitialState() -> State {
+        UUID()
+    }
+
+    func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
+        if !worker.isEquivalent(to: previousWorkflow.worker) {
+            state = UUID()
+        }
+    }
+
+    func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
+        // Start with Void to ensure `worker.run()` is called only once for a given key
+        SignalProducer(value: ())
+            .flatMap(.latest) { self.worker.run() }
+            .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
+            .running(in: context, key: state.uuidString)
+    }
 }
 
 extension Worker where Self: Equatable {
