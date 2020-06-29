@@ -154,7 +154,7 @@
             producingRendering rendering: ExpectedWorkflowType.Rendering,
             producingOutput output: ExpectedWorkflowType.Output? = nil,
             file: StaticString = #file, line: UInt = #line,
-            assertions: (ExpectedWorkflowType) -> Void = { _ in }
+            assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }
         ) -> RenderTester<WorkflowType> {
             return RenderTester(
                 workflow: workflow,
@@ -164,6 +164,7 @@
                         key: key,
                         rendering: rendering,
                         output: output,
+                        assertions: assertions,
                         file: file,
                         line: line
                     )

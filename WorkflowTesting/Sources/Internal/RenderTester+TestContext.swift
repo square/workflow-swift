@@ -74,6 +74,7 @@
                 if let output = expectedWorkflow.output {
                     apply(action: outputMap(output))
                 }
+                expectedWorkflow.assertions(workflow)
                 return expectedWorkflow.rendering
             }
 
