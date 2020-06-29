@@ -81,6 +81,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
     }
 
     func test_sideEffects() {
+        XCTFail()
         let renderTester = SideEffectWorkflow().renderTester()
 
         renderTester.render(
