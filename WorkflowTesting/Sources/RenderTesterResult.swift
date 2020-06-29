@@ -41,9 +41,9 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         return self
     }
 
-    /// Verifies that no actions were produced
+    /// Asserts that no actions were produced
     @discardableResult
-    public func verifyNoAction(
+    public func assertNoAction(
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
@@ -69,9 +69,9 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         return self
     }
 
-    /// Verifies that the resulting action is equal to the given action.
+    /// Asserts that the resulting action is equal to the given action.
     @discardableResult
-    public func verify<ActionType: WorkflowAction>(
+    public func assert<ActionType: WorkflowAction>(
         action: ActionType,
         file: StaticString = #file,
         line: UInt = #line
@@ -81,9 +81,9 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         }
     }
 
-    /// Verifies that no output was produced.
+    /// Asserts that no output was produced.
     @discardableResult
-    public func verifyNoOutput(
+    public func assertNoOutput(
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
@@ -112,7 +112,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
 extension RenderTesterResult where WorkflowType.State: Equatable {
     /// Verifies that the resulting state is equal to the given state.
     @discardableResult
-    public func verify(
+    public func assert(
         state expectedState: WorkflowType.State,
         file: StaticString = #file,
         line: UInt = #line
@@ -125,7 +125,7 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
 extension RenderTesterResult where WorkflowType.Output: Equatable {
     /// Verifies that the resulting output is equal to the given output.
     @discardableResult
-    public func verify(
+    public func assert(
         output expectedOutput: WorkflowType.Output,
         file: StaticString = #file,
         line: UInt = #line

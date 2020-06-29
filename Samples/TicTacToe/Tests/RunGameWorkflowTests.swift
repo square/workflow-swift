@@ -135,7 +135,7 @@ class RunGameWorkflowTests: XCTestCase {
             )
             .render { screen in
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_render_playing() {
@@ -160,7 +160,7 @@ class RunGameWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_render_maybeQuit() {
@@ -195,6 +195,6 @@ class RunGameWorkflowTests: XCTestCase {
                 XCTAssertEqual(screen.alert!.message, "message")
                 XCTAssertEqual(screen.baseScreen.modals.count, 1)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 }

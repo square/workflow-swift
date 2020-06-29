@@ -58,8 +58,8 @@
     ///     .render { rendering in
     ///         XCTAssertEqual("expected text on rendering", rendering.text)
     ///     }
-    ///     .verify(state: TestWorkflow.State())
-    ///     .verify(output: TestWorkflow.Output.finished)
+    ///     .assert(state: TestWorkflow.State())
+    ///     .assert(output: TestWorkflow.Output.finished)
     /// ```
     ///
     /// Validating the rendering only from the initial state provided by the workflow:
@@ -79,7 +79,7 @@
     ///         XCTAssertEqual("expected text on rendering", rendering.text)
     ///         rendering.updateText("updated")
     ///     }
-    ///     .verify(
+    ///     .assert(
     ///         state: TestWorkflow.State(text: "updated")
     ///     )
     /// ```
@@ -91,7 +91,7 @@
     ///     .render { rendering in
     ///         rendering.action()
     ///     }
-    ///     .verify(
+    ///     .assert(
     ///        output: .success
     ///     )
     /// ```

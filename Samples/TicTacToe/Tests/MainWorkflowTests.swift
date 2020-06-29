@@ -66,7 +66,7 @@ class MainWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func disabled_test_render_runningGame() {
@@ -75,6 +75,6 @@ class MainWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verify(state: .runningGame(sessionToken: "token"))
+            .assert(state: .runningGame(sessionToken: "token"))
     }
 }

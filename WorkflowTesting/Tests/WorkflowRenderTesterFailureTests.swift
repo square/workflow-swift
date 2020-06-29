@@ -163,7 +163,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
 
         expectingFailure(#"("noop(10)") is not equal to ("noop(70)")"#) {
-            result.verify(action: TestAction.noop(70))
+            result.assert(action: TestAction.noop(70))
         }
 
         expectingFailure("My own little action error") {
@@ -173,7 +173,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
 
         expectingFailure("Expected no action, but got noop(10)") {
-            result.verifyNoAction()
+            result.assertNoAction()
         }
     }
 
@@ -183,7 +183,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .render { _ in }
 
         expectingFailure("No action was produced") {
-            result.verify(action: TestAction.noop(1))
+            result.assert(action: TestAction.noop(1))
         }
 
         expectingFailure("No action was produced") {
@@ -208,7 +208,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
 
         expectingFailure(#"("sendOutput("second")") is not equal to ("noop(0)")"#) {
-            result.verify(action: TestAction.noop(0))
+            result.assert(action: TestAction.noop(0))
         }
 
         expectingFailure("My own little action error") {
@@ -218,7 +218,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
 
         expectingFailure(#"Expected no action, but got sendOutput("second")"#) {
-            result.verifyNoAction()
+            result.assertNoAction()
         }
     }
 
@@ -232,7 +232,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
 
         expectingFailure(#"("string("hello")") is not equal to ("string("nope")")"#) {
-            result.verify(output: .string("nope"))
+            result.assert(output: .string("nope"))
         }
 
         expectingFailure("My own little output error") {
@@ -242,7 +242,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
 
         expectingFailure(#"Expected no output, but got string("hello")"#) {
-            result.verifyNoOutput()
+            result.assertNoOutput()
         }
     }
 
@@ -252,7 +252,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .render { _ in }
 
         expectingFailure("No output was produced") {
-            result.verify(output: .string("nope"))
+            result.assert(output: .string("nope"))
         }
 
         expectingFailure("No output was produced") {
@@ -270,7 +270,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .render { _ in }
 
         expectingFailure(#"("idle") is not equal to ("worker(param: "wrong")")"#) {
-            result.verify(state: .worker(param: "wrong"))
+            result.assert(state: .worker(param: "wrong"))
         }
 
         expectingFailure("My own little state error") {

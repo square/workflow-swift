@@ -29,7 +29,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 XCTAssertEqual("initial", screen.text)
                 testedAssertion = true
             }
-            .verify(
+            .assert(
                 state: TestWorkflow.State(
                     text: "initial",
                     substate: .idle
@@ -46,7 +46,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { screen in
                 XCTAssertEqual("initial", screen.text)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_action() {
@@ -57,7 +57,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 XCTAssertEqual("initial", screen.text)
                 screen.tapped()
             }
-            .verify(
+            .assert(
                 state: TestWorkflow.State(
                     text: "initial",
                     substate: .waiting
@@ -74,7 +74,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 producingAction: SideEffectWorkflow.Action.testAction
             )
             .render { _ in }
-            .verify(state: .success)
+            .assert(state: .success)
     }
 
     func test_output() {
@@ -83,7 +83,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { rendering in
                 rendering.tapped()
             }
-            .verify(output: .success)
+            .assert(output: .success)
     }
 
     func test_workers() {
@@ -100,7 +100,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { screen in
                 XCTAssertEqual("otherText", screen.text)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_workerOutput() {
@@ -118,7 +118,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { screen in
                 XCTAssertEqual("otherText", screen.text)
             }
-            .verify(state: TestWorkflow.State(text: "otherText", substate: .idle))
+            .assert(state: TestWorkflow.State(text: "otherText", substate: .idle))
     }
 
     func test_childWorkflow() {
@@ -131,7 +131,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { rendering in
                 XCTAssertEqual("olleh", rendering)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_childWorkflowOutput() {
@@ -146,7 +146,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .render { rendering in
                 XCTAssertEqual("olleh", rendering)
             }
-            .verifyNoOutput()
+            .assertNoOutput()
             .verifyState { state in
                 XCTAssertEqual("Failed", state.text)
             }

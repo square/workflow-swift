@@ -199,7 +199,7 @@ class AuthenticationWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_render_AuthorizingEmailPasswordWorker() {
@@ -233,7 +233,7 @@ class AuthenticationWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_render_authorizingTwoFactorWorker() {
@@ -267,7 +267,7 @@ class AuthenticationWorkflowTests: XCTestCase {
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     func test_render_authenticationErrorAlert() {

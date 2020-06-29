@@ -235,7 +235,7 @@ class TakeTurnsWorkflowTests: XCTestCase {
                 }
                 XCTAssertEqual(screen.board, Board().rows)
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 
     // Empty board with X making the first move.
@@ -297,6 +297,6 @@ class TakeTurnsWorkflowTests: XCTestCase {
                     XCTFail("o should win the game")
                 }
             }
-            .verifyNoAction()
+            .assertNoAction()
     }
 }
