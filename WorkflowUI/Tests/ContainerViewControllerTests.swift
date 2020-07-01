@@ -42,7 +42,7 @@
     class ContainerViewControllerTests: XCTestCase {
         func test_initialization_renders_workflow() {
             let (signal, _) = Signal<Int, Never>.pipe()
-            let workflow = MockWorkflow(subscription: signal)
+            let workflow = SubscribingWorkflow(subscription: signal)
             let container = ContainerViewController(workflow: workflow)
 
             withExtendedLifetime(container) {
@@ -53,7 +53,7 @@
 
         func test_workflow_update_causes_rerender() {
             let (signal, observer) = Signal<Int, Never>.pipe()
-            let workflow = MockWorkflow(subscription: signal)
+            let workflow = SubscribingWorkflow(subscription: signal)
             let container = ContainerViewController(workflow: workflow)
 
             withExtendedLifetime(container) {
@@ -74,7 +74,7 @@
 
         func test_workflow_output_causes_container_output() {
             let (signal, observer) = Signal<Int, Never>.pipe()
-            let workflow = MockWorkflow(subscription: signal)
+            let workflow = SubscribingWorkflow(subscription: signal)
             let container = ContainerViewController(workflow: workflow)
 
             let expectation = XCTestExpectation(description: "Output")
@@ -93,7 +93,7 @@
 
         func test_container_with_anyworkflow() {
             let (signal, observer) = Signal<Int, Never>.pipe()
-            let workflow = MockWorkflow(subscription: signal)
+            let workflow = SubscribingWorkflow(subscription: signal)
             let container = ContainerViewController(workflow: workflow.asAnyWorkflow())
 
             let expectation = XCTestExpectation(description: "Output")
@@ -109,9 +109,53 @@
 
             disposable?.dispose()
         }
+
+        func test_container_update_causes_rerender() {
+            let firstWorkflow = PassthroughWorkflow(value: "first")
+            let container = ContainerViewController(workflow: firstWorkflow)
+
+            withExtendedLifetime(container) {
+                let expectation = XCTestExpectation(description: "View Controller updated")
+
+                let vc = container.rootViewController.currentViewController as! TestScreenViewController
+
+                XCTAssertEqual("first", vc.screen.string)
+
+                vc.onScreenChange = {
+                    expectation.fulfill()
+                }
+
+                let secondWorkflow = PassthroughWorkflow(value: "second")
+                container.update(workflow: secondWorkflow)
+
+                wait(for: [expectation], timeout: 1.0)
+
+                XCTAssertEqual("second", vc.screen.string)
+            }
+        }
+
+        func test_container_update_updates_output() {
+            let firstWorkflow = EchoWorkflow(value: 1)
+            let container = ContainerViewController(workflow: firstWorkflow)
+
+            let expectation = XCTestExpectation(description: "Second output")
+
+            // First output comes before we subscribe
+            let disposable = container.output.observeValues { value in
+                XCTAssertEqual(3, value)
+                expectation.fulfill()
+            }
+
+            let secondWorkflow = EchoWorkflow(value: 3)
+            container.update(workflow: secondWorkflow)
+
+            wait(for: [expectation], timeout: 1.0)
+
+            disposable?.dispose()
+        }
     }
 
-    fileprivate struct MockWorkflow: Workflow {
+    fileprivate struct SubscribingWorkflow: Workflow {
         var subscription: Signal<Int, Never>
 
         typealias State = Int
@@ -122,7 +166,7 @@
             return 0
         }
 
-        func render(state: State, context: RenderContext<MockWorkflow>) -> TestScreen {
+        func render(state: State, context: RenderContext<Self>) -> TestScreen {
             context.awaitResult(for: subscription.asWorker(key: "signal")) { output in
                 AnyWorkflowAction { state in
                     state = output
@@ -131,6 +175,46 @@
             }
 
             return TestScreen(string: "\(state)")
+        }
+    }
+
+    fileprivate struct PassthroughWorkflow: Workflow {
+        var value: String
+
+        typealias State = Void
+
+        typealias Output = Never
+
+        func render(state: State, context: RenderContext<Self>) -> TestScreen {
+            return TestScreen(string: value)
+        }
+    }
+
+    fileprivate struct EchoWorkflow: Workflow {
+        var value: Int
+
+        typealias State = Void
+
+        typealias Output = Int
+
+        struct EchoWorker: Worker {
+            var value: Int
+
+            func run() -> SignalProducer<Int, Never> {
+                return SignalProducer(value: value)
+            }
+
+            func isEquivalent(to otherWorker: Self) -> Bool {
+                return value == otherWorker.value
+            }
+        }
+
+        func render(state: State, context: RenderContext<Self>) -> TestScreen {
+            context.awaitResult(
+                for: EchoWorker(value: value),
+                outputMap: { AnyWorkflowAction(sendingOutput: $0) }
+            )
+            return TestScreen(string: "\(value)")
         }
     }
 

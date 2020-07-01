@@ -23,33 +23,32 @@
     /// Drives view controllers from a root Workflow.
     public final class ContainerViewController<Output, ScreenType>: UIViewController where ScreenType: Screen {
         /// Emits output events from the bound workflow.
-        public let output: Signal<Output, Never>
+        public var output: Signal<Output, Never> {
+            return workflowHost.output
+        }
 
         internal let rootViewController: DescribedViewController
 
-        private let workflowHost: Any
-
-        private let rendering: Property<ScreenType>
+        private let workflowHost: WorkflowHost<RootWorkflow<ScreenType, Output>>
 
         private let (lifetime, token) = Lifetime.make()
 
         public var rootViewEnvironment: ViewEnvironment {
             didSet {
                 // Re-render the current rendering with the new environment
-                render(screen: rendering.value, environment: rootViewEnvironment)
+                render(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
             }
         }
 
-        private init(workflowHost: Any, rendering: Property<ScreenType>, output: Signal<Output, Never>, rootViewEnvironment: ViewEnvironment) {
-            self.workflowHost = workflowHost
-            self.rootViewController = DescribedViewController(screen: rendering.value, environment: rootViewEnvironment)
-            self.rendering = rendering
-            self.output = output
+        public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
+            self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
+            self.rootViewController = DescribedViewController(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
             self.rootViewEnvironment = rootViewEnvironment
 
             super.init(nibName: nil, bundle: nil)
 
-            rendering
+            workflowHost
+                .rendering
                 .signal
                 .take(during: lifetime)
                 .observeValues { [weak self] screen in
@@ -58,14 +57,9 @@
                 }
         }
 
-        public convenience init<W: Workflow>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
-            let host = WorkflowHost(workflow: workflow)
-            self.init(
-                workflowHost: host,
-                rendering: host.rendering,
-                output: host.output,
-                rootViewEnvironment: rootViewEnvironment
-            )
+        /// Updates the root Workflow in this container.
+        public func update<W: AnyWorkflowConvertible>(workflow: W) where W.Rendering == ScreenType, W.Output == Output {
+            workflowHost.update(workflow: RootWorkflow(workflow))
         }
 
         public required init?(coder aDecoder: NSCoder) {
@@ -109,6 +103,27 @@
 
         override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
             return rootViewController.supportedInterfaceOrientations
+        }
+    }
+
+    /// Wrapper around an AnyWorkflow that allows us to have a concrete
+    /// WorkflowHost without ContainerViewController itself being generic
+    /// around a Workflow.
+    fileprivate struct RootWorkflow<Rendering, Output>: Workflow {
+        typealias State = Void
+        typealias Output = Output
+        typealias Rendering = Rendering
+
+        var wrapped: AnyWorkflow<Rendering, Output>
+
+        init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Output == Output, W.Rendering == Rendering {
+            self.wrapped = wrapped.asAnyWorkflow()
+        }
+
+        func render(state: State, context: RenderContext<RootWorkflow>) -> Rendering {
+            return wrapped
+                .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
+                .rendered(in: context)
         }
     }
 
