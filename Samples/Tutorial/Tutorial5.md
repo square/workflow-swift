@@ -29,15 +29,9 @@ The `WorkflowActionTester` is an extension on `WorkflowAction` which provides an
 ```swift
 /// TestedWorklfow.Action
 ///     .tester(withState: .firstState)
-///     .assertState { state in
-///         XCTAssertEqual(.firstState, state)
-///     }
-///     .send(action: .exampleEvent) { output in
-///         XCTAssertEqual(.finished, output)
-///     }
-///     .assertState { state in
-///         XCTAssertEqual(.differentState, state)
-///     }
+///     .send(action: .exampleEvent)
+///     .assert(output: .finished)
+///     .assert(state: .differentState)
 ```
 
 It's provided with an initial state, and drives the state forward by sending one action at a time. The `Output` can be validated after each action is sent, as well as the `State`.
@@ -77,15 +71,10 @@ class WelcomeWorkflowTests: XCTestCase {
     func testNameUpdates() {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .assertState { state in
-                // The initial state provided was an empty name.
-                XCTAssertEqual("", state.name)
-            }
-            .send(action: .nameChanged(name: "myName")) { output in
-                // No output is expected when the name changes.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .nameChanged(name: "myName"))
+            // No output is expected when the name changes.
+            .assertNoOutput()
+            .veridyState { state in
                 // The `name` has been updated from the action.
                 XCTAssertEqual("myName", state.name)
             }
@@ -100,15 +89,13 @@ The `Output` of an action can also be tested. Next, we'll add a test for the `.d
     func testLogin() {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .didLogin) { output in
-                switch output {
-                // When the `.didLogin` action is received, it should emit the `didLogin(name)` output.
-                case .didLogin(let name)?:
-                    XCTAssertEqual("", name)
-                case nil:
-                    XCTFail("Did not receive an output for .didLogin")
-                }
-        }
+            .send(action: .nameChanged(name: "myName"))
+            // No output is expected when the name changes.
+            .assertNoOutput()
+            .verifyState { state in
+                // The `name` has been updated from the action.
+                XCTAssertEqual("myName", state.name)
+            }
     }
 ```
 
@@ -118,31 +105,28 @@ We have now validated that an output is emitted when the `.didLogin` action is r
     func testLogin() {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .didLogin) { output in
-                // Since the name is empty, `.didLogin` will not emit an output.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .didLogin)
+            // Since the name is empty, `.didLogin` will not emit an output.
+            .assertNoOutput()
+            .verifyState { state in
                 // The name is empty, as was specified in the initial state.
                 XCTAssertEqual("", state.name)
             }
-            .send(action: .nameChanged(name: "MyName")) { output in
-                // Update the name.
-                XCTAssertNil(output)
-            }
-            .assertState { state in
+            .send(action: .nameChanged(name: "MyName"))
+            // Update the name, no output expected.
+            .assertNoOutput()
+            .verifyState { state in
                 // Validate the name was updated.
                 XCTAssertEqual("MyName", state.name)
             }
-            .send(action: .didLogin) { output in
+            .send(action: .didLogin)
+            .verifyOutput { output in
                 // Now a `.didLogin` output should be emitted when the `.didLogin` action was received.
                 switch output {
-                case .didLogin(let name)?:
+                case .didLogin(let name):
                     XCTAssertEqual("MyName", name)
-                case nil:
-                    XCTFail("Did not receive an output for .didLogin")
                 }
-        }
+            }
     }
 ```
 
@@ -201,29 +185,32 @@ class TodoListWorkflowTests: XCTestCase {
         TodoListWorkflow
             .Action
             .tester(withState: TodoListWorkflow.State())
-            .send(action: .onBack) { output in
+            .send(action: .onBack)
+            .verifyOutput { output in
                 // The `.onBack` action should emit an output of `.back`.
                 switch output {
-                case .back?:
+                case .back:
                     break // Expected
                 default:
                     XCTFail("Expected an output of `.back`")
                 }
             }
-            .send(action: .selectTodo(index: 7)) { output in
+            .send(action: .selectTodo(index: 7))
+            .verifyOutput { output in
                 // The `.selectTodo` action should emit a `.selectTodo` output.
                 switch output {
-                case .selectTodo(let index)?:
+                case .selectTodo(let index):
                     XCTAssertEqual(7, index)
                 default:
                     XCTFail("Expected an output of `.selectTodo`")
                 }
             }
-            .send(action: .new) { output in
+            .send(action: .new)
+            .verifyOutput { output in
                 // The`.new` action should emit a `.newTodo` output.
                 switch output {
-                case .newTodo?:
-                break // Expected
+                case .newTodo:
+                    break // Expected
                 default:
                     XCTFail("Expected an output of `.newTodo`")
                 }
@@ -252,41 +239,41 @@ class TodoEditWorkflowTests: XCTestCase {
             .tester(
                 withState: TodoEditWorkflow.State(
                     todo: TodoModel(title: "Title", note: "Note")))
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
             }
             // Update the title to "Updated Title"
-            .send(action: .titleChanged("Updated Title")) { output in
-                XCTAssertNil(output)
-            }
+            .send(action: .titleChanged("Updated Title"))
+            .assertNoOutput()
             // Validate that only the title changed.
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
             }
             // Update the note.
-            .send(action: .noteChanged("Updated Note")) { output in
-                XCTAssertNil(output)
-            }
+            .send(action: .noteChanged("Updated Note"))
+            .assertNoOutput()
             // Validate that the note updated.
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Updated Note", state.todo.note)
             }
             // Send a `.discardChanges` action, which will emit a `.discard` output.
-            .send(action: .discardChanges) { output in
+            .send(action: .discardChanges)
+            .verifyOutput { output in
                 switch output {
-                case .discard?:
+                case .discard:
                     break // Expected
                 default:
                     XCTFail("Expected an output of `.discard`")
                 }
             }
             // Send a `.saveChanges` action, which will emit a `.save` output with the updated todo model.
-            .send(action: .saveChanges) { output in
+            .send(action: .saveChanges)
+            .verifyOutput { output in
                 switch output {
-                case .save(let todo)?:
+                case .save(let todo):
                     XCTAssertEqual("Updated Title", todo.title)
                     XCTAssertEqual("Updated Note", todo.note)
                 default:

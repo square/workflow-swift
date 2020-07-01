@@ -26,41 +26,41 @@ class TodoEditWorkflowTests: XCTestCase {
             .tester(
                 withState: TodoEditWorkflow.State(
                     todo: TodoModel(title: "Title", note: "Note")))
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
             }
             // Update the title to "Updated Title"
-            .send(action: .titleChanged("Updated Title")) { output in
-                XCTAssertNil(output)
-            }
+            .send(action: .titleChanged("Updated Title"))
+            .assertNoOutput()
             // Validate that only the title changed.
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
             }
             // Update the note.
-            .send(action: .noteChanged("Updated Note")) { output in
-                XCTAssertNil(output)
-            }
+            .send(action: .noteChanged("Updated Note"))
+            .assertNoOutput()
             // Validate that the note updated.
-            .assertState { state in
+            .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Updated Note", state.todo.note)
             }
             // Send a `.discardChanges` action, which will emit a `.discard` output.
-            .send(action: .discardChanges) { output in
+            .send(action: .discardChanges)
+            .verifyOutput { output in
                 switch output {
-                case .discard?:
+                case .discard:
                     break // Expected
                 default:
                     XCTFail("Expected an output of `.discard`")
                 }
             }
             // Send a `.saveChanges` action, which will emit a `.save` output with the updated todo model.
-            .send(action: .saveChanges) { output in
+            .send(action: .saveChanges)
+            .verifyOutput { output in
                 switch output {
-                case .save(let todo)?:
+                case .save(let todo):
                     XCTAssertEqual("Updated Title", todo.title)
                     XCTAssertEqual("Updated Note", todo.note)
                 default:

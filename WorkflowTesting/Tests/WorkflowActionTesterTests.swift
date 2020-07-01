@@ -23,16 +23,47 @@ final class WorkflowActionTesterTests: XCTestCase {
     func test_stateTransitions() {
         TestAction
             .tester(withState: false)
-            .assertState { XCTAssertFalse($0) }
             .send(action: .toggleTapped)
-            .assertState { XCTAssertTrue($0) }
+            .verifyState { XCTAssertTrue($0) }
+    }
+
+    func test_stateTransitions_equatable() {
+        TestAction
+            .tester(withState: false)
+            .send(action: .toggleTapped)
+            .assert(state: true)
+    }
+
+    func test_noOutputs() {
+        TestAction
+            .tester(withState: false)
+            .send(action: .toggleTapped)
+            .assertNoOutput()
     }
 
     func test_outputs() {
         TestAction
             .tester(withState: false)
-            .send(action: .exitTapped) { output in
+            .send(action: .exitTapped)
+            .verifyOutput { output in
                 XCTAssertEqual(output, .finished)
+            }
+    }
+
+    func test_outputs_equatable() {
+        TestAction
+            .tester(withState: false)
+            .send(action: .exitTapped)
+            .assert(output: .finished)
+    }
+
+    func test_deprecated_methods() {
+        TestAction
+            .tester(withState: false)
+            .send(action: .exitTapped)
+            .assert(output: .finished)
+            .verifyState { state in
+                XCTAssertFalse(state)
             }
     }
 
@@ -41,6 +72,7 @@ final class WorkflowActionTesterTests: XCTestCase {
         let tester = TestAction
             .tester(withState: true)
         XCTAssertEqual(state, tester.state)
+        XCTAssertNil(tester.output)
     }
 }
 

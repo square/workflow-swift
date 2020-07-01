@@ -39,15 +39,11 @@ class TakeTurnsWorkflowTests: XCTestCase {
         TakeTurnsWorkflow
             .Action
             .tester(withState: emptyBoardState)
-            .send(
-                action: .selected(row: 0, col: 0),
-                outputAssertions: { output in
-                    // This workflow has no outputs.
-                    XCTAssertNil(output)
-                }
-            )
+            .send(action: .selected(row: 0, col: 0))
+            // This workflow has no outputs.
+            .assertNoOutput()
             // After x takes 0, 0 we expect the following state:
-            .assertState { state in
+            .verifyState { state in
                 // Board is not full.
                 XCTAssertFalse(state.board.isFull())
 
@@ -74,10 +70,11 @@ class TakeTurnsWorkflowTests: XCTestCase {
              _|_|_       _|_|_
 
              */
-            .send(
-                action: .selected(row: 0, col: 1)
-                // After o takes 0, 1 we expect the following state:
-            ).assertState { state in
+            .send(action: .selected(row: 0, col: 1))
+            // This workflow has no outputs.
+            .assertNoOutput()
+            // After o takes 0, 1 we expect the following state:
+            .verifyState { state in
                 // Board is not full.
                 XCTAssertFalse(state.board.isFull())
 
@@ -132,15 +129,11 @@ class TakeTurnsWorkflowTests: XCTestCase {
         TakeTurnsWorkflow
             .Action
             .tester(withState: boardState)
-            .send(
-                action: .selected(row: 2, col: 2),
-                outputAssertions: { output in
-                    // This workflow has no outputs.
-                    XCTAssertNil(output)
-                }
-            )
+            .send(action: .selected(row: 2, col: 2))
+            // This workflow has no outputs.
+            .assertNoOutput()
             // After o takes 2, 2 we expect the following state:
-            .assertState { state in
+            .verifyState { state in
                 // Board is full
                 XCTAssertTrue(state.board.isFull())
 
@@ -184,15 +177,11 @@ class TakeTurnsWorkflowTests: XCTestCase {
         TakeTurnsWorkflow
             .Action
             .tester(withState: boardState)
-            .send(
-                action: .selected(row: 1, col: 0),
-                outputAssertions: { output in
-                    // This workflow has no outputs.
-                    XCTAssertNil(output)
-                }
-            )
+            .send(action: .selected(row: 1, col: 0))
+            // This workflow has no outputs.
+            .assertNoOutput()
             // After o takes 2, 2 we expect the following state:
-            .assertState { state in
+            .verifyState { state in
                 // Board is full.
                 XCTAssertTrue(state.board.isFull())
 
