@@ -21,7 +21,7 @@
     import Workflow
 
     /// Drives view controllers from a root Workflow.
-    public final class ContainerViewController<Output, ScreenType>: UIViewController where ScreenType: Screen {
+    public final class ContainerViewController<ScreenType, Output>: UIViewController where ScreenType: Screen {
         /// Emits output events from the bound workflow.
         public var output: Signal<Output, Never> {
             return workflowHost.output
@@ -116,7 +116,7 @@
 
         var wrapped: AnyWorkflow<Rendering, Output>
 
-        init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Output == Output, W.Rendering == Rendering {
+        init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Rendering == Rendering, W.Output == Output {
             self.wrapped = wrapped.asAnyWorkflow()
         }
 
