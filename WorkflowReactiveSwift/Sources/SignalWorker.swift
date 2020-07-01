@@ -15,8 +15,34 @@
  */
 
 import ReactiveSwift
+import Workflow
+
+/// Convenience to use `Signal` as a `Workflow`
+///
+/// `Output` of this `Workflow` can be mapped to a `WorkflowAction`.
+///
+/// - Important:
+/// In a `render()` call, if running multiple `Signal` or if a
+/// `Signal` can change in-between render passes, use a `Worker`
+/// instead or use an explicit `key` while `running`.
+///
+/// ```
+/// func render(state: State, context: RenderContext<Self>) -> MyScreen {
+///     signal
+///         .mapOutput { MyAction($0) }
+///         .running(in: context, key: "UniqueKeyForSignal")
+///
+///     return MyScreen()
+/// }
+/// ```
+extension Signal: AnyWorkflowConvertible where Error == Never {
+    public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
+        return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
+    }
+}
 
 /// A `Worker` that wraps a `Signal`
+@available(*, deprecated, message: "Use `Signal` as `Workflow` instead")
 public struct SignalWorker<Key: Equatable, Value>: Worker {
     let key: Key
     let signal: Signal<Value, Never>
@@ -36,6 +62,7 @@ public struct SignalWorker<Key: Equatable, Value>: Worker {
 }
 
 extension Signal where Error == Never {
+    @available(*, deprecated, message: "Use `Signal` as `Workflow` instead")
     public func asWorker<Key: Equatable>(key: Key) -> SignalWorker<Key, Value> {
         return SignalWorker(key: key, signal: self)
     }

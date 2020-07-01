@@ -166,7 +166,7 @@
         func makeInitialState() -> State {
             return 0
         }
-        
+
         func render(state: State, context: RenderContext<Self>) -> TestScreen {
             subscription.asWorker(key: "signal")
                 .mapOutput { output in
