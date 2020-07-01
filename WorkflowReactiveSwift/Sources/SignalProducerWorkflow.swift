@@ -30,16 +30,14 @@ struct SignalProducerWorkflow<Value>: Workflow {
     public typealias Rendering = Void
 
     var signalProducer: SignalProducer<Value, Never>
-    var key: AnyHashable
 
-    public init(signalProducer: SignalProducer<Value, Never>, key: AnyHashable = "") {
+    public init(signalProducer: SignalProducer<Value, Never>) {
         self.signalProducer = signalProducer
-        self.key = key
     }
 
     public func render(state: State, context: RenderContext<SignalProducerWorkflow>) -> Rendering {
         let sink = context.makeSink(of: AnyWorkflowAction.self)
-        context.runSideEffect(key: key) { [signalProducer] lifetime in
+        context.runSideEffect(key: "") { [signalProducer] lifetime in
             signalProducer
                 .take(during: lifetime.reactiveLifetime)
                 .map { AnyWorkflowAction(sendingOutput: $0) }

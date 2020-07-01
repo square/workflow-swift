@@ -289,9 +289,6 @@ final class ConcurrencyTests: XCTestCase {
         signal1.send(value: 1)
         signal2.send(value: 2)
 
-//        TODO: What does it mean that this is no longer true?
-//        XCTAssertEqual(0, host.rendering.value.count)
-
         wait(for: [renderingExpectation, outputExpectation], timeout: 1.0)
 
         XCTAssertEqual(101, host.rendering.value.count)

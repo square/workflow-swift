@@ -18,7 +18,6 @@ import os.signpost
 
 private extension OSLog {
     static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
-    static let worker = OSLog(subsystem: "com.squareup.Workflow", category: "Worker")
 }
 
 // MARK: -

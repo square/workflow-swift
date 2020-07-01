@@ -177,7 +177,8 @@ extension DemoWorkflow {
             state.signal.signal.asWorker(key: "Timer")
                 .mapOutput { _ in
                     Action.titleButtonTapped
-                }.running(in: context)
+                }
+                .running(in: context)
             subscribeTitle = "Stop"
         }
 

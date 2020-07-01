@@ -31,11 +31,12 @@
         public func expect<ExpectedWorkerType: Worker>(
             worker: ExpectedWorkerType,
             producingOutput output: ExpectedWorkerType.Output? = nil,
+            key: String = "",
             file: StaticString = #file, line: UInt = #line
         ) -> RenderTester<WorkflowType> {
             expectWorkflow(
                 type: WorkerWorkflow<ExpectedWorkerType>.self,
-                key: "",
+                key: key,
                 producingRendering: (),
                 producingOutput: output,
                 assertions: { workflow in
@@ -43,7 +44,7 @@
                         return
                     }
                     XCTFail(
-                        "Expected worker of type: \(ExpectedWorkerType.self) not equivalent",
+                        "Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(worker). Got: \(workflow.worker)",
                         file: file,
                         line: line
                     )

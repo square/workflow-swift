@@ -22,4 +22,11 @@ Pod::Spec.new do |s|
   s.dependency 'ReactiveSwift', '~> 6.3.0'
 
   s.framework = 'XCTest'
+
+  s.test_spec 'WorkflowReactiveSwiftTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowReactiveSwift/TestingTests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+  end
 end
