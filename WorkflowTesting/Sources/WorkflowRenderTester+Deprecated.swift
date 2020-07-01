@@ -74,7 +74,7 @@
             return render(file: file, line: line, with: expectations, assertions: assertions)
         }
 
-        /// Assert the internal state.
+        @available(*, deprecated, renamed: "verifyState(_:)")
         @discardableResult
         public func assert(state assertions: (WorkflowType.State) -> Void) -> RenderTester<WorkflowType> {
             assertions(state)
