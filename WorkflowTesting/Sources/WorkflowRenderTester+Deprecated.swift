@@ -25,18 +25,18 @@
             var tester = self
 
             for expectedWorkflow in expectations.expectedWorkflows {
-                expectedWorkflow.expect(in: &tester)
+                expectedWorkflow.expect(in: &tester, file: file, line: line)
             }
 
             for expectedWorker in expectations.expectedWorkers {
-                expectedWorker.expect(in: &tester)
+                expectedWorker.expect(in: &tester, file: file, line: line)
             }
 
             for (_, expectedSideEffect) in expectations.expectedSideEffects {
-                expectedSideEffect.expect(in: &tester)
+                expectedSideEffect.expect(in: &tester, file: file, line: line)
             }
 
-            let result = tester.render(assertions: assertions)
+            let result = tester.render(file: file, line: line, assertions: assertions)
 
             if let expectedState = expectations.expectedState {
                 expectedState.verify(in: result, file: file, line: line)
