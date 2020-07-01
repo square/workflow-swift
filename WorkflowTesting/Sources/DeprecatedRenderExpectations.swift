@@ -63,7 +63,7 @@
         }
 
         func verify(in result: RenderTesterResult<WorkflowType>, file: StaticString, line: UInt) {
-            result.verifyOutput {
+            result.verifyOutput(file: file, line: line) {
                 XCTAssert(isEquivalent(output, $0), "Output \($0) is not equal to expected \(output)", file: file, line: line)
             }
         }
@@ -88,7 +88,7 @@
         }
 
         func verify(in result: RenderTesterResult<WorkflowType>, file: StaticString, line: UInt) {
-            result.verifyState {
+            result.verifyState(file: file, line: line) {
                 XCTAssert(isEquivalent(state, $0), "State \($0) is not equal to expected \(state)", file: file, line: line)
             }
         }
@@ -97,7 +97,7 @@
     @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
     public struct ExpectedWorker {
         fileprivate class AnyStorage {
-            func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>) {
+            func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
                 fatalError()
             }
         }
@@ -111,8 +111,8 @@
                 self.output = output
             }
 
-            override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>) {
-                tester = tester.expect(worker: worker, producingOutput: output)
+            override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
+                tester = tester.expect(worker: worker, producingOutput: output, file: file, line: line)
             }
         }
 
@@ -124,8 +124,8 @@
             self.storage = Storage(worker: worker, output: output)
         }
 
-        func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>) {
-            storage.expect(in: &tester)
+        func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>, file: StaticString, line: UInt) {
+            storage.expect(in: &tester, file: file, line: line)
         }
     }
 
@@ -138,8 +138,8 @@
                 self.key = key
             }
 
-            func expect(in tester: inout RenderTester<WorkflowType>) {
-                tester = tester.expectSideEffect(key: key)
+            func expect(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
+                tester = tester.expectSideEffect(key: key, file: file, line: line)
             }
         }
 
@@ -151,8 +151,8 @@
                 super.init(key: key)
             }
 
-            override func expect(in tester: inout RenderTester<WorkflowType>) {
-                tester = tester.expectSideEffect(key: key, producingAction: action)
+            override func expect(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
+                tester = tester.expectSideEffect(key: key, producingAction: action, file: file, line: line)
             }
         }
 
@@ -166,15 +166,15 @@
             self.storage = StorageWithAction(key: key, action: action)
         }
 
-        func expect(in tester: inout RenderTester<WorkflowType>) {
-            storage.expect(in: &tester)
+        func expect(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
+            storage.expect(in: &tester, file: file, line: line)
         }
     }
 
     @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
     public struct ExpectedWorkflow {
         fileprivate class AnyStorage {
-            func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>) {
+            func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>, file: StaticString, line: UInt) {
                 fatalError()
             }
         }
@@ -190,8 +190,8 @@
                 self.output = output
             }
 
-            override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>) {
-                tester = tester.expectWorkflow(type: ExpectedWorkflowType.self, key: key, producingRendering: rendering, producingOutput: output)
+            override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
+                tester = tester.expectWorkflow(type: ExpectedWorkflowType.self, key: key, producingRendering: rendering, producingOutput: output, file: file, line: line)
             }
         }
 
@@ -201,8 +201,8 @@
             self.storage = Storage<WorkflowType>(key: key, rendering: rendering, output: output)
         }
 
-        func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>) {
-            storage.expect(in: &tester)
+        func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>, file: StaticString, line: UInt) {
+            storage.expect(in: &tester, file: file, line: line)
         }
     }
 
