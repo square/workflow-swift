@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name         = 'WorkflowReactiveSwiftTesting'
   s.version      = '0.29.0'
-  s.summary      = 'Infrastructure for Workflow-powered SwiftUI'
+  s.summary      = 'Infrastructure for Workflow-powered Swift'
   s.homepage     = 'https://www.github.com/square/workflow-swift'
   s.license      = 'Apache License, Version 2.0'
   s.author       = 'Square'
@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.dependency 'Workflow', "#{s.version}"
   s.dependency 'WorkflowReactiveSwift', "#{s.version}"
   s.dependency 'WorkflowTesting', "#{s.version}"
-  s.dependency 'ReactiveSwift', '~> 6.3.0'
+  s.dependency 'ReactiveSwift'
 
   s.framework = 'XCTest'
 

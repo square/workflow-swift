@@ -18,7 +18,7 @@
     import Workflow
     import WorkflowTesting
     import XCTest
-    @testable import WorkflowReactiveSwift
+    @testable import WorkflowRxSwift
 
     extension RenderTester {
         /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
