@@ -51,6 +51,7 @@ class WorkerTests: XCTestCase {
         disposable?.dispose()
     }
 
+    @available(*, deprecated) // Marked to silence deprecation warnings
     func testExpectedWorkerDeprecatedTests() {
         SignalProducerTestWorkflow(key: "")
             .renderTester()

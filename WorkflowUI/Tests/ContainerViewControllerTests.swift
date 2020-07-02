@@ -212,10 +212,9 @@
         }
 
         func render(state: State, context: RenderContext<Self>) -> TestScreen {
-            context.awaitResult(
-                for: EchoWorker(value: value),
-                outputMap: { AnyWorkflowAction(sendingOutput: $0) }
-            )
+            EchoWorker(value: value)
+                .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
+                .running(in: context)
             return TestScreen(string: "\(value)")
         }
     }

@@ -19,6 +19,7 @@ import Workflow
 import WorkflowTesting
 import XCTest
 
+@available(*, deprecated) // Marked to silence deprecation warnings
 final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
     func test_assertState() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()

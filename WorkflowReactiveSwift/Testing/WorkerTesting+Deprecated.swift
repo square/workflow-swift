@@ -61,6 +61,7 @@
         }
     }
 
+    @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
     public extension RenderExpectations {
         init(
             expectedState: ExpectedState<WorkflowType>? = nil,
