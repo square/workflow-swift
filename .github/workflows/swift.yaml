@@ -42,7 +42,10 @@ jobs:
         - Development-Unit-WorkflowUITests
         - Development-Unit-SplitScreenTests
         - Development-Unit-TicTacToeTests
+        - Development-Unit-WorkflowReactiveSwiftTests
+        - Development-Unit-WorkflowRxSwiftTests
         - Development-Unit-WorkflowReactiveSwiftTestingTests
+        - Development-Unit-WorkflowRxSwiftTestingTests
 
     steps:
     - uses: actions/checkout@v1

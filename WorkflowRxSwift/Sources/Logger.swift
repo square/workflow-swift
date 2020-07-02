@@ -26,7 +26,7 @@ private extension OSLog {
 final class WorkerLogger<WorkerType: Worker> {
     init() {}
 
-    @available(iOS 12.0, *)
+    @available(iOS 12.0, macOS 10.14, *)
     var signpostID: OSSignpostID { OSSignpostID(log: .worker, object: self) }
 
     // MARK: - Workers
