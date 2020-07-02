@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name         = 'WorkflowReactiveSwift'
+  s.name         = 'WorkflowRxSwiftTesting'
   s.version      = '0.29.0'
   s.summary      = 'Infrastructure for Workflow-powered Swift'
   s.homepage     = 'https://www.github.com/square/workflow-swift'
@@ -14,14 +14,19 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '10.0'
   s.osx.deployment_target = '10.12'
 
-  s.source_files = 'WorkflowReactiveSwift/Sources/**/*.swift'
+  s.source_files = 'WorkflowRxSwift/Testing/**/*.swift'
 
   s.dependency 'Workflow', "#{s.version}"
-  s.dependency 'ReactiveSwift'
+  s.dependency 'WorkflowRxSwift', "#{s.version}"
+  s.dependency 'WorkflowTesting', "#{s.version}"
+  s.dependency 'RxSwift'
 
-  s.test_spec 'Tests' do |test_spec|
-    test_spec.source_files = 'WorkflowReactiveSwift/Tests/**/*.swift'
+  s.framework = 'XCTest'
+
+  s.test_spec 'WorkflowRxSwiftTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowRxSwift/TestingTests/**/*.swift'
     test_spec.framework = 'XCTest'
-    test_spec.library = 'swiftos'
+    test_spec.dependency 'WorkflowTesting'
   end
 end

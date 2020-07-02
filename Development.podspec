@@ -12,6 +12,7 @@ Pod::Spec.new do |s|
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
   s.dependency 'WorkflowReactiveSwift'
+  s.dependency 'WorkflowRxSwift'
   s.source_files = 'Samples/Dummy.swift'
 
   s.subspec 'Dummy' do |ss|
@@ -123,5 +124,21 @@ Pod::Spec.new do |s|
     test_spec.framework = 'XCTest'
     test_spec.dependency 'WorkflowTesting'
     test_spec.dependency 'WorkflowReactiveSwiftTesting'
+  end
+
+  s.test_spec 'WorkflowRxSwiftTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowRxSwift/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowRxSwiftTesting'
+  end
+
+  s.test_spec 'WorkflowRxSwiftTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowRxSwift/TestingTests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowRxSwiftTesting'
   end
 end
