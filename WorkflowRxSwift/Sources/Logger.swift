@@ -38,7 +38,7 @@ final class WorkerLogger<WorkerType: Worker> {
                 log: .worker,
                 name: "Running",
                 signpostID: self.signpostID,
-                "Worker: %{public}@",
+                "Worker: %{private}@",
                 String(describing: WorkerType.self)
             )
         }
@@ -57,7 +57,7 @@ final class WorkerLogger<WorkerType: Worker> {
                 log: .worker,
                 name: "Worker Event",
                 signpostID: signpostID,
-                "Event: %{public}@",
+                "Event: %{private}@",
                 String(describing: WorkerType.self)
             )
         }

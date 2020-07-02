@@ -15,14 +15,14 @@
  */
 
 import RxSwift
+import Workflow
 import WorkflowRxSwiftTesting
 import WorkflowTesting
 import XCTest
-@testable import Workflow
 @testable import WorkflowRxSwift
 
-class SignalProducerTests: XCTestCase {
-    func test_signalProducerWorkflow_usesSideEffectWithKey() {
+class ObservableTests: XCTestCase {
+    func test_observableWorkflow_usesSideEffectWithKey() {
         let observable = Observable.just(1)
         ObservableWorkflow(observable: observable)
             .renderTester()
@@ -70,8 +70,8 @@ class SignalProducerTests: XCTestCase {
         disposable?.dispose()
     }
 
-    func test_signalProducer_isDisposedIfNotUsedInWorkflow() {
-        let expectation = XCTestExpectation(description: "SignalProducer should be disposed if no longer used.")
+    func test_observable_isDisposedIfNotUsedInWorkflow() {
+        let expectation = XCTestExpectation(description: "Observable should be disposed if no longer used.")
         let observable = Observable.from([1, 2, 3])
             .do(onDispose: {
                 expectation.fulfill()
