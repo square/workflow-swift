@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
 import ReactiveSwift
 import Workflow
 import WorkflowReactiveSwift

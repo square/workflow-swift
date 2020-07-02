@@ -54,23 +54,16 @@ class WorkerTests: XCTestCase {
     // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.
     func test_cancelsWorkers() {
         struct WorkerWorkflow: Workflow {
-            enum State {
+            typealias State = Void
+            enum Mode {
                 case notWorking
                 case working(start: XCTestExpectation, end: XCTestExpectation)
             }
 
-            let initialState: State
-
-            func makeInitialState() -> State {
-                initialState
-            }
-
-            func workflowDidChange(from previousWorkflow: WorkerWorkflow, state: inout State) {
-                state = initialState
-            }
+            let mode: Mode
 
             func render(state: State, context: RenderContext<WorkerWorkflow>) -> Bool {
-                switch state {
+                switch mode {
                 case .notWorking:
                     return false
                 case .working(start: let startExpectation, end: let endExpectation):
@@ -110,7 +103,7 @@ class WorkerTests: XCTestCase {
         let startExpectation = XCTestExpectation()
         let endExpectation = XCTestExpectation()
         let host = WorkflowHost(
-            workflow: WorkerWorkflow(initialState: .working(
+            workflow: WorkerWorkflow(mode: .working(
                 start: startExpectation,
                 end: endExpectation
             ))
@@ -118,7 +111,7 @@ class WorkerTests: XCTestCase {
 
         wait(for: [startExpectation], timeout: 1.0)
 
-        host.update(workflow: WorkerWorkflow(initialState: .notWorking))
+        host.update(workflow: WorkerWorkflow(mode: .notWorking))
 
         wait(for: [endExpectation], timeout: 1.0)
     }
