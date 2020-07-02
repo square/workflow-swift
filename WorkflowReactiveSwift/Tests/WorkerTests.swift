@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import Foundation
 import ReactiveSwift
+import Workflow
 import WorkflowReactiveSwift
 import WorkflowReactiveSwiftTesting
 import WorkflowTesting
 import XCTest
-@testable import Workflow
 
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
@@ -64,23 +63,20 @@ class WorkerTests: XCTestCase {
     // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.
     func test_cancelsWorkers() {
         struct WorkerWorkflow: Workflow {
-            var startExpectation: XCTestExpectation
-            var endExpectation: XCTestExpectation
+            typealias State = Void
 
-            enum State {
+            enum Mode {
                 case notWorking
-                case working
+                case working(start: XCTestExpectation, end: XCTestExpectation)
             }
 
-            func makeInitialState() -> WorkerWorkflow.State {
-                return .notWorking
-            }
+            let mode: Mode
 
-            func render(state: WorkerWorkflow.State, context: RenderContext<WorkerWorkflow>) -> Bool {
-                switch state {
+            func render(state: State, context: RenderContext<WorkerWorkflow>) -> Bool {
+                switch mode {
                 case .notWorking:
                     return false
-                case .working:
+                case .working(start: let startExpectation, end: let endExpectation):
                     ExpectingWorker(
                         startExpectation: startExpectation,
                         endExpectation: endExpectation
@@ -92,57 +88,40 @@ class WorkerTests: XCTestCase {
             }
 
             struct ExpectingWorker: Worker {
-                var startExpectation: XCTestExpectation
-                var endExpectation: XCTestExpectation
-
                 typealias Output = Void
 
+                let startExpectation: XCTestExpectation
+                let endExpectation: XCTestExpectation
+
                 func run() -> SignalProducer<Void, Never> {
-                    return SignalProducer<Void, Never>({ [weak startExpectation, weak endExpectation] observer, lifetime in
+                    SignalProducer<Void, Never> { observer, lifetime in
                         lifetime.observeEnded {
-                            endExpectation?.fulfill()
+                            self.endExpectation.fulfill()
                         }
 
-                        startExpectation?.fulfill()
-                        })
+                        self.startExpectation.fulfill()
+                    }
                 }
 
                 func isEquivalent(to otherWorker: WorkerWorkflow.ExpectingWorker) -> Bool {
-                    return true
+                    true
                 }
             }
         }
 
         let startExpectation = XCTestExpectation()
         let endExpectation = XCTestExpectation()
-        let manager = WorkflowNode<WorkerWorkflow>.SubtreeManager()
+        let host = WorkflowHost(
+            workflow: WorkerWorkflow(mode: .working(
+                start: startExpectation,
+                end: endExpectation
+            ))
+        )
 
-        let isRunning = manager.render { context -> Bool in
-            WorkerWorkflow(
-                startExpectation: startExpectation,
-                endExpectation: endExpectation
-            )
-            .render(
-                state: .working,
-                context: context
-            )
-        }
-
-        XCTAssertEqual(true, isRunning)
         wait(for: [startExpectation], timeout: 1.0)
 
-        let isStillRunning = manager.render { context -> Bool in
-            WorkerWorkflow(
-                startExpectation: startExpectation,
-                endExpectation: endExpectation
-            )
-            .render(
-                state: .notWorking,
-                context: context
-            )
-        }
+        host.update(workflow: WorkerWorkflow(mode: .notWorking))
 
-        XCTAssertFalse(isStillRunning)
         wait(for: [endExpectation], timeout: 1.0)
     }
 
@@ -160,11 +139,11 @@ class WorkerTests: XCTestCase {
 
         struct TestWorker: Worker {
             func isEquivalent(to otherWorker: TestWorker) -> Bool {
-                return true
+                true
             }
 
             func run() -> SignalProducer<Int, Never> {
-                return SignalProducer { observer, lifetime in
+                SignalProducer { observer, lifetime in
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         observer.send(value: 1)
                         observer.send(value: 2)
@@ -175,21 +154,17 @@ class WorkerTests: XCTestCase {
         }
 
         let expectation = XCTestExpectation(description: "Test Worker")
+
+        let host = WorkflowHost(workflow: WF())
+
         var outputs: [Int] = []
+        host.output.signal.observeValues { output in
+            outputs.append(output)
 
-        let node = WorkflowNode(workflow: WF())
-        node.onOutput = { output in
-            if let outputInt = output.outputEvent {
-                outputs.append(outputInt)
-
-                if outputs.count == 2 {
-                    expectation.fulfill()
-                }
+            if outputs.count == 2 {
+                expectation.fulfill()
             }
         }
-
-        node.render()
-        node.enableEvents()
 
         wait(for: [expectation], timeout: 1.0)
 
@@ -223,7 +198,7 @@ private struct SignalProducerTestWorkflow: Workflow {
 private struct SignalProducerTestWorker: Worker {
     typealias Output = Int
     func run() -> SignalProducer<Int, Never> {
-        return SignalProducer(value: 1)
+        SignalProducer(value: 1)
     }
 
     func isEquivalent(to otherWorker: SignalProducerTestWorker) -> Bool {
