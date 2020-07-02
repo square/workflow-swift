@@ -72,6 +72,15 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
         }
     }
 
+    func test_worker_unexpected() {
+        let tester = TestWorkflow()
+            .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
+
+        expectingFailure(#"Unexpected workflow of type WorkerWorkflow<TestWorker> with key """#) {
+            tester.render { _ in }
+        }
+    }
+
     // MARK: - Failure Recording
 
     var expectedFailureStrings: [String] = []

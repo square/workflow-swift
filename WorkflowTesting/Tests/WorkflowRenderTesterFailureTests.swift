@@ -108,6 +108,31 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
+    func test_childWorkflow_assertion() {
+        let tester = TestWorkflow()
+            .renderTester(initialState: .workflow(param: "", key: ""))
+            .expectWorkflow(type: TestChildWorkflow.self, key: "", producingRendering: "", producingOutput: nil) { workflow in
+                XCTFail("Workflow Assertion Fired")
+            }
+
+        expectingFailure("Workflow Assertion Fired") {
+            tester.render { _ in }
+        }
+    }
+
+    func test_childWorkflow_unexpected_voidRendering() {
+        // We can’t test non-void-rendering workflow failures because we must
+        // return a rendering from the render context, but we _can_ test
+        // unexpected workflows that render Void.
+
+        let tester = TestWorkflow()
+            .renderTester(initialState: .voidWorkflow)
+
+        expectingFailure(#"Unexpected workflow of type VoidWorkflow with key """#) {
+            tester.render { _ in }
+        }
+    }
+
     // MARK: Side effects
 
     func test_sideEffect_missing() {
@@ -251,18 +276,6 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
-    func test_verifyWorkflow_assertion_fails() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .workflow(param: "", key: ""))
-            .expectWorkflow(type: TestChildWorkflow.self, key: "", producingRendering: "", producingOutput: nil) { workflow in
-                XCTFail("Workflow Assertion Fired")
-            }
-
-        expectingFailure("Workflow Assertion Fired") {
-            tester.render { _ in }
-        }
-    }
-
     // MARK: State
 
     func test_verifyState() {
@@ -286,6 +299,7 @@ private struct TestWorkflow: Workflow {
     enum State: Equatable {
         case idle
         case workflow(param: String, key: String = "")
+        case voidWorkflow
         case sideEffect(key: String)
     }
 
@@ -300,6 +314,9 @@ private struct TestWorkflow: Workflow {
         case .workflow(let param, let key):
             _ = TestChildWorkflow(input: param)
                 .rendered(in: context, key: key)
+        case .voidWorkflow:
+            VoidWorkflow()
+                .rendered(in: context)
         case .sideEffect(let key):
             context.runSideEffect(
                 key: key,
@@ -344,5 +361,13 @@ private struct TestChildWorkflow: Workflow {
     func render(state: Void, context: RenderContext<Self>) -> String {
         XCTFail("Child workflow should never be called")
         return input
+    }
+}
+
+private struct VoidWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = Void
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        return ()
     }
 }
