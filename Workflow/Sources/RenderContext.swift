@@ -71,10 +71,6 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         fatalError()
     }
 
-    public func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
-        fatalError()
-    }
-
     /// Execute a side-effect action.
     ///
     /// Note that it is a programmer error to run two side-effects with the same `key`
@@ -126,11 +122,6 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             implementation.runSideEffect(key: key, action: action)
         }
 
-        override func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
-            assertStillValid()
-            implementation.awaitResult(for: worker, outputMap: outputMap)
-        }
-
         private func assertStillValid() {
             assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
         }
@@ -144,8 +135,6 @@ internal protocol RenderContextType: AnyObject {
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, Action.WorkflowType == WorkflowType
-
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
 
@@ -157,19 +146,5 @@ extension RenderContext {
                     onEvent(event, &state)
                 }
             }
-    }
-}
-
-extension RenderContext {
-    public func awaitResult<W>(for worker: W) where W: Worker, W.Output: WorkflowAction, WorkflowType == W.Output.WorkflowType {
-        awaitResult(for: worker, outputMap: { $0 })
-    }
-
-    public func awaitResult<W>(for worker: W, onOutput: @escaping (W.Output, inout WorkflowType.State) -> WorkflowType.Output?) where W: Worker {
-        awaitResult(for: worker) { output in
-            AnyWorkflowAction<WorkflowType> { state in
-                onOutput(output, &state)
-            }
-        }
     }
 }

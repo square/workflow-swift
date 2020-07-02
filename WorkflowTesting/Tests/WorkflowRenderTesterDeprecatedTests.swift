@@ -107,63 +107,11 @@ final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
             )
     }
 
-    func test_workers() {
-        let renderTester = TestWorkflow(initialText: "initial")
-            .renderTester(
-                initialState: TestWorkflow.State(
-                    text: "otherText",
-                    substate: .waiting
-                )
-            )
-
-        let expectedWorker = ExpectedWorker(worker: TestWorker(text: "otherText"))
-
-        renderTester.render(
-            with: RenderExpectations(
-                expectedState: nil,
-                expectedWorkers: [expectedWorker]
-            ),
-            assertions: { screen in
-                XCTAssertEqual("otherText", screen.text)
-            }
-        )
-    }
-
-    func test_workerOutput() {
-        let renderTester = TestWorkflow(initialText: "initial")
-            .renderTester(initialState: TestWorkflow.State(
-                text: "otherText",
-                substate: .waiting
-            ))
-
-        let expectedWorker = ExpectedWorker(worker: TestWorker(text: "otherText"), output: .success)
-        let expectedState = ExpectedState<TestWorkflow>(state: TestWorkflow.State(text: "otherText", substate: .idle))
-
-        renderTester.render(
-            with: RenderExpectations(
-                expectedState: expectedState,
-                expectedWorkers: [expectedWorker]
-            ),
-            assertions: { screen in
-                XCTAssertEqual("otherText", screen.text)
-            }
-        )
-    }
-
     func test_childWorkflow() {
         // Test the child independently from the parent.
         ChildWorkflow(text: "hello")
             .renderTester()
             .render(
-                with: RenderExpectations<ChildWorkflow>(
-                    expectedOutput: ExpectedOutput(output: .success),
-                    expectedWorkers: [
-                        ExpectedWorker(
-                            worker: TestWorker(text: "hello"),
-                            output: .success
-                        ),
-                    ]
-                ),
                 assertions: { rendering in
                     XCTAssertEqual("olleh", rendering)
                 }
@@ -219,7 +167,6 @@ final class WorkflowRenderTesterDeprecatedTests: XCTestCase {
                     )
                 ),
                 expectedOutput: nil,
-                expectedWorkers: [],
                 expectedWorkflows: [],
                 assertions: { rendering in
                     XCTAssertEqual("hello", rendering.text)
@@ -295,8 +242,8 @@ private struct TestWorkflow: Workflow {
         case .idle:
             break
         case .waiting:
-            context.awaitResult(for: TestWorker(text: state.text)) { output -> Action in
-                .asyncSuccess
+            context.runSideEffect(key: "") { lifetime in
+                sink.send(Action.asyncSuccess)
             }
         }
 
@@ -402,23 +349,6 @@ private struct SideEffectWorkflow: Workflow {
     }
 }
 
-private struct TestWorker: Worker {
-    var text: String
-
-    enum Output {
-        case success
-        case failure
-    }
-
-    func run() -> SignalProducer<Output, Never> {
-        return SignalProducer(value: .success)
-    }
-
-    func isEquivalent(to otherWorker: TestWorker) -> Bool {
-        return text == otherWorker.text
-    }
-}
-
 private struct TestScreen {
     var text: String
     var tapped: () -> Void
@@ -484,14 +414,20 @@ private struct ChildWorkflow: Workflow {
         return State()
     }
 
-    func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
-        context.awaitResult(
-            for: TestWorker(text: text),
-            onOutput: { (output, state) -> Output in
-                .success
-            }
-        )
+    enum Action: WorkflowAction {
+        case outputSuccess
 
+        typealias WorkflowType = ChildWorkflow
+
+        func apply(toState state: inout ChildWorkflow.State) -> ChildWorkflow.Output? {
+            switch self {
+            case .outputSuccess:
+                return .success
+            }
+        }
+    }
+
+    func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
         return String(text.reversed())
     }
 }

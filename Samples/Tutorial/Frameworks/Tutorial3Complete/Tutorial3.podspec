@@ -20,4 +20,5 @@ Pod::Spec.new do |s|
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
   s.dependency 'BackStackContainer'
+  s.dependency 'WorkflowReactiveSwift'
 end

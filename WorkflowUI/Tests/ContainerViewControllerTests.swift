@@ -20,6 +20,7 @@
 
     import ReactiveSwift
     import Workflow
+    import WorkflowReactiveSwift
     @testable import WorkflowUI
 
     fileprivate struct TestScreen: Screen {
@@ -165,14 +166,15 @@
         func makeInitialState() -> State {
             return 0
         }
-
+        
         func render(state: State, context: RenderContext<Self>) -> TestScreen {
-            context.awaitResult(for: subscription.asWorker(key: "signal")) { output in
-                AnyWorkflowAction { state in
-                    state = output
-                    return output
-                }
-            }
+            subscription.asWorker(key: "signal")
+                .mapOutput { output in
+                    AnyWorkflowAction { state in
+                        state = output
+                        return output
+                    }
+                }.running(in: context)
 
             return TestScreen(string: "\(state)")
         }

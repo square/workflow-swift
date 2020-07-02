@@ -123,20 +123,17 @@
         let state: WorkflowType.State
 
         private let expectedWorkflows: [AnyExpectedWorkflow]
-        private let expectedWorkers: [AnyExpectedWorker]
         private let expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
 
         init(
             workflow: WorkflowType,
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow] = [],
-            expectedWorkers: [AnyExpectedWorker] = [],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>] = [:]
         ) {
             self.workflow = workflow
             self.state = state
             self.expectedWorkflows = expectedWorkflows
-            self.expectedWorkers = expectedWorkers
             self.expectedSideEffects = expectedSideEffects
         }
 
@@ -169,33 +166,6 @@
                         line: line
                     )
                 ),
-                expectedWorkers: expectedWorkers,
-                expectedSideEffects: expectedSideEffects
-            )
-        }
-
-        /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
-
-        /// - Parameters:
-        ///   - worker: The worker to be expected
-        ///   - output: An output that should be returned when this worker is requested, if any.
-        public func expect<ExpectedWorkerType: Worker>(
-            worker: ExpectedWorkerType,
-            producingOutput output: ExpectedWorkerType.Output? = nil,
-            file: StaticString = #file, line: UInt = #line
-        ) -> RenderTester<WorkflowType> {
-            return RenderTester(
-                workflow: workflow,
-                state: state,
-                expectedWorkflows: expectedWorkflows,
-                expectedWorkers: expectedWorkers.appending(
-                    ExpectedWorker(
-                        worker: worker,
-                        output: output,
-                        file: file,
-                        line: line
-                    )
-                ),
                 expectedSideEffects: expectedSideEffects
             )
         }
@@ -211,7 +181,6 @@
                 workflow: workflow,
                 state: state,
                 expectedWorkflows: expectedWorkflows,
-                expectedWorkers: expectedWorkers,
                 expectedSideEffects: expectedSideEffects.setting(
                     key: key,
                     value: ExpectedSideEffect(
@@ -237,7 +206,6 @@
                 workflow: workflow,
                 state: state,
                 expectedWorkflows: expectedWorkflows,
-                expectedWorkers: expectedWorkers,
                 expectedSideEffects: expectedSideEffects.setting(
                     key: key,
                     value: ExpectedSideEffectWithAction(
@@ -266,7 +234,6 @@
             let contextImplementation = TestContext(
                 state: state,
                 expectedWorkflows: expectedWorkflows,
-                expectedWorkers: expectedWorkers,
                 expectedSideEffects: expectedSideEffects,
                 file: file,
                 line: line

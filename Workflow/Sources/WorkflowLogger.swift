@@ -18,7 +18,6 @@ import os.signpost
 
 private extension OSLog {
     static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
-    static let worker = OSLog(subsystem: "com.squareup.Workflow", category: "Worker")
 }
 
 // MARK: -
@@ -86,43 +85,6 @@ final class WorkflowLogger {
         if #available(iOS 12.0, macOS 10.14, *) {
             let signpostID = OSSignpostID(log: .workflow, object: ref)
             os_signpost(.end, log: .workflow, name: "Render", signpostID: signpostID)
-        }
-    }
-
-    // MARK: - Workers
-
-    static func logWorkerStartedRunning<WorkerType>(ref: AnyObject, workerType: WorkerType.Type) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            let signpostID = OSSignpostID(log: .worker, object: ref)
-            os_signpost(
-                .begin,
-                log: .worker,
-                name: "Running",
-                signpostID: signpostID,
-                "Worker: %{public}@",
-                String(describing: WorkerType.self)
-            )
-        }
-    }
-
-    static func logWorkerFinishedRunning(ref: AnyObject, status: StaticString) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            let signpostID = OSSignpostID(log: .worker, object: ref)
-            os_signpost(.end, log: .worker, name: "Running", signpostID: signpostID, status)
-        }
-    }
-
-    static func logWorkerOutput<WorkerType: Worker>(ref: AnyObject, workerType: WorkerType.Type) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            let signpostID = OSSignpostID(log: .worker, object: ref)
-            os_signpost(
-                .event,
-                log: .worker,
-                name: "Worker Event",
-                signpostID: signpostID,
-                "Event: %{public}@",
-                String(describing: WorkerType.self)
-            )
         }
     }
 }

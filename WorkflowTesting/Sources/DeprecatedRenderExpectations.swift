@@ -25,20 +25,17 @@
     public struct RenderExpectations<WorkflowType: Workflow> {
         var expectedState: ExpectedState<WorkflowType>?
         var expectedOutput: ExpectedOutput<WorkflowType>?
-        var expectedWorkers: [ExpectedWorker]
         var expectedWorkflows: [ExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
 
         public init(
             expectedState: ExpectedState<WorkflowType>? = nil,
             expectedOutput: ExpectedOutput<WorkflowType>? = nil,
-            expectedWorkers: [ExpectedWorker] = [],
             expectedWorkflows: [ExpectedWorkflow] = [],
             expectedSideEffects: [ExpectedSideEffect<WorkflowType>] = []
         ) {
             self.expectedState = expectedState
             self.expectedOutput = expectedOutput
-            self.expectedWorkers = expectedWorkers
             self.expectedWorkflows = expectedWorkflows
             self.expectedSideEffects = expectedSideEffects.reduce(into: [AnyHashable: ExpectedSideEffect<WorkflowType>]()) { res, expectedSideEffect in
                 res[expectedSideEffect.storage.key] = expectedSideEffect
@@ -94,42 +91,6 @@
         }
     }
 
-    @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
-    public struct ExpectedWorker {
-        fileprivate class AnyStorage {
-            func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
-                fatalError()
-            }
-        }
-
-        private final class Storage<WorkerType: Worker>: AnyStorage {
-            let worker: WorkerType
-            let output: WorkerType.Output?
-
-            init(worker: WorkerType, output: WorkerType.Output?) {
-                self.worker = worker
-                self.output = output
-            }
-
-            override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
-                tester = tester.expect(worker: worker, producingOutput: output, file: file, line: line)
-            }
-        }
-
-        fileprivate let storage: AnyStorage
-
-        /// Create a new expected worker with an optional output. If `output` is not nil, it will be emitted
-        /// when this worker is declared in the render pass.
-        public init<WorkerType: Worker>(worker: WorkerType, output: WorkerType.Output? = nil) {
-            self.storage = Storage(worker: worker, output: output)
-        }
-
-        func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>, file: StaticString, line: UInt) {
-            storage.expect(in: &tester, file: file, line: line)
-        }
-    }
-
-    @available(*, deprecated, message: "See `RenderTester` documentation for new style.")
     public struct ExpectedSideEffect<WorkflowType: Workflow> {
         fileprivate class Storage {
             let key: AnyHashable
@@ -183,11 +144,13 @@
             let key: String
             let rendering: ExpectedWorkflowType.Rendering
             let output: ExpectedWorkflowType.Output?
+            let assertions: (ExpectedWorkflowType) -> Void
 
-            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?) {
+            init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, assertions: @escaping (ExpectedWorkflowType) -> Void) {
                 self.key = key
                 self.rendering = rendering
                 self.output = output
+                self.assertions = assertions
             }
 
             override func expect<WorkflowType: Workflow>(in tester: inout RenderTester<WorkflowType>, file: StaticString, line: UInt) {
@@ -197,8 +160,8 @@
 
         fileprivate let storage: AnyStorage
 
-        public init<WorkflowType: Workflow>(type: WorkflowType.Type, key: String = "", rendering: WorkflowType.Rendering, output: WorkflowType.Output? = nil) {
-            self.storage = Storage<WorkflowType>(key: key, rendering: rendering, output: output)
+        public init<WorkflowType: Workflow>(type: WorkflowType.Type, key: String = "", rendering: WorkflowType.Rendering, output: WorkflowType.Output? = nil, assertions: @escaping (WorkflowType) -> Void = { _ in }) {
+            self.storage = Storage<WorkflowType>(key: key, rendering: rendering, output: output, assertions: assertions)
         }
 
         func expect<ParentWorkflowType: Workflow>(in tester: inout RenderTester<ParentWorkflowType>, file: StaticString, line: UInt) {

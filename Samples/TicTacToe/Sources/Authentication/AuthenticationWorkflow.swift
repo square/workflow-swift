@@ -19,6 +19,7 @@ import BackStackContainer
 import ModalContainer
 import ReactiveSwift
 import Workflow
+import WorkflowReactiveSwift
 import WorkflowUI
 
 // MARK: Input and Output
@@ -198,11 +199,11 @@ extension AuthenticationWorkflow {
             }
 
         case .authorizingEmailPassword(email: let email, password: let password):
-            context.awaitResult(for: AuthorizingEmailPasswordWorker(
+            AuthorizingEmailPasswordWorker(
                 authenticationService: authenticationService,
                 email: email,
                 password: password
-            ))
+            ).running(in: context)
             modals.append(ModalContainerScreenModal(screen: AnyScreen(LoadingScreen()), style: .fullScreen, key: "", animated: false))
 
         case .twoFactor(intermediateSession: let intermediateSession, authenticationError: let authenticationError):
@@ -213,12 +214,11 @@ extension AuthenticationWorkflow {
             ))
 
         case .authorizingTwoFactor(twoFactorCode: let twoFactorCode, intermediateSession: let intermediateSession):
-            context.awaitResult(
-                for: AuthorizingTwoFactorWorker(
-                    authenticationService: authenticationService,
-                    intermediateToken: intermediateSession,
-                    twoFactorCode: twoFactorCode
-                ))
+            AuthorizingTwoFactorWorker(
+                authenticationService: authenticationService,
+                intermediateToken: intermediateSession,
+                twoFactorCode: twoFactorCode
+            ).running(in: context)
 
             backStackItems.append(twoFactorScreen(error: nil, intermediateSession: intermediateSession, sink: sink))
             modals.append(ModalContainerScreenModal(screen: AnyScreen(LoadingScreen()), style: .fullScreen, key: "", animated: false))
@@ -226,7 +226,8 @@ extension AuthenticationWorkflow {
         return AlertContainerScreen(
             baseScreen: ModalContainerScreen(
                 baseScreen: BackStackScreen(
-                    items: backStackItems),
+                    items: backStackItems
+                ),
                 modals: modals
             ),
             alert: alert
@@ -259,7 +260,8 @@ extension AuthenticationWorkflow {
                     handler: {
                         sink.send(.back)
                     }
-                ))))
+                ))
+            ))
         )
     }
 }

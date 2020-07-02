@@ -11,6 +11,7 @@ Pod::Spec.new do |s|
   s.swift_version = '5.0'
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
+  s.dependency 'WorkflowReactiveSwift'
   s.source_files = 'Samples/Dummy.swift'
 
   s.subspec 'Dummy' do |ss|
@@ -62,6 +63,7 @@ Pod::Spec.new do |s|
   s.test_spec 'TicTacToeTests' do |test_spec|
     test_spec.dependency 'Development/SampleTicTacToe'
     test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowReactiveSwiftTesting'
     test_spec.dependency 'BackStackContainer'
     test_spec.dependency 'ModalContainer'
     test_spec.dependency 'AlertContainer'
@@ -105,5 +107,21 @@ Pod::Spec.new do |s|
     test_spec.requires_app_host = true
     test_spec.source_files = 'WorkflowUI/Tests/**/*.swift'
     test_spec.framework = 'XCTest'
+  end
+
+  s.test_spec 'WorkflowReactiveSwiftTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowReactiveSwift/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowReactiveSwiftTesting'
+  end
+
+  s.test_spec 'WorkflowReactiveSwiftTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowReactiveSwift/TestingTests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowReactiveSwiftTesting'
   end
 end

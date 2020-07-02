@@ -16,6 +16,7 @@
 
 import ReactiveSwift
 import Workflow
+import WorkflowReactiveSwift
 import WorkflowUI
 
 // MARK: Input and Output
@@ -173,9 +174,11 @@ extension DemoWorkflow {
             subscribeTitle = "Subscribe"
         case .subscribing:
             // Subscribe to the timer signal, simulating the title being tapped.
-            context.awaitResult(for: state.signal.signal.asWorker(key: "Timer")) { _ -> Action in
-                .titleButtonTapped
-            }
+            state.signal.signal.asWorker(key: "Timer")
+                .mapOutput { _ in
+                    Action.titleButtonTapped
+                }
+                .running(in: context)
             subscribeTitle = "Stop"
         }
 

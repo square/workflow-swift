@@ -20,6 +20,7 @@ Pod::Spec.new do |s|
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
   s.dependency 'BackStackContainer'
+  s.dependency 'WorkflowReactiveSwift'
 
   s.test_spec 'Tests' do |test_spec|
     test_spec.source_files = 'Tests/**/*.swift'
