@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
+import Foundation
 import ReactiveSwift
-import WorkflowReactiveSwiftTesting
-import WorkflowTesting
 import XCTest
 @testable import Workflow
-@testable import WorkflowReactiveSwift
 
-class SignalProducerTests: XCTestCase {
-    func test_signalProducerWorkflow_usesSideEffectWithKey() {
-        let signalProducer = SignalProducer(value: 1)
-        SignalProducerWorkflow(signalProducer: signalProducer)
-            .renderTester()
-            .expectSideEffect(key: "")
-            .render { _ in }
-    }
-
+class SignalTests: XCTestCase {
     func test_output() {
-        let signalProducer = SignalProducer(value: 1)
-
+        let (signal, observer) = Signal<Int, Never>.pipe()
         let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+            workflow: SignalTestWorkflow(signal: signal)
         )
 
         let expectation = XCTestExpectation()
@@ -43,47 +32,71 @@ class SignalProducerTests: XCTestCase {
             outputValue = output
             expectation.fulfill()
         }
+        defer {
+            disposable?.dispose()
+        }
+
+        observer.send(value: 1)
 
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual(1, outputValue)
-
-        disposable?.dispose()
     }
 
     func test_multipleOutputs() {
-        let signalProducer = SignalProducer(values: 1, 2, 3)
-
+        let (signal, observer) = Signal<Int, Never>.pipe()
         let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+            workflow: SignalTestWorkflow(signal: signal)
         )
 
         let expectation = XCTestExpectation()
         var outputValues = [Int]()
         let disposable = host.output.signal.observeValues { output in
             outputValues.append(output)
-            expectation.fulfill()
+            if outputValues.count == 3 {
+                expectation.fulfill()
+            }
         }
+        defer {
+            disposable?.dispose()
+        }
+
+        observer.send(value: 1)
+        observer.send(value: 2)
+        observer.send(value: 3)
 
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual([1, 2, 3], outputValues)
-
-        disposable?.dispose()
     }
 
-    func test_signalProducer_isDisposedIfNotUsedInWorkflow() {
-        let expectation = XCTestExpectation(description: "SignalProducer should be disposed if no longer used.")
-        let signalProducer = SignalProducer(values: 1, 2, 3)
-            .on(disposed: {
-                expectation.fulfill()
+    func test_signal_disposal() {
+        let (signal, _) = Signal<Int, Never>.pipe()
+
+        let expectation = XCTestExpectation()
+        let signalOne = signal.on(disposed: {
+            expectation.fulfill()
         })
 
+        let (signalTwo, _) = Signal<Int, Never>.pipe()
+
         let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+            workflow: SignalTestWorkflow(signal: signalOne)
         )
 
-        let signalProducerTwo = SignalProducer(values: 1, 2, 3)
-        host.update(workflow: SignalProducerWorkflow(signalProducer: signalProducerTwo))
-
+        host.update(workflow: SignalTestWorkflow(signal: signalTwo))
         wait(for: [expectation], timeout: 1)
+    }
+}
+
+private struct SignalTestWorkflow<Value>: Workflow {
+    typealias Rendering = Void
+    typealias Output = Value
+    typealias State = Void
+
+    let signal: Signal<Value, Never>
+
+    func render(state: State, context: RenderContext<SignalTestWorkflow<Value>>) {
+        signal.mapOutput {
+            AnyWorkflowAction(sendingOutput: $0)
+        }.running(in: context)
     }
 }

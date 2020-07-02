@@ -18,6 +18,24 @@ import ReactiveSwift
 import Workflow
 import class Workflow.Lifetime
 
+/// Convenience to use `SignalProducer` as a `Workflow`
+///
+/// `Output` of this `Workflow` can be mapped to a `WorkflowAction`.
+///
+/// - Important:
+/// In a `render()` call, if running multiple `SignalProducer`s
+/// or if a `SignalProducer` can change in-between render passes,
+/// use a `Worker` instead or use an explicit `key` while `running`.
+///
+/// ```
+/// func render(state: State, context: RenderContext<Self>) -> MyScreen {
+///     signalProducer
+///         .mapOutput { MyAction($0) }
+///         .running(in: context, key: "UniqueKeyForSignal")
+///
+///     return MyScreen()
+/// }
+/// ```
 extension SignalProducer: AnyWorkflowConvertible where Error == Never {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
         return SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
