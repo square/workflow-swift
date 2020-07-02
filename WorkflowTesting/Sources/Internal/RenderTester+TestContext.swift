@@ -63,6 +63,12 @@
                         diagnosticMessage = ""
                     }
                     XCTFail("Unexpected workflow of type \(Child.self) with key \"\(key)\". \(diagnosticMessage)", file: file, line: line)
+
+                    // We can “recover” from missing Void-rendering workflows since there’s only one possible value to return
+                    if Child.Rendering.self == Void.self {
+                        // Couldn’t find a nicer way to do this polymorphically
+                        return () as! Child.Rendering
+                    }
                     fatalError("Unable to continue.")
                 }
 
