@@ -63,11 +63,30 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
     }
 
     func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
+        let logger = WorkerLogger<WorkerType>()
+
         // Start with Void to ensure `worker.run()` is called only once for a given key
         SignalProducer(value: ())
             .flatMap(.latest) { self.worker.run() }
+            .on(
+                started: { logger.logStarted() },
+                event: { logger.log(event: $0) }
+            )
             .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
             .running(in: context, key: state.uuidString)
+    }
+}
+
+private extension WorkerLogger {
+    func log(event: SignalProducer<WorkerType.Output, Never>.ProducedSignal.Event) {
+        switch event {
+        case .completed:
+            logFinished(status: "Completed")
+        case .interrupted:
+            logFinished(status: "Interrupted")
+        case .value:
+            logOutput()
+        }
     }
 }
 
