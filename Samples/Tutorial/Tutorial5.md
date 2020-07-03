@@ -27,7 +27,7 @@ The `WorkflowActionTester` is provided to facilitate writing unit tests against 
 
 The `WorkflowActionTester` is an extension on `WorkflowAction` which provides an easy to use harness for testing a series of actions and the resulting state updates. From the example in the source:
 ```swift
-/// TestedWorklfow.Action
+/// TestedWorkflow.Action
 ///     .tester(withState: .firstState)
 ///     .send(action: .exampleEvent)
 ///     .assert(output: .finished)
@@ -74,7 +74,7 @@ class WelcomeWorkflowTests: XCTestCase {
             .send(action: .nameChanged(name: "myName"))
             // No output is expected when the name changes.
             .assertNoOutput()
-            .veridyState { state in
+            .verifyState { state in
                 // The `name` has been updated from the action.
                 XCTAssertEqual("myName", state.name)
             }
