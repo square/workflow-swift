@@ -133,6 +133,73 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
+    func test_childWorkflowMultipleRenders_sameKey() {
+        let tester = ParentWorkflow()
+            .renderTester()
+            .expectWorkflow(type: ChildWorkflow.self, producingRendering: 0)
+            .expectWorkflow(type: ChildWorkflow.self, producingRendering: 0)
+
+        expectingFailure(#"Multiple Workflows of type ChildWorkflow with key "" used in the same render call. Use a unique key to render multiple Workflows of the same type."#) {
+            tester.render { _ in }
+        }
+
+        struct ParentWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Void
+
+            func render(state: Void, context: RenderContext<ParentWorkflow>) {
+                _ = ChildWorkflow().rendered(in: context) { _ in
+                    AnyWorkflowAction<ParentWorkflow>.noAction
+                }
+                _ = ChildWorkflow().rendered(in: context) { _ in
+                    AnyWorkflowAction<ParentWorkflow>.noAction
+                }
+            }
+        }
+
+        struct ChildWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Int
+            typealias Output = Void
+
+            func render(state: Void, context: RenderContext<ChildWorkflow>) -> Int {
+                0
+            }
+        }
+    }
+
+    func test_childWorkflowMultipleRenders_differentKeys() {
+        ParentWorkflow()
+            .renderTester()
+            .expectWorkflow(type: ChildWorkflow.self, key: "0", producingRendering: 0)
+            .expectWorkflow(type: ChildWorkflow.self, key: "1", producingRendering: 0)
+            .render { _ in }
+
+        struct ParentWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Void
+
+            func render(state: Void, context: RenderContext<ParentWorkflow>) {
+                _ = ChildWorkflow().rendered(in: context, key: "0") { _ in
+                    AnyWorkflowAction<ParentWorkflow>.noAction
+                }
+                _ = ChildWorkflow().rendered(in: context, key: "1") { _ in
+                    AnyWorkflowAction<ParentWorkflow>.noAction
+                }
+            }
+        }
+
+        struct ChildWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Int
+            typealias Output = Void
+
+            func render(state: Void, context: RenderContext<ChildWorkflow>) -> Int {
+                0
+            }
+        }
+    }
+
     // MARK: Side effects
 
     func test_sideEffect_missing() {
