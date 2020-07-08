@@ -174,11 +174,9 @@ extension DemoWorkflow {
             subscribeTitle = "Subscribe"
         case .subscribing:
             // Subscribe to the timer signal, simulating the title being tapped.
-            state.signal.signal.asWorker(key: "Timer")
-                .mapOutput { _ in
-                    Action.titleButtonTapped
-                }
-                .running(in: context)
+            state.signal.signal
+                .mapOutput { _ in Action.titleButtonTapped }
+                .running(in: context, key: "timer")
             subscribeTitle = "Stop"
         }
 
