@@ -15,7 +15,6 @@
  */
 
 import ReactiveSwift
-import WorkflowReactiveSwiftTesting
 import WorkflowTesting
 import XCTest
 @testable import Workflow
