@@ -1,6 +1,24 @@
 Change Log
 ==========
 
+## Version 1.0.0-alpha.1
+
+_2020-07-07_
+
+* Breaking: `Worker`s have moved from the core `Workflow` library to `WorkflowReactiveSwift`. (#12)
+  * You will need to add that as a dependency and import that module in any files with `Worker`s.
+* Breaking: `Worker`s are now keyed based on type. ([workflow/1021](https://github.com/square/workflow/issues/1021))
+  * If you were running multiple `Worker`s of the same type on a `render` call, please use a `key` while running it: `MyWorker().running(in: context, key: "key")`
+* `Swift` and [`Kotlin`](https://github.com/square/workflow-kotlin) libraries now live in seperate repos.
+* `Worker`s are now built on a more fundamental concept called `SideEffect`.  ([workflow/1021](https://github.com/square/workflow/issues/1021))
+* Introduce `WorkflowRxSwift` to build a `RxSwift` `Worker`. (#27)
+* Several APIs have been updated to be consistent. The older APIs have been deprecated and will be removed from the `beta`. (#9)
+  * `MyWorkflow().rendered(with: context)` to `MyWorkflow().rendered(in: context)`
+  * `context.awaitResult(for: MyWorker())` to `MyWorker().running(in: context)`
+* Introduce new `RenderTester` API. The older APIs have been deprecated and will be removed from the `beta`. (#15)
+* Allow updating the root Workflow in `ContainerViewController`. (#7)
+* Generic parameters in `ContainerViewController` were reordered for consistency. If you were explicitly specifying the generic types when using this view controller you will need to swap them. (#24)
+
 ## Version 0.28.1
 
 _2020-05-20_
