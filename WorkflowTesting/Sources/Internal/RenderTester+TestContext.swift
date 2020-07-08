@@ -29,6 +29,8 @@
             let file: StaticString
             let line: UInt
 
+            private var usedWorkflowKeys: Set<WorkflowKey> = []
+
             internal init(
                 state: WorkflowType.State,
                 expectedWorkflows: [AnyExpectedWorkflow],
@@ -70,6 +72,10 @@
                         return () as! Child.Rendering
                     }
                     fatalError("Unable to continue.")
+                }
+                let (inserted, _) = usedWorkflowKeys.insert(WorkflowKey(type: ObjectIdentifier(Child.self), key: key))
+                if !inserted {
+                    XCTFail("Multiple Workflows of type \(Child.self) with key \"\(key)\" used in the same render call. Use a unique key to render multiple Workflows of the same type.", file: file, line: line)
                 }
 
                 expectedWorkflows.removeAll(where: { $0 === expectedWorkflow })
@@ -116,6 +122,11 @@
                     XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)
                     producedOutput = output
                 }
+            }
+
+            private struct WorkflowKey: Hashable {
+                let type: ObjectIdentifier
+                let key: String
             }
         }
     }
