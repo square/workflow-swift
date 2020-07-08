@@ -16,16 +16,21 @@
 
 import ReactiveSwift
 import Workflow
-import WorkflowReactiveSwift
-import WorkflowReactiveSwiftTesting
 import WorkflowTesting
 import XCTest
+@testable import WorkflowReactiveSwift
 
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         SignalProducerTestWorkflow(key: "123")
             .renderTester()
-            .expect(worker: SignalProducerTestWorker(), producingOutput: 1, key: "123")
+            .expectWorkflow(
+                type: WorkerWorkflow<SignalProducerTestWorker>.self,
+                key: "123",
+                producingRendering: (),
+                producingOutput: 1,
+                assertions: { _ in }
+            )
             .render { _ in }
             .verifyState { state in
                 XCTAssertEqual(state, 1)
@@ -56,7 +61,16 @@ class WorkerTests: XCTestCase {
             .renderTester()
             .render(
                 expectedState: ExpectedState(state: 1),
-                expectedWorkers: [ExpectedWorker(worker: SignalProducerTestWorker(), output: 1)]
+                expectedWorkflows: [
+                    ExpectedWorkflow(
+                        type: WorkerWorkflow<SignalProducerTestWorker>.self,
+                        key: "",
+                        rendering: (),
+                        output: 1,
+                        assertions: { _ in }
+                    ),
+                ],
+                assertions: { _ in }
             )
     }
 
