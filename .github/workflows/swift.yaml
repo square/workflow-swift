@@ -16,6 +16,7 @@ on:
       - 'WorkflowUI/**'
       - '.github/workflows/swift.yaml'
       - '.buildscript/build_swift_docs.sh'
+      - '*.swift'
   pull_request:
     paths:
       - '*.podspec'
