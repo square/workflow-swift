@@ -17,18 +17,21 @@
 /// A type-erased wrapper that contains a workflow with the given Rendering and Output types.
 public struct AnyWorkflow<Rendering, Output> {
     private let storage: AnyStorage
+    public let keyPrefix: String
 
-    private init(storage: AnyStorage) {
+    private init(storage: AnyStorage, keyPrefix: String = "") {
         self.storage = storage
+        self.keyPrefix = keyPrefix
     }
 
     /// Initializes a new type-erased wrapper for the given workflow.
-    public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
+    public init<T: Workflow>(_ workflow: T, keyPrefix: String = "") where T.Rendering == Rendering, T.Output == Output {
         self.init(storage: Storage<T>(
             workflow: workflow,
+            keyPrefix: keyPrefix,
             renderingTransform: { $0 },
             outputTransform: { $0 }
-        ))
+        ), keyPrefix: keyPrefix)
     }
 
     /// The underlying workflow's implementation type.
@@ -51,7 +54,7 @@ extension AnyWorkflow {
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
     public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
         let storage = self.storage.mapOutput(transform: transform)
-        return AnyWorkflow<Rendering, NewOutput>(storage: storage)
+        return AnyWorkflow<Rendering, NewOutput>(storage: storage, keyPrefix: keyPrefix)
     }
 
     /// Returns a new `AnyWorkflow` whose `Rendering` type has been transformed into the given type.
@@ -61,7 +64,7 @@ extension AnyWorkflow {
     /// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
     public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
         let storage = self.storage.mapRendering(transform: transform)
-        return AnyWorkflow<NewRendering, Output>(storage: storage)
+        return AnyWorkflow<NewRendering, Output>(storage: storage, keyPrefix: keyPrefix)
     }
 
     /// Renders the underlying workflow implementation with the given context.
@@ -108,11 +111,16 @@ extension AnyWorkflow {
         let workflow: T
         let renderingTransform: (T.Rendering) -> Rendering
         let outputTransform: (T.Output) -> Output
+        let keyPrefix: String
 
-        init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping (T.Output) -> Output) {
+        init(workflow: T,
+             keyPrefix: String,
+             renderingTransform: @escaping (T.Rendering) -> Rendering,
+             outputTransform: @escaping (T.Output) -> Output) {
             self.workflow = workflow
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
+            self.keyPrefix = keyPrefix
         }
 
         override var workflowType: Any.Type {
@@ -123,13 +131,14 @@ extension AnyWorkflow {
             let outputMap: (T.Output) -> AnyWorkflowAction<Parent> = { [outputTransform] output in
                 outputMap(outputTransform(output))
             }
-            let rendering = context.render(workflow: workflow, key: key, outputMap: outputMap)
+            let rendering = context.render(workflow: workflow, key: keyPrefix + key, outputMap: outputMap)
             return renderingTransform(rendering)
         }
 
         override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
                 workflow: workflow,
+                keyPrefix: keyPrefix,
                 renderingTransform: renderingTransform,
                 outputTransform: { transform(self.outputTransform($0)) }
             )
@@ -138,6 +147,7 @@ extension AnyWorkflow {
         override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
             return AnyWorkflow<NewRendering, Output>.Storage<T>(
                 workflow: workflow,
+                keyPrefix: keyPrefix,
                 renderingTransform: { transform(self.renderingTransform($0)) },
                 outputTransform: outputTransform
             )

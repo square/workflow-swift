@@ -32,9 +32,10 @@
             key: String = "",
             file: StaticString = #file, line: UInt = #line
         ) -> RenderTester<WorkflowType> {
-            expectWorkflow(
+            let anyWorkflow = worker.asAnyWorkflow()
+            return expectWorkflow(
                 type: WorkerWorkflow<ExpectedWorkerType>.self,
-                key: key,
+                key: anyWorkflow.keyPrefix + key,
                 producingRendering: (),
                 producingOutput: output,
                 assertions: { workflow in

@@ -59,6 +59,10 @@ public struct SignalWorker<Key: Equatable, Value>: Worker {
     public func isEquivalent(to otherWorker: SignalWorker) -> Bool {
         return key == otherWorker.key
     }
+
+    public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
+        AnyWorkflow(WorkerWorkflow(worker: self), keyPrefix: "\(key)")
+    }
 }
 
 extension Signal where Error == Never {
