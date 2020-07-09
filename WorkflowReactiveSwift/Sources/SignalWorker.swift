@@ -62,7 +62,8 @@ public struct SignalWorker<Key: Equatable, Value>: Worker {
 }
 
 extension Signal where Error == Never {
-    @available(*, deprecated, message: "Use `Signal` as `Workflow` instead")
+    @available(*, deprecated)
+    @available(*, unavailable, message: "Use `Signal` as `Workflow` instead")
     public func asWorker<Key: Equatable>(key: Key) -> SignalWorker<Key, Value> {
         return SignalWorker(key: key, signal: self)
     }

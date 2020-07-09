@@ -168,13 +168,13 @@
         }
 
         func render(state: State, context: RenderContext<Self>) -> TestScreen {
-            subscription.asWorker(key: "signal")
+            subscription
                 .mapOutput { output in
                     AnyWorkflowAction { state in
                         state = output
                         return output
                     }
-                }.running(in: context)
+                }.running(in: context, key: "signal")
 
             return TestScreen(string: "\(state)")
         }
