@@ -4,14 +4,17 @@
 
 ---
 
-***Before you begin:*** *Please make sure you are set up with 
+***Before you begin:*** Please make sure you are set up with 
 [`pod trunk`](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) and your CocoaPods
 account is a contributor to both the Workflow and WorkflowUI pods. If you need to be added as a
 contributor, please [open a ticket requesting access](https://github.com/square/workflow-swift/issues/new),
-and assign it to @bencochran or @aquageek.*
+and assign it to @bencochran, @aquageek or @dhavalshreyas.
 
 ---
-1. Merge an update of [the change log](CHANGELOG.md) with the changes since the last release.
+
+1. Merge an update of [the change log](CHANGELOG.md) with changes since the last release.
+
+1. If there has been a **Breaking Change**, since last release, update `VERSION` and bump up `MAJOR`.
 
 1. Make sure you're on the `main` branch (or fix branch, e.g. `v0.1-fixes`).
 
@@ -21,15 +24,26 @@ and assign it to @bencochran or @aquageek.*
    git tag v0.1.0
    ```
 
+1. Push your commits and tag:
+   ```
+   git push origin main
+   # or git push origin fix-branch
+   git push origin v0.1.0
+   ```
+
 1. Publish to CocoaPods:
     ```bash
-    bundle exec pod trunk push Workflow.podspec
-    bundle exec pod trunk push WorkflowTesting.podspec
-    bundle exec pod trunk push WorkflowUI.podspec
+    bundle exec pod trunk push Workflow.podspec --synchronous
+    bundle exec pod trunk push WorkflowTesting.podspec  --synchronous
+    bundle exec pod trunk push WorkflowReactiveSwift.podspec --synchronous
+    bundle exec pod trunk push WorkflowUI.podspec --synchronous
+    bundle exec pod trunk push WorkflowRxSwift.podspec --synchronous
+    bundle exec pod trunk push WorkflowReactiveSwiftTesting.podspec --synchronous
+    bundle exec pod trunk push WorkflowRxSwiftTesting.podspec --synchronous
+    bundle exec pod trunk push WorkflowSwiftUI.podspec --synchronous
     ```
 
-1. Bump the version
-   - **Swift:** Update `s.version` in `*.podspec` to the new version, e.g. `0.2.0`.
+1. Bump the version: Update `VERSION` to the new version, e.g. `0.2.0`.
 
 1. Commit the new snapshot version:
    ```
@@ -61,23 +75,3 @@ and assign it to @bencochran or @aquageek.*
    # Resolve conflicts. Accept main's versions of gradle.properties and podspecs.
    git push origin main
    ```
-
-1. Publish the website. See https://github.com/square/workflow/blob/main/RELEASING.md.
-
-### Validating Markdown
-
-Since all of our high-level documentation is written in Markdown, we run a linter in CI to ensure
-we use consistent formatting. Lint errors will fail your PR builds, so to run locally, install
-[markdownlint](https://github.com/markdownlint/markdownlint):
-
-```bash
-gem install mdl
-```
-
-Run the linter using the `lint_docs.sh`:
-
-```bash
-./lint_docs.sh
-```
-
-Rules can be configured by editing `.markdownlint.rb`.

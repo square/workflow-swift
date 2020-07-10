@@ -19,6 +19,7 @@ Pod::Spec.new do |s|
   s.source_files = 'WorkflowUI/Sources/**/*.swift'
 
   s.dependency 'Workflow', "#{s.version}"
+  s.dependency 'WorkflowReactiveSwift', "#{s.version}"
 
   s.test_spec 'Tests' do |test_spec|
     test_spec.source_files = 'WorkflowUI/Tests/**/*.swift'
