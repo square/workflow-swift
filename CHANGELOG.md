@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+## Version 1.0.0-alpha.2
+
+_2020-07-10_
+
+* Mark `asWorker` API as unavailable. (#40)
+* Fixed a bug in `WorkflowTesting`, it now catches when multiple `Workflow`s of the same type + key are used in a render call. (#39)
+
 ## Version 1.0.0-alpha.1
 
 _2020-07-07_
