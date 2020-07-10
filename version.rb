@@ -1,5 +1,5 @@
-load('VERSION')
-
-pre_release_append = ((PRE_RELEASE_IDENTIFIER ||= "") != "") ? "-"+PRE_RELEASE_IDENTIFIER : ""
-
-WORKFLOW_VERSION="#{MAJOR}.#{MINOR}.#{PATCH}#{pre_release_append}"
+if !Object.const_defined?(:WORKFLOW_VERSION)
+    load('VERSION')
+    pre_release_append = ((PRE_RELEASE_IDENTIFIER ||= "") != "") ? "-"+PRE_RELEASE_IDENTIFIER : ""
+    WORKFLOW_VERSION="#{MAJOR}.#{MINOR}.#{PATCH}#{pre_release_append}"
+end
