@@ -17,16 +17,21 @@
 import Foundation
 import RxSwift
 import Workflow
-import WorkflowRxSwift
-import WorkflowRxSwiftTesting
 import WorkflowTesting
 import XCTest
+@testable import WorkflowRxSwift
 
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         ObservableTestWorkflow(key: "123")
             .renderTester()
-            .expect(worker: ObservableTestWorker(), producingOutput: 1, key: "123")
+            .expectWorkflow(
+                type: WorkerWorkflow<ObservableTestWorker>.self,
+                key: "123",
+                producingRendering: (),
+                producingOutput: 1,
+                assertions: { _ in }
+            )
             .render { _ in }
             .verifyState { state in
                 XCTAssertEqual(state, 1)

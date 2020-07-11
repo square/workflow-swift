@@ -29,6 +29,7 @@ Pod::Spec.new do |s|
     test_spec.requires_app_host = true
     test_spec.source_files = 'WorkflowReactiveSwift/TestingTests/**/*.swift'
     test_spec.framework = 'XCTest'
+    test_spec.library = 'swiftos'
     test_spec.dependency 'WorkflowTesting'
   end
 end
