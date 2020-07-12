@@ -3,6 +3,12 @@ Change Log
 
 ## Version 1.0.0-alpha.2
 
+_2020-07-11_
+
+* Fixes issues with some `.podspecs`. (#43)
+
+## Version 1.0.0-alpha.2
+
 _2020-07-10_
 
 * Mark `asWorker` API as unavailable. (#40)
