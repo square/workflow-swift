@@ -16,7 +16,6 @@
 
 import RxSwift
 import Workflow
-import WorkflowRxSwiftTesting
 import WorkflowTesting
 import XCTest
 @testable import WorkflowRxSwift

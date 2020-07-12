@@ -25,5 +25,6 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'WorkflowReactiveSwift/Tests/**/*.swift'
     test_spec.framework = 'XCTest'
     test_spec.library = 'swiftos'
+    test_spec.dependency 'WorkflowTesting', "#{s.version}"
   end
 end
