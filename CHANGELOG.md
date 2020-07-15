@@ -1,7 +1,16 @@
 Change Log
 ==========
 
-## Version 1.0.0-alpha.2
+## Version 1.0.0-alpha.4
+
+_2020-07-15_
+
+* Enable testing of SignalProducer/Signal/Observable used in Workflows (#46)
+* Fix WorkflowRxSwift podsepcs (#45)
+* Constrain Worker Rendering type to Void (#44)
+* Remove unncessary dependencies (#47)
+
+## Version 1.0.0-alpha.3
 
 _2020-07-11_
 
