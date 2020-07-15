@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
 import Workflow
 import WorkflowTesting
 import XCTest
@@ -33,7 +32,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         file: StaticString = #file, line: UInt = #line,
         perform: () -> Result
     ) -> Result {
-        return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
+        expectingFailures([messageSubstring], file: file, line: line, perform: perform)
     }
 
     @discardableResult
@@ -371,7 +370,7 @@ private struct TestWorkflow: Workflow {
     }
 
     func makeInitialState() -> State {
-        return .idle
+        .idle
     }
 
     func render(state: State, context: RenderContext<TestWorkflow>) -> TestRendering {
@@ -435,6 +434,6 @@ private struct VoidWorkflow: Workflow {
     typealias State = Void
     typealias Rendering = Void
     func render(state: State, context: RenderContext<Self>) -> Rendering {
-        return ()
+        ()
     }
 }
