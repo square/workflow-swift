@@ -26,7 +26,7 @@ import Workflow
 /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
 ///
 /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-public protocol Worker: AnyWorkflowConvertible {
+public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
     /// The type of output events returned by this worker.
     associatedtype Output
 
@@ -92,6 +92,6 @@ private extension WorkerLogger {
 
 extension Worker where Self: Equatable {
     public func isEquivalent(to otherWorker: Self) -> Bool {
-        return self == otherWorker
+        self == otherWorker
     }
 }
