@@ -4,33 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '*.podspec'
-      - 'Gemfile*'
-      - 'Package.swift'
-      - 'Samples/**'
-      - 'Tooling/**'
-      - 'Workflow/**'
-      - 'WorkflowSwiftUI/**'
-      - 'WorkflowTesting/**'
-      - 'WorkflowUI/**'
-      - '.github/workflows/swift.yaml'
-      - '.buildscript/build_swift_docs.sh'
-      - '*.swift'
   pull_request:
-    paths:
-      - '*.podspec'
-      - 'Gemfile*'
-      - 'Package.swift'
-      - 'Samples/**'
-      - 'Tooling/**'
-      - 'Workflow/**'
-      - 'WorkflowSwiftUI/**'
-      - 'WorkflowTesting/**'
-      - 'WorkflowUI/**'
-      - '.github/workflows/swift.yaml'
-      - '.buildscript/build_swift_docs.sh'
-      - '*.swift'
 
 jobs:
   development-apps:
