@@ -30,6 +30,7 @@ on:
       - 'WorkflowUI/**'
       - '.github/workflows/swift.yaml'
       - '.buildscript/build_swift_docs.sh'
+      - '*.swift'
 
 jobs:
   development-apps:
