@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
 import Workflow
 import XCTest
 @testable import WorkflowTesting
@@ -101,10 +100,10 @@ private struct TestWorkflow: Workflow {
     }
 
     func makeInitialState() -> Bool {
-        return true
+        true
     }
 
     func render(state: Bool, context: RenderContext<TestWorkflow>) {
-        return ()
+        ()
     }
 }

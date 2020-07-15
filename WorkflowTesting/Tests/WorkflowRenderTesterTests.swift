@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
 import Workflow
 import WorkflowTesting
 import XCTest
@@ -137,7 +136,7 @@ private struct TestWorkflow: Workflow {
     }
 
     func makeInitialState() -> State {
-        return State(text: initialText, substate: .idle)
+        State(text: initialText, substate: .idle)
     }
 
     func render(state: State, context: RenderContext<TestWorkflow>) -> TestScreen {
@@ -188,7 +187,7 @@ private struct OutputWorkflow: Workflow {
     struct State {}
 
     func makeInitialState() -> OutputWorkflow.State {
-        return State()
+        State()
     }
 
     enum Action: WorkflowAction {
@@ -267,7 +266,7 @@ private struct ParentWorkflow: Workflow {
     }
 
     func makeInitialState() -> ParentWorkflow.State {
-        return State(text: initialText)
+        State(text: initialText)
     }
 
     enum Action: WorkflowAction {
@@ -290,7 +289,7 @@ private struct ParentWorkflow: Workflow {
     }
 
     func render(state: ParentWorkflow.State, context: RenderContext<ParentWorkflow>) -> String {
-        return ChildWorkflow(text: state.text)
+        ChildWorkflow(text: state.text)
             .mapOutput { output -> Action in
                 switch output {
                 case .success:
@@ -314,10 +313,10 @@ private struct ChildWorkflow: Workflow {
     struct State {}
 
     func makeInitialState() -> ChildWorkflow.State {
-        return State()
+        State()
     }
 
     func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
-        return String(text.reversed())
+        String(text.reversed())
     }
 }
