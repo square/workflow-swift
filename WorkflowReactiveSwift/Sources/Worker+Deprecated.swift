@@ -19,19 +19,19 @@ import Workflow
 
 extension RenderContext {
     @available(*, deprecated, message: "Use `Worker().running(in:, outputMap:)` instead.")
-    public func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, WorkflowType == Action.WorkflowType, W.Rendering == Void {
+    public func awaitResult<W, Action>(for worker: W, outputMap: @escaping (W.Output) -> Action) where W: Worker, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
         worker
             .mapOutput { outputMap($0) }
             .running(in: self)
     }
 
     @available(*, deprecated, message: "Use `Worker().running(in:)` instead.")
-    public func awaitResult<W>(for worker: W) where W: Worker, W.Output: WorkflowAction, WorkflowType == W.Output.WorkflowType, W.Rendering == Void {
+    public func awaitResult<W>(for worker: W) where W: Worker, W.Output: WorkflowAction, WorkflowType == W.Output.WorkflowType {
         awaitResult(for: worker, outputMap: { $0 })
     }
 
     @available(*, deprecated, message: "Use `Worker().running(in:)` instead.")
-    public func awaitResult<W>(for worker: W, onOutput: @escaping (W.Output, inout WorkflowType.State) -> WorkflowType.Output?) where W: Worker, W.Rendering == Void {
+    public func awaitResult<W>(for worker: W, onOutput: @escaping (W.Output, inout WorkflowType.State) -> WorkflowType.Output?) where W: Worker {
         awaitResult(for: worker) { output in
             AnyWorkflowAction<WorkflowType> { state in
                 onOutput(output, &state)
