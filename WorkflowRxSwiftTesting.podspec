@@ -30,5 +30,6 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'WorkflowRxSwift/TestingTests/**/*.swift'
     test_spec.framework = 'XCTest'
     test_spec.dependency 'WorkflowTesting'
+    test_spec.library = 'swiftos'
   end
 end
