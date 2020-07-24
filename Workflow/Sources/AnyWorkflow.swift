@@ -80,6 +80,27 @@ extension AnyWorkflow {
 }
 
 extension AnyWorkflow {
+    public func applyOutputToState<Parent: Workflow>(in context: RenderContext<Parent>,
+                                                     stateMutation: @escaping ((inout Parent.State, Output) -> Void)) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
+        mapOutput { output in
+            AnyWorkflowAction { state in
+                stateMutation(&state, output)
+                return nil
+            }
+        }
+    }
+
+    public func applyOutputToState<Parent: Workflow, Path: WritableKeyPath<Parent.State, Output>>(
+        in context: RenderContext<Parent>,
+        keyPath: Path
+    ) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
+        applyOutputToState(in: context) { state, output in
+            state[keyPath: keyPath] = output
+        }
+    }
+}
+
+extension AnyWorkflow {
     /// This is the type erased outer API (referenced by the containing AnyWorkflow).
     ///
     /// This type is never used directly.
