@@ -47,13 +47,13 @@
     ///     .renderTester(initialState: TestWorkflow.State())
     ///     .expect(
     ///         worker: TestWorker(),
-    ///         output: TestWorker.Output.success
+    ///         producingOutput: TestWorker.Output.success
     ///     )
     ///     .expectWorkflow(
     ///         type: ChildWorkflow.self,
     ///         key: "key",
     ///         rendering: "rendering",
-    ///         output: ChildWorkflow.Output.success
+    ///         producingOutput: ChildWorkflow.Output.success
     ///     )
     ///     .render { rendering in
     ///         XCTAssertEqual("expected text on rendering", rendering.text)
@@ -114,7 +114,7 @@
     ///     .expectWorkflow(
     ///         type: ChildWorkflow.self,
     ///         rendering: "rendering",
-    ///         output: ChildWorkflow.Output.success
+    ///         producingOutput: ChildWorkflow.Output.success
     ///     )
     ///     .render { _ in }
     /// ```
