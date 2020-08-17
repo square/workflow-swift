@@ -63,6 +63,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameter key: A string that uniquely identifies this child.
     ///
     /// - Returns: The `Rendering` result of the child's `render` method.
+    @available(*, deprecated, message: "Use `rendered(in:outputMap:)` on Workflow itself.") // To remove this deprecation, mark this method `internal`
     public func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
         fatalError()
     }
