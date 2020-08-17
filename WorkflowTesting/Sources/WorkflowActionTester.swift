@@ -168,7 +168,7 @@ extension WorkflowActionTester {
         return self
     }
 
-    @available(*, deprecated, message: "use `send(action:)` followed by `verifyOutput(_:)`, `verify(outpit:)` or `assertNoOutput()`")
+    @available(*, deprecated, message: "use `send(action:)` followed by `verifyOutput(_:)`, `verify(output:)` or `assertNoOutput()`")
     @discardableResult
     public func send(action: Action, outputAssertions: (WorkflowType.Output?) -> Void = { _ in }) -> WorkflowActionTester<WorkflowType, Action> {
         return send(action: action)
