@@ -148,4 +148,11 @@ extension RenderContext {
                 }
             }
     }
+
+    /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
+    /// intermediate action.
+    public func makeOutputSink() -> Sink<WorkflowType.Output> {
+        return makeSink(of: AnyWorkflowAction.self)
+            .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
+    }
 }
