@@ -98,6 +98,19 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assertNoAction()
     }
 
+    func test_childWorkflowAction() {
+        ParentWorkflow(initialText: "hello")
+            .renderTester()
+            .expectWorkflow(
+                type: ChildWorkflow.self,
+                producingRendering: "olleh",
+                producingOutput: ChildWorkflow.Output.success
+            )
+            .render { rendering in
+                XCTAssertEqual("olleh", rendering)
+            }.assert(action: ParentWorkflow.Action.childSuccess)
+    }
+
     func test_childWorkflowOutput() {
         // Test that a child emitting an output is handled as an action by the parent
         ParentWorkflow(initialText: "hello")
