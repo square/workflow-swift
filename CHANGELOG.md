@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+## Version 1.0.0-alpha.5
+
+_2020-08-26_
+
+* Fix RenderTester assert(action:) (#57)
+* Introduce 'makeOutputSink' convenience on 'RenderContext' (#55)
+
 ## Version 1.0.0-alpha.4
 
 _2020-07-15_
