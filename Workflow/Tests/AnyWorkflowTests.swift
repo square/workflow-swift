@@ -35,6 +35,25 @@ public class AnyWorkflowTests: XCTestCase {
 
         XCTAssertEqual(node.render(), "fdsadsa")
     }
+
+    func testOnOutput() {
+        let host = WorkflowHost(workflow: OnOutputWorkflow())
+
+        let renderingExpectation = expectation(description: "Waiting for rendering")
+        host.rendering.producer.startWithValues { rendering in
+            if rendering {
+                renderingExpectation.fulfill()
+            }
+        }
+
+        let outputExpectation = expectation(description: "Waiting for output")
+        host.output.observeValues { output in
+            if output {
+                outputExpectation.fulfill()
+            }
+        }
+        wait(for: [renderingExpectation, outputExpectation], timeout: 1)
+    }
 }
 
 /// Has no state or output, simply renders a reversed string
@@ -68,5 +87,40 @@ extension SimpleWorkflow {
 
     func render(state: State, context: RenderContext<SimpleWorkflow>) -> String {
         return String(string.reversed())
+    }
+}
+
+private struct OnOutputWorkflow: Workflow {
+    typealias State = Bool
+    typealias Rendering = Bool
+    typealias Output = Bool
+
+    func makeInitialState() -> Bool {
+        false
+    }
+
+    func workflowDidChange(from previousWorkflow: OnOutputWorkflow, state: inout Bool) {}
+
+    func render(state: State, context: RenderContext<OnOutputWorkflow>) -> Bool {
+        OnOutputChildWorkflow()
+            .onOutput { state, output in
+                state = output
+                return output
+            }
+            .running(in: context)
+        return state
+    }
+}
+
+private struct OnOutputChildWorkflow: Workflow {
+    typealias State = Void
+    typealias Output = Bool
+    typealias Rendering = Void
+
+    func render(state: Void, context: RenderContext<OnOutputChildWorkflow>) {
+        let sink = context.makeOutputSink()
+        DispatchQueue.main.async {
+            sink.send(true)
+        }
     }
 }
