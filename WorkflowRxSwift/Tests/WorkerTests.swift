@@ -142,7 +142,7 @@ class WorkerTests: XCTestCase {
                 Observable
                     .from([1, 2])
                     .delay(
-                        .milliseconds(1),
+                        1 / 1000,
                         scheduler: MainScheduler.asyncInstance
                     )
             }

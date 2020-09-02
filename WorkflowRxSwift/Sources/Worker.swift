@@ -68,10 +68,10 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         worker.run()
             .map { AnyWorkflowAction(sendingOutput: $0) }
             .do(
-                afterNext: { _ in
+                onNext: { _ in
                     logger.logOutput()
                 },
-                afterError: { error in
+                onError: { error in
                     logger.logFinished(status: "Error")
                 },
                 onCompleted: {
