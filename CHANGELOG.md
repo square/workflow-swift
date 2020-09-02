@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+## Version 1.0.0-alpha.6
+
+_2020-09-22_
+
+* Lowering RxSwift version requirement from 5.1.1 to 4.4.0 (#60)
+
 ## Version 1.0.0-alpha.5
 
 _2020-08-26_
