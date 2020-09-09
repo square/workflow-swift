@@ -1,3 +1,13 @@
+# Workflow v1.0β Migration Guide
+
+## Removed APIs
+
+### SignalWorker
+
+`SignalWorker` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#signalworker-reactiveswiftsignal).
+
+---
+
 # Workflow v1.0α Migration Guide
 
 Nothing fundamental about how you use **Workflow** has changed, though you’ll notice some of the APIs have been renamed and using `Worker` requires an additional import.
