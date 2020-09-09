@@ -40,31 +40,3 @@ extension Signal: AnyWorkflowConvertible where Error == Never {
         return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
     }
 }
-
-/// A `Worker` that wraps a `Signal`
-@available(*, deprecated, message: "Use `Signal` as `Workflow` instead")
-public struct SignalWorker<Key: Equatable, Value>: Worker {
-    let key: Key
-    let signal: Signal<Value, Never>
-
-    public init(key: Key, signal: Signal<Value, Never>) {
-        self.key = key
-        self.signal = signal
-    }
-
-    public func run() -> SignalProducer<Value, Never> {
-        return SignalProducer(signal)
-    }
-
-    public func isEquivalent(to otherWorker: SignalWorker) -> Bool {
-        return key == otherWorker.key
-    }
-}
-
-extension Signal where Error == Never {
-    @available(*, deprecated)
-    @available(*, unavailable, message: "Use `Signal` as `Workflow` instead")
-    public func asWorker<Key: Equatable>(key: Key) -> SignalWorker<Key, Value> {
-        return SignalWorker(key: key, signal: self)
-    }
-}
