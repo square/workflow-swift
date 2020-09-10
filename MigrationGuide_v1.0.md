@@ -13,6 +13,7 @@
 ### Child `Workflow`s
 
 `Workflow.rendered(with:key:)` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#render-child-workflow).
+`RenderContext.render(workflow:key:outputMap:)` has been made `internal` instead of `public`. Child `Workflow`s should be rendered via `ChildWorkflow().rendered(in: context)` instead.
 
 ---
 
