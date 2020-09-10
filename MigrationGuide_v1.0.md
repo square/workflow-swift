@@ -6,6 +6,10 @@
 
 `SignalWorker` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#signalworker-reactiveswiftsignal).
 
+### Run `Worker`
+
+`context.awaitResult` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#run-worker).
+
 ---
 
 # Workflow v1.0α Migration Guide

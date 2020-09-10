@@ -157,14 +157,16 @@ extension DemoWorkflow {
             refreshText = "Loading..."
             refreshEnabled = false
 
-            context.awaitResult(for: RefreshWorker()) { output -> Action in
-                switch output {
-                case .success(let result):
-                    return .refreshComplete(result)
-                case .error(let error):
-                    return .refreshError(error)
+            RefreshWorker()
+                .mapOutput { output -> Action in
+                    switch output {
+                    case .success(let result):
+                        return .refreshComplete(result)
+                    case .error(let error):
+                        return .refreshError(error)
+                    }
                 }
-            }
+                .running(in: context)
         }
 
         let subscribeTitle: String
