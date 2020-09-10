@@ -84,26 +84,7 @@ extension AnyWorkflowConvertible where Rendering == Void, Output: WorkflowAction
     }
 }
 
-// MARK: - Deprecated
-
-extension AnyWorkflowConvertible {
-    @available(*, deprecated, renamed: "rendered(in:key:)")
-    public func rendered<Parent>(with context: RenderContext<Parent>, key: String = "") -> Rendering where Output: WorkflowAction, Output.WorkflowType == Parent {
-        return rendered(in: context, key: key)
-    }
-
-    @available(*, deprecated, renamed: "rendered(in:key:)")
-    public func rendered<Parent>(with context: RenderContext<Parent>, key: String = "") -> Rendering where Output == AnyWorkflowAction<Parent> {
-        return rendered(in: context, key: key)
-    }
-}
-
-extension AnyWorkflowConvertible where Output == Never {
-    @available(*, deprecated, renamed: "rendered(in:key:)")
-    public func rendered<T>(with context: RenderContext<T>, key: String = "") -> Rendering {
-        return rendered(in: context, key: key)
-    }
-}
+// MARK: -
 
 extension AnyWorkflowConvertible {
     /// Process an `Output`
