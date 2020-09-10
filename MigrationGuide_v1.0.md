@@ -10,6 +10,10 @@
 
 `context.awaitResult` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#run-worker).
 
+### Child `Workflow`s
+
+`Workflow.rendered(with:key:)` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#render-child-workflow).
+
 ---
 
 # Workflow v1.0α Migration Guide
