@@ -1,9 +1,16 @@
 Change Log
 ==========
 
+## Version 1.0.0-beta.1
+
+_2020-09-11_
+
+* Add convenience `onOutput` transformer for `AnyWorkflow` (#59)
+* Remove the APIs that were deprecated in the Workflow 1.0.0 alpha (#62, #63, #64, #65, #66). See the [migration guide](/MigrationGuide_v1.0.md) for more info.
+
 ## Version 1.0.0-alpha.6
 
-_2020-09-22_
+_2020-09-02_
 
 * Lowering RxSwift version requirement from 5.1.1 to 4.4.0 (#60)
 
