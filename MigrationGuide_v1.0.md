@@ -15,6 +15,21 @@
 `Workflow.rendered(with:key:)` was deprecated in Workflow v1.0α and has been removed in the beta. See details in the alpha migration guide, [below](#render-child-workflow).
 `RenderContext.render(workflow:key:outputMap:)` has been made `internal` instead of `public`. Child `Workflow`s should be rendered via `ChildWorkflow().rendered(in: context)` instead.
 
+### Testing APIs
+
+All of the deprecated APIs covered in [Testing](#testing) below have been removed in the beta:
+* `RenderTester.render(file:expectedState:expectedOutput:expectedWorkers:expectedWorkflows:expectedSideEffects:assertions:)`
+* `RenderTester.render(file:line:with:assertions:)`
+* `RenderTester.assert(state:)`
+* `RenderExpectations`
+* `ExpectedOutput`
+* `ExpectedWorker`
+* `ExpectedState`
+* `ExpectedSideEffect`
+* `ExpectedWorkflow`
+* `WorkflowActionTester.send(action:outputAssertions:)`
+* `WorkflowActionTester.assertState(_:)`
+
 ---
 
 # Workflow v1.0α Migration Guide

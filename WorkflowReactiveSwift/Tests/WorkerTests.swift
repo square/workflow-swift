@@ -55,25 +55,6 @@ class WorkerTests: XCTestCase {
         disposable?.dispose()
     }
 
-    @available(*, deprecated) // Marked to silence deprecation warnings
-    func testExpectedWorkerDeprecatedTests() {
-        SignalProducerTestWorkflow(key: "")
-            .renderTester()
-            .render(
-                expectedState: ExpectedState(state: 1),
-                expectedWorkflows: [
-                    ExpectedWorkflow(
-                        type: WorkerWorkflow<SignalProducerTestWorker>.self,
-                        key: "",
-                        rendering: (),
-                        output: 1,
-                        assertions: { _ in }
-                    ),
-                ],
-                assertions: { _ in }
-            )
-    }
-
     // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.
     func test_cancelsWorkers() {
         struct WorkerWorkflow: Workflow {
