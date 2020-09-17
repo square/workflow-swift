@@ -73,14 +73,13 @@ public protocol Workflow: AnyWorkflowConvertible {
     /// - Parameter state: The current state.
     func workflowDidChange(from previousWorkflow: Self, state: inout State)
 
-    /// Called to "render" the current state into `Rendering`. A workflow's `Rendering` type is commonly a view or
-    /// screen model.
+    /// Called by the internal Workflow infrastructure to "render" the current state into `Rendering`.
+    /// A workflow's `Rendering` type is commonly a view or screen model.
     ///
     /// - Parameter state: The current state.
     /// - Parameter context: The workflow context is the composition point for the workflow tree. To use a nested
-    ///                      workflow, instantiate it based on the current state. The newly instantiated workflow is
-    ///                      then used to invoke `context.render(_ workflow:)`, which returns the child's `Rendering`
-    ///                      type after creating or updating the nested workflow.
+    ///                      workflow, instantiate it based on the current state, then call `rendered(in:key:outputMap:)`.
+    ///                      This will return the child's `Rendering` type after creating or updating the nested workflow.
     func render(state: State, context: RenderContext<Self>) -> Rendering
 }
 
