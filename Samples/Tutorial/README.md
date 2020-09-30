@@ -8,17 +8,32 @@ Oh hi! Looks like you want build some software with Workflows! It's a bit differ
 
 The project has both a starting point, as well as an example of the completed tutorial.
 
-Nearly all of the software is in cocoapods under the `Frameworks` directory.
+Nearly all of the code is in the `Frameworks` directory.
 
-To help with the setup, there are already created a few helpers:
+To help with the setup, we have created a few helpers:
 - `TutorialViews`: A set of 3 views for the 3 screens we will be building, `Welcome`, `TodoList`, and `TodoEdit`.
 - `TutorialBase`: This is the starting point to build out the tutorial. It contains view controllers that host the views from `TutorialViews` to see how they display.
     - Additionally, there is a `TutorialContainerViewController` that the AppDelegate sets as the root view controller. This will be our launching point for all of our workflows.
 - `TutorialFinal`: This is an example of the completed tutorial - could be used as a reference if you get stuck.
 
-## Getting up and running
+## Getting started
 
-The tutorial uses cocoapods as the dependency management. To get set up, run `bundle install`, then `bundle exec pod install`. Open `Tutorial.xcworkspace`.
+The tutorial uses [CocoaPods](https://guides.cocoapods.org/using/index.html) for dependency management. To get set up, run the following:
+
+```sh
+$ cd Samples/Tutorial
+$ bundle install
+...
+Bundle complete!
+$ bundle exec pod install
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete!
+```
+
+Then open `Tutorial.xcworkspace` in Xcode.
 
 # Tutorial Steps
 
