@@ -13,8 +13,8 @@ Pod::Spec.new do |s|
   s.cocoapods_version = '>= 1.7.0'
 
   s.swift_versions = ['5.0']
-  s.ios.deployment_target = '10.0'
-  s.osx.deployment_target = '10.12'
+  s.ios.deployment_target = '11.0'
+  s.osx.deployment_target = '10.13'
 
   s.source_files = 'WorkflowUI/Sources/**/*.swift'
 
