@@ -56,7 +56,10 @@ extension ___VARIABLE_productName___Workflow {
 // MARK: Rendering
 
 extension ___VARIABLE_productName___Workflow {
-    func render(state: ___VARIABLE_productName___Workflow.State, context: RenderContext<___VARIABLE_productName___Workflow>) -> String {
+    // TODO: Change this to your actual rendering type
+    typealias Rendering = String
+
+    func render(state: ___VARIABLE_productName___Workflow.State, context: RenderContext<___VARIABLE_productName___Workflow>) -> Rendering {
         #warning("Don't forget your compose implementation and to return the correct rendering type!")
         return "This is likely not the rendering that you want to return"
     }

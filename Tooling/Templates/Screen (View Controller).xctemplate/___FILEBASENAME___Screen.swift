@@ -17,14 +17,12 @@ struct ___VARIABLE_productName___Screen: Screen {
 final class ___VARIABLE_productName___ViewController: ScreenViewController<___VARIABLE_productName___Screen> {
     required init(screen: ___VARIABLE_productName___Screen, environment: ViewEnvironment) {
         super.init(screen: screen, environment: environment)
-        update(with: screen, environment: environment)
     }
 
     override func screenDidChange(from previousScreen: ___VARIABLE_productName___Screen, previousEnvironment: ViewEnvironment) {
-        update(with: screen, environment: environment)
-    }
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
-    private func update(with screen: ___VARIABLE_productName___Screen, environment: ViewEnvironment) {
-        /// Update UI
+        // Update UI
     }
 }
+
