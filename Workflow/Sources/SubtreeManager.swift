@@ -308,9 +308,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func handle(event: Output) {
-            if #available(iOS 10.0, *) {
-                dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
-            }
+            dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
 
             switch validationState {
             case .preparing:
