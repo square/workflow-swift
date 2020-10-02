@@ -58,10 +58,10 @@ import TutorialViews
 final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
     private let welcomeView: WelcomeView
 
-    required init(screen: WelcomeScreen) {
+    required init(screen: WelcomeScreen, environment: ViewEnvironment) {
         welcomeView = WelcomeView(frame: .zero)
 
-        super.init(screen: screen)
+        super.init(screen: screen, environment: environment)
     }
 
     override func viewDidLoad() {
