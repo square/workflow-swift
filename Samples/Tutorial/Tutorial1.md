@@ -56,10 +56,11 @@ Now add the (convenient) `WelcomeView` to our view controller (if you would like
 import TutorialViews
 
 final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
-    var welcomeView: WelcomeView
+    private let welcomeView: WelcomeView
 
     required init(screen: WelcomeScreen) {
-        self.welcomeView = WelcomeView(frame: .zero)
+        welcomeView = WelcomeView(frame: .zero)
+
         super.init(screen: screen)
     }
 
