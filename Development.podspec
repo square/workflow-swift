@@ -35,6 +35,11 @@ Pod::Spec.new do |s|
     app_spec.resources = 'Samples/SampleApp/Resources/**/*.swift'
   end
 
+  s.app_spec 'StocksApp' do |app_spec|
+    app_spec.source_files = 'Samples/StocksApp/Sources/**/*.swift'
+    app_spec.resources = 'Samples/StocksApp/Resources/**/*.swift'
+  end
+
   s.test_spec 'WorkflowTesting' do |test_spec|
     test_spec.requires_app_host = true
     test_spec.dependency 'WorkflowTesting'
