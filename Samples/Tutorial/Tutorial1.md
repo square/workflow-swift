@@ -56,17 +56,16 @@ Now add the (convenient) `WelcomeView` to our view controller (if you would like
 import TutorialViews
 
 final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
-    private let welcomeView: WelcomeView
+    private var welcomeView: WelcomeView!
 
     required init(screen: WelcomeScreen, environment: ViewEnvironment) {
-        welcomeView = WelcomeView(frame: .zero)
-
         super.init(screen: screen, environment: environment)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        welcomeView = WelcomeView(frame: view.bounds)
         view.addSubview(welcomeView)
     }
 
@@ -77,12 +76,26 @@ final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
     }
 ```
 
-The screen is passed into the view controller when it is initialized. `screenDidChange` is called as part of the view controller's initialization (see `ViewControllerDescription.buildViewController`) and anytime the backing screen is updated, so it's an ideal place to put update logic. Fill that in now:
+The screen is passed into the view controller when it is initialized. `screenDidChange` is called as part of the view controller's initialization (see `ViewControllerDescription.buildViewController`) and anytime the backing screen is updated. Keep in mind, however, that the `welcomeView` will be `nil` until the view is loaded, so we'll need to guard against that to avoid unwrapping the optional. Additionally, when `viewDidLoad` _is_ called and we create the `WelcomeView` we will need to update it with the contents of the `WelcomeScreen`. To accomplish both of these, we'll create a separate helper method that both code paths can utilize:
 ```swift
+    override viewDidLoad() {
+        super.viewDidLoad()
+
+        welcomeView = WelcomeView(frame: view.bounds)
+        view.addSubview(welcomeView)
+
+        updateView(with: screen)
+    }
+
     override func screenDidChange(from previousScreen: WelcomeScreen, previousEnvironment: ViewEnvironment) {
         super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
-        // Update the UI
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
+    }
+
+    private func updateView(with screen: WelcomeScreen) {
         welcomeView.name = screen.name
         welcomeView.onNameChanged = screen.onNameChanged
         welcomeView.onLoginTapped = screen.onLoginTapped

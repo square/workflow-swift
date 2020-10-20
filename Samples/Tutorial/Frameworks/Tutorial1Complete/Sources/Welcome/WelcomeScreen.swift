@@ -32,16 +32,17 @@ struct WelcomeScreen: Screen {
 }
 
 final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
-    private let welcomeView: WelcomeView
+    private var welcomeView: WelcomeView!
 
     required init(screen: WelcomeScreen, environment: ViewEnvironment) {
-        welcomeView = WelcomeView(frame: .zero)
-
         super.init(screen: screen, environment: environment)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        welcomeView = WelcomeView(frame: view.bounds)
+        updateView(with: screen)
 
         view.addSubview(welcomeView)
     }
@@ -55,7 +56,12 @@ final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
     override func screenDidChange(from previousScreen: WelcomeScreen, previousEnvironment: ViewEnvironment) {
         super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
-        // Update UI
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
+    }
+
+    private func updateView(with screen: WelcomeScreen) {
         welcomeView.name = screen.name
         welcomeView.onNameChanged = screen.onNameChanged
         welcomeView.onLoginTapped = screen.onLoginTapped
