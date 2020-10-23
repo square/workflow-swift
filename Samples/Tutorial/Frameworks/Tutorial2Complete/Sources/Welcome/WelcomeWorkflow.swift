@@ -23,7 +23,7 @@ import WorkflowUI
 
 struct WelcomeWorkflow: Workflow {
     enum Output {
-        case didLogin(name: String)
+        case didLogIn(name: String)
     }
 }
 
@@ -48,7 +48,7 @@ extension WelcomeWorkflow {
         typealias WorkflowType = WelcomeWorkflow
 
         case nameChanged(name: String)
-        case didLogin
+        case didLogIn
 
         func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
             switch self {
@@ -58,9 +58,9 @@ extension WelcomeWorkflow {
                 // Return `nil` for the output, we want to handle this action only at the level of this workflow.
                 return nil
 
-            case .didLogin:
-                // Return an output of `didLogin` with the name.
-                return .didLogin(name: state.name)
+            case .didLogIn:
+                // Return an output of `didLogIn` with the name.
+                return .didLogIn(name: state.name)
             }
         }
     }
@@ -97,8 +97,8 @@ extension WelcomeWorkflow {
                 sink.send(.nameChanged(name: name))
             },
             onLoginTapped: {
-                // Whenever the login button is tapped, emit the `.didLogin` action.
-                sink.send(.didLogin)
+                // Whenever the login button is tapped, emit the `.didLogIn` action.
+                sink.send(.didLogIn)
             }
         )
     }
