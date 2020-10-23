@@ -12,7 +12,7 @@ Start from implementation of `Tutorial1` if you're skipping ahead. You can run t
 
 ## Second Workflow
 
-Let's add a second screen and workflow so we have somewhere to land after we finish login. Our next screen will be a list of "TODO" items, as TODO apps are the best apps. To see an example, modify the `TutorialContainerViewController` to show the `TodoListSampleViewController`. It can be removed, as we will be replacing it with a screen and workflow.
+Let's add a second screen and workflow so we have somewhere to land after we log in. Our next screen will be a list of "todo" items, as todo apps are the best apps. To see an example, modify the `TutorialContainerViewController` to show the `TodoListSampleViewController`. Once you're done looking around, the `TodoListSampleViewController` can be removed, as we will be replacing it with a screen and workflow.
 
 Create a new Screen/ViewController pair called `TodoList`:
 
@@ -31,25 +31,26 @@ struct TodoListScreen: Screen {
     // It should also contain callbacks for any UI events, for example:
     // var onButtonTapped: () -> Void
 
-    // It should also return viewControllerDescription property that 
-    // describes the UIViewController that will be used for rendering 
-    // the screen.
+    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+        return TodoListViewController.description(for: self, environment: environment)
+    }
 }
 
 
 final class TodoListViewController: ScreenViewController<TodoListScreen> {
-    let todoListView: TodoListView
+    private var todoListView: TodoListView!
 
-    required init(screen: TodoListScreen) {
-        self.todoListView = TodoListView(frame: .zero)
-        super.init(screen: screen)
-        update(with: screen)
+    required init(screen: TodoListScreen, environment: ViewEnvironment) {
+        super.init(screen: screen, environment: environment)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        todoListView = TodoListView(frame: view.bounds)
         view.addSubview(todoListView)
+
+        updateView(with: screen)
     }
 
     override func viewDidLayoutSubviews() {
@@ -57,7 +58,18 @@ final class TodoListViewController: ScreenViewController<TodoListScreen> {
 
         todoListView.frame = view.bounds.inset(by: view.safeAreaInsets)
     }
-    // The rest of the view controller...
+
+    override func screenDidChange(from previousScreen: TodoListScreen, previousEnvironment: ViewEnvironment) {
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
+    }
+
+    private func updateView(with screen: TodoListScreen) {
+        // TODO
+    }
 ```
 
 And then create the corresponding workflow called "TodoList":
@@ -130,7 +142,7 @@ extension TodoListWorkflow {
 }
 ```
 
-Add a `todoTitles` property to the `TodoScreen`, and change `update` to update the `TodoListView` to change what it shows anytime the screen updates:
+Add a `todoTitles` property to the `TodoScreen`, and fill in `updateView` to update the `TodoListView` to change what it shows anytime the screen updates:
 
 ```swift
 struct TodoListScreen: Screen {
@@ -139,26 +151,24 @@ struct TodoListScreen: Screen {
 
     // Callback when a todo is selected
     var onTodoSelected: (Int) -> Void
+
+    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+        return TodoListViewController.description(for: self, environment: environment)
+    }
 }
 
 final class TodoListViewController: ScreenViewController<TodoListScreen> {
     // ...snipped...
 
-    override func screenDidChange(from previousScreen: TodoListScreen) {
-        update(with: screen)
-    }
-
-    private func update(with screen: TodoListScreen) {
+    private func updateView(with screen: TodoListScreen) {
         // Update the todoList on the view with what the screen provided:
         todoListView.todoList = screen.todoTitles
         todoListView.onTodoSelected = screen.onTodoSelected
     }
-
 }
-
 ```
 
-Finally, update the `render` for `TodoListWorkflow` to send the titles of the todo models whenever the screen is updated:
+Finally, update `render` for `TodoListWorkflow` to send the titles of the todo models whenever the screen is updated:
 
 ```swift
 // MARK: Rendering
@@ -168,12 +178,12 @@ extension TodoListWorkflow {
     typealias Rendering = TodoListScreen
 
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
-        let titles = state.todos.map { (todoModel) -> String in
-            return todoModel.title
-        }
+        let titles = state.todos.map(\.title)
+
         return TodoListScreen(
             todoTitles: titles,
-            onTodoSelected: { _ in })
+            onTodoSelected: { _ in }
+        )
     }
 }
 ```
@@ -196,7 +206,6 @@ We'll start with the `RootWorkflow` returning only showing the `WelcomeScreen` v
 // MARK: Rendering
 
 extension RootWorkflow {
-
     typealias Rendering = WelcomeScreen
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
@@ -214,7 +223,7 @@ However, this won't compile immediately, and the compiler will provide a less th
 
 ![missing-map-output](images/missing-map-output.png)
 
-Anytime a child workflow is run, the parent needs a way of converting its `Output` into an `Action` it can handle. The `WelcomeWorkflow`'s output type is currently an empty enum: `enum Output { }`.
+Anytime a child workflow is run, the parent needs a way of converting the child's `Output` into an `Action` the parent can handle. The `WelcomeWorkflow`'s output type is currently an empty enum: `enum Output { }`.
 
 For now, delete the `Output` on `WelcomeWorkflow` and replace it with a typealias to `Never`:
 
@@ -275,26 +284,21 @@ extension RootWorkflow {
 // MARK: Actions
 
 extension RootWorkflow {
-
     enum Action: WorkflowAction {
-
         typealias WorkflowType = RootWorkflow
 
-        case login(name: String)
-        case logout
+        case logIn(name: String)
+        case logOut
 
         func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
-
             switch self {
-            case .login(name: let name):
-                // When the `login` action is received, change the state to `todo`.
+            case .logIn(name: let name):
                 state = .todo(name: name)
-            case .logout:
-                // Return to the welcome state on logout.
+            case .logOut:
                 state = .welcome
             }
-            return nil
 
+            return nil
         }
     }
 }
@@ -308,22 +312,19 @@ Workflows can only communicate with each other through their "properties" as inp
 
 Our welcome workflow has a login button that doesn't do anything, and we'll now handle it and let our parent know that we've "logged in" so it can navigate to another screen.
 
-Add an action for `didLogin` and define our `Output` type to be able to message our parent:
+Add an action for `didLogIn` and define our `Output` type to be able to message our parent:
 
 ```swift
 // MARK: Actions
 
 extension WelcomeWorkflow {
-
     enum Action: WorkflowAction {
-
         typealias WorkflowType = WelcomeWorkflow
 
         case nameChanged(name: String)
-        case didLogin
+        case didLogIn
 
         func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
-
             switch self {
             case .nameChanged(name: let name):
                 // Update our state with the updated name.
@@ -331,9 +332,9 @@ extension WelcomeWorkflow {
                 // Return `nil` for the output, we want to handle this action only at the level of this workflow.
                 return nil
 
-            case .didLogin:
-                // Return an output of `didLogin` with the name.
-                return .didLogin(name: state.name)
+            case .didLogIn:
+                // Return an output of `didLogIn` with the name.
+                return .didLogIn(name: state.name)
             }
         }
     }
@@ -343,22 +344,20 @@ extension WelcomeWorkflow {
 ```swift
 struct WelcomeWorkflow: Workflow {
     enum Output {
-        case didLogin(name: String)
+        case didLogIn(name: String)
     }
 }
 ```
 
-And fire the `.didLogin` action any time the login button is pressed:
+And fire the `.didLogIn` action any time the login button is pressed:
 
 ```swift
 // MARK: Rendering
 
 extension WelcomeWorkflow {
-
     typealias Rendering = WelcomeScreen
 
     func render(state: WelcomeWorkflow.State, context: RenderContext<WelcomeWorkflow>) -> Rendering {
-
         // Create a "sink" of type `Action`. A sink is what we use to send actions to the workflow.
         let sink = context.makeSink(of: Action.self)
 
@@ -368,9 +367,10 @@ extension WelcomeWorkflow {
                 sink.send(.nameChanged(name: name))
             },
             onLoginTapped: {
-                // Whenever the login button is tapped, emit the `.didLogin` action.
-                sink.send(.didLogin)
-            })
+                // Whenever the login button is tapped, emit the `.didLogIn` action.
+                sink.send(.didLogIn)
+            }
+        )
     }
 }
 ```
@@ -381,7 +381,6 @@ Finally, map the output event from `WelcomeWorkflow` in `RootWorkflow` to the `l
 // MARK: Rendering
 
 extension RootWorkflow {
-
     typealias Rendering = WelcomeScreen
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
@@ -390,9 +389,9 @@ extension RootWorkflow {
         let welcomeScreen = WelcomeWorkflow()
             .mapOutput({ output -> Action in
                 switch output {
-                    // When `WelcomeWorkflow` emits `didLogin`, turn it into our `login` action.
-                case .didLogin(name: let name):
-                    return .login(name: name)
+                // When `WelcomeWorkflow` emits `didLogIn`, turn it into our `logIn` action.
+                case .didLogIn(name: let name):
+                    return .logIn(name: name)
                 }
             })
             .rendered(in: context)
@@ -424,23 +423,23 @@ And update the `render` method of the `RootWorkflow`:
 // MARK: Rendering
 
 extension RootWorkflow {
-
     typealias Rendering = AnyScreen
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         switch state {
-            // When the state is `.welcome`, defer to the WelcomeWorkflow
         case .welcome:
+            // When the state is `.welcome`, defer to the WelcomeWorkflow.
+
             // Render a child workflow of type `WelcomeWorkflow`. When `rendered(in:)` is called, the infrastructure will create
             // a child workflow with state if one is not already running.
             let welcomeScreen = WelcomeWorkflow()
-                .mapOutput({ output -> Action in
+                .mapOutput { output -> Action in
                     switch output {
-                    // When `WelcomeWorkflow` emits `didLogin`, turn it into our `login` action.
-                    case .didLogin(name: let name):
-                        return .login(name: name)
+                    // When `WelcomeWorkflow` emits `didLogIn`, turn it into our `logIn` action.
+                    case .didLogIn(name: let name):
+                        return .logIn(name: name)
                     }
-                })
+                }
                 .rendered(in: context)
 
             return AnyScreen(welcomeScreen)
@@ -452,16 +451,13 @@ extension RootWorkflow {
 
             return AnyScreen(todoListScreen)
         }
-
     }
 }
 ```
 
 #### AnyScreen and type erasure
 
-The `Rendering` type of `RootWorkflow` was changed to `AnyScreen` from the `WelcomeScreen` to be able to show different screen types. This is needed as swift is strongly typed, and we are potentially returning different types.
-
-To accomplish this, there is a technique called "type erasure" that is used. Effectively, we wrap the real type into a type that hides the underlying type.
+The `Rendering` type of `RootWorkflow` was changed to `AnyScreen` from the `WelcomeScreen` to be able to show different screen types. This is needed as Swift is strongly typed, and we are potentially returning different types. To accomplish this, we use a technique called "type erasure." Effectively, we wrap the real type into a type that hides the underlying type.
 
 On the infrastructure side, when we display the different screen types, the view controller is swapped out from `Welcome` to instead show the `TodoList`.
 
@@ -480,33 +476,12 @@ public struct BackStackScreen: Screen {
     public init(items: [BackStackScreen.Item]) {
         self.items = items
     }
+
+    // ...snipped...
 }
 ```
 
-The `BackStackScreen` contains a list of all screens in the back stack that are specified on each render pass.
-
-```swift
-import UIKit
-import Workflow
-import WorkflowUI
-import BackStackContainer
-
-
-public final class TutorialContainerViewController: UIViewController {
-    let containerViewController: UIViewController
-
-    public init() {
-        // Create a `ContainerViewController` with the `RootWorkflow` as the root workflow.
-        containerViewController = ContainerViewController(
-            workflow: RootWorkflow()
-        )
-
-        super.init(nibName: nil, bundle: nil)
-    }
-    // ... the rest of the implementation ...
-```
-
-And update the `RootWorkflow` to return a `BackStackScreen` with a list of back stack items:
+The `BackStackScreen` contains a list of all screens in the back stack that are specified on each render pass. Update the `RootWorkflow` to return a `BackStackScreen` with a list of back stack items:
 
 ```swift
 // Don't forget to import `BackStackContainer` to be able to use `BackStackScreen`.
@@ -517,60 +492,59 @@ import BackStackContainer
 // MARK: Rendering
 
 extension RootWorkflow {
-
-    typealias Rendering = BackStackScreen
+    typealias Rendering = BackStackScreen<AnyScreen>
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
-        // Create a sink to handle the back action from the TodoListWorkflow to logout.
+        // Create a sink to handle the back action from the TodoListWorkflow to log out.
         let sink = context.makeSink(of: Action.self)
 
         // Our list of back stack items. Will always include the "WelcomeScreen".
-        var backStackItems: [BackStackScreen.Item] = []
+        var backStackItems: [BackStackScreen<AnyScreen>.Item] = []
 
         let welcomeScreen = WelcomeWorkflow()
-            .mapOutput({ output -> Action in
+            .mapOutput { output -> Action in
                 switch output {
-                // When `WelcomeWorkflow` emits `didLogin`, turn it into our `login` action.
-                case .didLogin(name: let name):
-                    return .login(name: name)
+                // When `WelcomeWorkflow` emits `didLogIn`, turn it into our `logIn` action.
+                case .didLogIn(name: let name):
+                    return .logIn(name: name)
                 }
-            })
+            }
             .rendered(in: context)
 
         let welcomeBackStackItem = BackStackScreen.Item(
             key: "welcome",
-            screen: welcomeScreen,
+            screen: AnyScreen(welcomeScreen),
             // Hide the navigation bar.
-            barVisibility: .hidden)
+            barVisibility: .hidden
+        )
 
         // Always add the welcome back stack item.
         backStackItems.append(welcomeBackStackItem)
 
         switch state {
-        // When the state is `.welcome`, defer to the WelcomeWorkflow.
         case .welcome:
             // We always add the welcome screen to the backstack, so this is a no op.
             break
 
-        // When the state is `.todo`, defer to the TodoListWorkflow.
         case .todo(name: let name):
-
+            // When the state is `.todo`, defer to the TodoListWorkflow.
             let todoListScreen = TodoListWorkflow()
                 .rendered(in: context)
 
             let todoListBackStackItem = BackStackScreen.Item(
                 key: "todoList",
-                screen: todoListScreen,
+                screen: AnyScreen(todoListScreen),
                 // Specify the title, back button, and right button.
                 barContent: BackStackScreen.BarContent(
                     title: "Welcome \(name)",
-                    // When `back` is pressed, emit the .logout action to return to the welcome screen.
+                    // When `back` is pressed, emit the .logOut action to return to the welcome screen.
                     leftItem: .button(.back(handler: {
-                        sink.send(.logout)
+                        sink.send(.logOut)
                     })),
-                    rightItem: .none))
+                    rightItem: .none
+                )
+            )
 
-            // Add the TodoListScreen to our BackStackItems.
             backStackItems.append(todoListBackStackItem)
         }
 

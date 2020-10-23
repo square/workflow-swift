@@ -75,9 +75,8 @@ extension TodoListWorkflow {
     typealias Rendering = TodoListScreen
 
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
-        let titles = state.todos.map { (todoModel) -> String in
-            todoModel.title
-        }
+        let titles = state.todos.map(\.title)
+
         return TodoListScreen(
             todoTitles: titles,
             onTodoSelected: { _ in }
