@@ -8,15 +8,15 @@ To follow this tutorial:
 - Open your terminal and run `bundle exec pod install` in the `Samples/Tutorial` directory.
 - Open `Tutorial.xcworkspace` and build the `Tutorial` Scheme.
 
-Start from implementation of `Tutorial2` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial2` instead of `TutorialBase`.
+Start from the implementation of `Tutorial2` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial2` instead of `TutorialBase`.
 
-## Editing TODO items
+## Editing todo items
 
-Now that a user can "log in" to their TODO list, we want to add the ability to edit the TODO items listed.
+Now that a user can "log in" to their todo list, we want to add the ability to edit the todo items listed.
 
 ### State ownership
 
-In the workflow framework, data flows _down_ the tree as properties to child workflows, and actions come _up_ as output events (as in the traditional computer science trees that grow downward).
+In the workflow framework, data flows _down_ the tree as properties to child workflows, and actions come _up_ as output events (as in the traditional computer science sense that trees that grow downward).
 
 What this means is that state should be created as far down the tree as possible, to limit the scope of state to be as small as possible. Additionally, there should be only one "owner" of the state in the tree - if it's passed farther down the tree, it should be a copy or read-only version of it - so there is no shared mutable state in multiple workflows.
 
@@ -46,19 +46,19 @@ struct TodoEditScreen: Screen {
 
 final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
     // The `todoEditView` has all the logic for displaying the todo and editing.
-    let todoEditView: TodoEditView
+    private var todoEditView: TodoEditView!
 
-    required init(screen: TodoEditScreen) {
-        self.todoEditView = TodoEditView(frame: .zero)
-
-        super.init(screen: screen)
-        update(with: screen)
+    required init(screen: TodoEditScreen, environment: ViewEnvironment) {
+        super.init(screen: screen, environment: environment)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        todoEditView = TodoEditView(frame: view.bounds)
         view.addSubview(todoEditView)
+
+        updateView(with: screen)
     }
 
     override func viewDidLayoutSubviews() {
@@ -67,7 +67,17 @@ final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
         todoEditView.frame = view.bounds.inset(by: view.safeAreaInsets)
     }
 
-    // ...rest of the implementation...
+    override func screenDidChange(from previousScreen: TodoEditScreen, previousEnvironment: ViewEnvironment) {
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
+    }
+
+    private func updateView(with screen: TodoEditScreen) {
+        // TODO
+    }
 ```
 
 This view isn't particularly useful without the data to present it, so update the `TodoEditScreen` to add the properties we need and the callbacks:
@@ -101,26 +111,29 @@ Then update the view with the data from the screen:
 final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
     // ..rest of the implementation...
 
-    override func screenDidChange(from previousScreen: TodoEditScreen) {
-        update(with: screen)
+    override func screenDidChange(from previousScreen: TodoEditScreen, previousEnvironment: ViewEnvironment) {
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
     }
 
-    private func update(with screen: TodoEditScreen) {
+    private func updateView(with screen: TodoEditScreen) {
         // Update the view with the data from the screen.
         todoEditView.title = screen.title
         todoEditView.note = screen.note
         todoEditView.onTitleChanged = screen.onTitleChanged
         todoEditView.onNoteChanged = screen.onNoteChanged
     }
-
 }
 ```
 
 #### TodoEditWorkflow
 
-Now that we have our screen and view controller, update the `TodoEditWorkflow` to emit this screen as the rendering.
+Now that we have our screen and view controller, let's update the `TodoEditWorkflow` to emit this screen as the rendering.
 
-The `TodoEditWorkflow` needs an initial Todo item passed into it from its parent. It will make a copy of it in its internal state - this can be the "scratch pad" for edits. This allows changes to be made and still be able to discard the changes if the user does not want to save them.
+The `TodoEditWorkflow` needs an initial Todo item passed into it from its parent. It will make a copy of it in its internal state (because TodoModel is a value type) — this can be the "scratch pad" for edits. This allows changes to be made and still be able to discard the changes if the user does not want to save them.
 
 Additionally, we will (finally) use the `workflowDidChange` method. If the edit workflow's parent provides an updated `todo`, it will invalidate the `todo` in `State`, and replace it with the one provided from the parent.
 
@@ -157,8 +170,8 @@ extension TodoEditWorkflow {
         // The "correct" behavior depends on the business logic - would we only want to update if the
         // users hasn't changed the todo from the initial one? Or is it ok to delete whatever edits
         // were in progress if the state from the parent changes?
-        if previousWorkflow.initialTodo != self.initialTodo {
-            state.todo = self.initialTodo
+        if previousWorkflow.initialTodo != initialTodo {
+            state.todo = initialTodo
         }
     }
 }
@@ -223,7 +236,7 @@ extension TodoEditWorkflow {
 }
 ```
 
-Now the workflow provides a backing for the UI to edit a todo item, but doesn't support saving and discarding changes. Add two `Output`s and actions for these cases:
+Now the workflow provides a backing for the UI to edit a todo item, but it doesn't support saving and discarding changes. Add two `Output`s and actions for these cases:
 
 ```swift
 // MARK: Input and Output
@@ -291,7 +304,7 @@ import BackStackContainer
 
 extension TodoEditWorkflow {
 
-    typealias Rendering = BackStackScreen.Item
+    typealias Rendering = BackStackScreen<AnyScreen>.Item
 
     func render(state: TodoEditWorkflow.State, context: RenderContext<TodoEditWorkflow>) -> Rendering {
         // The sink is used to send actions back to this workflow.
@@ -309,7 +322,7 @@ extension TodoEditWorkflow {
 
         let backStackItem = BackStackScreen.Item(
             key: "edit",
-            screen: todoEditScreen,
+            screen: todoEditScreen.asAnyScreen(),
             barContent: BackStackScreen.BarContent(
                 title: "Edit",
                 leftItem: .button(.back(handler: {
@@ -319,7 +332,10 @@ extension TodoEditWorkflow {
                     content: .text("Save"),
                     handler: {
                         sink.send(.saveChanges)
-                }))))
+                    }
+                ))
+            )
+        )
         return backStackItem
     }
 }
@@ -331,7 +347,7 @@ extension TodoEditWorkflow {
 
 We want the todo edit screen to be shown when a user taps on an item on the todo list screen. To do this, we will modify the todo list workflow to show the edit screen when we are editing.
 
-Because the `TodoEditWorkflow` returns a `BackStackScreen.Item`, we will first need to modify it  to return a list of `BackStackScreen.Item`s as the rendering.
+Because the `TodoEditWorkflow` returns a `BackStackScreen.Item`, we will first need to modify the todo list workflow to return a list of `BackStackScreen.Item`s as the rendering.
 
 ```swift
 // TodoListWorkflow
@@ -385,30 +401,31 @@ extension TodoListWorkflow {
 
 extension TodoListWorkflow {
 
-    typealias Rendering = [BackStackScreen.Item]
+    typealias Rendering = [BackStackScreen<AnyScreen>.Item]
 
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
 
         // Define a sink to be able to send the .onBack action.
         let sink = context.makeSink(of: Action.self)
 
-        let titles = state.todos.map { (todoModel) -> String in
-            return todoModel.title
-        }
+        let titles = state.todos.map(\.title)
         let todoListScreen = TodoListScreen(
             todoTitles: titles,
-            onTodoSelected: { _ in })
+            onTodoSelected: { _ in }
+        )
 
         let backStackItem = BackStackScreen.Item(
             key: "list",
-            screen: todoListScreen,
+            screen: todoListScreen.asAnyScreen(),
             barContent: BackStackScreen.BarContent(
                 title: "Welcome \(name)",
                 leftItem: .button(.back(handler: {
                     // When the left button is tapped, send the .onBack action.
                     sink.send(.onBack)
                 })),
-                rightItem: .none))
+                rightItem: .none
+            )
+        )
 
         return [backStackItem]
     }
@@ -439,13 +456,13 @@ extension RootWorkflow {
         case .todo(name: let name):
 
             let todoBackStackItems = TodoListWorkflow(name: name)
-                .mapOutput({ output -> Action in
+                .mapOutput { output -> Action in
                     switch output {
                     case .back:
-                        // When receiving a `.back` output, treat it as a `.logout` action.
-                        return .logout
+                        // When receiving a `.back` output, treat it as a `.logOut` action.
+                        return .logOut
                     }
-                })
+                }
                 .rendered(in: context)
 
             // Add the todoBackStackItems to our BackStackItems.
@@ -484,16 +501,17 @@ extension TodoListWorkflow {
 
     func makeInitialState() -> TodoListWorkflow.State {
         return State(
-            todos: [TodoModel(
-                title: "Take the cat for a walk",
-                note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect.")
+            todos: [
+                TodoModel(
+                    title: "Take the cat for a walk",
+                    note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect."
+                )
             ],
-            step: .list)
+            step: .list
+        )
     }
 
-    func workflowDidChange(from previousWorkflow: TodoListWorkflow, state: inout State) {
-    }
-
+    func workflowDidChange(from previousWorkflow: TodoListWorkflow, state: inout State) {}
 }
 ```
 
@@ -558,9 +576,7 @@ extension TodoListWorkflow {
         // Define a sink to be able to send actions.
         let sink = context.makeSink(of: Action.self)
 
-        let titles = state.todos.map { (todoModel) -> String in
-            return todoModel.title
-        }
+        let titles = state.todos.map(\.title)
         let todoListScreen = TodoListScreen(
             todoTitles: titles,
             onTodoSelected: { index in
@@ -570,14 +586,16 @@ extension TodoListWorkflow {
 
         let todoListItem = BackStackScreen.Item(
             key: "list",
-            screen: todoListScreen,
+            screen: todoListScreen.asAnyScreen(),
             barContent: BackStackScreen.BarContent(
-                title: "Welcome \(name)",
-                leftItem: .back(handler: {
+                title: "Welcome, \(name)",
+                leftItem: .button(.back(handler: {
                     // When the left button is tapped, send the .onBack action.
                     sink.send(.onBack)
-                }),
-                rightItem: .none))
+                })),
+                rightItem: .none
+            )
+        )
 
         switch state.step {
         case .list:
@@ -586,11 +604,9 @@ extension TodoListWorkflow {
 
         case .edit(index: let index):
             // On the "edit" step, return both the list and edit screens.
-            let todoEditItem = TodoEditWorkflow(
-                initialTodo: state.todos[index])
-                .mapOutput({ output -> Action in
+            let todoEditItem = TodoEditWorkflow(initialTodo: state.todos[index])
+                .mapOutput { output -> Action in
                     switch output {
-
                     case .discard:
                         // Send the discardChanges action when the discard output is received.
                         return .discardChanges
@@ -599,7 +615,7 @@ extension TodoListWorkflow {
                         // Send the saveChanges action when the save output is received.
                         return .saveChanges(todo: todo, index: index)
                     }
-                })
+                }
                 .rendered(in: context)
 
             return [todoListItem, todoEditItem]
@@ -614,16 +630,15 @@ Now we have a (nearly) fully formed app! Try it out and see how the data flows b
 
 ### Data Flow
 
-Looking at what was just built, this demonstrates how state should be handled in a tree of workflows. The `TodoListWorkflow` is responsible for the state of all the todo items.
-
-When an item is edited, the `TodoEditWorkflow` makes a _copy_ of it for its local state. The updates happen from the UI events (changing the title or note). Depending on if the user wants to save (hikes are fun!) or discard the changes (taking the cat for a swim is likely a bad idea), it emits an output of `discard` or `save`.
-
-When a `save` output is emitted, it includes the updated todo model. The parent (`TodoListWorkflow`) updates its internal state for that one item. The child never knows the index of the item being edited, it only has the minimum state of the specific item. This lets the parent be able to safely update its array of todos without being concerned about index-out-of-bounds errors.
+What we just built demonstrates how state should be handled in a tree of workflows:
+* The `TodoListWorkflow` is responsible for the state of all the todo items.
+* When an item is edited, the `TodoEditWorkflow` makes a _copy_ of it for its local state. The updates happen from the UI events (changing the title or note). Depending on if the user wants to save (hikes are fun!) or discard the changes (taking the cat for a swim is likely a bad idea), it emits an output of `discard` or `save`.
+* When a `save` output is emitted, it includes the updated todo model. The parent (`TodoListWorkflow`) updates its internal state for that one item. The child never knows the index of the item being edited, it only has the minimum state of the specific item. This lets the parent be able to safely update its array of todos without being concerned about index-out-of-bounds errors.
 
 If so desired, the `TodoListWorkflow` could have additional checks for saving the changes. For instance, if the todo list was something fetched from a server, it may decide to discard any changes if the list was updated remotely, etc.
 
 ## Up Next
 
-We have a pretty fully formed app. However if we want to keep going and adding features, we may want to reshape our tree of workflows. In the next tutorial, we'll cover refactoring and changing the shape of our workflow hierarchy.
+We now have a pretty fully formed app. However if we want to keep going and adding features, we may want to reshape our tree of workflows. In the next tutorial, we'll cover refactoring and changing the shape of our workflow hierarchy.
 
 [Tutorial 4](Tutorial4.md)
