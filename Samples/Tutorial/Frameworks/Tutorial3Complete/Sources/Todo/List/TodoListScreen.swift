@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import TutorialViews
 import Workflow
 import WorkflowUI
+import TutorialViews
 
 struct TodoListScreen: Screen {
     // The titles of the todo items
@@ -31,18 +31,19 @@ struct TodoListScreen: Screen {
 }
 
 final class TodoListViewController: ScreenViewController<TodoListScreen> {
-    let todoListView: TodoListView
+    private var todoListView: TodoListView!
 
     required init(screen: TodoListScreen, environment: ViewEnvironment) {
-        self.todoListView = TodoListView(frame: .zero)
         super.init(screen: screen, environment: environment)
-        update(with: screen)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        todoListView = TodoListView(frame: view.bounds)
         view.addSubview(todoListView)
+
+        updateView(with: screen)
     }
 
     override func viewDidLayoutSubviews() {
@@ -52,10 +53,14 @@ final class TodoListViewController: ScreenViewController<TodoListScreen> {
     }
 
     override func screenDidChange(from previousScreen: TodoListScreen, previousEnvironment: ViewEnvironment) {
-        update(with: screen)
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
     }
 
-    private func update(with screen: TodoListScreen) {
+    private func updateView(with screen: TodoListScreen) {
         // Update the todoList on the view with what the screen provided:
         todoListView.todoList = screen.todoTitles
         todoListView.onTodoSelected = screen.onTodoSelected

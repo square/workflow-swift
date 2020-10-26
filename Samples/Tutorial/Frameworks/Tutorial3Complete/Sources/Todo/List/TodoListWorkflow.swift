@@ -37,9 +37,11 @@ extension TodoListWorkflow {
     struct State {
         var todos: [TodoModel]
         var step: Step
+
         enum Step {
             // Showing the list of todo items.
             case list
+
             // Editing a single item. The state holds the index so it can be updated when a save action is received.
             case edit(index: Int)
         }
@@ -51,7 +53,7 @@ extension TodoListWorkflow {
                 TodoModel(
                     title: "Take the cat for a walk",
                     note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect."
-                ),
+                )
             ],
             step: .list
         )
@@ -90,7 +92,6 @@ extension TodoListWorkflow {
             case .saveChanges(todo: let todo, index: let index):
                 // When changes are saved, update the state of that `todo` item and return to the list.
                 state.todos[index] = todo
-
                 state.step = .list
                 return nil
             }
@@ -123,9 +124,8 @@ extension TodoListWorkflow {
         // Define a sink to be able to send actions.
         let sink = context.makeSink(of: Action.self)
 
-        let titles = state.todos.map { (todoModel) -> String in
-            todoModel.title
-        }
+        let titles = state.todos.map(\.title)
+
         let todoListScreen = TodoListScreen(
             todoTitles: titles,
             onTodoSelected: { index in
@@ -138,7 +138,7 @@ extension TodoListWorkflow {
             key: "list",
             screen: todoListScreen.asAnyScreen(),
             barContent: .init(
-                title: "Welcome \(name)",
+                title: "Welcome, \(name)",
                 leftItem: .button(.back(handler: {
                     // When the left button is tapped, send the .onBack action.
                     sink.send(.onBack)
@@ -154,8 +154,7 @@ extension TodoListWorkflow {
 
         case .edit(index: let index):
             // On the "edit" step, return both the list and edit screens.
-            let todoEditItem = TodoEditWorkflow(
-                initialTodo: state.todos[index])
+            let todoEditItem = TodoEditWorkflow(initialTodo: state.todos[index])
                 .mapOutput { output -> Action in
                     switch output {
                     case .discard:
