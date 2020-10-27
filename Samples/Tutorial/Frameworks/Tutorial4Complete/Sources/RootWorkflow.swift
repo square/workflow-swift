@@ -51,18 +51,19 @@ extension RootWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = RootWorkflow
 
-        case login(name: String)
-        case logout
+        case logIn(name: String)
+        case logOut
 
         func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
             switch self {
-            case .login(name: let name):
+            case .logIn(name: let name):
                 // When the `login` action is received, change the state to `todo`.
                 state = .todo(name: name)
-            case .logout:
+            case .logOut:
                 // Return to the welcome state on logout.
                 state = .welcome
             }
+
             return nil
         }
     }
@@ -90,17 +91,15 @@ extension RootWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
-        // Delete the `let sink = context.makeSink(of: ...) as we no longer need a sink.
-
         // Our list of back stack items. Will always include the "WelcomeScreen".
         var backStackItems: [BackStackScreen<AnyScreen>.Item] = []
 
         let welcomeScreen = WelcomeWorkflow()
             .mapOutput { output -> Action in
                 switch output {
-                // When `WelcomeWorkflow` emits `didLogin`, turn it into our `login` action.
-                case .didLogin(name: let name):
-                    return .login(name: name)
+                // When `WelcomeWorkflow` emits `didLogIn`, turn it into our `logIn` action.
+                case .didLogIn(name: let name):
+                    return .logIn(name: name)
                 }
             }
             .rendered(in: context)
@@ -116,25 +115,24 @@ extension RootWorkflow {
         backStackItems.append(welcomeBackStackItem)
 
         switch state {
-        // When the state is `.welcome`, defer to the WelcomeWorkflow.
         case .welcome:
             // We always add the welcome screen to the backstack, so this is a no op.
             break
 
-        // When the state is `.todo`, defer to the TodoListWorkflow.
         case .todo(name: let name):
+            // When the state is `.todo`, defer to the TodoListWorkflow.
 
-            // was: let todoBackStackItems = TodoListWorkflow(name: name)
             let todoBackStackItems = TodoWorkflow(name: name)
                 .mapOutput { output -> Action in
                     switch output {
                     case .back:
-                        // When receiving a `.back` output, treat it as a `.logout` action.
-                        return .logout
+                        // When receiving a `.back` output, treat it as a `.logOut` action.
+                        return .logOut
                     }
                 }
                 .rendered(in: context)
 
+            // Add the todoBackStackItems to our backStackItems
             backStackItems.append(contentsOf: todoBackStackItems)
         }
 
