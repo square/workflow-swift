@@ -36,9 +36,11 @@ extension TodoWorkflow {
     struct State {
         var todos: [TodoModel]
         var step: Step
+
         enum Step {
             // Showing the list of todo items.
             case list
+
             // Editing a single item. The state holds the index so it can be updated when a save action is received.
             case edit(index: Int)
         }
@@ -50,7 +52,7 @@ extension TodoWorkflow {
                 TodoModel(
                     title: "Take the cat for a walk",
                     note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect."
-                ),
+                )
             ],
             step: .list
         )
@@ -93,7 +95,7 @@ extension TodoWorkflow {
         typealias WorkflowType = TodoWorkflow
 
         case discardChanges
-        case saveChanges(index: Int, todo: TodoModel)
+        case saveChanges(todo: TodoModel, index: Int)
 
         func apply(toState state: inout TodoWorkflow.State) -> TodoWorkflow.Output? {
             guard case .edit = state.step else {
@@ -102,13 +104,14 @@ extension TodoWorkflow {
 
             switch self {
             case .discardChanges:
+                // When a discard action is received, return to the list.
                 state.step = .list
 
-            case .saveChanges(index: let index, todo: let updatedTodo):
-                state.todos[index] = updatedTodo
+            case .saveChanges(todo: let todo, index: let index):
+                // When changes are saved, update the state of that `todo` item and return to the list.
+                state.todos[index] = todo
+                state.step = .list
             }
-            // Return to the list view for either a discard or save action.
-            state.step = .list
 
             return nil
         }
@@ -137,45 +140,42 @@ extension TodoWorkflow {
     typealias Rendering = [BackStackScreen<AnyScreen>.Item]
 
     func render(state: TodoWorkflow.State, context: RenderContext<TodoWorkflow>) -> Rendering {
-        let todoListItem = TodoListWorkflow(
-            name: name,
-            todos: state.todos
-        )
-        .mapOutput { output -> ListAction in
-            switch output {
-            case .back:
-                return .back
+        let todoListItem = TodoListWorkflow(name: name, todos: state.todos)
+            .mapOutput { output -> ListAction in
+                switch output {
+                case .back:
+                    return .back
 
-            case .selectTodo(index: let index):
-                return .editTodo(index: index)
+                case .selectTodo(index: let index):
+                    return .editTodo(index: index)
 
-            case .newTodo:
-                return .newTodo
+                case .newTodo:
+                    return .newTodo
+                }
             }
-        }
-        .rendered(in: context)
+            .rendered(in: context)
 
         switch state.step {
         case .list:
-            // Return only the list item.
+            // On the "list" step, return just the list screen.
             return [todoListItem]
 
         case .edit(index: let index):
-
-            let todoEditItem = TodoEditWorkflow(
-                initialTodo: state.todos[index])
+            // On the "edit" step, return both the list and edit screens.
+            let todoEditItem = TodoEditWorkflow(initialTodo: state.todos[index])
                 .mapOutput { output -> EditAction in
                     switch output {
                     case .discard:
+                        // Send the discardChanges actions when the discard output is received.
                         return .discardChanges
 
-                    case .save(let updatedTodo):
-                        return .saveChanges(index: index, todo: updatedTodo)
+                    case .save(let todo):
+                        // Send the saveChanges action when the save output is received.
+                        return .saveChanges(todo: todo, index: index)
                     }
                 }
                 .rendered(in: context)
 
-            // Return both the list item and edit.
             return [todoListItem, todoEditItem]
         }
     }

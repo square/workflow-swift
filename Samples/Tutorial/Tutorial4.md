@@ -10,35 +10,33 @@ To follow this tutorial:
 
 Start from implementation of `Tutorial3` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial3` instead of `TutorialBase`.
 
-## Adding new TODO items
+## Adding new todo items
 
-A gap in the usability of the TODO app is that it does not let the user create new todo items. We will add an "add" button on the right side of the navigation bar for this.
+A gap in the usability of the todo app is that it does not let the user create new todo items. We will add an "add" button on the right side of the navigation bar for this.
 
 ## Refactoring a workflow by splitting it into a parent and child
 
-The `TodoListWorkflow` has started to grow, and has multiple concerns it's handling - specifically all of the `ListScreen` behavior, as well as the actions that can come from the `TodoEditWorkflow`.
+The `TodoListWorkflow` has started to grow and has multiple concerns it's handling — specifically all of the `ListScreen` behavior, as well as the actions that can come from the `TodoEditWorkflow`.
 
-When a single workflow seems to be doing too many things, the common pattern is to extract some of its responsibilty into a parent.
+When a single workflow seems to be doing too many things, a common pattern is to extract some of its responsibilty into a parent.
 
 ### TodoWorkflow
 
 Create a new workflow called `Todo` that will be responsible for both the `TodoListWorkflow` and  the `TodoEditWorkflow`.
 
 ```swift
-import Workflow
-import WorkflowUI
-import BackStackContainer
 import ReactiveSwift
+import Workflow
+import WorkflowReactiveSwift
+import WorkflowUI
 
 
 // MARK: Input and Output
 
 struct TodoWorkflow: Workflow {
-
-    enum Output {
-
-    }
+    enum Output {}
 }
+
 // ...rest of the template contents...
 ```
 
@@ -59,17 +57,17 @@ struct TodoWorkflow: Workflow {
     }
 }
 
-
 // MARK: State and Initialization
 
 extension TodoWorkflow {
-
     struct State {
         var todos: [TodoModel]
         var step: Step
+
         enum Step {
             // Showing the list of todo items.
             case list
+
             // Editing a single item. The state holds the index so it can be updated when a save action is received.
             case edit(index: Int)
         }
@@ -77,11 +75,14 @@ extension TodoWorkflow {
 
     func makeInitialState() -> TodoWorkflow.State {
         return State(
-            todos: [TodoModel(
-                title: "Take the cat for a walk",
-                note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect.")
+            todos: [
+                TodoModel(
+                    title: "Take the cat for a walk",
+                    note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect."
+                )
             ],
-            step: .list)
+            step: .list
+        )
     }
 
 // ...rest of the implementation...
@@ -94,7 +95,6 @@ Define the output events from the `TodoListWorkflow` to describe the `new` item 
 // MARK: Input and Output
 
 struct TodoListWorkflow: Workflow {
-
     // The name is an input.
     var name: String
     // Use the list of todo items passed from our parent.
@@ -111,7 +111,6 @@ struct TodoListWorkflow: Workflow {
 // MARK: State and Initialization
 
 extension TodoListWorkflow {
-
     struct State {
     }
 
@@ -131,9 +130,7 @@ Change the `Action` behaviors to return an output instead of modifying any state
 // MARK: Actions
 
 extension TodoListWorkflow {
-
     enum Action: WorkflowAction {
-
         typealias WorkflowType = TodoListWorkflow
 
         case onBack
@@ -168,29 +165,27 @@ Update the `render` method to only return the `TodoListScreen` as a `BackStackSc
 // MARK: Rendering
 
 extension TodoListWorkflow {
-
-    typealias Rendering = BackStackScreen.Item
+    typealias Rendering = BackStackScreen<AnyScreen>.Item
 
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
-
-        // Define a sink to be able to send the .onBack action.
+        // Define a sink to be able to send actions.
         let sink = context.makeSink(of: Action.self)
 
-        let titles = todos.map { (todoModel) -> String in
-            return todoModel.title
-        }
+        let titles = todos.map(\.title)
+
         let todoListScreen = TodoListScreen(
             todoTitles: titles,
             onTodoSelected: { index in
                 // Send the `selectTodo` action when a todo is selected in the UI.
                 sink.send(.selectTodo(index: index))
-            })
+            }
+        )
 
         let todoListItem = BackStackScreen.Item(
             key: "list",
-            screen: todoListScreen,
+            screen: todoListScreen.asAnyScreen(),
             barContent: BackStackScreen.BarContent(
-                title: "Welcome \(name)",
+                title: "Welcome, \(name)",
                 leftItem: .button(.back(handler: {
                     // When the left button is tapped, send the .onBack action.
                     sink.send(.onBack)
@@ -199,14 +194,17 @@ extension TodoListWorkflow {
                     content: .text("New Todo"),
                     handler: {
                         sink.send(.new)
-                }))))
+                    }
+                ))
+            )
+        )
 
         return todoListItem
     }
 }
 ```
 
-And add rendering the `TodoListWorkflow` and output handling in the `TodoWorkflow`:
+Render the `TodoListWorkflow` and handle its output in the `TodoWorkflow`:
 
 ```swift
 // MARK: Actions
@@ -214,7 +212,6 @@ And add rendering the `TodoListWorkflow` and output handling in the `TodoWorkflo
 extension TodoWorkflow {
 
     enum Action: WorkflowAction {
-
         typealias WorkflowType = TodoWorkflow
 
         case back
@@ -222,7 +219,6 @@ extension TodoWorkflow {
         case newTodo
 
         func apply(toState state: inout TodoWorkflow.State) -> TodoWorkflow.Output? {
-
             switch self {
             case .back:
                 return .back
@@ -234,7 +230,8 @@ extension TodoWorkflow {
                 // Append a new todo model to the end of the list.
                 state.todos.append(TodoModel(
                     title: "New Todo",
-                    note: ""))
+                    note: ""
+                ))
             }
 
             return nil
@@ -246,17 +243,12 @@ extension TodoWorkflow {
 // MARK: Rendering
 
 extension TodoWorkflow {
-
-    typealias Rendering = [BackStackScreen.Item]
+    typealias Rendering = [BackStackScreen<AnyScreen>.Item]
 
     func render(state: TodoWorkflow.State, context: RenderContext<TodoWorkflow>) -> Rendering {
-
-        let todoListItem = TodoListWorkflow(
-            name: name,
-            todos: state.todos)
-            .mapOutput({ output -> Action in
+        let todoListItem = TodoListWorkflow(name: name, todos: state.todos)
+            .mapOutput { output -> Action in
                 switch output {
-
                 case .back:
                     return .back
 
@@ -266,48 +258,46 @@ extension TodoWorkflow {
                 case .newTodo:
                     return .newTodo
                 }
-            })
+            }
             .rendered(in: context)
 
         return [todoListItem]
-
     }
 }
 ```
 
-Updating the `RootWorkflow` to defer to the `TodoWorkflow` for rendering the `todo` state will get us back into a state where we can build again (albeit without editing support):
+Update the `RootWorkflow` to defer to the `TodoWorkflow` for rendering the `todo` state. This will get us back into a state where we can build again (albeit without editing support):
 
 ```swift
 // MARK: Rendering
 
 extension RootWorkflow {
-
-    typealias Rendering = BackStackScreen
+    typealias Rendering = BackStackScreen<AnyScreen>
 
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
 
         // ... rest of the implementation ...
 
         switch state {
-        // When the state is `.welcome`, defer to the WelcomeWorkflow.
         case .welcome:
             // We always add the welcome screen to the backstack, so this is a no op.
             break
 
-        // When the state is `.todo`, defer to the TodoListWorkflow.
         case .todo(name: let name):
+            // When the state is `.todo`, defer to the TodoListWorkflow.
 
             // was: let todoBackStackItems = TodoListWorkflow(name: name)
             let todoBackStackItems = TodoWorkflow(name: name)
-                .mapOutput({ output -> Action in
+                .mapOutput { output -> Action in
                     switch output {
                     case .back:
-                        // When receiving a `.back` output, treat it as a `.logout` action.
-                        return .logout
+                        // When receiving a `.back` output, treat it as a `.logOut` action.
+                        return .logOut
                     }
-                })
+                }
                 .rendered(in: context)
 
+            // Add the todoBackStackItems to our backStackItems
             backStackItems.append(contentsOf: todoBackStackItems)
         }
 
@@ -319,7 +309,7 @@ extension RootWorkflow {
 
 #### Moving Edit Output handling to the TodoWorkflow
 
-The `TodoWorkflow` now can handle the outputs from the `TodoListWorkflow`, so next add handling the `TodoEditWorkflow` output events.
+The `TodoWorkflow` now can handle the outputs from the `TodoListWorkflow`. Next, let's add handling for the `TodoEditWorkflow` output events.
 
 Since the types of output and actions are pretty different from their origin, make a *second* action type on the `TodoWorkflow`:
 
@@ -336,11 +326,10 @@ extension TodoWorkflow {
 
 
     enum EditAction: WorkflowAction {
-
         typealias WorkflowType = TodoWorkflow
 
         case discardChanges
-        case saveChanges(index: Int, todo: TodoModel)
+        case saveChanges(todo: TodoModel, index: Int)
 
         func apply(toState state: inout TodoWorkflow.State) -> TodoWorkflow.Output? {
             guard case .edit = state.step else {
@@ -348,16 +337,15 @@ extension TodoWorkflow {
             }
 
             switch self {
+                case .discardChanges:
+                    // When a discard action is received, return to the list.
+                    state.step = .list
 
-            case .discardChanges:
-                state.step = .list
-
-            case .saveChanges(index: let index, todo: let updatedTodo):
-                state.todos[index] = updatedTodo
-
+                case .saveChanges(todo: let todo, index: let index):
+                    // When changes are saved, update the state of that `todo` item and return to the list.
+                    state.todos[index] = todo
+                    state.step = .list
             }
-            // Return to the list view for either a discard or save action.
-            state.step = .list
 
             return nil
         }
@@ -365,23 +353,18 @@ extension TodoWorkflow {
 }
 ```
 
-And update the `render` method to show the `TodoEditWorkflow` screen when on the edit step:
+Update the `render` method to show the `TodoEditWorkflow` screen when on the edit step:
 
 ```swift
 // MARK: Rendering
 
 extension TodoWorkflow {
-
-    typealias Rendering = [BackStackScreen.Item]
+    typealias Rendering = [BackStackScreen<AnyScreen>.Item]
 
     func render(state: TodoWorkflow.State, context: RenderContext<TodoWorkflow>) -> Rendering {
-
-        let todoListItem = TodoListWorkflow(
-            name: name,
-            todos: state.todos)
-            .mapOutput({ output -> ListAction in
+        let todoListItem = TodoListWorkflow(name: name, todos: state.todos)
+            .mapOutput { output -> ListAction in
                 switch output {
-
                 case .back:
                     return .back
 
@@ -391,34 +374,32 @@ extension TodoWorkflow {
                 case .newTodo:
                     return .newTodo
                 }
-            })
+            }
             .rendered(in: context)
 
         switch state.step {
-
         case .list:
-            // Return only the list item.
+            // On the "list" step, return just the list screen.
             return [todoListItem]
 
         case .edit(index: let index):
-
-            let todoEditItem = TodoEditWorkflow(
-                initialTodo: state.todos[index])
-                .mapOutput({ output -> EditAction in
+            // On the "edit" step, return both the list and edit screens.
+            let todoEditItem = TodoEditWorkflow(initialTodo: state.todos[index])
+                .mapOutput { output -> EditAction in
                     switch output {
                     case .discard:
+                        // Send the discardChanges actions when the discard output is received.
                         return .discardChanges
 
-                    case .save(let updatedTodo):
-                        return .saveChanges(index: index, todo: updatedTodo)
+                    case .save(let todo):
+                        // Send the saveChanges action when the save output is received.
+                        return .saveChanges(todo: todo, index: index)
                     }
-                })
+                }
                 .rendered(in: context)
 
-            // Return both the list item and edit.
             return [todoListItem, todoEditItem]
         }
-
     }
 }
 ```
@@ -427,9 +408,7 @@ That's it! There is now a workflow for both of our current steps of the Todo flo
 
 ## Conclusion
 
-Is the code better after this refactor? It's debatable - having the logic in the `TodoListWorkflow` was probably ok for the scope of what the app is doing.
-
-However, if more screens are added to this flow it would be much easier to reason about, as there would be a single touchpoint controlling where we are within the subflow of viewing and editing todo items.
+Is the code better after this refactor? It's debatable - having the logic in the `TodoListWorkflow` was probably ok for the scope of what the app is doing. However, if more screens are added to this flow it would be much easier to reason about, as there would be a single touchpoint controlling where we are within the subflow of viewing and editing todo items.
 
 Additionally, now the `TodoList` and `TodoEdit` workflows are completely decoupled - there is no longer a requirement that the `TodoEdit` workflow is displayed after the list. For instance, we could change the list to have "viewing" or "editing" modes, where tapping on an item might only allow it to be viewed, but another mode would allow editing.
 

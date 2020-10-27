@@ -25,6 +25,7 @@ import WorkflowUI
 struct TodoListWorkflow: Workflow {
     // The name is an input.
     var name: String
+
     // Use the list of todo items passed from our parent.
     var todos: [TodoModel]
 
@@ -97,12 +98,11 @@ extension TodoListWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>.Item
 
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
-        // Define a sink to be able to send the .onBack action.
+        // Define a sink to be able to send actions.
         let sink = context.makeSink(of: Action.self)
 
-        let titles = todos.map { (todoModel) -> String in
-            todoModel.title
-        }
+        let titles = todos.map(\.title)
+
         let todoListScreen = TodoListScreen(
             todoTitles: titles,
             onTodoSelected: { index in
@@ -115,7 +115,7 @@ extension TodoListWorkflow {
             key: "list",
             screen: todoListScreen.asAnyScreen(),
             barContent: .init(
-                title: "Welcome \(name)",
+                title: "Welcome, \(name)",
                 leftItem: .button(.back(handler: {
                     // When the left button is tapped, send the .onBack action.
                     sink.send(.onBack)
