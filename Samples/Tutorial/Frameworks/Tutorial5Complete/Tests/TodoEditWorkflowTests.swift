@@ -19,13 +19,10 @@ import XCTest
 @testable import Tutorial5
 
 class TodoEditWorkflowTests: XCTestCase {
-    func testAction() {
-        TodoEditWorkflow
-            .Action
+    func testAction() throws {
+        TodoEditWorkflow.Action
             // Start with a todo of "Title" "Note"
-            .tester(
-                withState: TodoEditWorkflow.State(
-                    todo: TodoModel(title: "Title", note: "Note")))
+            .tester(withState: TodoEditWorkflow.State(todo: TodoModel(title: "Title", note: "Note")))
             .verifyState { state in
                 XCTAssertEqual("Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
@@ -41,7 +38,7 @@ class TodoEditWorkflowTests: XCTestCase {
             // Update the note.
             .send(action: .noteChanged("Updated Note"))
             .assertNoOutput()
-            // Validate that the note updated.
+            // Validate that the note was updated.
             .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Updated Note", state.todo.note)
@@ -51,7 +48,7 @@ class TodoEditWorkflowTests: XCTestCase {
             .verifyOutput { output in
                 switch output {
                 case .discard:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.discard`")
                 }
@@ -69,9 +66,10 @@ class TodoEditWorkflowTests: XCTestCase {
             }
     }
 
-    func testChangedPropertyUpdatesLocalState() {
+    func testChangedPropertyUpdatesLocalState() throws {
         let initialWorkflow = TodoEditWorkflow(initialTodo: TodoModel(title: "Title", note: "Note"))
         var state = initialWorkflow.makeInitialState()
+
         // The initial state is a copy of the provided todo:
         XCTAssertEqual("Title", state.todo.title)
         XCTAssertEqual("Note", state.todo.note)
@@ -84,10 +82,9 @@ class TodoEditWorkflowTests: XCTestCase {
         XCTAssertEqual("Updated Title", state.todo.title)
         XCTAssertEqual("Note", state.todo.note)
 
-        // The parent provided different properties. The internal state should be updated with the newly provided properties.
+        // The parent provided different properties. The internal state should be updated with the newly-provided properties.
         let updatedWorkflow = TodoEditWorkflow(initialTodo: TodoModel(title: "New Title", note: "New Note"))
         updatedWorkflow.workflowDidChange(from: initialWorkflow, state: &state)
-
         XCTAssertEqual("New Title", state.todo.title)
         XCTAssertEqual("New Note", state.todo.note)
     }

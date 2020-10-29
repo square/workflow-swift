@@ -19,13 +19,9 @@ import XCTest
 @testable import Tutorial5
 
 class WelcomeWorkflowTests: XCTestCase {
-    func testNameUpdates() {
+    func testNameUpdates() throws {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .verifyState { state in
-                // The initial state provided was an empty name.
-                XCTAssertEqual("", state.name)
-            }
             .send(action: .nameChanged(name: "myName"))
             // No output is expected when the name changes.
             .assertNoOutput()
@@ -35,63 +31,66 @@ class WelcomeWorkflowTests: XCTestCase {
             }
     }
 
-    func testLogin() {
+    func testLogIn() throws {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .didLogin)
-            // Since the name is empty, `.didLogin` will not emit an output.
+            .send(action: .didLogIn)
+            // Since the name is empty, `.didLogIn` will not emit an output.
             .assertNoOutput()
             .verifyState { state in
                 // The name is empty, as was specified in the initial state.
                 XCTAssertEqual("", state.name)
             }
-            .send(action: .nameChanged(name: "MyName"))
+            .send(action: .nameChanged(name: "Ada"))
             // Update the name, no output expected.
             .assertNoOutput()
             .verifyState { state in
                 // Validate the name was updated.
-                XCTAssertEqual("MyName", state.name)
+                XCTAssertEqual("Ada", state.name)
             }
-            .send(action: .didLogin)
+            .send(action: .didLogIn)
             .verifyOutput { output in
-                // Now a `.didLogin` output should be emitted when the `.didLogin` action was received.
+                // Now a `.didLogIn` output should be emitted when the `.didLogIn` action was received.
                 switch output {
-                case .didLogin(let name):
-                    XCTAssertEqual("MyName", name)
+                case .didLogIn(name: let name):
+                    XCTAssertEqual("Ada", name)
                 }
             }
     }
 
-    func testRendering() {
+    func testRenderingInitial() throws {
         WelcomeWorkflow()
-            // Use the initial state provided by the welcome workflow
+            // Use the initial state provided by the welcome workflow.
             .renderTester()
             .render { screen in
                 XCTAssertEqual("", screen.name)
-                // Simulate tapping the login button. No output will be emitted, as the name is empty:
+
+                // Simulate tapping the log in button. No output will be emitted, as the name is empty.
                 screen.onLoginTapped()
             }
             .assertNoOutput()
-            .assert(state: WelcomeWorkflow.State(name: ""))
+    }
 
-        // Next, simulate the name updating, expecting the state to be changed to reflect the updated name:
+    func testRenderingNameChange() throws {
         WelcomeWorkflow()
-            .renderTester(initialState: WelcomeWorkflow.State(name: ""))
+            // Use the initial state provided by the welcome workflow.
+            .renderTester()
+            // Next, simulate the name updating, expecting the state to be changed to reflect the updated name.
             .render { screen in
-                screen.onNameChanged("myName")
+                screen.onNameChanged("Ada")
             }
-            .assert(state: WelcomeWorkflow.State(name: "myName"))
-            .assertNoOutput()
+            .assert(state: WelcomeWorkflow.State(name: "Ada"))
+    }
 
-        // Finally, validate that `.didLogin` is sent when login is tapped with a non-empty name:
+    func testRenderingLogIn() throws {
         WelcomeWorkflow()
-            .renderTester(initialState: WelcomeWorkflow.State(name: "myName"))
+            // Start with a name already entered.
+            .renderTester(initialState: WelcomeWorkflow.State(name: "Ada"))
+            // Simulate a log in button tap.
             .render { screen in
-                XCTAssertEqual("myName", screen.name)
-                // Simulate tapping the login button. No output will be emitted, as the name is empty:
                 screen.onLoginTapped()
             }
-            .assert(output: .didLogin(name: "myName"))
-            .assert(state: WelcomeWorkflow.State(name: "myName"))
+            // Finally, validate that `.didLogIn` was sent.
+            .assert(output: .didLogIn(name: "Ada"))
     }
 }
