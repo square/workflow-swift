@@ -23,6 +23,7 @@ Pod::Spec.new do |s|
 
   s.test_spec 'Tests' do |test_spec|
     test_spec.source_files = 'Tests/**/*.swift'
+    test_spec.dependency 'WorkflowTesting'
 
     test_spec.framework = 'XCTest'
   end

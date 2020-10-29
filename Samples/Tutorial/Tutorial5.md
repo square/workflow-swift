@@ -40,7 +40,7 @@ You provide an initial state, and drive the state forward by sending one action 
 
 Start by creating a new Unit test file called `WelcomeWorkflowTests`. Import `WorkflowTesting` as well as a `@testable import` for the `Tutorial` pod you're testing:
 
-We'll use the `@testable import` to be able to test the our workflows which are not exposed publicly.
+We'll use the `@testable import` to be able to test our workflows which are not exposed publicly.
 
 ```swift
 import XCTest
@@ -49,12 +49,10 @@ import WorkflowTesting
 
 
 class WelcomeWorkflowTests: XCTestCase {
-
-    func testExample() {
+    func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
-
 }
 ```
 
@@ -67,8 +65,7 @@ import WorkflowTesting
 
 
 class WelcomeWorkflowTests: XCTestCase {
-
-    func testNameUpdates() {
+    func testNameUpdates() throws {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
             .send(action: .nameChanged(name: "myName"))
@@ -79,73 +76,70 @@ class WelcomeWorkflowTests: XCTestCase {
                 XCTAssertEqual("myName", state.name)
             }
     }
-
 }
 ```
 
-The `Output` of an action can also be tested. Next, we'll add a test for the `.didLogin` action.
+The `Output` of an action can also be tested. Next, we'll add a test for the `.didLogIn` action.
 
 ```swift
-    func testLogin() {
+    func testLogIn() throws {
         WelcomeWorkflow.Action
             .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .nameChanged(name: "myName"))
-            // No output is expected when the name changes.
-            .assertNoOutput()
-            .verifyState { state in
-                // The `name` has been updated from the action.
-                XCTAssertEqual("myName", state.name)
-            }
-    }
-```
-
-We have now validated that an output is emitted when the `.didLogin` action is received. However, while writing this test, it probably doesn't make sense to allow someone to log in without providing a name. Let's update the test to ensure that login is only allowed when there is a name:
-
-```swift
-    func testLogin() {
-        WelcomeWorkflow.Action
-            .tester(withState: WelcomeWorkflow.State(name: ""))
-            .send(action: .didLogin)
-            // Since the name is empty, `.didLogin` will not emit an output.
-            .assertNoOutput()
-            .verifyState { state in
-                // The name is empty, as was specified in the initial state.
-                XCTAssertEqual("", state.name)
-            }
-            .send(action: .nameChanged(name: "MyName"))
-            // Update the name, no output expected.
-            .assertNoOutput()
-            .verifyState { state in
-                // Validate the name was updated.
-                XCTAssertEqual("MyName", state.name)
-            }
-            .send(action: .didLogin)
+            .send(action: .didLogIn)
             .verifyOutput { output in
-                // Now a `.didLogin` output should be emitted when the `.didLogin` action was received.
+                // A `.didLogIn` output should be emitted with the name when the `.didLogIn` action was received.
                 switch output {
-                case .didLogin(let name):
-                    XCTAssertEqual("MyName", name)
+                case .didLogIn(name: let name):
+                    XCTAssertEqual("", name)
                 }
             }
     }
 ```
 
-The test will now fail, as a `.didLogin` action will still cause `.didLogin` output when the name is blank. Update the `WelcomeWorkflow` logic to reflect the new behavior we want:
+We have now validated that an output is emitted when the `.didLogIn` action is received. However, while writing this test, it probably doesn't make sense to allow someone to log in without providing a name. Let's update the test to ensure that login is only allowed when there is a name:
+
+```swift
+    func testLogIn() throws {
+        WelcomeWorkflow.Action
+            .tester(withState: WelcomeWorkflow.State(name: ""))
+            .send(action: .didLogIn)
+            // Since the name is empty, `.didLogIn` will not emit an output.
+            .assertNoOutput()
+            .verifyState { state in
+                // The name is empty, as was specified in the initial state.
+                XCTAssertEqual("", state.name)
+            }
+            .send(action: .nameChanged(name: "Ada"))
+            // Update the name, no output expected.
+            .assertNoOutput()
+            .verifyState { state in
+                // Validate the name was updated.
+                XCTAssertEqual("Ada", state.name)
+            }
+            .send(action: .didLogIn)
+            .verifyOutput { output in
+                // Now a `.didLogIn` output should be emitted when the `.didLogIn` action was received.
+                switch output {
+                case .didLogIn(name: let name):
+                    XCTAssertEqual("Ada", name)
+                }
+            }
+    }
+```
+
+The test will now fail, as a `.didLogIn` action will still cause `.didLogIn` output when the name is blank. Update the `WelcomeWorkflow` logic to reflect the new behavior we want:
 
 ```swift
 // MARK: Actions
 
 extension WelcomeWorkflow {
-
     enum Action: WorkflowAction {
-
         typealias WorkflowType = WelcomeWorkflow
 
         case nameChanged(name: String)
-        case didLogin
+        case didLogIn
 
         func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
-
             switch self {
             case .nameChanged(name: let name):
                 // Update our state with the updated name.
@@ -153,13 +147,13 @@ extension WelcomeWorkflow {
                 // Return `nil` for the output, we want to handle this action only at the level of this workflow.
                 return nil
 
-            case .didLogin:
-                if state.name.count != 0 {
-                    // Return an output of `didLogin` with the name if it's not empty.
-                    return .didLogin(name: state.name)
-                } else {
+            case .didLogIn:
+                if state.name.isEmpty {
                     // Don't log in if the name isn't filled in.
                     return nil
+                } else {
+                    // Return an output of `didLogIn` with the name.
+                    return .didLogIn(name: state.name)
                 }
             }
         }
@@ -167,7 +161,7 @@ extension WelcomeWorkflow {
 }
 ```
 
-Run the test again and ensure that it passes. Additionally, try the app to see that it also reflects the updated behavior.
+Run the test again and ensure that it passes. Additionally, run the app to see that it also reflects the updated behavior.
 
 ### TodoListWorkflow
 
@@ -178,19 +172,16 @@ import XCTest
 @testable import TutorialBase
 import WorkflowTesting
 
-
 class TodoListWorkflowTests: XCTestCase {
-
-    func testActions() {
-        TodoListWorkflow
-            .Action
+    func testActions() throws {
+        TodoListWorkflow.Action
             .tester(withState: TodoListWorkflow.State())
             .send(action: .onBack)
             .verifyOutput { output in
                 // The `.onBack` action should emit an output of `.back`.
                 switch output {
                 case .back:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.back`")
                 }
@@ -199,7 +190,7 @@ class TodoListWorkflowTests: XCTestCase {
             .verifyOutput { output in
                 // The `.selectTodo` action should emit a `.selectTodo` output.
                 switch output {
-                case .selectTodo(let index):
+                case .selectTodo(index: let index):
                     XCTAssertEqual(7, index)
                 default:
                     XCTFail("Expected an output of `.selectTodo`")
@@ -207,16 +198,15 @@ class TodoListWorkflowTests: XCTestCase {
             }
             .send(action: .new)
             .verifyOutput { output in
-                // The`.new` action should emit a `.newTodo` output.
+                // THe `.new` action should emit a `.newTodo` output.
                 switch output {
                 case .newTodo:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.newTodo`")
                 }
             }
     }
-
 }
 ```
 
@@ -229,16 +219,11 @@ import XCTest
 @testable import TutorialBase
 import WorkflowTesting
 
-
 class TodoEditWorkflowTests: XCTestCase {
-
-    func testAction() {
-        TodoEditWorkflow
-            .Action
+    func testAction() throws {
+        TodoEditWorkflow.Action
             // Start with a todo of "Title" "Note"
-            .tester(
-                withState: TodoEditWorkflow.State(
-                    todo: TodoModel(title: "Title", note: "Note")))
+            .tester(withState: TodoEditWorkflow.State(todo: TodoModel(title: "Title", note: "Note")))
             .verifyState { state in
                 XCTAssertEqual("Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
@@ -254,7 +239,7 @@ class TodoEditWorkflowTests: XCTestCase {
             // Update the note.
             .send(action: .noteChanged("Updated Note"))
             .assertNoOutput()
-            // Validate that the note updated.
+            // Validate that the note was updated.
             .verifyState { state in
                 XCTAssertEqual("Updated Title", state.todo.title)
                 XCTAssertEqual("Updated Note", state.todo.note)
@@ -264,7 +249,7 @@ class TodoEditWorkflowTests: XCTestCase {
             .verifyOutput { output in
                 switch output {
                 case .discard:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.discard`")
                 }
@@ -281,16 +266,16 @@ class TodoEditWorkflowTests: XCTestCase {
                 }
             }
     }
-
 }
 ```
 
 The `TodoEditWorkflow` also uses the `workflowDidChange` to update the internal state if its parent provides it with a different `todo`. Validate that this works as expected:
 
 ```swift
-    func testChangedPropertyUpdatesLocalState() {
+    func testChangedPropertyUpdatesLocalState() throws {
         let initialWorkflow = TodoEditWorkflow(initialTodo: TodoModel(title: "Title", note: "Note"))
         var state = initialWorkflow.makeInitialState()
+
         // The initial state is a copy of the provided todo:
         XCTAssertEqual("Title", state.todo.title)
         XCTAssertEqual("Note", state.todo.note)
@@ -303,10 +288,9 @@ The `TodoEditWorkflow` also uses the `workflowDidChange` to update the internal 
         XCTAssertEqual("Updated Title", state.todo.title)
         XCTAssertEqual("Note", state.todo.note)
 
-        // The parent provided different properties. The internal state should be updated with the newly provided properties.
+        // The parent provided different properties. The internal state should be updated with the newly-provided properties.
         let updatedWorkflow = TodoEditWorkflow(initialTodo: TodoModel(title: "New Title", note: "New Note"))
         updatedWorkflow.workflowDidChange(from: initialWorkflow, state: &state)
-
         XCTAssertEqual("New Title", state.todo.title)
         XCTAssertEqual("New Note", state.todo.note)
     }
@@ -314,11 +298,11 @@ The `TodoEditWorkflow` also uses the `workflowDidChange` to update the internal 
 
 ## Testing Rendering
 
-Testing actions is very useful for validating all of the state transitions of a workflow, but it is beneficial to validate that the screens from `render` are expected. Since the `render` method uses a private implementation of a `RenderContext`, there is a `RenderTester` to facilitate testing.
+Testing actions is very useful for validating all of the state transitions of a workflow, but it is also beneficial to verify the logic in `render`. Since the `render` method uses a private implementation of a `RenderContext`, there is a `RenderTester` to facilitate testing.
 
 ## RenderTester
 
-The `renderTester` extension on `Workflow` provides an easy way to test the rendering from a workflow. The simple usage of validating a rendering is shown in the doc comments:
+The `renderTester` extension on `Workflow` provides an easy way to test the rendering of a workflow. The simple usage of validating a rendering is shown in the doc comments:
 ```swift
 workflow
     .renderTester()
@@ -332,31 +316,33 @@ It also provides a means to test that closures passed to screens cause the corre
 ```swift
 workflow
     .renderTester()
-	.render { rendering in
+    .render { rendering in
         XCTAssertEqual("expected text on rendering", rendering.text)
         rendering.updateText("updated")
     }
-	.assert(state: TestWorkflow.State(text: "updated"))
+    .assert(
+        state: TestWorkflow.State(text: "updated")
+    )
 ```
 
-The full API allows for expected workers and (child) workflows, and verification of resulting state and output:
+The full API allows for expected workers and (child) workflows, as well as verification of resulting state and output:
 ```swift
 workflow
     .renderTester(initialState: State())
-	.expectWorkflow(
-		type: ChildWorkflow.self,
-		producingRendering: ChildScreen(),
-		producingOutput: .closed
-	)
-	.expect(
-		worker: TestWorker(),
-		producingOutput: .finished
-	)
-	.render { rendering in
+    .expectWorkflow(
+        type: ChildWorkflow.self,
+        producingRendering: ChildScreen(),
+        producingOutput: .closed
+    )
+    .expect(
+        worker: TestWorker(),
+        producingOutput: .finished
+    )
+    .render { rendering in
         XCTAssertEqual("expected text on rendering", rendering.text)
     }
-	.assert(state: TestWorkflow.State(text: "updated"))
-	.assert(output: .completed)
+    .assert(state: TestWorkflow.State(text: "updated"))
+    .assert(output: .completed)
 ```
 
 ### WelcomeWorkflow
@@ -366,49 +352,50 @@ Add tests for the rendering of the `WelcomeWorkflow`:
 ```swift
 // WelcomeWorkflowTests.swift
 
-    func testRenderingInitial() {
+    func testRenderingInitial() throws {
         WelcomeWorkflow()
-            // Use the initial state provided by the welcome workflow
+            // Use the initial state provided by the welcome workflow.
             .renderTester()
-	        .render { screen in
-	            XCTAssertEqual("", screen.name)
-	            // Simulate tapping the login button. No output will be emitted, as the name is empty:
-	            screen.onLoginTapped()
-	        }
-			.assertNoOutput()
-	}
+            .render { screen in
+                XCTAssertEqual("", screen.name)
 
-	func testRenderingNameChange() {
-        WelcomeWorkflow()
-            // Use the initial state provided by the welcome workflow
-            .renderTester()
-	        // Next, simulate the name updating, expecting the state to be changed to reflect the updated name:
-	        .render { screen in
-                screen.onNameChanged("myName")
-            }
-			.verifyState { state in
-				XCTAssertEqual(state.name, "myName")
-			}
-	}
-
-	func testRenderingLogin() {
-        WelcomeWorkflow()
-            // Start with a name entered
-            .renderTester(initialState: WelcomeWorkflow.State(name: "myName"))
-	        // Simulate the name updating
-			.render { screen in
+                // Simulate tapping the log in button. No output will be emitted, as the name is empty.
                 screen.onLoginTapped()
             }
-	        // Finally, validate that `.didLogin` is sent
-			.verifyOutput { output in
-				switch output {
-				case .didLogin("myName"):
-					break // pass
-				default:
-					XCTFail("Unexpected output \(output)")
-				}
-			}
-	}
+            .assertNoOutput()
+    }
+
+    func testRenderingNameChange() throws {
+        WelcomeWorkflow()
+            // Use the initial state provided by the welcome workflow.
+            .renderTester()
+            // Next, simulate the name updating, expecting the state to be changed to reflect the updated name.
+            .render { screen in
+                screen.onNameChanged("Ada")
+            }
+            .verifyState { state in
+                XCTAssertEqual("Ada", state.name)
+            }
+    }
+
+    func testRenderingLogIn() throws {
+        WelcomeWorkflow()
+            // Start with a name already entered.
+            .renderTester(initialState: WelcomeWorkflow.State(name: "Ada"))
+            // Simulate a log in button tap.
+            .render { screen in
+                screen.onLoginTapped()
+            }
+            // Finally, validate that `.didLogIn` was sent.
+            .verifyOutput { output in
+                switch output {
+                case .didLogIn(name: "Ada"):
+                    break  // Pass
+                default:
+                    XCTFail("Unexpected output \(output)")
+                }
+            }
+    }
 ```
 
 Since the `State` and `Output` on the `WelcomeWorkflow` aren't equatable, we had to write our own equivalence method for them. To simplify this test, instead let's have both conform to `Equatable` to make the test a bit easier to read:
@@ -418,7 +405,7 @@ Since the `State` and `Output` on the `WelcomeWorkflow` aren't equatable, we had
 
 struct WelcomeWorkflow: Workflow {
     enum Output: Equatable {
-        case didLogin(name: String)
+        case didLogIn(name: String)
     }
 }
 
@@ -426,7 +413,6 @@ struct WelcomeWorkflow: Workflow {
 // MARK: State and Initialization
 
 extension WelcomeWorkflow {
-
     struct State: Equatable {
         var name: String
     }
@@ -436,30 +422,29 @@ extension WelcomeWorkflow {
 
 Update the last two tests to take advantage of the `Equatable` conformance:
 
-
 ```swift
-	func testRenderingNameChange() {
+    func testRenderingNameChange() throws {
         WelcomeWorkflow()
-            // Use the initial state provided by the welcome workflow
+            // Use the initial state provided by the welcome workflow.
             .renderTester()
-	        // Next, simulate the name updating, expecting the state to be changed to reflect the updated name:
-	        .render { screen in
-                screen.onNameChanged("myName")
+            // Next, simulate the name updating, expecting the state to be changed to reflect the updated name.
+            .render { screen in
+                screen.onNameChanged("Ada")
             }
-			.assert(state: WelcomeWorkflow.State(name: "myName"))
-	}
+            .assert(state: WelcomeWorkflow.State(name: "Ada"))
+    }
 
-	func testRenderingLogin() {
+    func testRenderingLogIn() throws {
         WelcomeWorkflow()
-            // Start with a name entered
-            .renderTester(initialState: WelcomeWorkflow.State(name: "myName"))
-	        // Simulate the name updating
-			.render { screen in
+            // Start with a name already entered.
+            .renderTester(initialState: WelcomeWorkflow.State(name: "Ada"))
+            // Simulate a log in button tap.
+            .render { screen in
                 screen.onLoginTapped()
             }
-	        // Finally, validate that `.didLogin` is sent
-			.assert(output: .didLogin("myName"))
-	}
+            // Finally, validate that `.didLogIn` was sent.
+            .assert(output: .didLogIn(name: "Ada"))
+    }
 ```
 
 Add tests against the `render` methods of the `TodoEdit` and `TodoList` workflows as desired.
@@ -514,16 +499,16 @@ class RootWorkflowTests: XCTestCase {
             // Start in the `.welcome` state
             .renderTester(initialState: RootWorkflow.State.welcome)
             // The `WelcomeWorkflow` is expected to be started in this render.
-			.expectWorkflow(
-				type: WelcomeWorkflow.self,
-				producingRendering: WelcomeScreen(
-	                name: "MyName",
-	                onNameChanged: { _ in },
-	                onLoginTapped: {}
-				)
-			)
+            .expectWorkflow(
+                type: WelcomeWorkflow.self,
+                producingRendering: WelcomeScreen(
+                    name: "MyName",
+                    onNameChanged: { _ in },
+                    onLoginTapped: {}
+                )
+            )
             // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen.
-			.render { rendering in
+            .render { rendering in
                 XCTAssertEqual(1, rendering.items.count)
                 guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
                     XCTFail("Expected first screen to be a `WelcomeScreen`")
@@ -531,8 +516,8 @@ class RootWorkflowTests: XCTestCase {
                 }
                 XCTAssertEqual("MyName", welcomeScreen.name)
             }
-			// Assert that no action was produced during this render, meaning our state remains unchanged
-			.assertNoAction()
+            // Assert that no action was produced during this render, meaning our state remains unchanged
+            .assertNoAction()
     }
 
 }
@@ -548,19 +533,19 @@ Now, we can also test the transition from the `.welcome` state to the `.todo` st
             // Start in the `.welcome` state
             .renderTester(initialState: RootWorkflow.State.welcome)
             // The `WelcomeWorkflow` is expected to be started in this render.
-			.expectWorkflow(
-				type: WelcomeWorkflow.self,
+            .expectWorkflow(
+                type: WelcomeWorkflow.self,
                 // Simulate this as the `WelcomeScreen` returned by the `WelcomeWorkflow`. The callback can be stubbed out, as they won't be used.
-				producingRendering: WelcomeScreen(
-	                name: "MyName",
-	                onNameChanged: { _ in },
-	                onLoginTapped: {}
-				),
+                producingRendering: WelcomeScreen(
+                    name: "MyName",
+                    onNameChanged: { _ in },
+                    onLoginTapped: {}
+                ),
                 // Simulate the `WelcomeWorkflow` sending an output of `.didLogin` as if the login button was tapped.
-				producingOutput: .didLogin(name: "MyName")
-			)
+                producingOutput: .didLogin(name: "MyName")
+            )
             // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen (prior to the output).
-			.render { rendering in
+            .render { rendering in
                 XCTAssertEqual(1, rendering.items.count)
                 guard let welcomeScreen = rendering.items[0].screen.wrappedScreen as? WelcomeScreen else {
                     XCTFail("Expected first screen to be a `WelcomeScreen`")
@@ -569,7 +554,7 @@ Now, we can also test the transition from the `.welcome` state to the `.todo` st
                 XCTAssertEqual("MyName", welcomeScreen.name)
             }
             // Assert that the state transitioned to `.todo`
-			.assert(state: .todo(name: "MyName"))
+            .assert(state: .todo(name: "MyName"))
     }
 ```
 
@@ -596,31 +581,31 @@ class TodoWorkflowTests: XCTestCase {
             .renderTester(initialState: TodoWorkflow.State(
                 todos: todos,
                 step: .list
-			))
+            ))
             // We only expect the TodoListWorkflow
-			.expectWorkflow(
-				type: TodoListWorkflow.self,
-				producingRendering: BackStackScreen.Item(
-	                screen: TodoListScreen(
-	                    todoTitles: ["Title"],
-	                    onTodoSelected: { _ in }
-					)
-				),
+            .expectWorkflow(
+                type: TodoListWorkflow.self,
+                producingRendering: BackStackScreen.Item(
+                    screen: TodoListScreen(
+                        todoTitles: ["Title"],
+                        onTodoSelected: { _ in }
+                    )
+                ),
                 // Simulate selecting the first todo:
-				producingOutput: TodoListWorkflow.Output.selectTodo(index: 0)
-			)
-			.render { items in
+                producingOutput: TodoListWorkflow.Output.selectTodo(index: 0)
+            )
+            .render { items in
                 // Just validate that there is one item in the backstack.
                 // Additional validation could be done on the screens returned if so desired.
                 XCTAssertEqual(1, items.count)
             }
             // Assert that the state was updated after the last render pass with the output from the TodoEditWorkflow.
-			.assert(
-				state: TodoWorkflow.State(
-	                todos: [TodoModel(title: "Title", note: "Note")],
+            .assert(
+                state: TodoWorkflow.State(
+                    todos: [TodoModel(title: "Title", note: "Note")],
                     step: .edit(index: 0)
-				)
-			)
+                )
+            )
     }
 
     func testSavingTodo() {
