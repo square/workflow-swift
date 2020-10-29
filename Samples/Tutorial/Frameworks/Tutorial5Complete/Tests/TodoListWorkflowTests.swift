@@ -19,16 +19,15 @@ import XCTest
 @testable import Tutorial5
 
 class TodoListWorkflowTests: XCTestCase {
-    func testActions() {
-        TodoListWorkflow
-            .Action
+    func testActions() throws {
+        TodoListWorkflow.Action
             .tester(withState: TodoListWorkflow.State())
             .send(action: .onBack)
             .verifyOutput { output in
                 // The `.onBack` action should emit an output of `.back`.
                 switch output {
                 case .back:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.back`")
                 }
@@ -37,7 +36,7 @@ class TodoListWorkflowTests: XCTestCase {
             .verifyOutput { output in
                 // The `.selectTodo` action should emit a `.selectTodo` output.
                 switch output {
-                case .selectTodo(let index):
+                case .selectTodo(index: let index):
                     XCTAssertEqual(7, index)
                 default:
                     XCTFail("Expected an output of `.selectTodo`")
@@ -45,10 +44,10 @@ class TodoListWorkflowTests: XCTestCase {
             }
             .send(action: .new)
             .verifyOutput { output in
-                // The`.new` action should emit a `.newTodo` output.
+                // The `.new` action should emit a `.newTodo` output.
                 switch output {
                 case .newTodo:
-                    break // Expected
+                    break  // Expected
                 default:
                     XCTFail("Expected an output of `.newTodo`")
                 }

@@ -34,20 +34,19 @@ struct TodoEditScreen: Screen {
 }
 
 final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
-    // The `todoEditView` has all the logic for displaying the todo and editing.
-    let todoEditView: TodoEditView
+    private var todoEditView: TodoEditView!
 
     required init(screen: TodoEditScreen, environment: ViewEnvironment) {
-        self.todoEditView = TodoEditView(frame: .zero)
-
         super.init(screen: screen, environment: environment)
-        update(with: screen)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        todoEditView = TodoEditView(frame: view.bounds)
         view.addSubview(todoEditView)
+
+        updateView(with: screen)
     }
 
     override func viewDidLayoutSubviews() {
@@ -57,10 +56,14 @@ final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
     }
 
     override func screenDidChange(from previousScreen: TodoEditScreen, previousEnvironment: ViewEnvironment) {
-        update(with: screen)
+        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+
+        guard isViewLoaded else { return }
+
+        updateView(with: screen)
     }
 
-    private func update(with screen: TodoEditScreen) {
+    private func updateView(with screen: TodoEditScreen) {
         // Update the view with the data from the screen.
         todoEditView.title = screen.title
         todoEditView.note = screen.note

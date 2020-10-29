@@ -8,7 +8,7 @@ To follow this tutorial:
 - Open your terminal and run `bundle exec pod install` in the `Samples/Tutorial` directory.
 - Open `Tutorial.xcworkspace` and build the `Tutorial` Scheme.
 
-Start from the implementation of `Tutorial2` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial2` instead of `TutorialBase`.
+Start from the implementation of `Tutorial2` if you're skipping ahead. You can do this by updating the `AppDelegate` to import `Tutorial2` instead of `TutorialBase`.
 
 ## Editing todo items
 

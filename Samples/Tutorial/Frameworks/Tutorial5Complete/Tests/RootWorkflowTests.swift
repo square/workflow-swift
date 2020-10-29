@@ -24,16 +24,15 @@ import XCTest
 @testable import WorkflowUI
 
 class RootWorkflowTests: XCTestCase {
-    func testWelcomeRendering() {
+    func testWelcomeRendering() throws {
         RootWorkflow()
             // Start in the `.welcome` state
-            .renderTester(initialState: RootWorkflow.State.welcome)
+            .renderTester(initialState: .welcome)
             // The `WelcomeWorkflow` is expected to be started in this render.
             .expectWorkflow(
                 type: WelcomeWorkflow.self,
-                // Simulate this as the `WelcomeScreen` returned by the `WelcomeWorkflow`. The callback can be stubbed out, as they won't be used.
                 producingRendering: WelcomeScreen(
-                    name: "MyName",
+                    name: "Ada",
                     onNameChanged: { _ in },
                     onLoginTapped: {}
                 )
@@ -45,28 +44,27 @@ class RootWorkflowTests: XCTestCase {
                     XCTFail("Expected first screen to be a `WelcomeScreen`")
                     return
                 }
-                XCTAssertEqual("MyName", welcomeScreen.name)
+
+                XCTAssertEqual("Ada", welcomeScreen.name)
             }
-            // No output should be produced from the root workflow.
+            // Assert that no action was produced during this render, meaning our state remains unchanged
             .assertNoOutput()
-            // Assert that the state to stays as `.welcome`.
-            .assert(state: .welcome)
     }
 
-    func testLogin() {
+    func testLogIn() throws {
         RootWorkflow()
             // Start in the `.welcome` state
-            .renderTester(initialState: RootWorkflow.State.welcome)
+            .renderTester(initialState: .welcome)
             // The `WelcomeWorkflow` is expected to be started in this render.
             .expectWorkflow(
                 type: WelcomeWorkflow.self,
                 producingRendering: WelcomeScreen(
-                    name: "MyName",
+                    name: "Ada",
                     onNameChanged: { _ in },
                     onLoginTapped: {}
                 ),
-                // Simulate the `WelcomeWorkflow` sending an output of `.didLogin` as if the login button was tapped.
-                producingOutput: .didLogin(name: "MyName")
+                // Simulate the `WelcomeWorkflow` sending an out0put of `.didLogIn` as if the "log in" button was tapped.
+                producingOutput: .didLogIn(name: "Ada")
             )
             // Now, validate that there is a single item in the BackStackScreen, which is our welcome screen (prior to the output).
             .render { rendering in
@@ -75,14 +73,14 @@ class RootWorkflowTests: XCTestCase {
                     XCTFail("Expected first screen to be a `WelcomeScreen`")
                     return
                 }
-                XCTAssertEqual("MyName", welcomeScreen.name)
+                XCTAssertEqual("Ada", welcomeScreen.name)
             }
-            // No output should be produced from the root workflow.
-            .assertNoOutput()
-            .assert(state: .todo(name: "MyName"))
+            // Assert that the state transitioned to `.todo`
+            .assert(state: .todo(name: "Ada"))
     }
 
-    func testAppFlow() {
+    func testAppFlow() throws {
+        // Note: You'll need to `import Workflow` in order to use `WorkflowHost`
         let workflowHost = WorkflowHost(workflow: RootWorkflow())
 
         // First rendering is just the welcome screen. Update the name.
@@ -95,10 +93,10 @@ class RootWorkflowTests: XCTestCase {
                 return
             }
 
-            welcomeScreen.onNameChanged("MyName")
+            welcomeScreen.onNameChanged("Ada")
         }
 
-        // Log in and go to the welcome list
+        // Log in and go to the todo list.
         do {
             let backStack = workflowHost.rendering.value
             XCTAssertEqual(1, backStack.items.count)
@@ -111,7 +109,7 @@ class RootWorkflowTests: XCTestCase {
             welcomeScreen.onLoginTapped()
         }
 
-        // Expect the todo list. Edit the first todo.
+        // Expect the todo list to be rendered. Edit the first todo.
         do {
             let backStack = workflowHost.rendering.value
             XCTAssertEqual(2, backStack.items.count)
@@ -125,8 +123,10 @@ class RootWorkflowTests: XCTestCase {
                 XCTFail("Expected second screen of `TodoListScreen`")
                 return
             }
+
             XCTAssertEqual(1, todoScreen.todoTitles.count)
-            // Select the first todo:
+
+            // Select the first todo.
             todoScreen.onTodoSelected(0)
         }
 
@@ -150,7 +150,7 @@ class RootWorkflowTests: XCTestCase {
                 return
             }
 
-            // Update the title:
+            // Update the title.
             editScreen.onTitleChanged("New Title")
         }
 
@@ -177,17 +177,20 @@ class RootWorkflowTests: XCTestCase {
             // Save the changes by tapping the right bar button.
             // This also validates that the navigation bar was described as expected.
             switch backStack.items[2].barVisibility {
+
             case .hidden:
                 XCTFail("Expected a visible navigation bar")
 
             case .visible(let barContent):
                 switch barContent.rightItem {
+
                 case .none:
                     XCTFail("Expected a right bar button")
 
                 case .button(let button):
 
                     switch button.content {
+
                     case .text(let text):
                         XCTAssertEqual("Save", text)
 
@@ -214,6 +217,7 @@ class RootWorkflowTests: XCTestCase {
                 XCTFail("Expected second screen of `TodoListScreen`")
                 return
             }
+
             XCTAssertEqual(1, todoScreen.todoTitles.count)
             XCTAssertEqual("New Title", todoScreen.todoTitles[0])
         }
