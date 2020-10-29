@@ -9,7 +9,7 @@ To follow this tutorial:
 - Open `Tutorial.xcworkspace` and build the `Tutorial` Scheme.
 - The unit tests will run from the default scheme when pressing `cmd+shift+u`.
 
-Start from implementation of `Tutorial4` if you're skipping ahead. You can run this by updating the `AppDelegate` to import `Tutorial4` instead of `TutorialBase`.
+Start from the implementation of `Tutorial4` if you're skipping ahead. You can do this by updating the `AppDelegate` to import `Tutorial4` instead of `TutorialBase`.
 
 # Testing
 
@@ -19,7 +19,7 @@ The `WorkflowTesting` library is provided to allow easy unit and integration tes
 
 ## Unit Tests (Actions)
 
-A `WorkflowAction`'s `apply` function is effectively a reducer. Given a current state and action, it returns a new state (and optionally an output). Because `apply` function should almost always be a "pure" function, it is a great candidate for unit testing.
+A `WorkflowAction`'s `apply` function is effectively a reducer. Given a current state and action, it returns a new state (and optionally an output). Because an `apply` function should almost always be a "pure" function, it is a great candidate for unit testing.
 
 The `WorkflowActionTester` is provided to facilitate writing unit tests against actions.
 
@@ -34,7 +34,7 @@ The `WorkflowActionTester` is an extension on `WorkflowAction` which provides an
 ///     .assert(state: .differentState)
 ```
 
-It's provided with an initial state, and drives the state forward by sending one action at a time. The `Output` can be validated after each action is sent, as well as the `State`.
+You provide an initial state, and drive the state forward by sending one action at a time. The `Output` can be validated after each action is sent; the `State` can be, as well.
 
 ### WelcomeWorkflow Tests
 
