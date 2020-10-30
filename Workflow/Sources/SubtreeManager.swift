@@ -20,7 +20,7 @@ import ReactiveSwift
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
     /// the lifecycle of nested workflows across multiple render passes.
-    internal final class SubtreeManager {
+    final class SubtreeManager {
         internal var onUpdate: ((Output) -> Void)?
 
         /// Sinks from the outside world (i.e. UI)
@@ -131,9 +131,9 @@ extension WorkflowNode.SubtreeManager {
 
 // MARK: - Render Context
 
-extension WorkflowNode.SubtreeManager {
+private extension WorkflowNode.SubtreeManager {
     /// The workflow context implementation used by the subtree manager.
-    fileprivate final class Context: RenderContextType {
+    final class Context: RenderContextType {
         internal private(set) var eventPipes: [EventPipe]
 
         internal private(set) var sinkStore: SinkStore
@@ -233,8 +233,8 @@ extension WorkflowNode.SubtreeManager {
 
 // MARK: - Reusable Sink
 
-extension WorkflowNode.SubtreeManager {
-    fileprivate struct SinkStore {
+private extension WorkflowNode.SubtreeManager {
+    struct SinkStore {
         var eventPipes: [EventPipe] {
             return usedSinks.values.map { reusableSink -> EventPipe in
                 reusableSink.eventPipe
@@ -273,7 +273,7 @@ extension WorkflowNode.SubtreeManager {
     }
 
     /// Type-erased base class for reusable sinks.
-    fileprivate class AnyReusableSink {
+    class AnyReusableSink {
         var eventPipe: EventPipe
 
         init() {
@@ -281,7 +281,7 @@ extension WorkflowNode.SubtreeManager {
         }
     }
 
-    fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+    final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
             let output = Output.update(AnyWorkflowAction(action), source: .external)
 
@@ -292,8 +292,8 @@ extension WorkflowNode.SubtreeManager {
 
 // MARK: - EventPipe
 
-extension WorkflowNode.SubtreeManager {
-    fileprivate final class EventPipe {
+private extension WorkflowNode.SubtreeManager {
+    final class EventPipe {
         var validationState: ValidationState
         enum ValidationState {
             case preparing
@@ -455,7 +455,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - Side Effects
 
 extension WorkflowNode.SubtreeManager {
-    internal class SideEffectLifetime {
+    class SideEffectLifetime {
         fileprivate let lifetime: Lifetime
 
         fileprivate init() {

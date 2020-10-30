@@ -71,25 +71,25 @@
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    extension WorkflowView where T.Output == Never {
+    public extension WorkflowView where T.Output == Never {
         /// Convenience initializer for workflows with no output.
-        public init(workflow: T, content: @escaping (T.Rendering) -> Content) {
+        init(workflow: T, content: @escaping (T.Rendering) -> Content) {
             self.init(workflow: workflow, onOutput: { _ in }, content: content)
         }
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    extension WorkflowView where T.Rendering == Content {
+    public extension WorkflowView where T.Rendering == Content {
         /// Convenience initializer for workflows whose rendering type conforms to `View`.
-        public init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
+        init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
             self.init(workflow: workflow, onOutput: onOutput, content: { $0 })
         }
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    extension WorkflowView where T.Output == Never, T.Rendering == Content {
+    public extension WorkflowView where T.Output == Never, T.Rendering == Content {
         /// Convenience initializer for workflows with no output whose rendering type conforms to `View`.
-        public init(workflow: T) {
+        init(workflow: T) {
             self.init(workflow: workflow, onOutput: { _ in }, content: { $0 })
         }
     }
@@ -163,6 +163,7 @@
                     }
             }
 
+            @available(*, unavailable)
             required init?(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
             }
@@ -241,6 +242,7 @@
                     }
             }
 
+            @available(*, unavailable)
             required init?(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
             }

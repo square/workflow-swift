@@ -24,8 +24,8 @@ public struct WorkflowUpdateDebugInfo: Codable, Equatable {
     }
 }
 
-extension WorkflowUpdateDebugInfo {
-    public indirect enum Kind: Equatable {
+public extension WorkflowUpdateDebugInfo {
+    indirect enum Kind: Equatable {
         case didUpdate(source: Source)
         case childDidUpdate(WorkflowUpdateDebugInfo)
     }
@@ -71,8 +71,8 @@ extension WorkflowUpdateDebugInfo.Kind: Codable {
     }
 }
 
-extension WorkflowUpdateDebugInfo {
-    public indirect enum Source: Equatable {
+public extension WorkflowUpdateDebugInfo {
+    indirect enum Source: Equatable {
         case external
         case worker
         case sideEffect
@@ -137,8 +137,8 @@ public struct WorkflowHierarchyDebugSnapshot: Codable, Equatable {
     }
 }
 
-extension WorkflowHierarchyDebugSnapshot {
-    public struct Child: Codable, Equatable {
+public extension WorkflowHierarchyDebugSnapshot {
+    struct Child: Codable, Equatable {
         public var key: String
         public var snapshot: WorkflowHierarchyDebugSnapshot
 

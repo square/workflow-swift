@@ -27,7 +27,7 @@ class TodoListWorkflowTests: XCTestCase {
                 // The `.onBack` action should emit an output of `.back`.
                 switch output {
                 case .back:
-                    break  // Expected
+                    break // Expected
                 default:
                     XCTFail("Expected an output of `.back`")
                 }
@@ -47,7 +47,7 @@ class TodoListWorkflowTests: XCTestCase {
                 // The `.new` action should emit a `.newTodo` output.
                 switch output {
                 case .newTodo:
-                    break  // Expected
+                    break // Expected
                 default:
                     XCTFail("Expected an output of `.newTodo`")
                 }

@@ -17,9 +17,9 @@
 import Workflow
 import XCTest
 
-extension WorkflowAction {
+public extension WorkflowAction {
     /// Returns a state tester containing `self`.
-    public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
+    static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
         return WorkflowActionTester(state: state)
     }
 }
@@ -134,28 +134,28 @@ public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowA
     /// - returns: A tester containing the current state.
 }
 
-extension WorkflowActionTester where WorkflowType.State: Equatable {
+public extension WorkflowActionTester where WorkflowType.State: Equatable {
     /// Triggers a test failure if the current state does not match the given expected state
     ///
     /// - Parameters:
     ///   - expectedState: The expected state
     /// - returns: A tester containing the current state and output.
     @discardableResult
-    public func assert(state expectedState: WorkflowType.State, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
+    func assert(state expectedState: WorkflowType.State, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         return verifyState { actualState in
             XCTAssertEqual(actualState, expectedState, file: file, line: line)
         }
     }
 }
 
-extension WorkflowActionTester where WorkflowType.Output: Equatable {
+public extension WorkflowActionTester where WorkflowType.Output: Equatable {
     /// Triggers a test failure if the produced output does not match the given expected output
     ///
     /// - Parameters:
     ///   - expectedState: The expected output
     /// - returns: A tester containing the current state and output.
     @discardableResult
-    public func assert(output expectedOutput: WorkflowType.Output, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
+    func assert(output expectedOutput: WorkflowType.Output, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         return verifyOutput { actualOutput in
             XCTAssertEqual(actualOutput, expectedOutput, file: file, line: line)
         }

@@ -27,7 +27,7 @@ final class SignpostRef {
     init() {}
 }
 
-final class WorkflowLogger {
+enum WorkflowLogger {
     // MARK: Workflows
 
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {

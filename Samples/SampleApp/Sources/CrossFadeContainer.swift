@@ -31,7 +31,7 @@ struct CrossFadeScreen: Screen {
     }
 
     init<ScreenType: Screen>(base screen: ScreenType) {
-        let key = Optional<AnyHashable>.none
+        let key = AnyHashable?.none
         self.init(base: screen, key: key)
     }
 

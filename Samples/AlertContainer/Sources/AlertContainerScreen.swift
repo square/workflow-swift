@@ -58,8 +58,8 @@ public struct AlertAction {
     }
 }
 
-extension AlertAction {
-    public enum Style {
+public extension AlertAction {
+    enum Style {
         case `default`
         case cancel
         case destructive

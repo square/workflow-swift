@@ -34,10 +34,10 @@ struct LoginScreen: Screen {
 }
 
 private final class LoginViewController: UIViewController {
-    private let welcomeLabel: UILabel = UILabel(frame: .zero)
-    private let emailField: UITextField = UITextField(frame: .zero)
-    private let passwordField: UITextField = UITextField(frame: .zero)
-    private let button: UIButton = UIButton(frame: .zero)
+    private let welcomeLabel = UILabel(frame: .zero)
+    private let emailField = UITextField(frame: .zero)
+    private let passwordField = UITextField(frame: .zero)
+    private let button = UIButton(frame: .zero)
     private var onEmailChanged: (String) -> Void = { _ in }
     private var onPasswordChanged: (String) -> Void = { _ in }
     private var onLoginTapped: () -> Void = {}

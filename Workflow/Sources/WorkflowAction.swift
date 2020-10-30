@@ -60,11 +60,11 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     }
 }
 
-extension AnyWorkflowAction {
+public extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that simply sends the given output event.
     ///
     /// - Parameter output: The output event to send when this action is applied.
-    public init(sendingOutput output: WorkflowType.Output) {
+    init(sendingOutput output: WorkflowType.Output) {
         self = AnyWorkflowAction { state in
             output
         }
@@ -72,7 +72,7 @@ extension AnyWorkflowAction {
 
     /// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
     /// event).
-    public static var noAction: AnyWorkflowAction<WorkflowType> {
+    static var noAction: AnyWorkflowAction<WorkflowType> {
         return AnyWorkflowAction { state in
             nil
         }

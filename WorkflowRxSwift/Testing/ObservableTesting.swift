@@ -20,13 +20,13 @@
     import XCTest
     @testable import WorkflowRxSwift
 
-    extension RenderTester {
+    public extension RenderTester {
         /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
 
         /// - Parameters:
         ///   - worker: The worker to be expected
         ///   - output: An output that should be returned when this worker is requested, if any.
-        public func expectObservable<OutputType>(
+        func expectObservable<OutputType>(
             producingOutput output: OutputType? = nil,
             key: String = "",
             file: StaticString = #file, line: UInt = #line

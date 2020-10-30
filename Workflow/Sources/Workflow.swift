@@ -83,22 +83,22 @@ public protocol Workflow: AnyWorkflowConvertible {
     func render(state: State, context: RenderContext<Self>) -> Rendering
 }
 
-extension Workflow {
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+public extension Workflow {
+    func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
-extension Workflow where State == Void {
-    public func makeInitialState() -> State {
+public extension Workflow where State == Void {
+    func makeInitialState() -> State {
         return ()
     }
 
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+    func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
-extension Workflow {
-    public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
+public extension Workflow {
+    func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
         return AnyWorkflow(self)
     }
 }
