@@ -31,9 +31,9 @@ struct DemoWorkflow: Workflow {
 
 extension DemoWorkflow {
     struct State {
-        fileprivate var signal: TimerSignal
+        var signal: TimerSignal
         var colorState: ColorState
-        var loadingState: LoadingState
+        var shouldLoad: Bool
         var subscriptionState: SubscriptionState
 
         enum ColorState {
@@ -42,22 +42,22 @@ extension DemoWorkflow {
             case blue
         }
 
-        enum LoadingState {
-            case idle(title: String)
-            case loading
-        }
-
         enum SubscriptionState {
             case not
             case subscribing
         }
     }
 
+    enum LoadingState {
+        case idle(String)
+        case loading
+    }
+
     func makeInitialState() -> DemoWorkflow.State {
         return State(
             signal: TimerSignal(),
             colorState: .red,
-            loadingState: .idle(title: "Not Loaded"),
+            shouldLoad: false,
             subscriptionState: .not
         )
     }
@@ -72,8 +72,6 @@ extension DemoWorkflow {
         case titleButtonTapped
         case subscribeTapped
         case refreshButtonTapped
-        case refreshComplete(String)
-        case refreshError(Error)
 
         func apply(toState state: inout DemoWorkflow.State) -> DemoWorkflow.Output? {
             switch self {
@@ -96,11 +94,7 @@ extension DemoWorkflow {
                 }
 
             case .refreshButtonTapped:
-                state.loadingState = .loading
-            case .refreshComplete(let message):
-                state.loadingState = .idle(title: message)
-            case .refreshError(let error):
-                state.loadingState = .idle(title: error.localizedDescription)
+                state.shouldLoad = true
             }
             return nil
         }
@@ -145,28 +139,34 @@ extension DemoWorkflow {
         let refreshText: String
         let refreshEnabled: Bool
 
-        switch state.loadingState {
-        case .idle(title: let refreshTitle):
-            refreshText = refreshTitle
-            refreshEnabled = true
-
-            title = ReversingWorkflow(text: title)
-                .rendered(in: context)
-
-        case .loading:
-            refreshText = "Loading..."
-            refreshEnabled = false
-
-            RefreshWorker()
-                .mapOutput { output -> Action in
+        if state.shouldLoad {
+            let loadingState = RefreshWorker()
+                .mapOutput { output -> LoadingState in
                     switch output {
                     case .success(let result):
-                        return .refreshComplete(result)
+                        return LoadingState.idle(result)
                     case .error(let error):
-                        return .refreshError(error)
+                        return LoadingState.idle(error.localizedDescription)
                     }
                 }
-                .running(in: context)
+                .renderLatestOutput(startingWith: .loading)
+                .rendered(in: context)
+
+            switch loadingState {
+            case .idle(let refreshTitle):
+                refreshText = refreshTitle
+                refreshEnabled = true
+
+                title = ReversingWorkflow(text: title)
+                    .rendered(in: context)
+
+            case .loading:
+                refreshText = "Loading..."
+                refreshEnabled = false
+            }
+        } else {
+            refreshText = "Not Loaded"
+            refreshEnabled = true
         }
 
         let subscribeTitle: String
@@ -204,7 +204,7 @@ extension DemoWorkflow {
     }
 }
 
-private class TimerSignal {
+class TimerSignal {
     let signal: Signal<Void, Never>
     let observer: Signal<Void, Never>.Observer
     let timer: Timer

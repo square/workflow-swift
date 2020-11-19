@@ -22,14 +22,14 @@
     import XCTest
     @testable import Workflow
 
-    extension Workflow {
+    public extension Workflow {
         /// Returns a `RenderTester` with a specified initial state.
-        public func renderTester(initialState: Self.State) -> RenderTester<Self> {
+        func renderTester(initialState: Self.State) -> RenderTester<Self> {
             return RenderTester(workflow: self, state: initialState)
         }
 
         /// Returns a `RenderTester` with an initial state provided by `self.makeInitialState()`
-        public func renderTester() -> RenderTester<Self> {
+        func renderTester() -> RenderTester<Self> {
             return renderTester(initialState: makeInitialState())
         }
     }
@@ -253,18 +253,27 @@
         }
     }
 
-    extension Collection {
-        fileprivate func appending(_ element: Element) -> [Element] {
+    fileprivate extension Collection {
+        func appending(_ element: Element) -> [Element] {
             return self + [element]
         }
     }
 
-    extension Dictionary {
-        fileprivate func setting(key: Key, value: Value) -> [Key: Value] {
+    fileprivate extension Dictionary {
+        func setting(key: Key, value: Value) -> [Key: Value] {
             var newDictionary = self
             newDictionary[key] = value
             return newDictionary
         }
     }
 
+    public extension RenderTester {
+        /// Convenience to add expectation for `RenderLatestOutputWorkflow`
+        /// - Parameters:
+        ///   - producing: Value to return as `Rendering`
+        ///   - key: The key of the expected workflow (if specified).
+        func expectLatestOutputRenderingWorkflow<Value>(producing: Value, key: String = "") -> RenderTester<WorkflowType> {
+            expectWorkflow(type: RenderLatestOutputWorkflow<Value>.self, key: key, producingRendering: producing)
+        }
+    }
 #endif

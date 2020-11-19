@@ -128,6 +128,15 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 XCTAssertEqual("Failed", state.text)
             }
     }
+
+    func test_renderLatestOutput() {
+        TestRenderLatestOutputWorkflow()
+            .renderTester()
+            .expectLatestOutputRenderingWorkflow(producing: 10)
+            .render { val in
+                XCTAssertEqual(val, 10)
+            }
+    }
 }
 
 private struct TestWorkflow: Workflow {
@@ -331,5 +340,18 @@ private struct ChildWorkflow: Workflow {
 
     func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
         String(text.reversed())
+    }
+}
+
+private struct TestRenderLatestOutputWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = Int
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        ChildWorkflow(text: "")
+            .mapRendering { _ in () }
+            .mapOutput { _ in 1 }
+            .renderLatestOutput(startingWith: 100)
+            .rendered(in: context)
     }
 }

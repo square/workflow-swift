@@ -20,7 +20,7 @@
     @testable import Workflow
 
     extension RenderTester {
-        internal final class TestContext: RenderContextType {
+        final class TestContext: RenderContextType {
             var state: WorkflowType.State
             var expectedWorkflows: [AnyExpectedWorkflow]
             var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
@@ -53,7 +53,9 @@
 
                     let diagnosticMessage: String
 
-                    if sameTypeDifferentKeys.count == 1 {
+                    if "\(Child.self)".contains("RenderLatestOutputWorkflow") {
+                        diagnosticMessage = "Needs a `expectLatestOutputRenderingWorkflow`?"
+                    } else if sameTypeDifferentKeys.count == 1 {
                         diagnosticMessage = "Expecting key \"\(sameTypeDifferentKeys[0])\"."
                     } else if sameTypeDifferentKeys.count > 1 {
                         diagnosticMessage = "Expecting key in \"\(sameTypeDifferentKeys)\"."

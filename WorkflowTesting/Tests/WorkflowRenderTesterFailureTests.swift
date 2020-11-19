@@ -367,6 +367,7 @@ private struct TestWorkflow: Workflow {
         case workflow(param: String, key: String = "")
         case voidWorkflow
         case sideEffect(key: String)
+        case renderLatestOutput
     }
 
     func makeInitialState() -> State {
@@ -377,6 +378,11 @@ private struct TestWorkflow: Workflow {
         switch state {
         case .idle:
             break
+        case .renderLatestOutput:
+            _ = TestWorkflow()
+                .mapRendering { _ in () }
+                .renderLatestOutput(startingWith: .string(""))
+                .rendered(in: context)
         case .workflow(let param, let key):
             _ = TestChildWorkflow(input: param)
                 .rendered(in: context, key: key)
