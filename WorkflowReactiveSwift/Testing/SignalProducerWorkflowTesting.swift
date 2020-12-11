@@ -20,7 +20,7 @@
     import XCTest
     @testable import WorkflowReactiveSwift
 
-    extension RenderTester {
+    public extension RenderTester {
         /// Expect a `SignalProducer`.
         ///
         /// `SignalProducerWorkflow` is used to subscribe to `SignalProducer`s and `Signal`s.
@@ -28,7 +28,7 @@
         /// - Parameters:
         ///   - producingOutput: An output that should be returned when this worker is requested, if any.
         ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expectSignalProducer<OutputType>(
+        func expectSignalProducer<OutputType>(
             producingOutput output: OutputType? = nil,
             key: String = "",
             file: StaticString = #file, line: UInt = #line

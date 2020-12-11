@@ -177,20 +177,17 @@ class RootWorkflowTests: XCTestCase {
             // Save the changes by tapping the right bar button.
             // This also validates that the navigation bar was described as expected.
             switch backStack.items[2].barVisibility {
-
             case .hidden:
                 XCTFail("Expected a visible navigation bar")
 
             case .visible(let barContent):
                 switch barContent.rightItem {
-
                 case .none:
                     XCTFail("Expected a right bar button")
 
                 case .button(let button):
 
                     switch button.content {
-
                     case .text(let text):
                         XCTAssertEqual("Save", text)
 

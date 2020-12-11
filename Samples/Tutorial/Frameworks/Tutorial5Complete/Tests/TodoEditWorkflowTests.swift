@@ -48,7 +48,7 @@ class TodoEditWorkflowTests: XCTestCase {
             .verifyOutput { output in
                 switch output {
                 case .discard:
-                    break  // Expected
+                    break // Expected
                 default:
                     XCTFail("Expected an output of `.discard`")
                 }

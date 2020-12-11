@@ -26,7 +26,7 @@ public struct ViewEnvironment {
     /// root workflow into a root ContainerViewController or when writing tests.
     /// In other scenarios, containers should pass down the ViewEnvironment
     /// value they get from above.
-    public static let empty: ViewEnvironment = ViewEnvironment()
+    public static let empty = ViewEnvironment()
 
     /// Storage of [K.Type: K.Value] where K: ViewEnvironmentKey
     private var storage: [ObjectIdentifier: Any]

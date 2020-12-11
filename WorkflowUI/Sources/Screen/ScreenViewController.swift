@@ -67,11 +67,11 @@
         open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}
     }
 
-    extension ScreenViewController {
+    public extension ScreenViewController {
         /// Convenience to create a view controller description for the given screen
         /// value. See the example on the comment for ScreenViewController for
         /// usage.
-        public final class func description(for screen: ScreenType, environment: ViewEnvironment) -> ViewControllerDescription {
+        final class func description(for screen: ScreenType, environment: ViewEnvironment) -> ViewControllerDescription {
             return ViewControllerDescription(
                 type: self,
                 build: { self.init(screen: screen, environment: environment) },

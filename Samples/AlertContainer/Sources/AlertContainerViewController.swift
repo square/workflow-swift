@@ -18,7 +18,7 @@ import UIKit
 import Workflow
 import WorkflowUI
 
-private struct AlertStyleConstants {
+private enum AlertStyleConstants {
     static let viewWidth: CGFloat = 343.0
     static let buttonTitleColor = UIColor(red: 41 / 255, green: 150 / 255, blue: 204 / 255, alpha: 1.0)
     static let titleFont = UIFont.systemFont(ofSize: 18, weight: .medium)
@@ -253,6 +253,7 @@ private final class AlertButton: UIButton {
         addTarget(self, action: #selector(triggerActionHandler), for: .touchUpInside)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

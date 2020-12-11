@@ -230,8 +230,8 @@ private struct ModallyPresentedScreen {
     }
 }
 
-extension ModalContainerScreenModal {
-    fileprivate var identifier: ModalIdentifier {
+private extension ModalContainerScreenModal {
+    var identifier: ModalIdentifier {
         return ModalIdentifier(
             style: style,
             key: key,
@@ -261,36 +261,36 @@ private struct ModalDisplayInfo {
 
     init(containerSize: CGSize, style: ModalContainerScreenModal.Style, animated: Bool) {
         // Configure all properties so that they default to fullScreen/sheet animation.
-        frame = CGRect(origin: .zero, size: containerSize)
-        alpha = 1.0
-        transform = .identity
-        incomingInitialFrame = CGRect(
+        self.frame = CGRect(origin: .zero, size: containerSize)
+        self.alpha = 1.0
+        self.transform = .identity
+        self.incomingInitialFrame = CGRect(
             x: frame.origin.x,
             y: containerSize.height,
             width: frame.size.width,
             height: frame.size.height
         )
-        outgoingFinalFrame = CGRect(
+        self.outgoingFinalFrame = CGRect(
             x: frame.origin.x,
             y: containerSize.height,
             width: frame.size.width,
             height: frame.size.height
         )
-        incomingInitialTransform = .identity
-        outgoingFinalTransform = .identity
-        incomingInitialAlpha = 1.0
-        outgoingFinalAlpha = 1.0
-        duration = 0.5
-        animationOptions = UIView.AnimationOptions(rawValue: 7 << 16)
+        self.incomingInitialTransform = .identity
+        self.outgoingFinalTransform = .identity
+        self.incomingInitialAlpha = 1.0
+        self.outgoingFinalAlpha = 1.0
+        self.duration = 0.5
+        self.animationOptions = UIView.AnimationOptions(rawValue: 7 << 16)
 
         switch style {
         case .fullScreen:
             // Clear the default fullscreen animation configuration.
             if !animated {
-                duration = 0
-                animationOptions = UIView.AnimationOptions(rawValue: 0)
-                incomingInitialFrame = frame
-                outgoingFinalFrame = frame
+                self.duration = 0
+                self.animationOptions = UIView.AnimationOptions(rawValue: 0)
+                self.incomingInitialFrame = frame
+                self.outgoingFinalFrame = frame
             }
         case .sheet:
             if UIDevice.current.userInterfaceIdiom == .phone {
@@ -308,17 +308,17 @@ private struct ModalDisplayInfo {
             frame = CGRect(origin: popOverOrigin, size: popoverSize)
 
             duration = 0.1
-            animationOptions = UIView.AnimationOptions(rawValue: 0)
+            self.animationOptions = UIView.AnimationOptions(rawValue: 0)
 
             // Do not animate frame.
-            incomingInitialFrame = frame
-            outgoingFinalFrame = frame
+            self.incomingInitialFrame = frame
+            self.outgoingFinalFrame = frame
 
             // Animate transform and alpha.
-            incomingInitialTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-            outgoingFinalTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-            incomingInitialAlpha = 0.0
-            outgoingFinalAlpha = 0.0
+            self.incomingInitialTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.outgoingFinalTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.incomingInitialAlpha = 0.0
+            self.outgoingFinalAlpha = 0.0
         }
     }
 }

@@ -109,10 +109,10 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     }
 }
 
-extension RenderTesterResult where WorkflowType.State: Equatable {
+public extension RenderTesterResult where WorkflowType.State: Equatable {
     /// Verifies that the resulting state is equal to the given state.
     @discardableResult
-    public func assert(
+    func assert(
         state expectedState: WorkflowType.State,
         file: StaticString = #file,
         line: UInt = #line
@@ -122,10 +122,10 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     }
 }
 
-extension RenderTesterResult where WorkflowType.Output: Equatable {
+public extension RenderTesterResult where WorkflowType.Output: Equatable {
     /// Verifies that the resulting output is equal to the given output.
     @discardableResult
-    public func assert(
+    func assert(
         output expectedOutput: WorkflowType.Output,
         file: StaticString = #file,
         line: UInt = #line

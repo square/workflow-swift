@@ -27,8 +27,8 @@ public enum SplitScreenPosition {
     case trailing
 }
 
-extension ViewEnvironment {
-    public internal(set) var splitScreenPosition: SplitScreenPosition {
+public extension ViewEnvironment {
+    internal(set) var splitScreenPosition: SplitScreenPosition {
         get { return self[SplitScreenPositionKey.self] }
         set { self[SplitScreenPositionKey.self] = newValue }
     }

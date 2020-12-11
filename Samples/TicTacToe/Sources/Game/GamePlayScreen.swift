@@ -29,7 +29,7 @@ struct GamePlayScreen: Screen {
 }
 
 final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
-    let titleLabel: UILabel = UILabel(frame: .zero)
+    let titleLabel = UILabel(frame: .zero)
     let cells: [[UIButton]] = {
         (0 ..< 3).map { _ in
             (0 ..< 3).map { _ in UIButton(frame: .zero) }

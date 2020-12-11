@@ -138,8 +138,8 @@ internal protocol RenderContextType: AnyObject {
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
 
-extension RenderContext {
-    public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
+public extension RenderContext {
+    func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
         return makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
                 AnyWorkflowAction<WorkflowType> { state in
@@ -150,7 +150,7 @@ extension RenderContext {
 
     /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
     /// intermediate action.
-    public func makeOutputSink() -> Sink<WorkflowType.Output> {
+    func makeOutputSink() -> Sink<WorkflowType.Output> {
         return makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }

@@ -22,7 +22,7 @@ extension DispatchQueue {
 }
 
 extension QueueScheduler {
-    static let workflowExecution: QueueScheduler = QueueScheduler(
+    static let workflowExecution = QueueScheduler(
         qos: .userInteractive,
         name: "com.squareup.workflow",
         targeting: DispatchQueue.workflowExecution

@@ -200,7 +200,8 @@ final class WorkflowNodeTests: XCTestCase {
 /// Renders two child state machines of types `A` and `B`.
 private struct CompositeWorkflow<A, B>: Workflow where
     A: Workflow,
-    B: Workflow {
+    B: Workflow
+{
     var a: A
     var b: B
 }

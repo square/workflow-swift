@@ -43,13 +43,13 @@ extension AnyWorkflow: AnyWorkflowConvertible {
     }
 }
 
-extension AnyWorkflow {
+public extension AnyWorkflow {
     /// Returns a new AnyWorkflow whose `Output` type has been transformed into the given type.
     ///
     /// - Parameter transform: An escaping closure that maps the original output type into the new output type.
     ///
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+    func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
         let storage = self.storage.mapOutput(transform: transform)
         return AnyWorkflow<Rendering, NewOutput>(storage: storage)
     }
@@ -59,7 +59,7 @@ extension AnyWorkflow {
     /// - Parameter transform: An escaping closure that maps the original rendering type into the new rendering type.
     ///
     /// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
-    public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
+    func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
         let storage = self.storage.mapRendering(transform: transform)
         return AnyWorkflow<NewRendering, Output>(storage: storage)
     }
@@ -79,11 +79,11 @@ extension AnyWorkflow {
     }
 }
 
-extension AnyWorkflow {
+private extension AnyWorkflow {
     /// This is the type erased outer API (referenced by the containing AnyWorkflow).
     ///
     /// This type is never used directly.
-    fileprivate class AnyStorage {
+    class AnyStorage {
         func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
             fatalError()
         }
@@ -104,7 +104,7 @@ extension AnyWorkflow {
     /// Subclass that adds type information about the underlying workflow implementation.
     ///
     /// This is the only type that is ever actually used by AnyWorkflow as storage.
-    fileprivate final class Storage<T: Workflow>: AnyStorage {
+    final class Storage<T: Workflow>: AnyStorage {
         let workflow: T
         let renderingTransform: (T.Rendering) -> Rendering
         let outputTransform: (T.Output) -> Output
@@ -145,12 +145,12 @@ extension AnyWorkflow {
     }
 }
 
-extension AnyWorkflowConvertible {
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+public extension AnyWorkflowConvertible {
+    func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
         return asAnyWorkflow().mapOutput(transform)
     }
 
-    public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
+    func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
         return asAnyWorkflow().mapRendering(transform)
     }
 }

@@ -28,9 +28,9 @@ public struct BackStackScreen<ScreenType: Screen>: Screen {
     }
 }
 
-extension BackStackScreen {
+public extension BackStackScreen {
     /// A specific item in the back stack. The key and screen type is used to differentiate reused vs replaced screens.
-    public struct Item {
+    struct Item {
         public var key: AnyHashable
         public var screen: ScreenType
         public var barVisibility: BarVisibility
@@ -47,7 +47,7 @@ extension BackStackScreen {
         }
 
         public init(screen: ScreenType, barVisibility: BarVisibility) {
-            let key = Optional<AnyHashable>.none
+            let key = AnyHashable?.none
             self.init(key: key, screen: screen, barVisibility: barVisibility)
         }
 
@@ -56,7 +56,7 @@ extension BackStackScreen {
         }
 
         public init(screen: ScreenType, barContent: BackStackScreen.BarContent) {
-            let key = Optional<AnyHashable>.none
+            let key = AnyHashable?.none
             self.init(key: key, screen: screen, barContent: barContent)
         }
 
@@ -66,21 +66,21 @@ extension BackStackScreen {
         }
 
         public init(screen: ScreenType) {
-            let key = Optional<AnyHashable>.none
+            let key = AnyHashable?.none
             self.init(key: key, screen: screen)
         }
     }
 }
 
-extension BackStackScreen {
-    public enum BarVisibility {
+public extension BackStackScreen {
+    enum BarVisibility {
         case hidden
         case visible(BarContent)
     }
 }
 
-extension BackStackScreen {
-    public struct BarContent {
+public extension BackStackScreen {
+    struct BarContent {
         var title: Title
         var leftItem: BarButtonItem
         var rightItem: BarButtonItem
@@ -102,18 +102,18 @@ extension BackStackScreen {
     }
 }
 
-extension BackStackScreen.BarContent {
-    public enum Title {
+public extension BackStackScreen.BarContent {
+    enum Title {
         case none
         case text(String)
     }
 
-    public enum ButtonContent {
+    enum ButtonContent {
         case text(String)
         case icon(UIImage)
     }
 
-    public struct Button {
+    struct Button {
         var content: ButtonContent
         var handler: () -> Void
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import TutorialViews
 import Workflow
 import WorkflowUI
-import TutorialViews
 
 struct TodoListScreen: Screen {
     // The titles of the todo items

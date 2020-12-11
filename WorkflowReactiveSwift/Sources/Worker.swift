@@ -39,8 +39,8 @@ public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
     func isEquivalent(to otherWorker: Self) -> Bool
 }
 
-extension Worker {
-    public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+public extension Worker {
+    func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
         WorkerWorkflow(worker: self).asAnyWorkflow()
     }
 }
@@ -90,8 +90,8 @@ private extension WorkerLogger {
     }
 }
 
-extension Worker where Self: Equatable {
-    public func isEquivalent(to otherWorker: Self) -> Bool {
+public extension Worker where Self: Equatable {
+    func isEquivalent(to otherWorker: Self) -> Bool {
         self == otherWorker
     }
 }
