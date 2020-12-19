@@ -51,7 +51,7 @@ import ReactiveSwift
 /// }
 /// ```
 ///
-public protocol Workflow: AnyWorkflowConvertible {
+public protocol Workflow: AnyWorkflowConvertible, _Workflows_Should_Be_Value_Types {
     /// Defines the state that is managed by this workflow.
     associatedtype State
 
@@ -83,22 +83,51 @@ public protocol Workflow: AnyWorkflowConvertible {
     func render(state: State, context: RenderContext<Self>) -> Rendering
 }
 
-extension Workflow {
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+public extension Workflow {
+    func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
-extension Workflow where State == Void {
-    public func makeInitialState() -> State {
+public extension Workflow where State == Void {
+    func makeInitialState() -> State {
         return ()
     }
 
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+    func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
-extension Workflow {
-    public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
+public extension Workflow {
+    func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
         return AnyWorkflow(self)
     }
+}
+
+// MARK: Value Type Validation
+
+///
+/// This protocol exists to enforce at compile time that your `Workflows` are value types like `struct` or `enum`.
+///
+/// It is very very unusual and usually an error to make an `Workflow` a `class` type. Workflow's internal
+/// implementation relies on the fact that passed in `Workflows` respect value semantics and are owned by the framework.
+///
+/// Notes
+/// -----
+/// You should really not make your `Workflow` be a `class`. If for some reason you really really want to do this,
+/// (you should not do this unless you have a good reason, which you probably do not), then override the
+/// `workflows_should_be_value_types_by_overriding_this_method_i_acknowledge_i_am_in_hard_mode()`
+/// method in your `Workflow` to opt out of this validation – but you probably shouldn't. If you must do this,
+/// please ensure that your `Workflow` is either entirely immutable, or respects value semantics.
+///
+public protocol _Workflows_Should_Be_Value_Types {
+    func workflows_should_be_value_types_by_overriding_this_method_i_acknowledge_i_am_in_hard_mode()
+}
+
+public extension _Workflows_Should_Be_Value_Types {
+    func workflows_should_be_value_types_by_overriding_this_method_i_acknowledge_i_am_in_hard_mode() {}
+}
+
+public extension _Workflows_Should_Be_Value_Types where Self: AnyObject {
+    @available(*, unavailable, message: "Workflows should be value types, not classes.")
+    func workflows_should_be_value_types_by_overriding_this_method_i_acknowledge_i_am_in_hard_mode() {}
 }
