@@ -59,7 +59,7 @@
             XCTAssertFalse(description.canUpdate(viewController: subclassViewController))
         }
 
-        func test_update() {
+        func test_unsafeUpdate() {
             var updateCount = 0
             let description = ViewControllerDescription(
                 build: { BlankViewController() },
@@ -75,10 +75,10 @@
             let viewController = description.buildViewController()
             XCTAssertEqual(updateCount, 1)
 
-            description.update(viewController: viewController)
+            description.unsafeUpdate(viewController: viewController)
             XCTAssertEqual(updateCount, 2)
 
-            description.update(viewController: viewController)
+            description.unsafeUpdate(viewController: viewController)
             XCTAssertEqual(updateCount, 3)
         }
 

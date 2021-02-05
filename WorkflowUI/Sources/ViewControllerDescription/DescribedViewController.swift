@@ -37,7 +37,7 @@
 
         public func update(description: ViewControllerDescription) {
             if description.canUpdate(viewController: currentViewController) {
-                description.update(viewController: currentViewController)
+                description.unsafeUpdate(viewController: currentViewController)
             } else {
                 if isViewLoaded {
                     currentViewController.willMove(toParent: nil)

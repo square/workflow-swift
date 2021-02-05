@@ -40,7 +40,7 @@
             self.build = build
             self.update = { untypedViewController in
                 guard let viewController = untypedViewController as? VC else {
-                    fatalError("Unable to update \(untypedViewController), expecting a \(VC.self)")
+                    fatalError("Unable to update `\(Swift.type(of: untypedViewController))`, expecting a `\(VC.self)`.")
                 }
                 update(viewController)
             }
@@ -48,19 +48,19 @@
 
         /// Construct and update a new view controller as described by this view
         /// controller description.
-        internal func buildViewController() -> UIViewController {
+        public func buildViewController() -> UIViewController {
             let viewController = build()
-            assert(canUpdate(viewController: viewController), "View controller description built a view controller it cannot update (\(viewController) is not exactly type \(viewControllerType))")
+            precondition(canUpdate(viewController: viewController), "View controller description built a view controller it cannot update (\(viewController) is not exactly type \(viewControllerType))")
 
             // Perform an initial update of the built view controller
-            update(viewController: viewController)
+            unsafeUpdate(viewController: viewController)
 
             return viewController
         }
 
         /// If the given view controller is of the correct type to be updated by
         /// this view controller description.
-        internal func canUpdate(viewController: UIViewController) -> Bool {
+        public func canUpdate(viewController: UIViewController) -> Bool {
             return type(of: viewController) == viewControllerType
         }
 
@@ -70,7 +70,7 @@
         ///         `canUpdate(viewController:)` will result in an exception.
         ///
         /// - Parameter viewController: The view controller instance to update
-        internal func update(viewController: UIViewController) {
+        public func unsafeUpdate(viewController: UIViewController) {
             update(viewController)
         }
     }
