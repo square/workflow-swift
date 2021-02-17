@@ -106,13 +106,13 @@ public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowA
     public func verifyOutput(
         file: StaticString = #file,
         line: UInt = #line,
-        _ assertions: (WorkflowType.Output) -> Void
-    ) -> WorkflowActionTester<WorkflowType, Action> {
+        _ assertions: (WorkflowType.Output) throws -> Void
+    ) rethrows -> WorkflowActionTester<WorkflowType, Action> {
         guard let output = output else {
             XCTFail("No output was produced", file: file, line: line)
             return self
         }
-        assertions(output)
+        try assertions(output)
         return self
     }
 
@@ -122,8 +122,8 @@ public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowA
     ///
     /// - returns: A tester containing the current state and output.
     @discardableResult
-    public func verifyState(_ assertions: (WorkflowType.State) -> Void) -> WorkflowActionTester<WorkflowType, Action> {
-        assertions(state)
+    public func verifyState(_ assertions: (WorkflowType.State) throws -> Void) rethrows -> WorkflowActionTester<WorkflowType, Action> {
+        try assertions(state)
         return self
     }
 

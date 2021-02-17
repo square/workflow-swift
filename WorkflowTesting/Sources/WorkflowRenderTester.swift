@@ -229,8 +229,8 @@
         @discardableResult
         public func render(
             file: StaticString = #file, line: UInt = #line,
-            assertions: (WorkflowType.Rendering) -> Void
-        ) -> RenderTesterResult<WorkflowType> {
+            assertions: (WorkflowType.Rendering) throws -> Void
+        ) rethrows -> RenderTesterResult<WorkflowType> {
             let contextImplementation = TestContext(
                 state: state,
                 expectedWorkflows: expectedWorkflows,
@@ -243,7 +243,7 @@
 
             contextImplementation.assertNoLeftOverExpectations()
 
-            assertions(rendering)
+            try assertions(rendering)
 
             return RenderTesterResult<WorkflowType>(
                 state: contextImplementation.state,
