@@ -53,7 +53,7 @@ extension TodoListWorkflow {
                 TodoModel(
                     title: "Take the cat for a walk",
                     note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect."
-                )
+                ),
             ],
             step: .list
         )
