@@ -55,19 +55,20 @@ final class ConcurrencyTests: XCTestCase {
         disposable?.dispose()
     }
 
-    // Events emitted between `render` on a workflow and `enableEvents` are queued and will be delivered immediately when `enableEvents` is called.
+    // Events emitted between `render` on a workflow and `enableEvents` are queued and will be delivered asynchronously after rendering is updated.
     func test_queuedEvents() {
         let host = WorkflowHost(workflow: TestWorkflow())
 
-        let expectation = XCTestExpectation()
+        let renderingExpectation = expectation(description: "Waiting on rendering values.")
         var first = true
 
         let disposable = host.rendering.signal.observeValues { rendering in
             if first {
-                expectation.fulfill()
                 first = false
                 // Emit an event when the rendering is first received.
                 rendering.update()
+            } else {
+                renderingExpectation.fulfill()
             }
         }
 
@@ -77,9 +78,44 @@ final class ConcurrencyTests: XCTestCase {
         // Updating the screen will cause two events - the `update` here, and the update caused by the first time the rendering changes.
         initialScreen.update()
 
+        waitForExpectations(timeout: 1)
+
         XCTAssertEqual(2, host.rendering.value.count)
 
-        wait(for: [expectation], timeout: 1.0)
+        disposable?.dispose()
+    }
+
+    func test_multipleQueuedEvents() {
+        let host = WorkflowHost(workflow: TestWorkflow())
+
+        let renderingExpectation = expectation(description: "Waiting on rendering values.")
+        var renderingValuesCount = 0
+
+        let disposable = host.rendering.signal.observeValues { rendering in
+            if renderingValuesCount == 0 {
+                // Emit two events.
+                rendering.update()
+                rendering.update()
+            } else if renderingValuesCount == 1 {
+                // Wait for another rendering
+            } else if renderingValuesCount == 2 {
+                renderingExpectation.fulfill()
+            } else {
+                XCTFail("Unexpected rendering")
+            }
+
+            renderingValuesCount += 1
+        }
+
+        let initialScreen = host.rendering.value
+        XCTAssertEqual(0, initialScreen.count)
+
+        // Updating the screen will cause three events.
+        initialScreen.update()
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(3, host.rendering.value.count)
 
         disposable?.dispose()
     }
@@ -192,15 +228,21 @@ final class ConcurrencyTests: XCTestCase {
         let host = WorkflowHost(workflow: TestWorkflow(), debugger: debugger)
 
         var first = true
+
+        let renderingsComplete = expectation(description: "Waiting for renderings")
         let disposable = host.rendering.signal.observeValues { rendering in
             if first {
                 first = false
                 rendering.update()
+            } else {
+                renderingsComplete.fulfill()
             }
         }
 
         let initialScreen = host.rendering.value
         initialScreen.update()
+
+        waitForExpectations(timeout: 1)
 
         XCTAssertEqual(2, debugger.snapshots.count)
         XCTAssertEqual("1", debugger.snapshots[0].stateDescription)
