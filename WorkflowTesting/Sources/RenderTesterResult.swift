@@ -35,9 +35,9 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     public func verifyState(
         file: StaticString = #file,
         line: UInt = #line,
-        assertions: (WorkflowType.State) -> Void
-    ) -> RenderTesterResult<WorkflowType> {
-        assertions(state)
+        assertions: (WorkflowType.State) throws -> Void
+    ) rethrows -> RenderTesterResult<WorkflowType> {
+        try assertions(state)
         return self
     }
 
@@ -59,13 +59,13 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         type: ActionType.Type = ActionType.self,
         file: StaticString = #file,
         line: UInt = #line,
-        assertions: (ActionType) -> Void
-    ) -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType {
+        assertions: (ActionType) throws -> Void
+    ) rethrows -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType {
         guard let appliedAction = appliedAction else {
             XCTFail("No action was produced", file: file, line: line)
             return self
         }
-        appliedAction.assert(file: file, line: line, assertions: assertions)
+        try appliedAction.assert(file: file, line: line, assertions: assertions)
         return self
     }
 
@@ -98,13 +98,13 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     public func verifyOutput(
         file: StaticString = #file,
         line: UInt = #line,
-        assertions: (WorkflowType.Output) -> Void
-    ) -> RenderTesterResult<WorkflowType> {
+        assertions: (WorkflowType.Output) throws -> Void
+    ) rethrows -> RenderTesterResult<WorkflowType> {
         guard let output = output else {
             XCTFail("No output was produced", file: file, line: line)
             return self
         }
-        assertions(output)
+        try assertions(output)
         return self
     }
 }

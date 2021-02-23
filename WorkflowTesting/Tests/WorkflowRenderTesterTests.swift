@@ -48,6 +48,17 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assertNoAction()
     }
 
+    func test_simple_render_throw() throws {
+        let renderTester = TestWorkflow(initialText: "initial").renderTester()
+
+        try renderTester
+            .render { screen in
+                let text = try XCTUnwrap(screen.text)
+                XCTAssertEqual("initial", text)
+            }
+            .assertNoAction()
+    }
+
     func test_action() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
@@ -265,7 +276,7 @@ private struct SideEffectWorkflow: Workflow {
 }
 
 private struct TestScreen {
-    var text: String
+    var text: String?
     var tapped: () -> Void
 }
 

@@ -26,6 +26,16 @@ final class WorkflowActionTesterTests: XCTestCase {
             .verifyState { XCTAssertTrue($0) }
     }
 
+    func test_stateTransitions_throw() throws {
+        try TestAction
+            .tester(withState: false)
+            .send(action: .toggleTapped)
+            .verifyState {
+                try throwingNoop()
+                XCTAssertTrue($0)
+            }
+    }
+
     func test_stateTransitions_equatable() {
         TestAction
             .tester(withState: false)
@@ -45,6 +55,16 @@ final class WorkflowActionTesterTests: XCTestCase {
             .tester(withState: false)
             .send(action: .exitTapped)
             .verifyOutput { output in
+                XCTAssertEqual(output, .finished)
+            }
+    }
+
+    func test_outputs_throw() throws {
+        try TestAction
+            .tester(withState: false)
+            .send(action: .exitTapped)
+            .verifyOutput { output in
+                try throwingNoop()
                 XCTAssertEqual(output, .finished)
             }
     }
@@ -107,3 +127,5 @@ private struct TestWorkflow: Workflow {
         ()
     }
 }
+
+private func throwingNoop() throws {}

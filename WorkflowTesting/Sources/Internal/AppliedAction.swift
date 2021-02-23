@@ -24,11 +24,11 @@ struct AppliedAction<WorkflowType: Workflow> {
         self.erasedAction = action
     }
 
-    func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) -> Void) where ActionType.WorkflowType == WorkflowType {
+    func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
         guard let action = erasedAction as? ActionType else {
             XCTFail("Expected action of type \(ActionType.self), got \(erasedAction)", file: file, line: line)
             return
         }
-        assertions(action)
+        try assertions(action)
     }
 }
