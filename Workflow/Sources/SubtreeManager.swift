@@ -81,15 +81,6 @@ extension WorkflowNode {
         /// Enable the eventPipes for the previous rendering. The eventPipes are not valid until this has
         /// be called. If is an error to call this twice without generating a new rendering.
         func enableEvents() {
-            /// Check for queued events. If there are any, apply the first and yield to the next render loop.
-            let queuedEvents = eventPipes.compactMap { pipe in
-                pipe.pendingOutput()
-            }
-            if !queuedEvents.isEmpty {
-                handle(output: queuedEvents[0])
-                return
-            }
-
             /// Enable all action pipes.
             for eventPipe in eventPipes {
                 eventPipe.enable { [weak self] output in
@@ -285,6 +276,14 @@ extension WorkflowNode.SubtreeManager {
         func handle(action: Action) {
             let output = Output.update(AnyWorkflowAction(action), source: .external)
 
+            if case .pending = eventPipe.validationState {
+                // Workflow is currently processing an `event`.
+                // Scheduling it to be processed after.
+                DispatchQueue.workflowExecution.async { [weak self] in
+                    self?.eventPipe.handle(event: output)
+                }
+                return
+            }
             eventPipe.handle(event: output)
         }
     }
@@ -298,7 +297,6 @@ extension WorkflowNode.SubtreeManager {
         enum ValidationState {
             case preparing
             case pending
-            case queued(Output)
             case valid(handler: (Output) -> Void)
             case invalid
         }
@@ -315,10 +313,7 @@ extension WorkflowNode.SubtreeManager {
                 fatalError("[\(WorkflowType.self)] Sink sent an action inside `render`. Sinks are not valid until `render` has completed.")
 
             case .pending:
-                validationState = .queued(event)
-
-            case .queued:
-                fatalError("[\(WorkflowType.self)] Action sent to pipe while already in the `queueing` state.")
+                fatalError("[\(WorkflowType.self)] Action sent to pipe while in the `pending` state.")
 
             case .valid(let handler):
                 handler(event)
@@ -333,14 +328,6 @@ extension WorkflowNode.SubtreeManager {
                 fatalError("Attempted to `setPending` an EventPipe that was not in the preparing state.")
             }
             validationState = .pending
-        }
-
-        func pendingOutput() -> Output? {
-            if case .queued(let output) = validationState {
-                return output
-            } else {
-                return nil
-            }
         }
 
         func enable(with handler: @escaping (Output) -> Void) {
