@@ -109,7 +109,7 @@ extension AnyWorkflowConvertible {
     }
 }
 
-private struct OutputBlockingWorkflow<Child: AnyWorkflowConvertible>: Workflow {
+struct OutputBlockingWorkflow<Child: AnyWorkflowConvertible>: Workflow {
     typealias Output = Never
     typealias Rendering = Child.Rendering
     typealias State = Void

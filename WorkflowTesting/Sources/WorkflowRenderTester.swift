@@ -170,6 +170,31 @@
             )
         }
 
+        /// Expect the given workflow type in the next rendering, with its output being ignored by a call to `ignoringOutput()`.
+        ///
+        /// - Parameters:
+        ///   - type: The type of the expected workflow.
+        ///   - key: The key of the expected workflow (if specified).
+        ///   - rendering: The rendering result that should be returned when the workflow of this type is rendered.
+        ///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
+        public func expectWorkflowIgnoringOutput<ExpectedWorkflowType: Workflow>(
+            type: ExpectedWorkflowType.Type,
+            key: String = "",
+            producingRendering rendering: ExpectedWorkflowType.Rendering,
+            file: StaticString = #file,
+            line: UInt = #line,
+            assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }
+        ) -> RenderTester<WorkflowType> {
+            return expectWorkflow(
+                type: OutputBlockingWorkflow<ExpectedWorkflowType>.self,
+                key: key,
+                producingRendering: rendering,
+                file: file,
+                line: line,
+                assertions: { assertions($0.child) }
+            )
+        }
+
         /// Expect a side-effect for the given key.
         ///
         /// - Parameter key: The key to expect.
