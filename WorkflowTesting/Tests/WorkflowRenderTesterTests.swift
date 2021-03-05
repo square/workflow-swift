@@ -96,6 +96,19 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assert(output: .success)
     }
 
+    func test_ignoredOutput() {
+        OutputIgnoringWorkflow(text: "hello")
+            .renderTester()
+            .expectWorkflowIgnoringOutput(
+                type: ChildWorkflow.self,
+                producingRendering: "olleh"
+            )
+            .render { rendering in
+                XCTAssertEqual("olleh", rendering)
+            }
+            .assertNoOutput()
+    }
+
     func test_childWorkflow() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
@@ -235,6 +248,17 @@ private struct OutputWorkflow: Workflow {
         return TestScreen(text: "value", tapped: {
             sink.send(.emit)
         })
+    }
+}
+
+private struct OutputIgnoringWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = ChildWorkflow.Rendering
+
+    var text: String
+
+    func render(state: Void, context: RenderContext<OutputIgnoringWorkflow>) -> Rendering {
+        ChildWorkflow(text: text).ignoringOutput().rendered(in: context)
     }
 }
 
