@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+## Version 1.0.0-beta.2
+
+_2021_03-29_
+
+* Updated documentation.
+* `AnyWorkflowConvertible` helper to ignore output (#90)
+* Fixes an issue with handling Queued Events (#94)
+* [RenderTester] Support assertions which throw (#92)
+
 ## Version 1.0.0-beta.1
 
 _2020-09-11_
