@@ -5,6 +5,12 @@ Change Log
 
 _2021_03-29_
 
+* Update `RxSwift` dependency to `~> 5.1` (#96)
+
+## Version 1.0.0-beta.2
+
+_2021_03-29_
+
 * Updated documentation.
 * `AnyWorkflowConvertible` helper to ignore output (#90)
 * Fixes an issue with handling Queued Events (#94)
