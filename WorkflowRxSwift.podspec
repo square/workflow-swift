@@ -19,8 +19,7 @@ Pod::Spec.new do |s|
   s.source_files = 'WorkflowRxSwift/Sources/**/*.swift'
 
   s.dependency 'Workflow', "#{s.version}"
-  s.dependency 'RxSwift', '~> 4.4.0'
-  s.dependency 'RxAtomic', '~> 4.4.0'
+  s.dependency 'RxSwift', '~> 5.1'
 
   s.test_spec 'Tests' do |test_spec|
     test_spec.source_files = 'WorkflowRxSwift/Tests/**/*.swift'
