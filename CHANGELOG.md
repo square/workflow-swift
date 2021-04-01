@@ -1,15 +1,21 @@
 Change Log
 ==========
 
-## Version 1.0.0-beta.2
+## Version 1.0.0-beta.4
 
-_2021_03-29_
+_2021-04-01_
+
+* Switch from deprecated `RxSwift` API (#97)
+  
+## Version 1.0.0-beta.3
+
+_2021-03-29_
 
 * Update `RxSwift` dependency to `~> 5.1` (#96)
 
 ## Version 1.0.0-beta.2
 
-_2021_03-29_
+_2021-03-29_
 
 * Updated documentation.
 * `AnyWorkflowConvertible` helper to ignore output (#90)
