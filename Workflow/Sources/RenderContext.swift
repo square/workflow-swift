@@ -155,3 +155,27 @@ extension RenderContext {
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }
 }
+
+public struct StateMutationSink<WorkflowType: Workflow> {
+    let sink: Sink<AnyWorkflowAction<WorkflowType>>
+
+    public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
+        sink.send(
+            AnyWorkflowAction<WorkflowType> { state in
+                state[keyPath: keyPath] = value
+                return nil
+            }
+        )
+    }
+
+    init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {
+        self.sink = sink
+    }
+}
+
+extension RenderContext {
+    public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
+        let sink = makeSink(of: AnyWorkflowAction<WorkflowType>.self)
+        return StateMutationSink(sink)
+    }
+}

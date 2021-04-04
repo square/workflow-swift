@@ -34,25 +34,6 @@ extension DemoWorkflow {
     }
 }
 
-// MARK: Actions
-
-extension DemoWorkflow {
-    enum Action: WorkflowAction {
-        typealias WorkflowType = DemoWorkflow
-
-        case viewTapped
-
-        func apply(toState state: inout DemoWorkflow.State) -> Never? {
-            switch self {
-            case .viewTapped:
-                state += 1
-            }
-
-            return nil
-        }
-    }
-}
-
 // MARK: Rendering
 
 extension DemoWorkflow {
@@ -63,11 +44,15 @@ extension DemoWorkflow {
     private static let complimentaryColors: [UIColor] = [.blue, .green, .yellow, .purple]
 
     func render(state: State, context: RenderContext<DemoWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: Action.self)
+        let sink = context.makeStateMutationSink()
 
         return SplitScreenContainerScreen(
             leadingScreen: leadingScreenFor(state: state, context: context),
-            trailingScreen: FooScreen(title: "Trailing screen", backgroundColor: .green, viewTapped: { sink.send(.viewTapped) }),
+            trailingScreen: FooScreen(
+                title: "Trailing screen",
+                backgroundColor: .green,
+                viewTapped: { sink.send(\State.self, value: state + 1) }
+            ),
             ratio: DemoWorkflow.sizes[state % DemoWorkflow.sizes.count],
             separatorColor: .black,
             separatorWidth: 1.0 * CGFloat(state)
@@ -75,7 +60,7 @@ extension DemoWorkflow {
     }
 
     private func leadingScreenFor(state: State, context: RenderContext<DemoWorkflow>) -> AnyScreen {
-        let sink = context.makeSink(of: Action.self)
+        let sink = context.makeStateMutationSink()
 
         let color = DemoWorkflow.colors[state % DemoWorkflow.colors.count]
 
@@ -84,7 +69,9 @@ extension DemoWorkflow {
                 FooScreen(
                     title: "Leading Foo screen",
                     backgroundColor: color,
-                    viewTapped: { sink.send(.viewTapped) }
+                    viewTapped: {
+                        sink.send(\State.self, value: state + 1)
+                    }
                 )
             )
         } else {
@@ -94,7 +81,9 @@ extension DemoWorkflow {
                 BarScreen(
                     title: "Leading Bar screen",
                     backgroundColors: [color, complimentaryColor],
-                    viewTapped: { sink.send(.viewTapped) }
+                    viewTapped: {
+                        sink.send(\State.self, value: state + 1)
+                    }
                 )
             )
         }

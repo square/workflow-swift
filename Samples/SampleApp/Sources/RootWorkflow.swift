@@ -37,25 +37,6 @@ extension RootWorkflow {
     }
 }
 
-// MARK: Actions
-
-extension RootWorkflow {
-    enum Action: WorkflowAction {
-        typealias WorkflowType = RootWorkflow
-
-        case login(name: String)
-
-        func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
-            switch self {
-            case .login(name: let name):
-                state = .demo(name: name)
-            }
-
-            return nil
-        }
-    }
-}
-
 // MARK: Rendering
 
 extension RootWorkflow {
@@ -66,12 +47,13 @@ extension RootWorkflow {
         case .welcome:
             return CrossFadeScreen(
                 base: WelcomeWorkflow()
-                    .mapOutput { output -> Action in
+                    .mapOutput { output -> State in
                         switch output {
                         case .login(name: let name):
-                            return .login(name: name)
+                            return State.demo(name: name)
                         }
                     }
+                    .applyOutputToState(in: context, keyPath: \State.self)
                     .rendered(in: context)
             )
 
