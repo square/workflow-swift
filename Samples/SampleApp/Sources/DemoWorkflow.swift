@@ -25,86 +25,7 @@ struct DemoWorkflow: Workflow {
     var name: String
 
     typealias Output = Never
-}
-
-// MARK: State and Initialization
-
-extension DemoWorkflow {
-    struct State {
-        fileprivate var signal: TimerSignal
-        var colorState: ColorState
-        var loadingState: LoadingState
-        var subscriptionState: SubscriptionState
-
-        enum ColorState {
-            case red
-            case green
-            case blue
-        }
-
-        enum LoadingState {
-            case idle(title: String)
-            case loading
-        }
-
-        enum SubscriptionState {
-            case not
-            case subscribing
-        }
-    }
-
-    func makeInitialState() -> DemoWorkflow.State {
-        return State(
-            signal: TimerSignal(),
-            colorState: .red,
-            loadingState: .idle(title: "Not Loaded"),
-            subscriptionState: .not
-        )
-    }
-}
-
-// MARK: Actions
-
-extension DemoWorkflow {
-    enum Action: WorkflowAction {
-        typealias WorkflowType = DemoWorkflow
-
-        case titleButtonTapped
-        case subscribeTapped
-        case refreshButtonTapped
-        case refreshComplete(String)
-        case refreshError(Error)
-
-        func apply(toState state: inout DemoWorkflow.State) -> DemoWorkflow.Output? {
-            switch self {
-            case .titleButtonTapped:
-                switch state.colorState {
-                case .red:
-                    state.colorState = .green
-                case .green:
-                    state.colorState = .blue
-                case .blue:
-                    state.colorState = .red
-                }
-
-            case .subscribeTapped:
-                switch state.subscriptionState {
-                case .not:
-                    state.subscriptionState = .subscribing
-                case .subscribing:
-                    state.subscriptionState = .not
-                }
-
-            case .refreshButtonTapped:
-                state.loadingState = .loading
-            case .refreshComplete(let message):
-                state.loadingState = .idle(title: message)
-            case .refreshError(let error):
-                state.loadingState = .idle(title: error.localizedDescription)
-            }
-            return nil
-        }
-    }
+    typealias State = Void
 }
 
 // MARK: Workers
@@ -127,25 +48,66 @@ struct RefreshWorker: Worker {
 
 // MARK: Rendering
 
+enum LoadingState {
+    case idle(title: String)
+    case loading
+}
+
+enum ColorState {
+    case red, green, blue
+
+    var next: ColorState {
+        switch self {
+        case .red:
+            return .green
+        case .green:
+            return .blue
+        case .blue:
+            return .red
+        }
+    }
+
+    var color: UIColor {
+        switch self {
+        case .green:
+            return UIColor.green
+        case .blue:
+            return UIColor.blue
+        case .red:
+            return UIColor.red
+        }
+    }
+}
+
+enum SubscriptionState {
+    case not
+    case subscribing
+
+    var toggled: Self {
+        switch self {
+        case .not:
+            return .subscribing
+        case .subscribing:
+            return .not
+        }
+    }
+}
+
 extension DemoWorkflow {
     typealias Rendering = DemoScreen
 
     func render(state: DemoWorkflow.State, context: RenderContext<DemoWorkflow>) -> Rendering {
-        let color: UIColor
-        switch state.colorState {
-        case .red:
-            color = .red
-        case .green:
-            color = .green
-        case .blue:
-            color = .blue
-        }
+        let (color, colorUpdater) = HookWorkflow(defaultValue: ColorState.red)
+            .rendered(in: context)
+
+        let (loadingState, loadingStateUpdater) = HookWorkflow(defaultValue: LoadingState.idle(title: "Not Loaded"))
+            .rendered(in: context)
 
         var title = "Hello, \(name)!"
         let refreshText: String
         let refreshEnabled: Bool
 
-        switch state.loadingState {
+        switch loadingState {
         case .idle(title: let refreshTitle):
             refreshText = refreshTitle
             refreshEnabled = true
@@ -158,47 +120,56 @@ extension DemoWorkflow {
             refreshEnabled = false
 
             RefreshWorker()
-                .mapOutput { output -> Action in
-                    switch output {
-                    case .success(let result):
-                        return .refreshComplete(result)
-                    case .error(let error):
-                        return .refreshError(error)
+                .onOutput { _, output in
+                    DispatchQueue.main.async {
+                        switch output {
+                        case .success(let result):
+                            loadingStateUpdater(.idle(title: result))
+                        case .error(let error):
+                            loadingStateUpdater(.idle(title: error.localizedDescription))
+                        }
                     }
+                    return nil
                 }
                 .running(in: context)
         }
 
         let subscribeTitle: String
 
-        switch state.subscriptionState {
+        let (subscriptionState, subscriptionStateUpdater) = HookWorkflow(defaultValue: SubscriptionState.not)
+            .rendered(in: context)
+
+        switch subscriptionState {
         case .not:
             subscribeTitle = "Subscribe"
         case .subscribing:
+            let (signal, _) = HookWorkflow(defaultValue: TimerSignal()).rendered(in: context)
             // Subscribe to the timer signal, simulating the title being tapped.
-            state.signal.signal
-                .mapOutput { _ in Action.titleButtonTapped }
+            signal.signal
+                .onOutput { _, _ in
+                    DispatchQueue.main.async {
+                        colorUpdater(color.next)
+                    }
+                    return nil
+                }
                 .running(in: context, key: "timer")
             subscribeTitle = "Stop"
         }
 
-        // Create a sink of our Action type so we can send actions back to the workflow.
-        let sink = context.makeSink(of: Action.self)
-
         return DemoScreen(
             title: title,
-            color: color,
+            color: color.color,
             onTitleTap: {
-                sink.send(.titleButtonTapped)
+                colorUpdater(color.next)
             },
             subscribeTitle: subscribeTitle,
             onSubscribeTapped: {
-                sink.send(.subscribeTapped)
+                subscriptionStateUpdater(subscriptionState.toggled)
             },
             refreshText: refreshText,
             isRefreshEnabled: refreshEnabled,
             onRefreshTap: {
-                sink.send(.refreshButtonTapped)
+                loadingStateUpdater(.loading)
             }
         )
     }
