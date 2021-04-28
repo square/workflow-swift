@@ -26,7 +26,7 @@
 /// ```
 /// private enum ThemeKey: ViewEnvironmentKey {
 ///     typealias Value = Theme
-///     var defaultValue: Theme
+///     static var defaultValue: Theme
 /// }
 ///
 /// extension ViewEnvironment {
@@ -37,7 +37,7 @@
 /// }
 /// ```
 public protocol ViewEnvironmentKey {
-    associatedtype Value
+    associatedtype Value: Equatable
 
     static var defaultValue: Value { get }
 }

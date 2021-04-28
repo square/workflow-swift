@@ -21,7 +21,7 @@
 /// context they’re appearing (for example, a split screen container may set
 /// the environment of its two children according to which position they’re
 /// appearing in).
-public struct ViewEnvironment {
+public struct ViewEnvironment: Equatable {
     /// An empty view environment. This should only be used when setting up a
     /// root workflow into a root ContainerViewController or when writing tests.
     /// In other scenarios, containers should pass down the ViewEnvironment
@@ -29,7 +29,7 @@ public struct ViewEnvironment {
     public static let empty: ViewEnvironment = ViewEnvironment()
 
     /// Storage of [K.Type: K.Value] where K: ViewEnvironmentKey
-    private var storage: [ObjectIdentifier: Any]
+    private var storage: [ObjectIdentifier: ViewEnvironmentValue]
 
     /// Private empty initializer to make the `empty` environment explicit.
     private init() {
@@ -43,7 +43,7 @@ public struct ViewEnvironment {
     /// usage example.
     public subscript<Key>(key: Key.Type) -> Key.Value where Key: ViewEnvironmentKey {
         get {
-            if let value = storage[ObjectIdentifier(key)] as? Key.Value {
+            if let value = storage[ObjectIdentifier(key)]?.wrapped as? Key.Value {
                 return value
             } else {
                 return Key.defaultValue
@@ -51,7 +51,7 @@ public struct ViewEnvironment {
         }
 
         set {
-            storage[ObjectIdentifier(key)] = newValue
+            storage[ObjectIdentifier(key)] = ViewEnvironmentValue(value: newValue)
         }
     }
 
@@ -88,5 +88,25 @@ public struct ViewEnvironment {
         var newEnvironment = self
         newEnvironment[keyPath: keyPath] = value
         return newEnvironment
+    }
+}
+
+struct ViewEnvironmentValue: Equatable {
+    let wrapped: Any
+
+    private let comparison: (Any) -> Bool
+
+    init<T: Equatable>(value: T) {
+        self.wrapped = value
+        self.comparison = { other in
+            guard let other = other as? T else {
+                return false
+            }
+            return value == other
+        }
+    }
+
+    static func == (lhs: ViewEnvironmentValue, rhs: ViewEnvironmentValue) -> Bool {
+        lhs.comparison(rhs.wrapped)
     }
 }
