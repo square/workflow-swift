@@ -47,7 +47,7 @@
             let container = ContainerViewController(workflow: workflow)
 
             withExtendedLifetime(container) {
-                let vc = container.rootViewController.currentViewController as! TestScreenViewController
+                let vc = container.rootViewController.content as! TestScreenViewController
                 XCTAssertEqual("0", vc.screen.string)
             }
         }
@@ -60,7 +60,7 @@
             withExtendedLifetime(container) {
                 let expectation = XCTestExpectation(description: "View Controller updated")
 
-                let vc = container.rootViewController.currentViewController as! TestScreenViewController
+                let vc = container.rootViewController.content as! TestScreenViewController
                 vc.onScreenChange = {
                     expectation.fulfill()
                 }
@@ -118,7 +118,7 @@
             withExtendedLifetime(container) {
                 let expectation = XCTestExpectation(description: "View Controller updated")
 
-                let vc = container.rootViewController.currentViewController as! TestScreenViewController
+                let vc = container.rootViewController.content as! TestScreenViewController
 
                 XCTAssertEqual("first", vc.screen.string)
 

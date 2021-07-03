@@ -42,7 +42,7 @@
 
         public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
             self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
-            self.rootViewController = DescribedViewController(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
+            self.rootViewController = DescribedViewController(with: workflowHost.rendering.value, environment: rootViewEnvironment)
             self.rootViewEnvironment = rootViewEnvironment
 
             super.init(nibName: nil, bundle: nil)
@@ -62,6 +62,7 @@
             workflowHost.update(workflow: RootWorkflow(workflow))
         }
 
+        @available(*, unavailable)
         public required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
