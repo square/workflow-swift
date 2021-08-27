@@ -40,7 +40,7 @@ struct ObservableWorkflow<Value>: Workflow {
         context.runSideEffect(key: "") { [observable] lifetime in
             let disposable = observable
                 .map { AnyWorkflowAction(sendingOutput: $0) }
-                .subscribeOn(MainScheduler.asyncInstance)
+                .subscribe(on: MainScheduler.asyncInstance)
                 .subscribe(onNext: { value in
                     sink.send(value)
                 })
