@@ -28,7 +28,7 @@ in `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "git@github.com:square/workflow-swift.git", from: "1.0.0-beta.3")
+    .package(url: "git@github.com:square/workflow-swift.git", from: "1.0.0-rc.1")
 ]
 ```
 
