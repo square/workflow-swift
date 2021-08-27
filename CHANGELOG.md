@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+## Version 1.0.0-rc.1
+
+_2021-08-27_
+
+* Bump RxSwift to 6.2 (#99)
+
 ## Version 1.0.0-beta.4
 
 _2021-04-01_
