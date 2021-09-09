@@ -50,7 +50,7 @@
 			<key>Type</key>
 			<string>popup</string>
 			<key>Default</key>
-			<string>RxSwift</string>
+			<string>ReactiveSwift</string>
 			<key>RequiredOptions</key>
 			<dict>
 				<key>generateWorker</key>
