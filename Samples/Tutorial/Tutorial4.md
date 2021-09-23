@@ -416,6 +416,6 @@ It comes down to the individual judgement of the developer to decide how a tree 
 
 ## Up Next
 
-We now have a pretty fully formed app. However, if we want to keep adding features, we'll want to validate that existing features don't break while we're make improvements. In the next tutorial, we'll cover a couple of techniques for testing workflows.
+We now have a pretty fully formed app. However, if we want to keep adding features, we'll want to validate that existing features don't break while we're making improvements. In the next tutorial, we'll cover a couple of techniques for testing workflows.
 
 [Tutorial 5](Tutorial5.md)
