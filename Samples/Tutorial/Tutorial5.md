@@ -578,24 +578,24 @@ class TodoWorkflowTests: XCTestCase {
                 step: .list
             ))
             // We only expect the TodoListWorkflow to be rendered.
-        .expectWorkflow(
-            type: TodoListWorkflow.self,
-            producingRendering: BackStackScreen<AnyScreen>.Item(
-                screen: TodoListScreen(todoTitles: ["Title"], onTodoSelected: { _ in }).asAnyScreen()
-            ),
-            // Simulate selecting the first todo.
-            producingOutput: .selectTodo(index: 0)
-        )
-        .render { items in
-            // Just validate that there is one item in the back stack.
-            // Additional validation could be done on the screens returned, if desired.
-            XCTAssertEqual(1, items.count)
-        }
-        // Assert that the state was updated after the render pass with the output from the TodoListWorkflow.
-        .assert(state: TodoWorkflow.State(
-            todos: [TodoModel(title: "Title", note: "Note")],
-            step: .edit(index: 0)
-        ))
+            .expectWorkflow(
+                type: TodoListWorkflow.self,
+                producingRendering: BackStackScreen<AnyScreen>.Item(
+                    screen: TodoListScreen(todoTitles: ["Title"], onTodoSelected: { _ in }).asAnyScreen()
+                ),
+                // Simulate selecting the first todo.
+                producingOutput: .selectTodo(index: 0)
+            )
+            .render { items in
+                // Just validate that there is one item in the back stack.
+                // Additional validation could be done on the screens returned, if desired.
+                XCTAssertEqual(1, items.count)
+            }
+            // Assert that the state was updated after the render pass with the output from the TodoListWorkflow.
+            .assert(state: TodoWorkflow.State(
+                todos: [TodoModel(title: "Title", note: "Note")],
+                step: .edit(index: 0)
+            ))
     }
 
     func testSavingTodo() throws {

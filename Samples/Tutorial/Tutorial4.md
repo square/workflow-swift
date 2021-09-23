@@ -413,3 +413,9 @@ Is the code better after this refactor? It's debatable - having the logic in the
 Additionally, now the `TodoList` and `TodoEdit` workflows are completely decoupled - there is no longer a requirement that the `TodoEdit` workflow is displayed after the list. For instance, we could change the list to have "viewing" or "editing" modes, where tapping on an item might only allow it to be viewed, but another mode would allow editing.
 
 It comes down to the individual judgement of the developer to decide how a tree of workflows should be shaped - this was intended to provide two examples of how this _could_ be structured, but not specify how it _should_.
+
+## Up Next
+
+We now have a pretty fully formed app. However, if we want to keep adding features, we'll want to validate that existing features don't break while we're make improvements. In the next tutorial, we'll cover a couple of techniques for testing workflows.
+
+[Tutorial 5](Tutorial5.md)
