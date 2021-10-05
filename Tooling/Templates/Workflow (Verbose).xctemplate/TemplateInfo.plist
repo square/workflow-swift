@@ -18,11 +18,51 @@
 			<key>Name</key>
 			<string>Name:</string>
 			<key>Description</key>
-			<string>The name of the workflow to create. "Workflow" will be appended to the name.</string>
+			<string>The name of the workflow to create. &quot;Workflow&quot; will be appended to the name.</string>
 			<key>Type</key>
 			<string>text</string>
 			<key>Default</key>
 			<string>HelloWorld</string>
+		</dict>
+		<dict>
+			<key>Identifier</key>
+			<string>generateWorker</string>
+			<key>Required</key>
+			<true/>
+			<key>Name</key>
+			<string>Also create a Worker</string>
+			<key>Description</key>
+			<string>Workers define a unit of asynchronous work</string>
+			<key>Type</key>
+			<string>checkbox</string>
+			<key>Default</key>
+			<string>false</string>
+		</dict>
+		<dict>
+			<key>Identifier</key>
+			<string>streamType</string>
+			<key>Required</key>
+			<true/>
+			<key>Name</key>
+			<string>Uses:</string>
+			<key>Description</key>
+			<string>Whether to use RxSwift or ReactiveSwift</string>
+			<key>Type</key>
+			<string>popup</string>
+			<key>Default</key>
+			<string>ReactiveSwift</string>
+			<key>RequiredOptions</key>
+			<dict>
+				<key>generateWorker</key>
+				<array>
+					<string>true</string>
+				</array>
+			</dict>
+			<key>Values</key>
+			<array>
+				<string>RxSwift</string>
+				<string>ReactiveSwift</string>
+			</array>
 		</dict>
 	</array>
 </dict>
