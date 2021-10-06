@@ -58,9 +58,9 @@
                     } else if sameTypeDifferentKeys.count > 1 {
                         diagnosticMessage = "Expecting key in \"\(sameTypeDifferentKeys)\"."
                     } else if sameKeyDifferentTypes.count == 1 {
-                        diagnosticMessage = "Found expecation of type \(sameKeyDifferentTypes[0]) for key \"\(key)\"."
+                        diagnosticMessage = "Found expectation of type \(sameKeyDifferentTypes[0]) for key \"\(key)\"."
                     } else if sameKeyDifferentTypes.count > 1 {
-                        diagnosticMessage = "Found expecations for types \(sameKeyDifferentTypes) with key \"\(key)\"."
+                        diagnosticMessage = "Found expectations for types \(sameKeyDifferentTypes) with key \"\(key)\"."
                     } else {
                         diagnosticMessage = ""
                     }
