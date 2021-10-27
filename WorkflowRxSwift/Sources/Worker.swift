@@ -56,17 +56,17 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         UUID()
     }
 
-    func workflowDidChange(from previousWorkflow: Self, state: inout UUID) {
+    func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
         if !worker.isEquivalent(to: previousWorkflow.worker) {
             state = UUID()
         }
     }
 
-    func render(state: State, context: RenderContext<Self>) -> Rendering {
+    func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
         let logger = WorkerLogger<WorkerType>()
 
         worker.run()
-            .map { AnyWorkflowAction<Self>(sendingOutput: $0) }
+            .map { AnyWorkflowAction(sendingOutput: $0) }
             .do(
                 onNext: { _ in
                     logger.logOutput()

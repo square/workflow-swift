@@ -13,6 +13,7 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowUI'
   s.dependency 'WorkflowReactiveSwift'
   s.dependency 'WorkflowRxSwift'
+  # s.dependency 'WorkflowCombine' # TODO: Disabled because app specs cannot increase the deployment target of the root
   s.source_files = 'Samples/Dummy.swift'
 
   s.subspec 'Dummy' do |ss|
@@ -141,4 +142,22 @@ Pod::Spec.new do |s|
     test_spec.dependency 'WorkflowTesting'
     test_spec.dependency 'WorkflowRxSwiftTesting'
   end
+
+  # TODO: Disabled because app specs cannot increase the deployment target of the root
+  # To use, increase the deployment target of this spec to 13.0 or higher
+  # s.test_spec 'WorkflowCombineTests' do |test_spec|
+  #   test_spec.requires_app_host = true
+  #   test_spec.source_files = 'WorkflowCombine/Tests/**/*.swift'
+  #   test_spec.framework = 'XCTest'
+  #   test_spec.dependency 'WorkflowTesting'
+  #   test_spec.dependency 'WorkflowCombineTesting'
+  # end
+
+  # s.test_spec 'WorkflowCombineTestingTests' do |test_spec|
+  #   test_spec.requires_app_host = true
+  #   test_spec.source_files = 'WorkflowCombine/TestingTests/**/*.swift'
+  #   test_spec.framework = 'XCTest'
+  #   test_spec.dependency 'WorkflowTesting'
+  #   test_spec.dependency 'WorkflowCombineTesting'
+  # end
 end

@@ -34,7 +34,7 @@
         associatedtype Output
 
         /// Returns a publisher to execute the work represented by this worker.
-        func run() -> Just<Output>
+        func run() -> AnyPublisher<Output, Never>
 
         /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
         /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
@@ -68,25 +68,27 @@
         func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
             let logger = WorkerLogger<WorkerType>()
 
-            worker.run()
-                .handleEvents(
-                    receiveSubscription: { _ in
-                        logger.logStarted()
-                    },
-                    receiveOutput: { output in
-                        logger.logOutput()
-                    },
-                    receiveCompletion: { completion in
-                        // no need to switch completion since Failure is hardcoded to Never
-                        logger.logFinished(status: "Finished")
-                    },
-                    receiveCancel: {
-                        logger.logFinished(status: "Cancelled")
-                    }
-                )
-                .map { AnyWorkflowAction(sendingOutput: $0) }
-                .eraseToAnyPublisher()
-                .running(in: context, key: state.uuidString)
+            Deferred {
+                worker.run()
+                    .handleEvents(
+                        receiveSubscription: { _ in
+                            logger.logStarted()
+                        },
+                        receiveOutput: { output in
+                            logger.logOutput()
+                        },
+                        receiveCompletion: { completion in
+                            // no need to switch completion since Failure is hardcoded to Never
+                            logger.logFinished(status: "Finished")
+                        },
+                        receiveCancel: {
+                            logger.logFinished(status: "Cancelled")
+                        }
+                    )
+                    .map { AnyWorkflowAction(sendingOutput: $0) }
+            }
+            .eraseToAnyPublisher()
+            .running(in: context, key: state.uuidString)
         }
     }
 

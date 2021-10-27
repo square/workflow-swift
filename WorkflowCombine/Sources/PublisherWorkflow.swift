@@ -23,12 +23,12 @@
     @available(iOS 13.0, macOS 10.15, *)
     extension AnyPublisher: AnyWorkflowConvertible where Failure == Never {
         public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
-            return PublishedWorkflow(publisher: self).asAnyWorkflow()
+            return PublisherWorkflow(publisher: self).asAnyWorkflow()
         }
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    struct PublishedWorkflow<Value>: Workflow {
+    struct PublisherWorkflow<Value>: Workflow {
         public typealias Output = Value
         public typealias State = Void
         public typealias Rendering = Void
@@ -42,16 +42,10 @@
         public func render(state: State, context: RenderContext<Self>) -> Rendering {
             let sink = context.makeSink(of: AnyWorkflowAction.self)
             context.runSideEffect(key: "") { [publisher] lifetime in
-                let cancellable = publisher
+                _ = publisher
                     .map { AnyWorkflowAction(sendingOutput: $0) }
                     .subscribe(on: RunLoop.main)
-                    .sink(receiveValue: { value in
-                        sink.send(value)
-                })
-
-                lifetime.onEnded {
-                    cancellable.cancel()
-                }
+                    .sink { sink.send($0) }
             }
         }
     }
