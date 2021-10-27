@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
-
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// Holds the current state of the workflow
