@@ -136,18 +136,14 @@ class WorkerTests: XCTestCase {
         }
 
         struct TestWorker: Worker {
-            private let publisher = PassthroughSubject<Int, Never>()
-
             func isEquivalent(to otherWorker: TestWorker) -> Bool {
                 true
             }
 
             func run() -> AnyPublisher<Int, Never> {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    publisher.send(1)
-                    publisher.send(2)
-                }
-                return publisher.eraseToAnyPublisher()
+                [1, 2].publisher
+                    .delay(for: .milliseconds(1), scheduler: RunLoop.main)
+                    .eraseToAnyPublisher()
             }
         }
 
