@@ -17,8 +17,6 @@
 import XCTest
 @testable import Workflow
 
-import ReactiveSwift
-
 final class WorkflowNodeTests: XCTestCase {
     func test_rendersSimpleWorkflow() {
         let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))

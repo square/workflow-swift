@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
-
 /// Defines a node in the workflow tree.
 ///
 /// ***

@@ -15,7 +15,6 @@
  */
 
 import Dispatch
-import ReactiveSwift
 
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
@@ -390,8 +389,6 @@ extension WorkflowNode.SubtreeManager {
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
         private var outputMap: (W.Output) -> AnyWorkflowAction<WorkflowType>
-
-        private let (lifetime, token) = ReactiveSwift.Lifetime.make()
 
         init(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
             self.outputMap = outputMap
