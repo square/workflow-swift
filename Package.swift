@@ -71,16 +71,6 @@ let package = Package(
             dependencies: ["Workflow"],
             path: "WorkflowCombine/Sources"
         ),
-        .testTarget(
-            name: "WorkflowCombineTests",
-            dependencies: ["Workflow", "WorkflowCombine", "WorkflowTesting"],
-            path: "WorkflowCombine/Tests"
-        ),
-        .target(
-            name: "WorkflowTesting",
-            dependencies: ["Workflow"],
-            path: "WorkflowTesting/Sources"
-        ),
     ],
     swiftLanguageVersions: [.v5]
 )

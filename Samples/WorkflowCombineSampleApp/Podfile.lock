@@ -1,0 +1,58 @@
+PODS:
+  - ReactiveSwift (6.3.0)
+  - Workflow (1.0.0-rc.1):
+    - ReactiveSwift (~> 6.3.0)
+  - Workflow/Tests (1.0.0-rc.1):
+    - ReactiveSwift (~> 6.3.0)
+  - WorkflowCombine (1.0.0-rc.1):
+    - Workflow (= 1.0.0-rc.1)
+  - WorkflowReactiveSwift (1.0.0-rc.1):
+    - ReactiveSwift (~> 6.3.0)
+    - Workflow (= 1.0.0-rc.1)
+  - WorkflowReactiveSwift/Tests (1.0.0-rc.1):
+    - ReactiveSwift (~> 6.3.0)
+    - Workflow (= 1.0.0-rc.1)
+    - WorkflowTesting (= 1.0.0-rc.1)
+  - WorkflowTesting (1.0.0-rc.1):
+    - Workflow (= 1.0.0-rc.1)
+  - WorkflowUI (1.0.0-rc.1):
+    - Workflow (= 1.0.0-rc.1)
+  - WorkflowUI/Tests (1.0.0-rc.1):
+    - Workflow (= 1.0.0-rc.1)
+    - WorkflowReactiveSwift (= 1.0.0-rc.1)
+
+DEPENDENCIES:
+  - Workflow (from `../../Workflow.podspec`)
+  - Workflow/Tests (from `../../Workflow.podspec`)
+  - WorkflowCombine (from `../../WorkflowCombine.podspec`)
+  - WorkflowReactiveSwift (from `../../WorkflowReactiveSwift.podspec`)
+  - WorkflowReactiveSwift/Tests (from `../../WorkflowReactiveSwift.podspec`)
+  - WorkflowUI (from `../../WorkflowUI.podspec`)
+  - WorkflowUI/Tests (from `../../WorkflowUI.podspec`)
+
+SPEC REPOS:
+  trunk:
+    - ReactiveSwift
+    - WorkflowTesting
+
+EXTERNAL SOURCES:
+  Workflow:
+    :path: "../../Workflow.podspec"
+  WorkflowCombine:
+    :path: "../../WorkflowCombine.podspec"
+  WorkflowReactiveSwift:
+    :path: "../../WorkflowReactiveSwift.podspec"
+  WorkflowUI:
+    :path: "../../WorkflowUI.podspec"
+
+SPEC CHECKSUMS:
+  ReactiveSwift: 7937f26ec18d555e2a99352bd0a8b2817d1f042d
+  Workflow: e3391755e611eb0e0efc244ef5fa9b12c6e2f8ab
+  WorkflowCombine: 8806745d6023261bfbc34e0d1da753774e9fe0c5
+  WorkflowReactiveSwift: a1854c330a7ea4342e999156e0abe7f216e16d63
+  WorkflowTesting: ff584e427bda8491285deb97db14182925d1e4f4
+  WorkflowUI: 0e3b93590dc2e58a93f300a47e5c8e81b501ef36
+
+PODFILE CHECKSUM: 59f19f06532469f70596f7954b3f8fe590c38ef1
+
+COCOAPODS: 1.9.1

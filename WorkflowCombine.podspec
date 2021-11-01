@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
     s.osx.deployment_target = '10.15'
   
     s.source_files = 'WorkflowCombine/Sources/*.swift'
-  
+    
     s.dependency 'Workflow', "#{s.version}"
   
   end
