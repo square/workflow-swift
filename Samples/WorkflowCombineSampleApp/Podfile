@@ -6,4 +6,13 @@ target 'WorkflowCombineSampleApp' do
     pod 'WorkflowUI', path: '../../WorkflowUI.podspec', :testspecs => ['Tests']
     pod 'WorkflowCombine', path: '../../WorkflowCombine.podspec'
     pod 'WorkflowReactiveSwift', path: '../../WorkflowReactiveSwift.podspec', :testspecs => ['Tests']
+
+    target 'WorkflowCombineSampleAppUnitTests' do
+        inherit! :search_paths
+
+        pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']
+        pod 'WorkflowCombine', path: '../../WorkflowCombine.podspec'
+        pod 'WorkflowReactiveSwift', path: '../../WorkflowReactiveSwift.podspec', :testspecs => ['Tests']
+        pod 'WorkflowUI', path: '../../WorkflowUI.podspec', :testspecs => ['Tests']
+    end
 end

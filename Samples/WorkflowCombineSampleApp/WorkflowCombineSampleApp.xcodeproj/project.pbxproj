@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		765F2E2D94C8090C834913C7 /* libPods-WorkflowCombineSampleAppUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B3BB606C2D22FA463DF9FE9 /* libPods-WorkflowCombineSampleAppUnitTests.a */; };
 		9A8259C8C723B39466D03271 /* libPods-WorkflowCombineSampleApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FB177673F3D3F7E40B2E3F52 /* libPods-WorkflowCombineSampleApp.a */; };
+		F9148E582730496400A2A822 /* WorkflowCombineSampleAppUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9148E572730496400A2A822 /* WorkflowCombineSampleAppUnitTests.swift */; };
 		F91FC5E1272B5EF000F19C3D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91FC5E0272B5EF000F19C3D /* AppDelegate.swift */; };
 		F91FC5E3272B5EF000F19C3D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91FC5E2272B5EF000F19C3D /* SceneDelegate.swift */; };
 		F91FC5E5272B5EF000F19C3D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91FC5E4272B5EF000F19C3D /* ViewController.swift */; };
@@ -19,9 +21,27 @@
 		F91FC5F9272B5FBB00F19C3D /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91FC5F8272B5FBB00F19C3D /* DemoViewController.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F9148E5A2730496400A2A822 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F91FC5D5272B5EF000F19C3D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F91FC5DC272B5EF000F19C3D;
+			remoteInfo = WorkflowCombineSampleApp;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		5B3BB606C2D22FA463DF9FE9 /* libPods-WorkflowCombineSampleAppUnitTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WorkflowCombineSampleAppUnitTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EC8006ECC2D615830927194 /* Pods-WorkflowCombineSampleAppUnitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleAppUnitTests.release.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleAppUnitTests/Pods-WorkflowCombineSampleAppUnitTests.release.xcconfig"; sourceTree = "<group>"; };
 		9CD0CAA819EECAD20D89C730 /* Pods-WorkflowCombineSampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleApp.debug.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleApp/Pods-WorkflowCombineSampleApp.debug.xcconfig"; sourceTree = "<group>"; };
+		CD5C74CDD3F93E878B7A7ED3 /* Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.debug.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests/Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.debug.xcconfig"; sourceTree = "<group>"; };
+		D83DC771AA69FE4772B1ADD3 /* Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.release.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests/Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.release.xcconfig"; sourceTree = "<group>"; };
 		DCBB19D1BA1D3E7BDFA35AAC /* Pods-WorkflowCombineSampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleApp.release.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleApp/Pods-WorkflowCombineSampleApp.release.xcconfig"; sourceTree = "<group>"; };
+		DE091C17D6BFBA3117FD439A /* Pods-WorkflowCombineSampleAppUnitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkflowCombineSampleAppUnitTests.debug.xcconfig"; path = "Target Support Files/Pods-WorkflowCombineSampleAppUnitTests/Pods-WorkflowCombineSampleAppUnitTests.debug.xcconfig"; sourceTree = "<group>"; };
+		F9148E552730496400A2A822 /* WorkflowCombineSampleAppUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkflowCombineSampleAppUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9148E572730496400A2A822 /* WorkflowCombineSampleAppUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowCombineSampleAppUnitTests.swift; sourceTree = "<group>"; };
+		F9148E592730496400A2A822 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F91FC5DD272B5EF000F19C3D /* WorkflowCombineSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WorkflowCombineSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F91FC5E0272B5EF000F19C3D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F91FC5E2272B5EF000F19C3D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -37,6 +57,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		F9148E522730496400A2A822 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				765F2E2D94C8090C834913C7 /* libPods-WorkflowCombineSampleAppUnitTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F91FC5DA272B5EF000F19C3D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -52,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				FB177673F3D3F7E40B2E3F52 /* libPods-WorkflowCombineSampleApp.a */,
+				5B3BB606C2D22FA463DF9FE9 /* libPods-WorkflowCombineSampleAppUnitTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -61,14 +90,28 @@
 			children = (
 				9CD0CAA819EECAD20D89C730 /* Pods-WorkflowCombineSampleApp.debug.xcconfig */,
 				DCBB19D1BA1D3E7BDFA35AAC /* Pods-WorkflowCombineSampleApp.release.xcconfig */,
+				DE091C17D6BFBA3117FD439A /* Pods-WorkflowCombineSampleAppUnitTests.debug.xcconfig */,
+				6EC8006ECC2D615830927194 /* Pods-WorkflowCombineSampleAppUnitTests.release.xcconfig */,
+				CD5C74CDD3F93E878B7A7ED3 /* Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.debug.xcconfig */,
+				D83DC771AA69FE4772B1ADD3 /* Pods-WorkflowCombineSampleApp-WorkflowCombineSampleAppUnitTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		F9148E562730496400A2A822 /* WorkflowCombineSampleAppUnitTests */ = {
+			isa = PBXGroup;
+			children = (
+				F9148E572730496400A2A822 /* WorkflowCombineSampleAppUnitTests.swift */,
+				F9148E592730496400A2A822 /* Info.plist */,
+			);
+			path = WorkflowCombineSampleAppUnitTests;
 			sourceTree = "<group>";
 		};
 		F91FC5D4272B5EF000F19C3D = {
 			isa = PBXGroup;
 			children = (
 				F91FC5DF272B5EF000F19C3D /* WorkflowCombineSampleApp */,
+				F9148E562730496400A2A822 /* WorkflowCombineSampleAppUnitTests */,
 				F91FC5DE272B5EF000F19C3D /* Products */,
 				5B949144518AC7D6FECAFCBF /* Pods */,
 				2301A5C693F40633B788F033 /* Frameworks */,
@@ -79,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				F91FC5DD272B5EF000F19C3D /* WorkflowCombineSampleApp.app */,
+				F9148E552730496400A2A822 /* WorkflowCombineSampleAppUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -103,6 +147,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		F9148E542730496400A2A822 /* WorkflowCombineSampleAppUnitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9148E5E2730496400A2A822 /* Build configuration list for PBXNativeTarget "WorkflowCombineSampleAppUnitTests" */;
+			buildPhases = (
+				910F3B6833A2504DA2EEA54D /* [CP] Check Pods Manifest.lock */,
+				F9148E512730496400A2A822 /* Sources */,
+				F9148E522730496400A2A822 /* Frameworks */,
+				F9148E532730496400A2A822 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F9148E5B2730496400A2A822 /* PBXTargetDependency */,
+			);
+			name = WorkflowCombineSampleAppUnitTests;
+			productName = WorkflowCombineSampleAppUnitTests;
+			productReference = F9148E552730496400A2A822 /* WorkflowCombineSampleAppUnitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F91FC5DC272B5EF000F19C3D /* WorkflowCombineSampleApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F91FC5F1272B5EF700F19C3D /* Build configuration list for PBXNativeTarget "WorkflowCombineSampleApp" */;
@@ -130,6 +193,10 @@
 				LastSwiftUpdateCheck = 1250;
 				LastUpgradeCheck = 1250;
 				TargetAttributes = {
+					F9148E542730496400A2A822 = {
+						CreatedOnToolsVersion = 12.5.1;
+						TestTargetID = F91FC5DC272B5EF000F19C3D;
+					};
 					F91FC5DC272B5EF000F19C3D = {
 						CreatedOnToolsVersion = 12.5.1;
 					};
@@ -149,11 +216,19 @@
 			projectRoot = "";
 			targets = (
 				F91FC5DC272B5EF000F19C3D /* WorkflowCombineSampleApp */,
+				F9148E542730496400A2A822 /* WorkflowCombineSampleAppUnitTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		F9148E532730496400A2A822 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F91FC5DB272B5EF000F19C3D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -167,6 +242,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		910F3B6833A2504DA2EEA54D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WorkflowCombineSampleAppUnitTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		BC8BD4A8482F12EE585D17CE /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -192,6 +289,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F9148E512730496400A2A822 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9148E582730496400A2A822 /* WorkflowCombineSampleAppUnitTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F91FC5D9272B5EF000F19C3D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -206,6 +311,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F9148E5B2730496400A2A822 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F91FC5DC272B5EF000F19C3D /* WorkflowCombineSampleApp */;
+			targetProxy = F9148E5A2730496400A2A822 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F91FC5E6272B5EF000F19C3D /* Main.storyboard */ = {
@@ -227,6 +340,46 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		F9148E5C2730496400A2A822 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DE091C17D6BFBA3117FD439A /* Pods-WorkflowCombineSampleAppUnitTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = WorkflowCombineSampleAppUnitTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.soorinpark.parkornapp.WorkflowCombineSampleAppUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WorkflowCombineSampleApp.app/WorkflowCombineSampleApp";
+			};
+			name = Debug;
+		};
+		F9148E5D2730496400A2A822 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6EC8006ECC2D615830927194 /* Pods-WorkflowCombineSampleAppUnitTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = WorkflowCombineSampleAppUnitTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.soorinpark.parkornapp.WorkflowCombineSampleAppUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WorkflowCombineSampleApp.app/WorkflowCombineSampleApp";
+			};
+			name = Release;
+		};
 		F91FC5EF272B5EF700F19C3D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -384,6 +537,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		F9148E5E2730496400A2A822 /* Build configuration list for PBXNativeTarget "WorkflowCombineSampleAppUnitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9148E5C2730496400A2A822 /* Debug */,
+				F9148E5D2730496400A2A822 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F91FC5D8272B5EF000F19C3D /* Build configuration list for PBXProject "WorkflowCombineSampleApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
