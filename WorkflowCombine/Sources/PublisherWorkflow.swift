@@ -42,10 +42,14 @@
         public func render(state: State, context: RenderContext<Self>) -> Rendering {
             let sink = context.makeSink(of: AnyWorkflowAction.self)
             context.runSideEffect(key: "") { [publisher] lifetime in
-                _ = publisher
+                let cancellable = publisher
                     .map { AnyWorkflowAction(sendingOutput: $0) }
                     .subscribe(on: RunLoop.main)
                     .sink { sink.send($0) }
+
+                lifetime.onEnded {
+                    cancellable.cancel()
+                }
             }
         }
     }
