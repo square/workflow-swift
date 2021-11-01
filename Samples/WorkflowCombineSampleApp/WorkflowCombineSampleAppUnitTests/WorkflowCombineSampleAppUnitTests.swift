@@ -8,7 +8,7 @@
 import Combine
 import Workflow
 import XCTest
-@testable import WorkflowCombineSampleApp
+@testable import Development_WorkflowCombineSampleApp
 
 class DemoWorkerTests: XCTestCase {
     func test_workflowIsRenderedEverySecondForFiveSeconds() {
