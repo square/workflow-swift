@@ -33,9 +33,9 @@ class AnyPublisherTests: XCTestCase {
         typealias Rendering = Void
 
         func render(state: State, context: RenderContext<Self>) -> Rendering {
-            Just(1)
-                .map { _ in AnyWorkflowAction<TestWorkflow>.noAction }
+            [1].publisher
                 .eraseToAnyPublisher()
+                .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
                 .running(in: context, key: "123")
         }
     }
