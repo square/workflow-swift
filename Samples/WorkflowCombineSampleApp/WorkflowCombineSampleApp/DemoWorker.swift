@@ -29,19 +29,3 @@ extension DemoWorkflow {
         func isEquivalent(to otherWorker: DemoWorkflow.DemoWorker) -> Bool { true }
     }
 }
-
-/// Identifcal implementation of the Combine Worker using the WorkflowReactiveSwift library instead.
-/// To ensure that both implementations are correct, run the test suite with each implementation uncommented.
-// extension DemoWorkflow {
-//    struct DemoWorker: WorkflowReactiveSwift.Worker {
-//        typealias Output = Action
-//
-//        func run() -> SignalProducer<DemoWorkflow.Action, Never> {
-//            SignalProducer
-//                .timer(interval: DispatchTimeInterval.seconds(1), on: QueueScheduler())
-//                .map { .init(publishedDate: $0) }
-//        }
-//
-//        func isEquivalent(to otherWorker: DemoWorkflow.DemoWorker) -> Bool { true }
-//    }
-// }
