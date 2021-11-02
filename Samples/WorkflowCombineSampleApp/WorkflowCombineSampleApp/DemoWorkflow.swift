@@ -19,7 +19,7 @@ struct DemoWorkflow: Workflow {
 // MARK: State and Initialization
 
 extension DemoWorkflow {
-    struct State {
+    struct State: Equatable {
         var date: Date
     }
 
