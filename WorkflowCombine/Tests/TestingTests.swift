@@ -183,10 +183,13 @@ private struct TestWorkflow: Workflow {
 }
 
 private struct TestWorker: Worker {
+    typealias Output = String
+    typealias WorkerPublisher = Just<Output>
+
     let input: String
 
-    func run() -> AnyPublisher<String, Never> {
-        Just("").eraseToAnyPublisher()
+    func run() -> WorkerPublisher {
+        Just("")
     }
 
     func isEquivalent(to otherWorker: TestWorker) -> Bool {

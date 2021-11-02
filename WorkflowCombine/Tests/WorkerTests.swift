@@ -136,11 +136,14 @@ class WorkerTests: XCTestCase {
         }
 
         struct TestWorker: Worker {
+            typealias Output = WorkerPublisher.Output
+            typealias WorkerPublisher = AnyPublisher<Int, Never>
+
             func isEquivalent(to otherWorker: TestWorker) -> Bool {
                 true
             }
 
-            func run() -> AnyPublisher<Int, Never> {
+            func run() -> WorkerPublisher {
                 [1, 2].publisher
                     .delay(for: .milliseconds(1), scheduler: RunLoop.main)
                     .eraseToAnyPublisher()

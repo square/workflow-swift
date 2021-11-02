@@ -16,6 +16,7 @@
 
 #if DEBUG
 
+    import Combine
     import Workflow
     import WorkflowTesting
     import XCTest
@@ -35,7 +36,7 @@
             file: StaticString = #file, line: UInt = #line
         ) -> RenderTester<WorkflowType> {
             expectWorkflow(
-                type: PublisherWorkflow<OutputType>.self,
+                type: PublisherWorkflow<AnyPublisher<OutputType, Never>>.self,
                 key: key,
                 producingRendering: (),
                 producingOutput: output,

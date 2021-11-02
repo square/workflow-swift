@@ -17,10 +17,10 @@ extension DemoWorkflow {
         typealias Output = Action
 
         // This publisher publishes the current date on a timer that fires every second
-        func run() -> AnyPublisher<DemoWorkflow.Action, Never> {
+        func run() -> AnyPublisher<Action, Never> {
             Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .map { .init(publishedDate: $0) }
+                .map { Action(publishedDate: $0) }
                 .eraseToAnyPublisher()
         }
 

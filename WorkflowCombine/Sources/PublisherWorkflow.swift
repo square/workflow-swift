@@ -21,6 +21,7 @@
     import Workflow
 
     @available(iOS 13.0, macOS 10.15, *)
+
     extension AnyPublisher: AnyWorkflowConvertible where Failure == Never {
         public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
             return PublisherWorkflow(publisher: self).asAnyWorkflow()
@@ -28,14 +29,14 @@
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    struct PublisherWorkflow<Value>: Workflow {
-        public typealias Output = Value
+    struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
+        public typealias Output = WorkflowPublisher.Output
         public typealias State = Void
         public typealias Rendering = Void
 
-        let publisher: AnyPublisher<Output, Never>
+        let publisher: WorkflowPublisher
 
-        public init(publisher: AnyPublisher<Output, Never>) {
+        public init(publisher: WorkflowPublisher) {
             self.publisher = publisher
         }
 

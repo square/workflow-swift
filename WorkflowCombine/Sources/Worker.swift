@@ -32,10 +32,11 @@
     public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
         /// The type of output events returned by this worker.
         associatedtype Output
+        associatedtype WorkerPublisher: Publisher where
+            WorkerPublisher.Output == Output, WorkerPublisher.Failure == Never
 
         /// Returns a publisher to execute the work represented by this worker.
-        func run() -> AnyPublisher<Output, Never>
-
+        func run() -> WorkerPublisher
         /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
         /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
         /// would not be equivalent to another worker with a different user ID.
@@ -85,7 +86,7 @@
                             logger.logFinished(status: "Cancelled")
                         }
                     )
-                    .map { AnyWorkflowAction(sendingOutput: $0) }
+                    .map { AnyWorkflowAction<Self>(sendingOutput: $0) }
             }
             .eraseToAnyPublisher()
             .running(in: context, key: state.uuidString)
