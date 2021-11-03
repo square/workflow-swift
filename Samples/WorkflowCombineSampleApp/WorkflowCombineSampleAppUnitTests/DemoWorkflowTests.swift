@@ -12,7 +12,7 @@ import XCTest
 @testable import Development_WorkflowCombineSampleApp
 
 class DemoWorkflowTests: XCTestCase {
-    func test_workflowIsRenderedEverySecondForFiveSeconds() {
+    func test_demoWorkflow_publishesNewDate() {
         let expectedDate = Date(timeIntervalSince1970: 0)
 
         DemoWorkflow

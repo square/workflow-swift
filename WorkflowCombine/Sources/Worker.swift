@@ -88,7 +88,6 @@
                     )
                     .map { AnyWorkflowAction<Self>(sendingOutput: $0) }
             }
-            .eraseToAnyPublisher()
             .running(in: context, key: state.uuidString)
         }
     }

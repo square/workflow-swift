@@ -8,7 +8,6 @@
 import Combine
 import Workflow
 import WorkflowCombine
-import WorkflowUI
 
 // MARK: Workers
 
@@ -17,7 +16,7 @@ extension DemoWorkflow {
         typealias Output = Action
 
         // This publisher publishes the current date on a timer that fires every second
-        func run() -> AnyPublisher<Action, Never> {
+        func run() -> AnyPublisher<Output, Never> {
             Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
                 .map { Action(publishedDate: $0) }

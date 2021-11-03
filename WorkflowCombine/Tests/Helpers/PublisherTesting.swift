@@ -30,13 +30,13 @@
         /// - Parameters:
         ///   - producingOutput: An output that should be returned when this worker is requested, if any.
         ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expectPublisher<OutputType>(
-            producingOutput output: OutputType? = nil,
-            key: String = "",
-            file: StaticString = #file, line: UInt = #line
-        ) -> RenderTester<WorkflowType> {
+        public func expectPublisher<PublisherType: Publisher>(
+            publisher: PublisherType.Type,
+            output: PublisherType.Output,
+            key: String = ""
+        ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
             expectWorkflow(
-                type: PublisherWorkflow<AnyPublisher<OutputType, Never>>.self,
+                type: PublisherWorkflow<PublisherType>.self,
                 key: key,
                 producingRendering: (),
                 producingOutput: output,

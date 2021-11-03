@@ -20,11 +20,11 @@ import Workflow
 import XCTest
 @testable import WorkflowCombine
 
-class AnyPublisherTests: XCTestCase {
+class PublisherTests: XCTestCase {
     func testPublisherWorkflow() {
         TestWorkflow()
             .renderTester()
-            .expectPublisher(producingOutput: 1, key: "123")
+            .expectPublisher(publisher: Publishers.Sequence<[Int], Never>.self, output: 1, key: "123")
             .render {}
     }
 
@@ -34,14 +34,13 @@ class AnyPublisherTests: XCTestCase {
 
         func render(state: State, context: RenderContext<Self>) -> Rendering {
             [1].publisher
-                .eraseToAnyPublisher()
                 .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
                 .running(in: context, key: "123")
         }
     }
 
     func test_publisherWorkflow_usesSideEffectWithKey() {
-        let publisher = Just(1).eraseToAnyPublisher()
+        let publisher = Just(1)
         PublisherWorkflow(publisher: publisher)
             .renderTester()
             .expectSideEffect(key: "")
@@ -49,7 +48,7 @@ class AnyPublisherTests: XCTestCase {
     }
 
     func test_output() {
-        let publisher = Just(1).eraseToAnyPublisher()
+        let publisher = Just(1)
 
         let host = WorkflowHost(
             workflow: PublisherWorkflow(publisher: publisher)
@@ -72,7 +71,7 @@ class AnyPublisherTests: XCTestCase {
         let publisher = [1, 2, 3].publisher
 
         let host = WorkflowHost(
-            workflow: PublisherWorkflow(publisher: publisher.eraseToAnyPublisher())
+            workflow: PublisherWorkflow(publisher: publisher)
         )
 
         let expectation = XCTestExpectation()
