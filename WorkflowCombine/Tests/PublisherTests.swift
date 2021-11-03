@@ -17,41 +17,21 @@
 import Combine
 import Foundation
 import Workflow
+import WorkflowCombineTesting
 import XCTest
 @testable import WorkflowCombine
 
 class PublisherTests: XCTestCase {
-    func testPublisherWorkflow() {
-        TestWorkflow()
-            .renderTester()
-            .expectPublisher(publisher: Publishers.Sequence<[Int], Never>.self, output: 1, key: "123")
-            .render {}
-    }
-
-    struct TestWorkflow: Workflow {
-        typealias State = Void
-        typealias Rendering = Void
-
-        func render(state: State, context: RenderContext<Self>) -> Rendering {
-            [1].publisher
-                .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
-                .running(in: context, key: "123")
-        }
-    }
-
     func test_publisherWorkflow_usesSideEffectWithKey() {
-        let publisher = Just(1)
-        PublisherWorkflow(publisher: publisher)
+        PublisherWorkflow(publisher: Just(1))
             .renderTester()
             .expectSideEffect(key: "")
             .render { _ in }
     }
 
     func test_output() {
-        let publisher = Just(1)
-
         let host = WorkflowHost(
-            workflow: PublisherWorkflow(publisher: publisher)
+            workflow: PublisherWorkflow(publisher: Just(1))
         )
 
         let expectation = XCTestExpectation()

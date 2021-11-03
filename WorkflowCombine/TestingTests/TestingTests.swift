@@ -17,6 +17,7 @@
 import Combine
 import Workflow
 import WorkflowCombine
+import WorkflowCombineTesting
 import WorkflowTesting
 import XCTest
 
@@ -188,11 +189,7 @@ private struct TestWorker: Worker {
 
     let input: String
 
-    func run() -> WorkerPublisher {
-        Just("")
-    }
+    func run() -> WorkerPublisher { Just(input) }
 
-    func isEquivalent(to otherWorker: TestWorker) -> Bool {
-        input == otherWorker.input
-    }
+    func isEquivalent(to otherWorker: TestWorker) -> Bool { input == otherWorker.input }
 }

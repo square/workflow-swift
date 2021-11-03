@@ -15,7 +15,6 @@
  */
 
 #if DEBUG
-
     import Workflow
     import WorkflowTesting
     import XCTest
@@ -52,5 +51,4 @@
             )
         }
     }
-
 #endif
