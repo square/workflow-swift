@@ -24,3 +24,7 @@ SampleApp.xcworkspace
 
 # ios-snapshot-test-case Failure Diffs
 FailureDiffs/
+
+Samples/**/*Info.plist
+!Samples/Tutorial/AppHost/Configuration/Info.plist
+!Samples/Tutorial/AppHost/TutorialTests/Info.plist

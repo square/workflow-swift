@@ -26,6 +26,10 @@ let package = Package(
             name: "WorkflowReactiveSwift",
             targets: ["WorkflowReactiveSwift"]
         ),
+        .library(
+            name: "WorkflowCombine",
+            targets: ["WorkflowCombine"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
@@ -61,6 +65,11 @@ let package = Package(
             name: "WorkflowReactiveSwift",
             dependencies: ["ReactiveSwift", "Workflow"],
             path: "WorkflowReactiveSwift/Sources"
+        ),
+        .target(
+            name: "WorkflowCombine",
+            dependencies: ["Workflow"],
+            path: "WorkflowCombine/Sources"
         ),
     ],
     swiftLanguageVersions: [.v5]
