@@ -79,7 +79,7 @@ extension AnyWorkflowConvertible where Rendering == Void {
 }
 
 extension AnyWorkflowConvertible where Rendering == Void, Output: WorkflowAction {
-    public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where Parent: Workflow, Output.WorkflowType == Parent {
+    public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where Output.WorkflowType == Parent {
         rendered(in: context, key: key)
     }
 }
@@ -118,7 +118,7 @@ struct OutputBlockingWorkflow<Child: AnyWorkflowConvertible>: Workflow {
 
     func render(state: Void, context: RenderContext<OutputBlockingWorkflow<Child>>) -> Child.Rendering {
         return child
-            .mapOutput { (_) in AnyWorkflowAction.noAction }
+            .mapOutput { _ in AnyWorkflowAction.noAction }
             .rendered(in: context)
     }
 }
