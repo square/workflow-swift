@@ -1,6 +1,24 @@
 Change Log
 ==========
 
+## Version 1.0.0
+
+_2021-11-05_
+
+v1.0.0 🎉
+
+## What's Changed
+* Updates to Workflow Templates by @monishsyed in https://github.com/square/workflow-swift/pull/100
+* Update RenderTester+TestContext.swift by @cbowns in https://github.com/square/workflow-swift/pull/102
+* Remove unused ReactiveSwift imports by @dhavalshreyas in https://github.com/square/workflow-swift/pull/103
+* Combine Worker by @soorinpark in https://github.com/square/workflow-swift/pull/104
+
+## New Contributors
+* @72A12F4E made their first contribution in https://github.com/square/workflow-swift/pull/101
+* @soorinpark made their first contribution in https://github.com/square/workflow-swift/pull/104
+
+**Full Changelog**: https://github.com/square/workflow-swift/compare/v1.0.0-rc.1...v1.0.0
+
 ## Version 1.0.0-rc.1
 
 _2021-08-27_
