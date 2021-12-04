@@ -18,8 +18,12 @@
 
     import UIKit
 
-    /// A ViewControllerDescription acts as a recipe for building and updating a
-    /// specific UIViewController.
+    /// A ViewControllerDescription acts as a recipe for building and updating a specific UIViewController.
+    ///
+    /// You usually use a `ViewControllerDescription` in conjunction with a `DescribedViewController`,
+    /// which will internally create and manage the described view controller for its current view controller description.
+    /// However, you can also directly invoke the public methods such as `buildViewController()`,
+    /// `update(viewController:)`, if you are manually managing your own view controller hierarchy.
     public struct ViewControllerDescription {
         private let viewControllerType: UIViewController.Type
         private let build: () -> UIViewController
@@ -46,11 +50,10 @@
             }
         }
 
-        /// Construct and update a new view controller as described by this view
-        /// controller description.
-        internal func buildViewController() -> UIViewController {
+        /// Construct and update a new view controller as described by this view controller description.
+        /// The view controller will be updated before it is returned.
+        public func buildViewController() -> UIViewController {
             let viewController = build()
-            assert(canUpdate(viewController: viewController), "View controller description built a view controller it cannot update (\(viewController) is not exactly type \(viewControllerType))")
 
             // Perform an initial update of the built view controller
             update(viewController: viewController)
@@ -58,9 +61,12 @@
             return viewController
         }
 
-        /// If the given view controller is of the correct type to be updated by
-        /// this view controller description.
-        internal func canUpdate(viewController: UIViewController) -> Bool {
+        /// If the given view controller is of the correct type to be updated by this view controller description.
+        ///
+        /// If your view controller type can change between updates, call this method before invoking
+        /// `update(viewController:)`. Failure to confirm the view controller is updatable will
+        /// result in a fatal `precondition`.
+        public func canUpdate(viewController: UIViewController) -> Bool {
             return type(of: viewController) == viewControllerType
         }
 
@@ -70,7 +76,16 @@
         ///         `canUpdate(viewController:)` will result in an exception.
         ///
         /// - Parameter viewController: The view controller instance to update
-        internal func update(viewController: UIViewController) {
+        public func update(viewController: UIViewController) {
+            precondition(
+                canUpdate(viewController: viewController),
+                """
+                `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
+
+                The view controller type (\(type(of: viewController)) is not exactly \(viewControllerType)).
+                """
+            )
+
             update(viewController)
         }
     }
