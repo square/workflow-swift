@@ -47,6 +47,9 @@
 
             super.init(nibName: nil, bundle: nil)
 
+            addChild(rootViewController)
+            rootViewController.didMove(toParent: self)
+
             workflowHost
                 .rendering
                 .signal
@@ -75,9 +78,7 @@
 
             view.backgroundColor = .white
 
-            addChild(rootViewController)
             view.addSubview(rootViewController.view)
-            rootViewController.didMove(toParent: self)
 
             updatePreferredContentSizeIfNeeded()
         }

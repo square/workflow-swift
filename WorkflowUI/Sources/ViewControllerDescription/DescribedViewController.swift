@@ -24,6 +24,9 @@
         public init(description: ViewControllerDescription) {
             self.currentViewController = description.buildViewController()
             super.init(nibName: nil, bundle: nil)
+
+            addChild(currentViewController)
+            currentViewController.didMove(toParent: self)
         }
 
         public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
@@ -62,9 +65,7 @@
         override public func viewDidLoad() {
             super.viewDidLoad()
 
-            addChild(currentViewController)
             view.addSubview(currentViewController.view)
-            currentViewController.didMove(toParent: self)
 
             updatePreferredContentSizeIfNeeded()
         }
