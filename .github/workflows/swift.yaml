@@ -59,7 +59,7 @@ jobs:
 
     - name: Swift Package Manager - macOS
       run: |
-        xcodebuild -scheme "Workflow-Package" test
+        xcodebuild -scheme "Workflow-Package" test -destination "platform=macOS"
 
   tutorial:
     runs-on: macos-latest
