@@ -47,6 +47,9 @@
 
             super.init(nibName: nil, bundle: nil)
 
+            addChild(rootViewController)
+            rootViewController.didMove(toParent: self)
+
             workflowHost
                 .rendering
                 .signal
@@ -75,9 +78,9 @@
 
             view.backgroundColor = .white
 
-            addChild(rootViewController)
             view.addSubview(rootViewController.view)
-            rootViewController.didMove(toParent: self)
+
+            updatePreferredContentSizeIfNeeded()
         }
 
         override public func viewDidLayoutSubviews() {
@@ -103,6 +106,33 @@
 
         override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
             return rootViewController.supportedInterfaceOrientations
+        }
+
+        override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+            return rootViewController.preferredStatusBarUpdateAnimation
+        }
+
+        @available(iOS 14.0, *)
+        override public var childViewControllerForPointerLock: UIViewController? {
+            return rootViewController
+        }
+
+        override public func preferredContentSizeDidChange(
+            forChildContentContainer container: UIContentContainer
+        ) {
+            super.preferredContentSizeDidChange(forChildContentContainer: container)
+
+            guard container === rootViewController else { return }
+
+            updatePreferredContentSizeIfNeeded()
+        }
+
+        private func updatePreferredContentSizeIfNeeded() {
+            let newPreferredContentSize = rootViewController.preferredContentSize
+
+            guard newPreferredContentSize != preferredContentSize else { return }
+
+            preferredContentSize = newPreferredContentSize
         }
     }
 

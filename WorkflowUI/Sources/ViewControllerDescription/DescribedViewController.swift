@@ -24,6 +24,9 @@
         public init(description: ViewControllerDescription) {
             self.currentViewController = description.buildViewController()
             super.init(nibName: nil, bundle: nil)
+
+            addChild(currentViewController)
+            currentViewController.didMove(toParent: self)
         }
 
         public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
@@ -50,7 +53,7 @@
                     view.addSubview(currentViewController.view)
                     currentViewController.view.frame = view.bounds
                     currentViewController.didMove(toParent: self)
-                    preferredContentSize = currentViewController.preferredContentSize
+                    updatePreferredContentSizeIfNeeded()
                 }
             }
         }
@@ -62,10 +65,9 @@
         override public func viewDidLoad() {
             super.viewDidLoad()
 
-            addChild(currentViewController)
             view.addSubview(currentViewController.view)
-            currentViewController.didMove(toParent: self)
-            preferredContentSize = currentViewController.preferredContentSize
+
+            updatePreferredContentSizeIfNeeded()
         }
 
         override public func viewDidLayoutSubviews() {
@@ -93,15 +95,31 @@
             return currentViewController.supportedInterfaceOrientations
         }
 
-        override public func preferredContentSizeDidChange(forChildContentContainer container: UIContentContainer) {
+        override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+            return currentViewController.preferredStatusBarUpdateAnimation
+        }
+
+        @available(iOS 14.0, *)
+        override public var childViewControllerForPointerLock: UIViewController? {
+            return currentViewController
+        }
+
+        override public func preferredContentSizeDidChange(
+            forChildContentContainer container: UIContentContainer
+        ) {
             super.preferredContentSizeDidChange(forChildContentContainer: container)
 
-            guard
-                (container as? UIViewController) == currentViewController,
-                container.preferredContentSize != preferredContentSize
-            else { return }
+            guard container === currentViewController else { return }
 
-            preferredContentSize = container.preferredContentSize
+            updatePreferredContentSizeIfNeeded()
+        }
+
+        private func updatePreferredContentSizeIfNeeded() {
+            let newPreferredContentSize = currentViewController.preferredContentSize
+
+            guard newPreferredContentSize != preferredContentSize else { return }
+
+            preferredContentSize = newPreferredContentSize
         }
     }
 
