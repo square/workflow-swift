@@ -1,6 +1,8 @@
 Change Log
 ==========
 
+> This file is no longer updated, please visit [Releases](https://github.com/square/workflow-swift/releases) instead.
+
 ## Version 1.0.0
 
 _2021-11-05_
