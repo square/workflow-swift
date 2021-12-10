@@ -41,11 +41,11 @@ jobs:
         bundle exec pod gen Development.podspec
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.4.app
+      run: sudo xcode-select -s /Applications/Xcode_12.5.1.app
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=13.4.1,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=14.5,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   spm:
     runs-on: macos-latest
@@ -59,7 +59,7 @@ jobs:
 
     - name: Swift Package Manager - macOS
       run: |
-        xcodebuild -scheme "Workflow-Package" test
+        xcodebuild -scheme "Workflow-Package" test -destination "platform=macOS"
 
   tutorial:
     runs-on: macos-latest
@@ -78,13 +78,13 @@ jobs:
         bundle check || bundle install --path .bundle
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.4.app
+      run: sudo xcode-select -s /Applications/Xcode_12.5.1.app
 
     - name: Tutorial App
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=13.4.1,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=14.5,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   documentation-lint:
     runs-on: macos-latest
