@@ -43,7 +43,7 @@
             XCTAssertEqual(currentViewController.count, 0)
             XCTAssertFalse(describedViewController.isViewLoaded)
             XCTAssertFalse(currentViewController.isViewLoaded)
-            XCTAssertNil(currentViewController.parent)
+            XCTAssertEqual(currentViewController.parent, describedViewController)
         }
 
         func test_viewDidLoad() {
@@ -75,7 +75,7 @@
             XCTAssertEqual((describedViewController.currentViewController as? CounterViewController)?.count, 1)
             XCTAssertFalse(describedViewController.isViewLoaded)
             XCTAssertFalse(describedViewController.currentViewController.isViewLoaded)
-            XCTAssertNil(describedViewController.currentViewController.parent)
+            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
         }
 
         func test_update_toCompatibleDescription_afterViewLoads() {
