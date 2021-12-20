@@ -18,14 +18,14 @@ import Combine
 import Foundation
 import Workflow
 
-@available(iOS 15.2, macOS 11.3, *)
+@available(iOS 13.0, macOS 10.15, *)
 extension Task: AnyWorkflowConvertible where Failure == Never {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Success> {
         TaskWorkflow(taskProvider: { self }).asAnyWorkflow()
     }
 }
 
-@available(iOS 15.2, macOS 11.3, *)
+@available(iOS 13.0, macOS 10.15, *)
 struct TaskWorkflow<Value>: Workflow {
     public typealias Output = Value
     public typealias State = Void

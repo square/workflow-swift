@@ -21,7 +21,7 @@ import Workflow
 import XCTest
 @testable import WorkflowConcurrency
 
-@available(iOS 15.2, macOS 11.3, *)
+@available(iOS 13.0, macOS 10.15, *)
 class PublisherTests: XCTestCase {
     func test_output() {
         let host = WorkflowHost(
