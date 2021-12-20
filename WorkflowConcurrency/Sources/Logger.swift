@@ -20,7 +20,7 @@ private extension OSLog {
     static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
 }
 
-@available(iOS 15.2, macOS 11.3, *)
+@available(iOS 13.0, macOS 10.15, *)
 // Logs Worker events to OSLog
 final class WorkerLogger<WorkerType: Worker> {
     init() {}
