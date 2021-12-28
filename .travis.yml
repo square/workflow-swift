@@ -1,0 +1,7 @@
+language: java
+matrix:
+  include:
+    - jdk: openjdk11
+      env: GRADLE_PUBLISH=false
+install: "env > /tmp/envx"
+script: "cat /tmp/envx"
