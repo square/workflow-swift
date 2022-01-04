@@ -67,6 +67,9 @@ import UIKit
         override open func loadView() {
             view = UIView(frame: UIScreen.main.bounds)
 
+            // Match the UIKit default for a view controllers view. Not doing so can cause unexpected layout behavior.
+            view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
             view.addSubview(wrappedViewController.view)
 
             updatePreferredContentSizeIfNeeded()
