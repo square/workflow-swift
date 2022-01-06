@@ -105,19 +105,19 @@ extension AnyWorkflowConvertible {
     ///
     /// - Returns: An `AnyWorkflow` with the same rendering and no output.
     public func ignoringOutput() -> AnyWorkflow<Rendering, Never> {
-        OutputBlockingWorkflow(child: self).asAnyWorkflow()
+        OutputBlockingWorkflow(child: asAnyWorkflow()).asAnyWorkflow()
     }
 }
 
-struct OutputBlockingWorkflow<Child: AnyWorkflowConvertible>: Workflow {
+struct OutputBlockingWorkflow<Rendering, ChildOutput>: Workflow {
     typealias Output = Never
-    typealias Rendering = Child.Rendering
+    typealias Rendering = Rendering
     typealias State = Void
 
-    var child: Child
+    var child: AnyWorkflow<Rendering, ChildOutput>
 
-    func render(state: Void, context: RenderContext<OutputBlockingWorkflow<Child>>) -> Child.Rendering {
-        return child
+    func render(state: Void, context: RenderContext<Self>) -> Rendering {
+        child
             .mapOutput { _ in AnyWorkflowAction.noAction }
             .rendered(in: context)
     }

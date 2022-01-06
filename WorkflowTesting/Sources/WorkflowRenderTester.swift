@@ -183,10 +183,10 @@
             producingRendering rendering: ExpectedWorkflowType.Rendering,
             file: StaticString = #file,
             line: UInt = #line,
-            assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }
+            assertions: @escaping (AnyWorkflow<ExpectedWorkflowType.Rendering, ExpectedWorkflowType.Output>) -> Void = { _ in }
         ) -> RenderTester<WorkflowType> {
             return expectWorkflow(
-                type: OutputBlockingWorkflow<ExpectedWorkflowType>.self,
+                type: OutputBlockingWorkflow<ExpectedWorkflowType.Rendering, ExpectedWorkflowType.Output>.self,
                 key: key,
                 producingRendering: rendering,
                 file: file,
