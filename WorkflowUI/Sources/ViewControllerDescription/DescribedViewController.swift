@@ -42,19 +42,21 @@
             if description.canUpdate(viewController: currentViewController) {
                 description.update(viewController: currentViewController)
             } else {
-                if isViewLoaded {
-                    currentViewController.willMove(toParent: nil)
-                    currentViewController.view.removeFromSuperview()
-                    currentViewController.removeFromParent()
-                }
+                currentViewController.willMove(toParent: nil)
+                currentViewController.viewIfLoaded?.removeFromSuperview()
+                currentViewController.removeFromParent()
+
                 currentViewController = description.buildViewController()
+
+                addChild(currentViewController)
+
                 if isViewLoaded {
-                    addChild(currentViewController)
-                    view.addSubview(currentViewController.view)
                     currentViewController.view.frame = view.bounds
-                    currentViewController.didMove(toParent: self)
+                    view.addSubview(currentViewController.view)
                     updatePreferredContentSizeIfNeeded()
                 }
+
+                currentViewController.didMove(toParent: self)
             }
         }
 
