@@ -108,10 +108,11 @@
 
             // Then
             XCTAssertNotEqual(initialChildViewController, describedViewController.currentViewController)
+            XCTAssertNil(initialChildViewController.parent)
             XCTAssertEqual((describedViewController.currentViewController as? MessageViewController)?.message, "Test")
             XCTAssertFalse(describedViewController.isViewLoaded)
             XCTAssertFalse(describedViewController.currentViewController.isViewLoaded)
-            XCTAssertNil(describedViewController.currentViewController.parent)
+            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
         }
 
         func test_update_toIncompatibleDescription_afterViewLoads() {
