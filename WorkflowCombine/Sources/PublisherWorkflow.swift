@@ -37,7 +37,7 @@
             context.runSideEffect(key: "") { [publisher] lifetime in
                 let cancellable = publisher
                     .map { AnyWorkflowAction(sendingOutput: $0) }
-                    .subscribe(on: RunLoop.main)
+                    .receive(on: DispatchQueue.main)
                     .sink { sink.send($0) }
 
                 lifetime.onEnded {
