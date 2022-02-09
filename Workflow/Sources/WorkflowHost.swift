@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Foundation
 import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
@@ -43,6 +44,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
     /// as state transitions occur within the hierarchy.
     public let rendering: Property<WorkflowType.Rendering>
+
+    private var listeners: [UUID: WorkflowListener<WorkflowType>] = [:]
 
     /// Initializes a new host with the given workflow at the root.
     ///
@@ -80,11 +83,30 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
+    public func addListener(listener: WorkflowListener<WorkflowType>) {
+        listeners[listener.id] = listener
+    }
+
+    public func removeListener(listener: WorkflowListener<WorkflowType>) {
+        listeners.removeValue(forKey: listener.id)
+    }
+
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render()
+        let render = rootNode.render()
+        mutableRendering.value = render
+        listeners.values.forEach { listener in
+            DispatchQueue.main.async {
+                listener.render(render: render)
+            }
+        }
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
+            listeners.values.forEach { listener in
+                DispatchQueue.main.async {
+                    listener.output(output: outputEvent)
+                }
+            }
         }
 
         debugger?.didUpdate(
@@ -98,5 +120,79 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// A signal containing output events emitted by the root workflow in the hierarchy.
     public var output: Signal<WorkflowType.Output, Never> {
         return outputEvent
+    }
+}
+
+// public protocol Listener {
+//    associatedtype Rendering
+//    associatedtype Output
+//
+//    func render(render: Rendering)
+//    func output(output: Output)
+// }
+
+// MARK: - Separate listener types
+
+open class RenderListener<WorkflowType: Workflow> {
+    public let id = UUID()
+
+    open func render(render: WorkflowType.Rendering) {
+        fatalError("This needs to be subclassed and implemented!")
+    }
+
+    public init() {}
+}
+
+open class OutputListener<WorkflowType: Workflow> {
+    public let id = UUID()
+
+    open func output(output: WorkflowType.Output) {
+        fatalError("This needs to be subclassed and implemented!")
+    }
+
+    public init() {}
+}
+
+// MARK: - Combnined listener types
+
+open class WorkflowListener<WorkflowType: Workflow> {
+    public let id = UUID()
+    open func render(render: WorkflowType.Rendering) {
+        fatalError("This needs to be subclassed and implemented!")
+    }
+
+    open func output(output: WorkflowType.Output) {
+        fatalError("This needs to be subclassed and implemented!")
+    }
+
+    public init() {}
+}
+
+// Closure based listener implementation
+public final class WorkflowClosureListener<WorkflowType: Workflow>: WorkflowListener<WorkflowType> {
+    private var renderingListener: ((WorkflowType.Rendering) -> Void)?
+    private var outputListener: ((WorkflowType.Output) -> Void)?
+
+    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void,
+                outputListener: @escaping (WorkflowType.Output) -> Void) {
+        super.init()
+        self.renderingListener = renderingListener
+        self.outputListener = outputListener
+    }
+
+    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void) {
+        self.renderingListener = renderingListener
+    }
+
+    public init(outputListener: @escaping (WorkflowType.Output) -> Void) {
+        self.outputListener = outputListener
+    }
+
+    override public func render(render: WorkflowType.Rendering) {
+        renderingListener?(render)
+    }
+
+    override public func output(output: WorkflowType.Output) {
+        outputListener?(output)
     }
 }

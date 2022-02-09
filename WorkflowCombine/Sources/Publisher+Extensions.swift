@@ -31,4 +31,65 @@
         }
     }
 
+//    @available(iOS 13.0, macOS 10.15, *)
+//    extension WorkflowHost {
+//        public var renderPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
+//            let passthrough = PassthroughSubject<WorkflowType.Rendering, Never>()
+//            renderingListener = { render in
+//                passthrough.send(render)
+//            }
+//            return passthrough.eraseToAnyPublisher()
+//        }
+//    }
+
+//    @available(iOS 13.0, macOS 10.15, *)
+//    public final class PublisherListener<WorkflowType: Workflow>: Listener {
+//        public typealias Rendering = WorkflowType.Rendering
+//        public typealias Output = WorkflowType.Output
+//
+//        public var renderPublisher: AnyPublisher<Rendering, Never> {
+//            return renderSubject.eraseToAnyPublisher()
+//        }
+//        public var outputPublisher: AnyPublisher<Output, Never> {
+//            return outputSubject.eraseToAnyPublisher()
+//        }
+//
+//        private let renderSubject = PassthroughSubject<Rendering, Never>()
+//        private let outputSubject = PassthroughSubject<Output, Never>()
+//
+//        public func render(render: WorkflowType.Rendering) {
+//            renderSubject.send(render)
+//        }
+//
+//        public func output(output: WorkflowType.Output) {
+//            outputSubject.send(output)
+//        }
+//    }
+
+    // Combine publisher listener implemenation
+    @available(iOS 13.0, macOS 10.15, *)
+    public final class WorkflowPublisherListener<WorkflowType: Workflow>: WorkflowListener<WorkflowType> {
+        public var renderPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
+            return renderSubject.eraseToAnyPublisher()
+        }
+
+        public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
+            return outputSubject.eraseToAnyPublisher()
+        }
+
+        private let renderSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
+        private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
+
+        override public func render(render: WorkflowType.Rendering) {
+            renderSubject.send(render)
+        }
+
+        override public func output(output: WorkflowType.Output) {
+            outputSubject.send(output)
+        }
+
+        override public init() {
+            super.init()
+        }
+    }
 #endif
