@@ -153,7 +153,7 @@ open class OutputListener<WorkflowType: Workflow> {
     public init() {}
 }
 
-// MARK: - Combnined listener types
+// MARK: - Combined listener types
 
 open class WorkflowListener<WorkflowType: Workflow> {
     public let id = UUID()
