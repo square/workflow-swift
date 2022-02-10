@@ -47,6 +47,9 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     private var listeners: [UUID: WorkflowListener<WorkflowType>] = [:]
 
+    private var renderingListeners: [UUID: RenderingListener<WorkflowType>] = [:]
+    private var outputListeners: [UUID: OutputListener<WorkflowType>] = [:]
+
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
@@ -83,6 +86,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
+    // Combined Listeners
     public func addListener(listener: WorkflowListener<WorkflowType>) {
         listeners[listener.id] = listener
     }
@@ -91,18 +95,47 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         listeners.removeValue(forKey: listener.id)
     }
 
+    // Separate Listeners
+    public func addRenderingListener(listener: RenderingListener<WorkflowType>) {
+        renderingListeners[listener.id] = listener
+    }
+
+    public func removeRenderingListener(listener: RenderingListener<WorkflowType>) {
+        renderingListeners.removeValue(forKey: listener.id)
+    }
+
+    public func addOutputListener(listener: OutputListener<WorkflowType>) {
+        outputListeners[listener.id] = listener
+    }
+
+    public func removeOutputListener(listener: OutputListener<WorkflowType>) {
+        outputListeners.removeValue(forKey: listener.id)
+    }
+
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
         let render = rootNode.render()
         mutableRendering.value = render
         listeners.values.forEach { listener in
             DispatchQueue.main.async {
-                listener.render(render: render)
+                listener.rendering(rendering: render)
+            }
+        }
+
+        renderingListeners.values.forEach { listener in
+            DispatchQueue.main.async {
+                listener.rendering(rendering: render)
             }
         }
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
             listeners.values.forEach { listener in
+                DispatchQueue.main.async {
+                    listener.output(output: outputEvent)
+                }
+            }
+
+            outputListeners.values.forEach { listener in
                 DispatchQueue.main.async {
                     listener.output(output: outputEvent)
                 }
@@ -133,10 +166,10 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
 // MARK: - Separate listener types
 
-open class RenderListener<WorkflowType: Workflow> {
+open class RenderingListener<WorkflowType: Workflow> {
     public let id = UUID()
 
-    open func render(render: WorkflowType.Rendering) {
+    open func rendering(rendering: WorkflowType.Rendering) {
         fatalError("This needs to be subclassed and implemented!")
     }
 
@@ -153,11 +186,37 @@ open class OutputListener<WorkflowType: Workflow> {
     public init() {}
 }
 
+public final class ClosureRenderingListener<WorkflowType: Workflow>: RenderingListener<WorkflowType> {
+    private let renderingListener: (WorkflowType.Rendering) -> Void
+
+    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void) {
+        self.renderingListener = renderingListener
+        super.init()
+    }
+
+    override public func rendering(rendering: WorkflowType.Rendering) {
+        renderingListener(rendering)
+    }
+}
+
+public final class ClosureOutputListener<WorkflowType: Workflow>: OutputListener<WorkflowType> {
+    private let outputListener: (WorkflowType.Output) -> Void
+
+    public init(outputListener: @escaping (WorkflowType.Output) -> Void) {
+        self.outputListener = outputListener
+        super.init()
+    }
+
+    override public func output(output: WorkflowType.Output) {
+        outputListener(output)
+    }
+}
+
 // MARK: - Combined listener types
 
 open class WorkflowListener<WorkflowType: Workflow> {
     public let id = UUID()
-    open func render(render: WorkflowType.Rendering) {
+    open func rendering(rendering: WorkflowType.Rendering) {
         fatalError("This needs to be subclassed and implemented!")
     }
 
@@ -188,8 +247,8 @@ public final class WorkflowClosureListener<WorkflowType: Workflow>: WorkflowList
         self.outputListener = outputListener
     }
 
-    override public func render(render: WorkflowType.Rendering) {
-        renderingListener?(render)
+    override public func rendering(rendering: WorkflowType.Rendering) {
+        renderingListener?(rendering)
     }
 
     override public func output(output: WorkflowType.Output) {

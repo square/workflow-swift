@@ -70,26 +70,49 @@
     @available(iOS 13.0, macOS 10.15, *)
     public final class WorkflowPublisherListener<WorkflowType: Workflow>: WorkflowListener<WorkflowType> {
         public var renderPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-            return renderSubject.eraseToAnyPublisher()
+            return renderingSubject.eraseToAnyPublisher()
         }
 
         public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
             return outputSubject.eraseToAnyPublisher()
         }
 
-        private let renderSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
+        private let renderingSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
         private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
-        override public func render(render: WorkflowType.Rendering) {
-            renderSubject.send(render)
+        override public func rendering(rendering: WorkflowType.Rendering) {
+            renderingSubject.send(rendering)
         }
 
         override public func output(output: WorkflowType.Output) {
             outputSubject.send(output)
         }
+    }
 
-        override public init() {
-            super.init()
+    // Separate listeners
+    @available(iOS 13.0, macOS 10.15, *)
+    public final class PublisherRenderingListener<WorkflowType: Workflow>: RenderingListener<WorkflowType> {
+        public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
+            return renderingSubject.eraseToAnyPublisher()
+        }
+
+        private let renderingSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
+
+        override public func rendering(rendering: WorkflowType.Rendering) {
+            renderingSubject.send(rendering)
+        }
+    }
+
+    @available(iOS 13.0, macOS 10.15, *)
+    public final class PublisherOutputListener<WorkflowType: Workflow>: OutputListener<WorkflowType> {
+        public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
+            return outputSubject.eraseToAnyPublisher()
+        }
+
+        private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
+
+        override public func output(output: WorkflowType.Output) {
+            outputSubject.send(output)
         }
     }
 #endif
