@@ -31,88 +31,47 @@
         }
     }
 
-//    @available(iOS 13.0, macOS 10.15, *)
-//    extension WorkflowHost {
-//        public var renderPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-//            let passthrough = PassthroughSubject<WorkflowType.Rendering, Never>()
-//            renderingListener = { render in
-//                passthrough.send(render)
-//            }
-//            return passthrough.eraseToAnyPublisher()
-//        }
-//    }
+    private enum WorkflowCombineListenerIdentifier {
+        static let id = UUID()
+    }
 
-//    @available(iOS 13.0, macOS 10.15, *)
-//    public final class PublisherListener<WorkflowType: Workflow>: Listener {
-//        public typealias Rendering = WorkflowType.Rendering
-//        public typealias Output = WorkflowType.Output
-//
-//        public var renderPublisher: AnyPublisher<Rendering, Never> {
-//            return renderSubject.eraseToAnyPublisher()
-//        }
-//        public var outputPublisher: AnyPublisher<Output, Never> {
-//            return outputSubject.eraseToAnyPublisher()
-//        }
-//
-//        private let renderSubject = PassthroughSubject<Rendering, Never>()
-//        private let outputSubject = PassthroughSubject<Output, Never>()
-//
-//        public func render(render: WorkflowType.Rendering) {
-//            renderSubject.send(render)
-//        }
-//
-//        public func output(output: WorkflowType.Output) {
-//            outputSubject.send(output)
-//        }
-//    }
-
-    // Combine publisher listener implemenation
     @available(iOS 13.0, macOS 10.15, *)
-    public final class WorkflowPublisherListener<WorkflowType: Workflow>: WorkflowListener<WorkflowType> {
-        public var renderPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-            return renderingSubject.eraseToAnyPublisher()
+    final class PublisherListener<OutputType>: Listener<OutputType> {
+        var publisher: AnyPublisher<OutputType, Never> {
+            return subject.eraseToAnyPublisher()
         }
 
-        public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
-            return outputSubject.eraseToAnyPublisher()
+        private let subject = PassthroughSubject<OutputType, Never>()
+
+        override public func send(_ output: OutputType) {
+            subject.send(output)
         }
 
-        private let renderingSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
-        private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
-
-        override public func rendering(rendering: WorkflowType.Rendering) {
-            renderingSubject.send(rendering)
-        }
-
-        override public func output(output: WorkflowType.Output) {
-            outputSubject.send(output)
+        public init() {
+            super.init(id: WorkflowCombineListenerIdentifier.id)
         }
     }
 
-    // Separate listeners
     @available(iOS 13.0, macOS 10.15, *)
-    public final class PublisherRenderingListener<WorkflowType: Workflow>: RenderingListener<WorkflowType> {
+    extension WorkflowHost {
         public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-            return renderingSubject.eraseToAnyPublisher()
+            if let publisher = getRenderingListener(id: WorkflowCombineListenerIdentifier.id) as? PublisherListener {
+                return publisher.publisher
+            } else {
+                let listener = PublisherListener<WorkflowType.Rendering>()
+                addRenderingListener(listener: listener)
+                return listener.publisher
+            }
         }
 
-        private let renderingSubject = PassthroughSubject<WorkflowType.Rendering, Never>()
-
-        override public func rendering(rendering: WorkflowType.Rendering) {
-            renderingSubject.send(rendering)
-        }
-    }
-
-    @available(iOS 13.0, macOS 10.15, *)
-    public final class PublisherOutputListener<WorkflowType: Workflow>: OutputListener<WorkflowType> {
         public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
-            return outputSubject.eraseToAnyPublisher()
-        }
-
-        private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
-
-        override public func output(output: WorkflowType.Output) {
-            outputSubject.send(output)
+            if let publisher = getOutputListener(id: WorkflowCombineListenerIdentifier.id) as? PublisherListener {
+                return publisher.publisher
+            } else {
+                let listener = PublisherListener<WorkflowType.Output>()
+                addOutputListener(listener: listener)
+                return listener.publisher
+            }
         }
     }
 #endif

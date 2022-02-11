@@ -45,10 +45,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// as state transitions occur within the hierarchy.
     public let rendering: Property<WorkflowType.Rendering>
 
-    private var listeners: [UUID: WorkflowListener<WorkflowType>] = [:]
-
-    private var renderingListeners: [UUID: RenderingListener<WorkflowType>] = [:]
-    private var outputListeners: [UUID: OutputListener<WorkflowType>] = [:]
+    private var renderingListeners: [UUID: Listener<WorkflowType.Rendering>] = [:]
+    private var outputListeners: [UUID: Listener<WorkflowType.Output>] = [:]
 
     /// Initializes a new host with the given workflow at the root.
     ///
@@ -86,58 +84,61 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
-    // Combined Listeners
-    public func addListener(listener: WorkflowListener<WorkflowType>) {
-        listeners[listener.id] = listener
-    }
-
-    public func removeListener(listener: WorkflowListener<WorkflowType>) {
-        listeners.removeValue(forKey: listener.id)
-    }
-
     // Separate Listeners
-    public func addRenderingListener(listener: RenderingListener<WorkflowType>) {
+    // Rendering
+    public func addRenderingListener(_ closure: @escaping (WorkflowType.Rendering) -> Void) -> UUID {
+        let listener = ClosureListener<WorkflowType.Rendering>(listener: closure)
+        renderingListeners[listener.id] = listener
+        return listener.id
+    }
+
+    public func addRenderingListener(listener: Listener<WorkflowType.Rendering>) {
         renderingListeners[listener.id] = listener
     }
 
-    public func removeRenderingListener(listener: RenderingListener<WorkflowType>) {
-        renderingListeners.removeValue(forKey: listener.id)
+    public func getRenderingListener(id: UUID) -> Listener<WorkflowType.Rendering>? {
+        return renderingListeners[id]
     }
 
-    public func addOutputListener(listener: OutputListener<WorkflowType>) {
+    public func removeRenderingListener(id: UUID) {
+        renderingListeners.removeValue(forKey: id)
+    }
+
+    // Output
+    public func addOutputListener(_ closure: @escaping (WorkflowType.Output) -> Void) -> UUID {
+        let listener = ClosureListener<WorkflowType.Output>(listener: closure)
+        outputListeners[listener.id] = listener
+        return listener.id
+    }
+
+    public func addOutputListener(listener: Listener<WorkflowType.Output>) {
         outputListeners[listener.id] = listener
     }
 
-    public func removeOutputListener(listener: OutputListener<WorkflowType>) {
-        outputListeners.removeValue(forKey: listener.id)
+    public func getOutputListener(id: UUID) -> Listener<WorkflowType.Output>? {
+        return outputListeners[id]
+    }
+
+    public func removeOutputListener(id: UUID) {
+        outputListeners.removeValue(forKey: id)
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
         let render = rootNode.render()
         mutableRendering.value = render
-        listeners.values.forEach { listener in
-            DispatchQueue.main.async {
-                listener.rendering(rendering: render)
-            }
-        }
 
         renderingListeners.values.forEach { listener in
             DispatchQueue.main.async {
-                listener.rendering(rendering: render)
+                listener.send(render)
             }
         }
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
-            listeners.values.forEach { listener in
-                DispatchQueue.main.async {
-                    listener.output(output: outputEvent)
-                }
-            }
 
             outputListeners.values.forEach { listener in
                 DispatchQueue.main.async {
-                    listener.output(output: outputEvent)
+                    listener.send(outputEvent)
                 }
             }
         }
@@ -156,102 +157,29 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 }
 
-// public protocol Listener {
-//    associatedtype Rendering
-//    associatedtype Output
-//
-//    func render(render: Rendering)
-//    func output(output: Output)
-// }
-
 // MARK: - Separate listener types
 
-open class RenderingListener<WorkflowType: Workflow> {
-    public let id = UUID()
+open class Listener<OutputType> {
+    public let id: UUID
 
-    open func rendering(rendering: WorkflowType.Rendering) {
+    open func send(_ output: OutputType) {
         fatalError("This needs to be subclassed and implemented!")
     }
 
-    public init() {}
+    public init(id: UUID = UUID()) {
+        self.id = id
+    }
 }
 
-open class OutputListener<WorkflowType: Workflow> {
-    public let id = UUID()
+final class ClosureListener<OutputType>: Listener<OutputType> {
+    private let listener: (OutputType) -> Void
 
-    open func output(output: WorkflowType.Output) {
-        fatalError("This needs to be subclassed and implemented!")
+    override public func send(_ output: OutputType) {
+        listener(output)
     }
 
-    public init() {}
-}
-
-public final class ClosureRenderingListener<WorkflowType: Workflow>: RenderingListener<WorkflowType> {
-    private let renderingListener: (WorkflowType.Rendering) -> Void
-
-    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void) {
-        self.renderingListener = renderingListener
+    public init(listener: @escaping (OutputType) -> Void) {
+        self.listener = listener
         super.init()
-    }
-
-    override public func rendering(rendering: WorkflowType.Rendering) {
-        renderingListener(rendering)
-    }
-}
-
-public final class ClosureOutputListener<WorkflowType: Workflow>: OutputListener<WorkflowType> {
-    private let outputListener: (WorkflowType.Output) -> Void
-
-    public init(outputListener: @escaping (WorkflowType.Output) -> Void) {
-        self.outputListener = outputListener
-        super.init()
-    }
-
-    override public func output(output: WorkflowType.Output) {
-        outputListener(output)
-    }
-}
-
-// MARK: - Combined listener types
-
-open class WorkflowListener<WorkflowType: Workflow> {
-    public let id = UUID()
-    open func rendering(rendering: WorkflowType.Rendering) {
-        fatalError("This needs to be subclassed and implemented!")
-    }
-
-    open func output(output: WorkflowType.Output) {
-        fatalError("This needs to be subclassed and implemented!")
-    }
-
-    public init() {}
-}
-
-// Closure based listener implementation
-public final class WorkflowClosureListener<WorkflowType: Workflow>: WorkflowListener<WorkflowType> {
-    private var renderingListener: ((WorkflowType.Rendering) -> Void)?
-    private var outputListener: ((WorkflowType.Output) -> Void)?
-
-    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void,
-                outputListener: @escaping (WorkflowType.Output) -> Void) {
-        super.init()
-        self.renderingListener = renderingListener
-        self.outputListener = outputListener
-    }
-
-    public init(renderingListener: @escaping (WorkflowType.Rendering) -> Void) {
-        self.renderingListener = renderingListener
-    }
-
-    public init(outputListener: @escaping (WorkflowType.Output) -> Void) {
-        self.outputListener = outputListener
-    }
-
-    override public func rendering(rendering: WorkflowType.Rendering) {
-        renderingListener?(rendering)
-    }
-
-    override public func output(output: WorkflowType.Output) {
-        outputListener?(output)
     }
 }
