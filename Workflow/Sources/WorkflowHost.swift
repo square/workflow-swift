@@ -84,42 +84,49 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
-    // Separate Listeners
     // Rendering
     public func addRenderingListener(_ closure: @escaping (WorkflowType.Rendering) -> Void) -> UUID {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         let listener = ClosureListener<WorkflowType.Rendering>(listener: closure)
         renderingListeners[listener.id] = listener
         return listener.id
     }
 
     public func addRenderingListener(listener: Listener<WorkflowType.Rendering>) {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         renderingListeners[listener.id] = listener
     }
 
     public func getRenderingListener(id: UUID) -> Listener<WorkflowType.Rendering>? {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         return renderingListeners[id]
     }
 
     public func removeRenderingListener(id: UUID) {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         renderingListeners.removeValue(forKey: id)
     }
 
     // Output
     public func addOutputListener(_ closure: @escaping (WorkflowType.Output) -> Void) -> UUID {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         let listener = ClosureListener<WorkflowType.Output>(listener: closure)
         outputListeners[listener.id] = listener
         return listener.id
     }
 
     public func addOutputListener(listener: Listener<WorkflowType.Output>) {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         outputListeners[listener.id] = listener
     }
 
     public func getOutputListener(id: UUID) -> Listener<WorkflowType.Output>? {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         return outputListeners[id]
     }
 
     public func removeOutputListener(id: UUID) {
+        dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         outputListeners.removeValue(forKey: id)
     }
 

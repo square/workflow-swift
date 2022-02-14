@@ -31,47 +31,4 @@
         }
     }
 
-    private enum WorkflowCombineListenerIdentifier {
-        static let id = UUID()
-    }
-
-    @available(iOS 13.0, macOS 10.15, *)
-    final class PublisherListener<OutputType>: Listener<OutputType> {
-        var publisher: AnyPublisher<OutputType, Never> {
-            return subject.eraseToAnyPublisher()
-        }
-
-        private let subject = PassthroughSubject<OutputType, Never>()
-
-        override public func send(_ output: OutputType) {
-            subject.send(output)
-        }
-
-        public init() {
-            super.init(id: WorkflowCombineListenerIdentifier.id)
-        }
-    }
-
-    @available(iOS 13.0, macOS 10.15, *)
-    extension WorkflowHost {
-        public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-            if let publisher = getRenderingListener(id: WorkflowCombineListenerIdentifier.id) as? PublisherListener {
-                return publisher.publisher
-            } else {
-                let listener = PublisherListener<WorkflowType.Rendering>()
-                addRenderingListener(listener: listener)
-                return listener.publisher
-            }
-        }
-
-        public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
-            if let publisher = getOutputListener(id: WorkflowCombineListenerIdentifier.id) as? PublisherListener {
-                return publisher.publisher
-            } else {
-                let listener = PublisherListener<WorkflowType.Output>()
-                addOutputListener(listener: listener)
-                return listener.publisher
-            }
-        }
-    }
 #endif
