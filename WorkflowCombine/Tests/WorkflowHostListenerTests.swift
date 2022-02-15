@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2022 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
+import Combine
+import Foundation
 import Workflow
 import XCTest
+@testable import WorkflowCombine
 
-final class WorkflowHostTests: XCTestCase {
-    func test_updatedInputCausesRenderPass() {
-        let host = WorkflowHost(workflow: TestWorkflow(step: .first))
-
-        XCTAssertEqual(1, host.rendering.value)
-
-        host.update(workflow: TestWorkflow(step: .second))
-
-        XCTAssertEqual(2, host.rendering.value)
-    }
-
-    func test_addingClosureRenderingListener() {
+class WorkflowHostListenerTests: XCTestCase {
+    func test_addingPublisherRenderingListener() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
         let renderingsComplete = expectation(description: "Waiting for renderings")
-        _ = host.addRenderingListener { rendering in
+        let cancellable = host.renderingPublisher.sink { rendering in
             XCTAssertEqual(2, host.rendering.value)
             renderingsComplete.fulfill()
         }
@@ -40,43 +33,14 @@ final class WorkflowHostTests: XCTestCase {
         host.update(workflow: TestWorkflow(step: .second))
 
         waitForExpectations(timeout: 1)
+        cancellable.cancel()
     }
 
-    func test_removingClosureRenderingListener() {
-        let host = WorkflowHost(workflow: TestWorkflow(step: .first))
-
-        let renderingsComplete = expectation(description: "Waiting for renderings")
-        renderingsComplete.isInverted = true
-        let listenerId = host.addRenderingListener { rendering in
-            renderingsComplete.fulfill()
-        }
-
-        host.removeRenderingListener(id: listenerId)
-
-        host.update(workflow: TestWorkflow(step: .second))
-
-        waitForExpectations(timeout: 1)
-    }
-
-    func test_gettingClosureRenderingListener() {
-        let host = WorkflowHost(workflow: TestWorkflow(step: .first))
-
-        let listenerId = host.addRenderingListener { rendering in
-        }
-
-        guard let listener = host.getRenderingListener(id: listenerId) else {
-            XCTFail("Failed to get rendering listener with id: \(listenerId)")
-            return
-        }
-
-        XCTAssertEqual(listenerId, listener.id)
-    }
-
-    func test_addingClosureOutputListener() {
+    func test_addingPublisherOutputListener() {
         let host = WorkflowHost(workflow: TestOutputWorkflow(state: 0))
 
         let outputComplete = expectation(description: "Waiting for output")
-        _ = host.addOutputListener { output in
+        let cancellable = host.outputPublisher.sink { output in
             XCTAssertEqual(1, output)
             outputComplete.fulfill()
         }
@@ -84,35 +48,7 @@ final class WorkflowHostTests: XCTestCase {
         host.rendering.value.onIncrement()
 
         waitForExpectations(timeout: 1)
-    }
-
-    func test_removingClosureOutputListener() {
-        let host = WorkflowHost(workflow: TestOutputWorkflow(state: 0))
-
-        let outputComplete = expectation(description: "Waiting for output")
-        outputComplete.isInverted = true
-        let listenerId = host.addOutputListener { output in
-            outputComplete.fulfill()
-        }
-
-        host.removeOutputListener(id: listenerId)
-        host.rendering.value.onIncrement()
-
-        waitForExpectations(timeout: 1)
-    }
-
-    func test_gettingClosureOutputListener() {
-        let host = WorkflowHost(workflow: TestOutputWorkflow(state: 0))
-
-        let listenerId = host.addOutputListener { output in
-        }
-
-        guard let listener = host.getOutputListener(id: listenerId) else {
-            XCTFail("Failed to get rendering listener with id: \(listenerId)")
-            return
-        }
-
-        XCTAssertEqual(listenerId, listener.id)
+        cancellable.cancel()
     }
 
     fileprivate struct TestWorkflow: Workflow {
