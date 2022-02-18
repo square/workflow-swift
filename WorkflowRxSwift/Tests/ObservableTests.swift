@@ -38,15 +38,13 @@ class ObservableTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValue: Int?
-        let disposable = host.output.signal.observeValues { output in
+        _ = host.addOutputListener { output in
             outputValue = output
             expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual(1, outputValue)
-
-        disposable?.dispose()
     }
 
     func test_multipleOutputs() {
@@ -58,15 +56,13 @@ class ObservableTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValues = [Int]()
-        let disposable = host.output.signal.observeValues { output in
+        _ = host.addOutputListener { output in
             outputValues.append(output)
             expectation.fulfill()
         }
 
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual([1, 2, 3], outputValues)
-
-        disposable?.dispose()
     }
 
     func test_observable_isDisposedIfNotUsedInWorkflow() {

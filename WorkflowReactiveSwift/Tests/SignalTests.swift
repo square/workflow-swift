@@ -28,7 +28,7 @@ class SignalTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValue: Int?
-        let disposable = host.output.signal.observeValues { output in
+        let disposable = host.outputSignal.observeValues { output in
             outputValue = output
             expectation.fulfill()
         }
@@ -50,7 +50,7 @@ class SignalTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValues = [Int]()
-        let disposable = host.output.signal.observeValues { output in
+        let disposable = host.outputSignal.observeValues { output in
             outputValues.append(output)
             if outputValues.count == 3 {
                 expectation.fulfill()

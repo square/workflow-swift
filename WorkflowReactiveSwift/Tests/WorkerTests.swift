@@ -43,14 +43,14 @@ class WorkerTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let disposable = host.renderingSignal.observeValues { rendering in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         disposable?.dispose()
     }
@@ -153,7 +153,7 @@ class WorkerTests: XCTestCase {
         let host = WorkflowHost(workflow: WF())
 
         var outputs: [Int] = []
-        host.output.signal.observeValues { output in
+        host.outputSignal.observeValues { output in
             outputs.append(output)
 
             if outputs.count == 2 {

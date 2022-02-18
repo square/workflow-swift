@@ -28,15 +28,13 @@ class Rx_ReactiveWorkersTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.output.signal.observeValues { output in
+        _ = host.addOutputListener { output in
             if output.reactiveOutputReceived, output.rxOutputReceived {
                 expectation.fulfill()
             }
         }
 
         wait(for: [expectation], timeout: 1.0)
-
-        disposable?.dispose()
     }
 }
 
