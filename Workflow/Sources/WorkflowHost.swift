@@ -15,7 +15,6 @@
  */
 
 import Foundation
-import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
 public protocol WorkflowDebugger {
@@ -35,15 +34,11 @@ public protocol WorkflowDebugger {
 public final class WorkflowHost<WorkflowType: Workflow> {
     private let debugger: WorkflowDebugger?
 
-    private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
-
     private let rootNode: WorkflowNode<WorkflowType>
-
-    private let mutableRendering: MutableProperty<WorkflowType.Rendering>
 
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
     /// as state transitions occur within the hierarchy.
-    public let rendering: Property<WorkflowType.Rendering>
+    public private(set) var rendering: WorkflowType.Rendering
 
     private var renderingListeners: [UUID: Listener<WorkflowType.Rendering>] = [:]
     private var outputListeners: [UUID: Listener<WorkflowType.Output>] = [:]
@@ -58,8 +53,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         self.rootNode = WorkflowNode(workflow: workflow)
 
-        self.mutableRendering = MutableProperty(rootNode.render())
-        self.rendering = Property(mutableRendering)
+        self.rendering = rootNode.render()
         rootNode.enableEvents()
 
         debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
@@ -131,22 +125,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        let render = rootNode.render()
-        mutableRendering.value = render
+        rendering = rootNode.render()
 
         renderingListeners.values.forEach { listener in
-            DispatchQueue.main.async {
-                listener.send(render)
-            }
+            listener.send(self.rendering)
         }
 
         if let outputEvent = output.outputEvent {
-            outputEventObserver.send(value: outputEvent)
-
             outputListeners.values.forEach { listener in
-                DispatchQueue.main.async {
-                    listener.send(outputEvent)
-                }
+                listener.send(outputEvent)
             }
         }
 
@@ -156,11 +143,6 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         )
 
         rootNode.enableEvents()
-    }
-
-    /// A signal containing output events emitted by the root workflow in the hierarchy.
-    public var output: Signal<WorkflowType.Output, Never> {
-        return outputEvent
     }
 }
 
@@ -178,7 +160,7 @@ open class Listener<OutputType> {
     }
 }
 
-final class ClosureListener<OutputType>: Listener<OutputType> {
+public final class ClosureListener<OutputType>: Listener<OutputType> {
     private let listener: (OutputType) -> Void
 
     override public func send(_ output: OutputType) {

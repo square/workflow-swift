@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
-
 /// `RenderContext` is the composition point for the workflow tree.
 ///
 /// During a render pass, a workflow may want to defer to a child

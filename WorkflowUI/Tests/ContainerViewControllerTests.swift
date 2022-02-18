@@ -80,10 +80,12 @@
 
             let expectation = XCTestExpectation(description: "Output")
 
-            let disposable = container.output.observeValues { value in
+            let listener = SignalListener<Int>()
+            let disposable = listener.signal.observeValues { value in
                 XCTAssertEqual(3, value)
                 expectation.fulfill()
             }
+            container.addOutputListener(listener: listener)
 
             observer.send(value: 3)
 
@@ -99,10 +101,12 @@
 
             let expectation = XCTestExpectation(description: "Output")
 
-            let disposable = container.output.observeValues { value in
+            let listener = SignalListener<Int>()
+            let disposable = listener.signal.observeValues { value in
                 XCTAssertEqual(3, value)
                 expectation.fulfill()
             }
+            container.addOutputListener(listener: listener)
 
             observer.send(value: 3)
 
@@ -142,10 +146,12 @@
             let expectation = XCTestExpectation(description: "Second output")
 
             // First output comes before we subscribe
-            let disposable = container.output.observeValues { value in
+            let listener = SignalListener<Int>()
+            let disposable = listener.signal.observeValues { value in
                 XCTAssertEqual(3, value)
                 expectation.fulfill()
             }
+            container.addOutputListener(listener: listener)
 
             let secondWorkflow = EchoWorkflow(value: 3)
             container.update(workflow: secondWorkflow)

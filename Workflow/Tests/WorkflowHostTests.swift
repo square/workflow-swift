@@ -21,11 +21,11 @@ final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         host.update(workflow: TestWorkflow(step: .second))
 
-        XCTAssertEqual(2, host.rendering.value)
+        XCTAssertEqual(2, host.rendering)
     }
 
     func test_addingClosureRenderingListener() {
@@ -33,7 +33,7 @@ final class WorkflowHostTests: XCTestCase {
 
         let renderingsComplete = expectation(description: "Waiting for renderings")
         _ = host.addRenderingListener { rendering in
-            XCTAssertEqual(2, host.rendering.value)
+            XCTAssertEqual(2, rendering)
             renderingsComplete.fulfill()
         }
 
@@ -81,7 +81,7 @@ final class WorkflowHostTests: XCTestCase {
             outputComplete.fulfill()
         }
 
-        host.rendering.value.onIncrement()
+        host.rendering.onIncrement()
 
         waitForExpectations(timeout: 1)
     }
@@ -96,7 +96,7 @@ final class WorkflowHostTests: XCTestCase {
         }
 
         host.removeOutputListener(id: listenerId)
-        host.rendering.value.onIncrement()
+        host.rendering.onIncrement()
 
         waitForExpectations(timeout: 1)
     }

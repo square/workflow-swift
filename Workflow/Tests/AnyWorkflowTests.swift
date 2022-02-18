@@ -40,14 +40,14 @@ public class AnyWorkflowTests: XCTestCase {
         let host = WorkflowHost(workflow: OnOutputWorkflow())
 
         let renderingExpectation = expectation(description: "Waiting for rendering")
-        host.rendering.producer.startWithValues { rendering in
+        _ = host.addRenderingListener { rendering in
             if rendering {
                 renderingExpectation.fulfill()
             }
         }
 
         let outputExpectation = expectation(description: "Waiting for output")
-        host.output.observeValues { output in
+        _ = host.addOutputListener { output in
             if output {
                 outputExpectation.fulfill()
             }
