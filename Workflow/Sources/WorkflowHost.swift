@@ -78,7 +78,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
-    // Rendering
+    /// Add a listener closure to be called back when a render pass happens.
     public func addRenderingListener(_ closure: @escaping (WorkflowType.Rendering) -> Void) -> UUID {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         let listener = ClosureListener<WorkflowType.Rendering>(listener: closure)
@@ -86,22 +86,25 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         return listener.id
     }
 
+    /// Add a rendering listener that is called back when a render pass happens.
     public func addRenderingListener(listener: Listener<WorkflowType.Rendering>) {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         renderingListeners[listener.id] = listener
     }
 
+    /// Gets a rendering listener by it's id.
     public func getRenderingListener(id: UUID) -> Listener<WorkflowType.Rendering>? {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         return renderingListeners[id]
     }
 
+    /// Removes a rendering listener from being called when a render pass happens.
     public func removeRenderingListener(id: UUID) {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         renderingListeners.removeValue(forKey: id)
     }
 
-    // Output
+    /// Add a listener closure to be called when an output event is emitted.
     public func addOutputListener(_ closure: @escaping (WorkflowType.Output) -> Void) -> UUID {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         let listener = ClosureListener<WorkflowType.Output>(listener: closure)
@@ -109,16 +112,19 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         return listener.id
     }
 
+    /// Add a listener to be called when an output event is emitted.
     public func addOutputListener(listener: Listener<WorkflowType.Output>) {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         outputListeners[listener.id] = listener
     }
 
+    /// Gets an output listener by it's id.
     public func getOutputListener(id: UUID) -> Listener<WorkflowType.Output>? {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         return outputListeners[id]
     }
 
+    /// Removes an output listener from being called when an output event is emitted.
     public func removeOutputListener(id: UUID) {
         dispatchPrecondition(condition: .onQueue(DispatchQueue.main))
         outputListeners.removeValue(forKey: id)

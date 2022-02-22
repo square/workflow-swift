@@ -57,6 +57,7 @@
             fatalError("init(coder:) has not been implemented")
         }
 
+        /// Add a listener to be called when an output event is emitted.
         public func addOutputListener(listener: Listener<Output>) {
             workflowHost.addOutputListener(listener: listener)
         }
