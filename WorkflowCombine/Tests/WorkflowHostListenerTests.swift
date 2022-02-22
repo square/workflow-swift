@@ -26,7 +26,7 @@ class WorkflowHostListenerTests: XCTestCase {
 
         let renderingsComplete = expectation(description: "Waiting for renderings")
         let cancellable = host.renderingPublisher.sink { rendering in
-            XCTAssertEqual(2, host.rendering.value)
+            XCTAssertEqual(2, host.rendering)
             renderingsComplete.fulfill()
         }
 
@@ -45,7 +45,7 @@ class WorkflowHostListenerTests: XCTestCase {
             outputComplete.fulfill()
         }
 
-        host.rendering.value.onIncrement()
+        host.rendering.onIncrement()
 
         waitForExpectations(timeout: 1)
         cancellable.cancel()
