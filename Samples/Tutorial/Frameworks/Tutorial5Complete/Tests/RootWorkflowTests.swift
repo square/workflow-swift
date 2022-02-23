@@ -85,7 +85,7 @@ class RootWorkflowTests: XCTestCase {
 
         // First rendering is just the welcome screen. Update the name.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(1, backStack.items.count)
 
             guard let welcomeScreen = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
@@ -98,7 +98,7 @@ class RootWorkflowTests: XCTestCase {
 
         // Log in and go to the todo list.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(1, backStack.items.count)
 
             guard let welcomeScreen = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
@@ -111,7 +111,7 @@ class RootWorkflowTests: XCTestCase {
 
         // Expect the todo list to be rendered. Edit the first todo.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(2, backStack.items.count)
 
             guard let _ = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
@@ -132,7 +132,7 @@ class RootWorkflowTests: XCTestCase {
 
         // Selected a todo to edit. Expect the todo edit screen.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(3, backStack.items.count)
 
             guard let _ = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
@@ -156,7 +156,7 @@ class RootWorkflowTests: XCTestCase {
 
         // Save the selected todo.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(3, backStack.items.count)
 
             guard let _ = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
@@ -202,7 +202,7 @@ class RootWorkflowTests: XCTestCase {
 
         // Expect the todo list. Validate the title was updated.
         do {
-            let backStack = workflowHost.rendering.value
+            let backStack = workflowHost.rendering
             XCTAssertEqual(2, backStack.items.count)
 
             guard let _ = backStack.items[0].screen.wrappedScreen as? WelcomeScreen else {
