@@ -131,14 +131,12 @@
             var content: (T.Rendering) -> Content
             var onOutput: (T.Output) -> Void
 
-            private let (lifetime, token) = Lifetime.make()
-
             init(workflow: T, content: @escaping (T.Rendering) -> Content) {
                 self.content = content
                 self.onOutput = { _ in }
 
                 self.workflowHost = WorkflowHost(workflow: workflow)
-                self.rootViewProvider = RootViewProvider(view: content(workflowHost.rendering.value))
+                self.rootViewProvider = RootViewProvider(view: content(workflowHost.rendering))
                 self.hostingController = UIHostingController(rootView: RootView(provider: rootViewProvider))
 
                 super.init(nibName: nil, bundle: nil)
@@ -147,20 +145,13 @@
                 view.addSubview(hostingController.view)
                 hostingController.didMove(toParent: self)
 
-                workflowHost
-                    .rendering
-                    .signal
-                    .take(during: lifetime)
-                    .observeValues { [weak self] rendering in
-                        self?.didEmit(rendering: rendering)
-                    }
+                _ = workflowHost.addRenderingListener { [weak self] rendering in
+                    self?.didEmit(rendering: rendering)
+                }
 
-                workflowHost
-                    .output
-                    .take(during: lifetime)
-                    .observeValues { [weak self] output in
-                        self?.didEmit(output: output)
-                    }
+                _ = workflowHost.addOutputListener { [weak self] output in
+                    self?.didEmit(output: output)
+                }
             }
 
             required init?(coder: NSCoder) {
