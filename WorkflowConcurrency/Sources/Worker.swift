@@ -29,7 +29,6 @@ import Workflow
 public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
     /// The type of output events returned by this worker.
     associatedtype Output
-//    associatedtype WorkerAsync: () async -> Output
 
     /// Returns a publisher to execute the work represented by this worker.
     func run() async -> Output
