@@ -20,9 +20,27 @@ import XCTest
 
 @available(iOS 13.0, macOS 10.15, *)
 class WorkerTests: XCTestCase {
-    func testWorkerOutput() {
+    func testTaskOutput() {
         let host = WorkflowHost(
             workflow: TaskTestWorkflow(key: "")
+        )
+
+        let expectation = XCTestExpectation()
+        let disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        XCTAssertEqual(0, host.rendering.value)
+
+        wait(for: [expectation], timeout: 5.0)
+        XCTAssertEqual(1, host.rendering.value)
+
+        disposable?.dispose()
+    }
+    
+    func testWorkerOutput() {
+        let host = WorkflowHost(
+            workflow: TaskTestWorkerWorkflow(key: "")
         )
 
         let expectation = XCTestExpectation()
@@ -59,13 +77,28 @@ private struct TaskTestWorkflow: Workflow {
                 return nil
             }
         }
-//        TaskTestWorker()
-//            .mapOutput { output in
-//                AnyWorkflowAction { state in
-//                    state = output
-//                    return nil
-//                }
-//            }
+        .running(in: context, key: key)
+        return state
+    }
+}
+
+@available(iOS 13.0, macOS 10.15, *)
+private struct TaskTestWorkerWorkflow: Workflow {
+    typealias State = Int
+    typealias Rendering = Int
+
+    let key: String
+
+    func makeInitialState() -> Int { 0 }
+
+    func render(state: Int, context: RenderContext<TaskTestWorkerWorkflow>) -> Int {
+        TaskTestWorker()
+            .mapOutput { output in
+                AnyWorkflowAction { state in
+                    state = output
+                    return nil
+                }
+            }
         .running(in: context, key: key)
         return state
     }
