@@ -17,7 +17,6 @@
 import Combine
 import Foundation
 import Workflow
-// import WorkflowConcurrencyTesting
 import XCTest
 @testable import WorkflowConcurrency
 
