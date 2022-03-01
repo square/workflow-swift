@@ -30,10 +30,22 @@ let package = Package(
             name: "WorkflowCombine",
             targets: ["WorkflowCombine"]
         ),
+        .library(
+            name: "WorkflowTesting",
+            targets: ["WorkflowTesting"]
+        ),
+        .library(
+            name: "WorkflowReactiveSwiftTesting",
+            targets: ["WorkflowReactiveSwiftTesting"]
+        ),
+        .library(
+            name: "WorkflowCombineTesting",
+            targets: ["WorkflowCombineTesting"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.44.14")),
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.44.14"),
     ],
     targets: [
         .target(
@@ -70,6 +82,21 @@ let package = Package(
             name: "WorkflowCombine",
             dependencies: ["Workflow"],
             path: "WorkflowCombine/Sources"
+        ),
+        .target(
+            name: "WorkflowTesting",
+            dependencies: ["Workflow"],
+            path: "WorkflowTesting/Sources"
+        ),
+        .target(
+            name: "WorkflowReactiveSwiftTesting",
+            dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
+            path: "WorkflowReactiveSwift/Testing"
+        ),
+        .target(
+            name: "WorkflowCombineTesting",
+            dependencies: ["WorkflowCombine", "WorkflowTesting"],
+            path: "WorkflowCombine/Testing"
         ),
     ],
     swiftLanguageVersions: [.v5]
