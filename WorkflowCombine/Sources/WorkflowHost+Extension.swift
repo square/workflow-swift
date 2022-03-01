@@ -40,8 +40,8 @@
     @available(iOS 13.0, macOS 10.15, *)
     extension WorkflowHost {
         public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
-            if let publisher = getRenderingListener(id: WorkflowHostCombineListenerIdentifier.id) as? PublisherListener {
-                return publisher.publisher
+            if let listener = getRenderingListener(id: WorkflowHostCombineListenerIdentifier.id) as? PublisherListener {
+                return listener.publisher
             } else {
                 let listener = PublisherListener<WorkflowType.Rendering>(id: WorkflowHostCombineListenerIdentifier.id)
                 addRenderingListener(listener: listener)
