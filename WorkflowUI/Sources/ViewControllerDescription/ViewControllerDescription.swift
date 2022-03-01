@@ -18,14 +18,27 @@
 
     import UIKit
 
-    /// A ViewControllerDescription acts as a recipe for building and updating a
-    /// specific UIViewController.
+    /// A ViewControllerDescription acts as a "recipe" for building and updating a specific `UIViewController`.
+    /// It describes how to _create_ and later _update_ a given view controller instance, without creating one
+    /// itself. This means it is a lightweight currency you can create and pass around to describe a view controller,
+    /// without needing to create one.
+    ///
+    /// The most common use case for a `ViewControllerDescription` is to return it from your `Screen`'s
+    /// `viewControllerDescription(environment:)` method. The `WorkflowUI` machinery (or your
+    /// custom container view controller) will then use this view controller description to create or update the
+    /// on-screen presented view controller.
+    ///
+    /// As a creator of a custom container view controller, you will usually pass this view controller description to
+    /// a `DescribedViewController`, which will internally create and manage the described view
+    /// controller for its current view controller description. However, you can also directly invoke the public
+    /// methods such as `buildViewController()`, `update(viewController:)`, if you are
+    /// manually managing your own view controller hierarchy.
     public struct ViewControllerDescription {
         private let viewControllerType: UIViewController.Type
         private let build: () -> UIViewController
         private let update: (UIViewController) -> Void
 
-        /// Constructs a view controller description by providing a closure used to
+        /// Constructs a view controller description by providing closures used to
         /// build and update a specific view controller type.
         ///
         /// - Parameters:
@@ -46,11 +59,10 @@
             }
         }
 
-        /// Construct and update a new view controller as described by this view
-        /// controller description.
-        internal func buildViewController() -> UIViewController {
+        /// Construct and update a new view controller as described by this view controller description.
+        /// The view controller will be updated before it is returned, so it is fully configured and prepared for display.
+        public func buildViewController() -> UIViewController {
             let viewController = build()
-            assert(canUpdate(viewController: viewController), "View controller description built a view controller it cannot update (\(viewController) is not exactly type \(viewControllerType))")
 
             // Perform an initial update of the built view controller
             update(viewController: viewController)
@@ -58,19 +70,34 @@
             return viewController
         }
 
-        /// If the given view controller is of the correct type to be updated by
-        /// this view controller description.
-        internal func canUpdate(viewController: UIViewController) -> Bool {
+        /// If the given view controller is of the correct type to be updated by this view controller description.
+        ///
+        /// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
+        ///
+        /// ### Note
+        /// Failure to confirm the view controller is updatable will result in a fatal `precondition`.
+        public func canUpdate(viewController: UIViewController) -> Bool {
             return type(of: viewController) == viewControllerType
         }
 
-        /// Update the given view controller.
+        /// Update the given view controller with the content from the view controller description.
         ///
-        /// - Note: Passing a view controller that does not return `true` from
-        ///         `canUpdate(viewController:)` will result in an exception.
+        /// - Parameters:
+        ///   - viewController: The view controller to update.
         ///
-        /// - Parameter viewController: The view controller instance to update
-        internal func update(viewController: UIViewController) {
+        /// ### Note
+        /// You must pass a view controller previously created by a compatible `ViewControllerDescription`
+        /// that passes `canUpdate(viewController:)`. Failure to do so will result in a fatal precondition.
+        public func update(viewController: UIViewController) {
+            precondition(
+                canUpdate(viewController: viewController),
+                """
+                `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
+
+                The view controller type (\(type(of: viewController)) is not exactly \(viewControllerType)).
+                """
+            )
+
             update(viewController)
         }
     }
