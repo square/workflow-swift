@@ -86,9 +86,8 @@
         ///   - viewController: The view controller to update.
         ///
         /// ### Note
-        /// You must pass a view controller that is exactly the same type as the type passed to `init`'s `type`
-        /// parameter. Failure to do so will result in a fatal `precondition`. You can check if your view controller
-        /// is the same type, and thus is updatable, by calling `canUpdate(viewController:)`
+        /// You must pass a view controller previously created by a compatible `ViewControllerDescription`
+        /// that passes `canUpdate(viewController:)`. Failure to do so will result in a fatal precondition.
         public func update(viewController: UIViewController) {
             precondition(
                 canUpdate(viewController: viewController),
