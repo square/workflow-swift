@@ -40,16 +40,19 @@ struct TaskWorkflow<Value>: Workflow {
     public func render(state: State, context: RenderContext<TaskWorkflow>) -> Rendering {
         let sink = context.makeSink(of: AnyWorkflowAction.self)
         context.runSideEffect(key: "") { [taskProvider] lifetime in
-            DispatchQueue.main.async {
-                let task = Task {
-                    let output = await taskProvider().value
-                    let action = AnyWorkflowAction<TaskWorkflow>(sendingOutput: output)
+            let providedTask = taskProvider()
+            let task = Task {
+                let output = await providedTask.value
+                if Task.isCancelled { return }
+                let action = AnyWorkflowAction<TaskWorkflow>(sendingOutput: output)
+                DispatchQueue.main.async {
                     sink.send(action)
                 }
+            }
 
-                lifetime.onEnded {
-                    task.cancel()
-                }
+            lifetime.onEnded {
+                task.cancel()
+                providedTask.cancel()
             }
         }
     }
