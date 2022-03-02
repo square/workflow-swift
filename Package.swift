@@ -119,7 +119,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowConcurrencyTests",
-            dependencies: ["WorkflowConcurrency", "Workflow"],
+            dependencies: ["WorkflowConcurrency", "Workflow", "WorkflowTesting"],
             path: "WorkflowConcurrency/Tests"
         ),
     ],

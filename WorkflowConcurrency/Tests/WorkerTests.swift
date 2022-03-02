@@ -15,6 +15,7 @@
  */
 
 import Workflow
+import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
@@ -37,7 +38,7 @@ class WorkerTests: XCTestCase {
 
         disposable?.dispose()
     }
-    
+
     func testWorkerOutput() {
         let host = WorkflowHost(
             workflow: TaskTestWorkerWorkflow(key: "")
@@ -54,6 +55,89 @@ class WorkerTests: XCTestCase {
         XCTAssertEqual(1, host.rendering.value)
 
         disposable?.dispose()
+    }
+
+    func testExpectedWorker() {
+        TaskTestWorkerWorkflow(key: "123")
+            .renderTester()
+            .expectWorkflow(
+                type: WorkerWorkflow<TaskTestWorker>.self,
+                key: "123",
+                producingRendering: (),
+                producingOutput: 1,
+                assertions: { _ in }
+            )
+            .render { _ in }
+            .verifyState { state in
+                XCTAssertEqual(state, 1)
+            }
+    }
+
+    // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.
+    func test_cancelsWorkers() {
+        struct WorkerWorkflow: Workflow {
+            typealias State = Void
+
+            enum Mode {
+                case notWorking
+                case working(start: XCTestExpectation, end: XCTestExpectation)
+            }
+
+            let mode: Mode
+
+            func render(state: State, context: RenderContext<WorkerWorkflow>) -> Bool {
+                switch mode {
+                case .notWorking:
+                    return false
+                case .working(start: let startExpectation, end: let endExpectation):
+                    ExpectingWorker(
+                        startExpectation: startExpectation,
+                        endExpectation: endExpectation
+                    )
+                    .mapOutput { _ in AnyWorkflowAction.noAction }
+                    .running(in: context)
+                    return true
+                }
+            }
+
+            struct ExpectingWorker: Worker {
+                typealias Output = Void
+
+                let startExpectation: XCTestExpectation
+                let endExpectation: XCTestExpectation
+
+                func run() async -> Void {
+                    startExpectation.fulfill()
+                    for _ in 1 ... 4 {
+                        if Task.isCancelled {
+                            endExpectation.fulfill()
+                            return
+                        }
+                        try? await Task.sleep(nanoseconds: 500000000)
+                    }
+                    endExpectation.fulfill()
+                }
+
+                func isEquivalent(to otherWorker: WorkerWorkflow.ExpectingWorker) -> Bool {
+                    true
+                }
+            }
+        }
+
+        let startExpectation = XCTestExpectation()
+        let endExpectation = XCTestExpectation()
+        let host = WorkflowHost(
+            workflow: WorkerWorkflow(mode: .working(
+                start: startExpectation,
+                end: endExpectation
+            ))
+        )
+
+        wait(for: [startExpectation], timeout: 1.0)
+
+        host.update(workflow: WorkerWorkflow(mode: .notWorking))
+
+        wait(for: [endExpectation], timeout: 1.0)
     }
 }
 
@@ -99,7 +183,7 @@ private struct TaskTestWorkerWorkflow: Workflow {
                     return nil
                 }
             }
-        .running(in: context, key: key)
+            .running(in: context, key: key)
         return state
     }
 }
