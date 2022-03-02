@@ -21,6 +21,7 @@ import WorkflowCombineTesting
 import XCTest
 @testable import WorkflowCombine
 
+@available(iOS 13.0, macOS 10.15, *)
 class PublisherTests: XCTestCase {
     func test_publisherWorkflow_usesSideEffectWithKey() {
         PublisherWorkflow(publisher: Just(1))

@@ -22,7 +22,9 @@
     import XCTest
     @testable import WorkflowCombine
 
-    extension RenderTester {
+@available(macOS 10.15, *)
+@available(iOS 13.0, *)
+extension RenderTester {
         /// Expect a `Publisher`s.
         ///
         /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
