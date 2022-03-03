@@ -108,12 +108,12 @@ class WorkerTests: XCTestCase {
 
                 func run() async -> Void {
                     startExpectation.fulfill()
-                    for _ in 1 ... 4 {
+                    for _ in 1 ... 200 {
                         if Task.isCancelled {
                             endExpectation.fulfill()
                             return
                         }
-                        try? await Task.sleep(nanoseconds: 500000000)
+                        try? await Task.sleep(nanoseconds: 10000000)
                     }
                     endExpectation.fulfill()
                 }
@@ -153,7 +153,7 @@ private struct TaskTestWorkflow: Workflow {
     func render(state: Int, context: RenderContext<TaskTestWorkflow>) -> Int {
         Task { () -> AnyWorkflowAction in
             do {
-                try await Task.sleep(nanoseconds: 3000000000)
+                try await Task.sleep(nanoseconds: 10000000)
             } catch {}
 
             return AnyWorkflowAction { state in
@@ -194,7 +194,7 @@ private struct TaskTestWorker: Worker {
 
     func run() async -> Int {
         do {
-            try await Task.sleep(nanoseconds: 3000000000)
+            try await Task.sleep(nanoseconds: 10000000)
         } catch {}
 
         return 1
