@@ -33,7 +33,7 @@ class WorkerTests: XCTestCase {
 
         XCTAssertEqual(0, host.rendering.value)
 
-        wait(for: [expectation], timeout: 5.0)
+        wait(for: [expectation], timeout: 1.0)
         XCTAssertEqual(1, host.rendering.value)
 
         disposable?.dispose()
@@ -51,7 +51,7 @@ class WorkerTests: XCTestCase {
 
         XCTAssertEqual(0, host.rendering.value)
 
-        wait(for: [expectation], timeout: 5.0)
+        wait(for: [expectation], timeout: 1.0)
         XCTAssertEqual(1, host.rendering.value)
 
         disposable?.dispose()
