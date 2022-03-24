@@ -54,9 +54,9 @@
 
             final class SubclassViewController: BlankViewController {}
 
-            // We only update exact type matches, not subclasses
+            // We can update subclasses too, as long as they pass an "is/as?" check.
             let subclassViewController = SubclassViewController()
-            XCTAssertFalse(description.canUpdate(viewController: subclassViewController))
+            XCTAssertTrue(description.canUpdate(viewController: subclassViewController))
         }
 
         func test_update() {
