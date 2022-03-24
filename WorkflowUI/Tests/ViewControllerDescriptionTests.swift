@@ -24,6 +24,10 @@
 
     fileprivate class BlankViewController: UIViewController {}
 
+    @objc fileprivate protocol MyProtocol {
+        func update()
+    }
+
     class ViewControllerDescriptionTests: XCTestCase {
         func test_build() {
             let description = ViewControllerDescription(
@@ -57,6 +61,25 @@
             // We can update subclasses too, as long as they pass an "is/as?" check.
             let subclassViewController = SubclassViewController()
             XCTAssertTrue(description.canUpdate(viewController: subclassViewController))
+        }
+
+        func test_canUpdate_abstractViewController() {
+            func makeAbstractViewController() -> UIViewController & MyProtocol {
+                class ConcreteViewController: UIViewController, MyProtocol {
+                    func update() {}
+                }
+                return ConcreteViewController()
+            }
+
+            let viewController = makeAbstractViewController()
+
+            let description = ViewControllerDescription(
+                build: { viewController },
+                update: { $0.update() }
+            )
+
+            XCTAssertTrue(description.canUpdate(viewController: viewController))
+            XCTAssertFalse(description.canUpdate(viewController: UIViewController()))
         }
 
         func test_update() {
