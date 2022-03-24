@@ -96,7 +96,7 @@
                 """
                 `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
 
-                The view controller type (\(type(of: viewController)) is not exactly \(viewControllerType)).
+                The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(viewControllerType)).
                 """
             )
 
