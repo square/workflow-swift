@@ -36,6 +36,7 @@
     public struct ViewControllerDescription {
         private let viewControllerType: UIViewController.Type
         private let build: () -> UIViewController
+        private let checkViewControllerType: (UIViewController) -> Bool
         private let update: (UIViewController) -> Void
 
         /// Constructs a view controller description by providing closures used to
@@ -51,6 +52,7 @@
         public init<VC: UIViewController>(type: VC.Type = VC.self, build: @escaping () -> VC, update: @escaping (VC) -> Void) {
             self.viewControllerType = type
             self.build = build
+            self.checkViewControllerType = { $0 is VC }
             self.update = { untypedViewController in
                 guard let viewController = untypedViewController as? VC else {
                     fatalError("Unable to update \(untypedViewController), expecting a \(VC.self)")
@@ -77,7 +79,7 @@
         /// ### Note
         /// Failure to confirm the view controller is updatable will result in a fatal `precondition`.
         public func canUpdate(viewController: UIViewController) -> Bool {
-            return type(of: viewController) == viewControllerType
+            return checkViewControllerType(viewController)
         }
 
         /// Update the given view controller with the content from the view controller description.
@@ -94,7 +96,7 @@
                 """
                 `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
 
-                The view controller type (\(type(of: viewController)) is not exactly \(viewControllerType)).
+                The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(viewControllerType)).
                 """
             )
 
