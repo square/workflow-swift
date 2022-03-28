@@ -5,13 +5,13 @@
 ---
 
 ***Before you begin:*** Please make sure you are set up with 
-[`pod trunk`](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) and your CocoaPods
+[`bundle exec pod trunk`](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) and your CocoaPods
 account is a contributor for all pods. If you need to be added as a
 contributor, please [open a ticket requesting access](https://github.com/square/workflow-swift/issues/new).
 
-For Squares, membership is managed through the `Workflow Swift Owners` registry group. Please request access to that group through Registry. Once you have access, you can register a session with `pod trunk` using the group e-mail alias `workflow-swift-owners@squareup.com`.
+For Squares, membership is managed through the `Workflow Swift Owners` registry group. Please request access to that group through Registry. Once you have access, you can register a session with `bundle exec pod trunk` using the group e-mail alias `workflow-swift-owners@squareup.com`.
 
-`pod trunk register workflow-swift-owners@squareup.com 'Workflow Swift Owners' --description='Your computer description'`
+`bundle exec pod trunk register workflow-swift-owners@squareup.com 'Workflow Swift Owners' --description='Your computer description'`
 
 ---
 
