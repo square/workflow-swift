@@ -30,7 +30,7 @@ public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
     /// The type of output events returned by this worker.
     associatedtype Output
 
-    /// Returns a publisher to execute the work represented by this worker.
+    /// Execute the work represented by this worker asynchronously and return the result.
     func run() async -> Output
     /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
     /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
