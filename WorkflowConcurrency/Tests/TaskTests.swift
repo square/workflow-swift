@@ -24,9 +24,9 @@ import XCTest
 class PublisherTests: XCTestCase {
     func test_output() {
         let host = WorkflowHost(
-            workflow: TaskWorkflow(taskProvider: {
+            workflow: TaskWorkflow(task:
                 Task { "hello world" }
-            })
+            )
         )
 
         let expectation = XCTestExpectation()
