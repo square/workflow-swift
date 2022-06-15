@@ -21,7 +21,7 @@ import Workflow
 @available(iOS 13.0, macOS 10.15, *)
 extension Task: AnyWorkflowConvertible where Failure == Never {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Success> {
-        TaskWorkflow(taskProvider: { self }).asAnyWorkflow()
+        TaskWorkflow(task: self).asAnyWorkflow()
     }
 }
 
@@ -31,18 +31,17 @@ struct TaskWorkflow<Value>: Workflow {
     public typealias State = Void
     public typealias Rendering = Void
 
-    var taskProvider: () -> Task<Value, Never>
+    private let task: Task<Value, Never>
 
-    public init(taskProvider: @escaping () -> Task<Value, Never>) {
-        self.taskProvider = taskProvider
+    public init(task: Task<Value, Never>) {
+        self.task = task
     }
 
     public func render(state: State, context: RenderContext<TaskWorkflow>) -> Rendering {
         let sink = context.makeSink(of: AnyWorkflowAction.self)
-        context.runSideEffect(key: "") { [taskProvider] lifetime in
-            let providedTask = taskProvider()
-            let task = Task {
-                let output = await providedTask.value
+        context.runSideEffect(key: "") { [task] lifetime in
+            let sideEffectTask = Task {
+                let output = await task.value
                 if Task.isCancelled { return }
                 let action = AnyWorkflowAction<TaskWorkflow>(sendingOutput: output)
                 DispatchQueue.main.async {
@@ -51,8 +50,8 @@ struct TaskWorkflow<Value>: Workflow {
             }
 
             lifetime.onEnded {
+                sideEffectTask.cancel()
                 task.cancel()
-                providedTask.cancel()
             }
         }
     }
