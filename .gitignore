@@ -28,3 +28,4 @@ FailureDiffs/
 Samples/**/*Info.plist
 !Samples/Tutorial/AppHost/Configuration/Info.plist
 !Samples/Tutorial/AppHost/TutorialTests/Info.plist
+!Samples/AsyncWorker/AsyncWorker/Info.plist
