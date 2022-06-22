@@ -82,6 +82,24 @@
             XCTAssertFalse(description.canUpdate(viewController: UIViewController()))
         }
 
+        func test_performInitialUpdate() {
+            var updateCount = 0
+            let description = ViewControllerDescription(
+                performInitialUpdate: false,
+                build: { BlankViewController() },
+                update: { _ in updateCount += 1 }
+            )
+
+            XCTAssertEqual(updateCount, 0)
+
+            // Build should not cause an initial update when
+            let viewController = description.buildViewController()
+            XCTAssertEqual(updateCount, 0)
+
+            description.update(viewController: viewController)
+            XCTAssertEqual(updateCount, 1)
+        }
+
         func test_update() {
             var updateCount = 0
             let description = ViewControllerDescription(
