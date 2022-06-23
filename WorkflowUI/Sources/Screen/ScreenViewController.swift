@@ -71,8 +71,13 @@
         /// Convenience to create a view controller description for the given screen
         /// value. See the example on the comment for ScreenViewController for
         /// usage.
-        public final class func description(for screen: ScreenType, environment: ViewEnvironment) -> ViewControllerDescription {
-            return ViewControllerDescription(
+        public final class func description(
+            for screen: ScreenType,
+            environment: ViewEnvironment,
+            performInitialUpdate: Bool = true
+        ) -> ViewControllerDescription {
+            ViewControllerDescription(
+                performInitialUpdate: performInitialUpdate,
                 type: self,
                 build: { self.init(screen: screen, environment: environment) },
                 update: { $0.update(screen: screen, environment: environment) }

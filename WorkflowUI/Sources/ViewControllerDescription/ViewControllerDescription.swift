@@ -34,6 +34,15 @@
     /// methods such as `buildViewController()`, `update(viewController:)`, if you are
     /// manually managing your own view controller hierarchy.
     public struct ViewControllerDescription {
+        /// If an initial call to `update(viewController:)` will be performed
+        /// when the view controller is created. Defaults to `true`.
+        ///
+        /// ### Note
+        /// When creating container view controllers that contain other view controllers
+        /// (eg, a navigation stack), you usually want to set this value to `false` to avoid
+        /// duplicate updates to your children if they are created in `init`.
+        public var performInitialUpdate: Bool = true
+
         private let viewControllerType: UIViewController.Type
         private let build: () -> UIViewController
         private let checkViewControllerType: (UIViewController) -> Bool
@@ -43,13 +52,24 @@
         /// build and update a specific view controller type.
         ///
         /// - Parameters:
+        ///   - performInitialUpdate: If an initial call to `update(viewController:)`
+        ///     will be performed when the view controller is created. Defaults to `true`.
+        ///
         ///   - type: The type of view controller produced by this description.
-        ///           Typically, should should be able to omit this parameter, but
-        ///           in cases where type inference has trouble, it’s offered as
-        ///           an escape hatch.
+        ///     Typically, should should be able to omit this parameter, but
+        ///     in cases where type inference has trouble, it’s offered as
+        ///     an escape hatch.
+        ///
         ///   - build: Closure that produces a new instance of the view controller
+        ///
         ///   - update: Closure that updates the given view controller
-        public init<VC: UIViewController>(type: VC.Type = VC.self, build: @escaping () -> VC, update: @escaping (VC) -> Void) {
+        public init<VC: UIViewController>(
+            performInitialUpdate: Bool = true,
+            type: VC.Type = VC.self,
+            build: @escaping () -> VC,
+            update: @escaping (VC) -> Void
+        ) {
+            self.performInitialUpdate = performInitialUpdate
             self.viewControllerType = type
             self.build = build
             self.checkViewControllerType = { $0 is VC }
@@ -66,8 +86,10 @@
         public func buildViewController() -> UIViewController {
             let viewController = build()
 
-            // Perform an initial update of the built view controller
-            update(viewController: viewController)
+            if performInitialUpdate {
+                // Perform an initial update of the built view controller
+                update(viewController: viewController)
+            }
 
             return viewController
         }
