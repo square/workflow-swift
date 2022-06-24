@@ -38,5 +38,6 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
     bundle exec pod trunk push WorkflowSwiftUI.podspec --synchronous
     bundle exec pod trunk push WorkflowCombine.podspec --synchronous
     bundle exec pod trunk push WorkflowCombineTesting.podspec --synchronous
+    bundle exec pod trunk push WorkflowConcurrency.podspec --synchronous
     ```
 
