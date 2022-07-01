@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "Workflow",
     platforms: [
-        .iOS("11.0"),
-        .macOS("10.13"),
+        .iOS("13.0"),
+        .macOS("10.15"),
     ],
     products: [
         .library(

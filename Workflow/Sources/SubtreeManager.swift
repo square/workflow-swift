@@ -37,7 +37,7 @@ extension WorkflowNode {
         init() {}
 
         /// Performs an update pass using the given closure.
-        func render<Rendering>(_ actions: (RenderContext<WorkflowType>) -> Rendering) -> Rendering {
+        func render<Rendering>(observableState: ObservableState<WorkflowType.State>, actions: (RenderContext<WorkflowType>) -> Rendering) -> Rendering {
             /// Invalidate the previous action handlers.
             for eventPipe in eventPipes {
                 eventPipe.invalidate()
@@ -47,7 +47,8 @@ extension WorkflowNode {
             let context = Context(
                 previousSinks: previousSinks,
                 originalChildWorkflows: childWorkflows,
-                originalSideEffectLifetimes: sideEffectLifetimes
+                originalSideEffectLifetimes: sideEffectLifetimes,
+                observableState: observableState
             )
 
             let wrapped = RenderContext.make(implementation: context)
@@ -134,10 +135,12 @@ extension WorkflowNode.SubtreeManager {
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
         internal private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
+        internal let observableState: ObservableState<WorkflowType.State>
         internal init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
-            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
+            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
+            observableState: ObservableState<WorkflowType.State>
         ) {
             self.eventPipes = []
 
@@ -148,6 +151,7 @@ extension WorkflowNode.SubtreeManager {
 
             self.originalSideEffectLifetimes = originalSideEffectLifetimes
             self.usedSideEffectLifetimes = [:]
+            self.observableState = observableState
         }
 
         func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {

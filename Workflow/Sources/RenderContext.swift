@@ -47,10 +47,14 @@ import ReactiveSwift
 /// The infrastructure then performs a render pass on the child to obtain its
 /// `Rendering` value, which is then returned to the caller.
 public class RenderContext<WorkflowType: Workflow>: RenderContextType {
+    public private(set) var observableState: ObservableState<WorkflowType.State>
+
     private(set) var isValid = true
 
     // Ensure that this class can never be initialized externally
-    private init() {}
+    private init(observableState: ObservableState<WorkflowType.State>) {
+        self.observableState = observableState
+    }
 
     /// Creates or updates a child workflow of the given type, performs a render
     /// pass, and returns the result.
@@ -102,10 +106,9 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     // that is ever instantiated.
     private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
         let implementation: T
-
         init(_ implementation: T) {
             self.implementation = implementation
-            super.init()
+            super.init(observableState: implementation.observableState)
         }
 
         override func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
@@ -131,6 +134,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 internal protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
+    var observableState: ObservableState<WorkflowType.State> { get }
     func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType

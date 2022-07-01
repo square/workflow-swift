@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
+import Combine
+
+public class ObservableState<State>: ObservableObject {
+    @Published public fileprivate(set) var state: State
+    public init(state: State) {
+        self.state = state
+    }
+}
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// Holds the current state of the workflow
-    private var state: WorkflowType.State
+    private let state: ObservableState<WorkflowType.State>
 
     /// Holds the current workflow.
     private var workflow: WorkflowType
@@ -30,8 +39,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     init(workflow: WorkflowType) {
         /// Get the initial state
         self.workflow = workflow
-        self.state = workflow.makeInitialState()
-
+        self.state = ObservableState(state: workflow.makeInitialState())
         WorkflowLogger.logWorkflowStarted(ref: self)
 
         subtreeManager.onUpdate = { [weak self] output in
@@ -50,7 +58,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
         switch subtreeOutput {
         case .update(let event, let source):
             /// Apply the update to the current state
-            let outputEvent = event.apply(toState: &state)
+            let outputEvent = event.apply(toState: &state.state)
 
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
@@ -81,10 +89,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        return subtreeManager.render { context in
+        return subtreeManager.render(observableState: state) { context in
             workflow
                 .render(
-                    state: state,
+                    state: state.state,
                     context: context
                 )
         }
@@ -96,7 +104,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     /// Updates the workflow.
     func update(workflow: WorkflowType) {
-        workflow.workflowDidChange(from: self.workflow, state: &state)
+        workflow.workflowDidChange(from: self.workflow, state: &state.state)
         self.workflow = workflow
     }
 
