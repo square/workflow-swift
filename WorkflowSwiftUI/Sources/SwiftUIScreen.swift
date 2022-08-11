@@ -69,24 +69,6 @@
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    public struct WithModel<Model, Content: View>: View {
-        @ObservedObject private var model: ObservableValue<Model>
-        private let content: (ObservableValue<Model>) -> Content
-
-        public init(
-            model: ObservableValue<Model>,
-            @ViewBuilder content: @escaping (ObservableValue<Model>) -> Content
-        ) {
-            self.model = model
-            self.content = content
-        }
-
-        public var body: Content {
-            content(model)
-        }
-    }
-
-    @available(iOS 13.0, macOS 10.15, *)
     private struct EnvironmentInjectingView<Content: View>: View {
         @ObservedObject var viewEnvironment: ObservableValue<ViewEnvironment>
         let content: Content
