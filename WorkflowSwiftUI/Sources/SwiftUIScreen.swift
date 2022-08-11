@@ -18,6 +18,7 @@
 
     import Combine
     import SwiftUI
+    import Workflow
     import WorkflowUI
 
     @available(iOS 13.0, macOS 10.15, *)
@@ -46,22 +47,22 @@
             ViewControllerDescription(
                 type: ModeledHostingController<Self, WithModel<Self, EnvironmentInjectingView<Content>>>.self,
                 build: {
-                    let model = MutableObservableValue(value: self, isDuplicate: Self.isDuplicate)
-                    let viewEnvironment = MutableObservableValue(value: environment)
+                    let (model, modelSink) = ObservableValue.makeObservableValue(value: self, isDuplicate: Self.isDuplicate)
+                    let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(value: environment)
                     return ModeledHostingController(
-                        model: model,
-                        viewEnvironment: viewEnvironment,
-                        rootView: WithModel(model: ObservableValue(model), content: { model in
+                        modelSink: modelSink,
+                        viewEnvironmentSink: envSink,
+                        rootView: WithModel(model: model, content: { model in
                             EnvironmentInjectingView(
-                                viewEnvironment: ObservableValue(viewEnvironment),
+                                viewEnvironment: viewEnvironment,
                                 content: Self.makeView(model: model)
                             )
-                    })
+                        })
                     )
                 },
                 update: {
-                    $0.model.value = self
-                    $0.viewEnvironment.value = environment
+                    $0.modelSink.send(self)
+                    $0.viewEnvironmentSink.send(environment)
                 }
             )
         }
@@ -98,12 +99,12 @@
 
     @available(iOS 13.0, macOS 10.15, *)
     private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
-        let model: MutableObservableValue<Model>
-        let viewEnvironment: MutableObservableValue<ViewEnvironment>
+        let modelSink: Sink<Model>
+        let viewEnvironmentSink: Sink<ViewEnvironment>
 
-        init(model: MutableObservableValue<Model>, viewEnvironment: MutableObservableValue<ViewEnvironment>, rootView: Content) {
-            self.model = model
-            self.viewEnvironment = viewEnvironment
+        init(modelSink: Sink<Model>, viewEnvironmentSink: Sink<ViewEnvironment>, rootView: Content) {
+            self.modelSink = modelSink
+            self.viewEnvironmentSink = viewEnvironmentSink
 
             super.init(rootView: rootView)
         }

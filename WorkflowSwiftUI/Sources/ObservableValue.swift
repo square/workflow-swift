@@ -18,16 +18,16 @@
 
     import Combine
     import SwiftUI
+    import Workflow
 
     @available(iOS 13.0, macOS 10.15, *)
     @dynamicMemberLookup
-    public final class MutableObservableValue<Value>: ObservableObject {
+    public final class ObservableValue<Value>: ObservableObject {
         private var internalValue: Value
         private let subject = PassthroughSubject<Value, Never>()
         private var cancellable: AnyCancellable?
         private var isDuplicate: ((Value, Value) -> Bool)?
-
-        public var value: Value {
+        public private(set) var value: Value {
             get {
                 return internalValue
             }
@@ -37,9 +37,21 @@
         }
 
         public private(set) lazy var objectWillChange = ObservableObjectPublisher()
-        fileprivate var parentCancellable: AnyCancellable?
+        private var parentCancellable: AnyCancellable?
 
-        public init(value: Value, isDuplicate: ((Value, Value) -> Bool)? = nil) {
+        public static func makeObservableValue(
+            value: Value,
+            isDuplicate: ((Value, Value) -> Bool)? = nil
+        ) -> (ObservableValue, Sink<Value>) {
+            let observableValue = ObservableValue(value: value, isDuplicate: isDuplicate)
+            let sink = Sink { newValue in
+                observableValue.value = newValue
+            }
+
+            return (observableValue, sink)
+        }
+
+        private init(value: Value, isDuplicate: ((Value, Value) -> Bool)? = nil) {
             self.internalValue = value
             self.isDuplicate = isDuplicate
             self.cancellable = valuePublisher()
@@ -50,52 +62,10 @@
                 }
         }
 
-        /// Returns the value at the given keypath of ``Value``.
-        ///
-        /// In combination with `@dynamicMemberLookup`, this allows us to write `model.myProperty` instead of
-        /// `model.value.myProperty` where `model` has type `ObservableValue<T>`.
-        public subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
-            internalValue[keyPath: keyPath]
-        }
-
-        fileprivate func valuePublisher() -> AnyPublisher<Value, Never> {
-            guard let isDuplicate = isDuplicate else {
-                return subject.eraseToAnyPublisher()
-            }
-
-            return subject.removeDuplicates(by: isDuplicate).eraseToAnyPublisher()
-        }
-    }
-
-    @available(iOS 13.0, macOS 10.15, *)
-    @dynamicMemberLookup
-    public final class ObservableValue<Value>: ObservableObject {
-        private let internalValue: () -> Value
-        private let valuePublisher: AnyPublisher<Value, Never>
-        public let objectWillChange: ObservableObjectPublisher
-
-        public var value: Value {
-            return internalValue()
-        }
-
-        public init(_ mutableObservableValue: MutableObservableValue<Value>) {
-            self.internalValue = { mutableObservableValue.value }
-            self.objectWillChange = mutableObservableValue.objectWillChange
-            self.valuePublisher = mutableObservableValue.valuePublisher()
-        }
-
-        //// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure while allowing to optionally remove duplicates.
-        /// - Parameters:
-        ///   - toLocalValue: A closure that takes a Value and returns a LocalValue.
-        ///   - isDuplicate: An optional closure that checks to see if a LocalValue is a duplicate.
-        /// - Returns: a scoped ObservableValue of LocalValue.
         public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
             return scopeToLocalValue(toLocalValue, isDuplicate: isDuplicate)
         }
 
-        /// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure and removes duplicate values using Equatable.
-        /// - Parameter toLocalValue: A closure that takes a Value and returns a LocalValue.
-        /// - Returns: a scoped ObservableValue of LocalValue.
         public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
             return scopeToLocalValue(toLocalValue, isDuplicate: { $0 == $1 })
         }
@@ -105,18 +75,26 @@
         /// In combination with `@dynamicMemberLookup`, this allows us to write `model.myProperty` instead of
         /// `model.value.myProperty` where `model` has type `ObservableValue<T>`.
         public subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
-            internalValue()[keyPath: keyPath]
+            internalValue[keyPath: keyPath]
         }
 
         private func scopeToLocalValue<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
-            let localObservableValue = MutableObservableValue<LocalValue>(
-                value: toLocalValue(value),
+            let localObservableValue = ObservableValue<LocalValue>(
+                value: toLocalValue(internalValue),
                 isDuplicate: isDuplicate
             )
-            localObservableValue.parentCancellable = valuePublisher.sink(receiveValue: { newValue in
+            localObservableValue.parentCancellable = valuePublisher().sink(receiveValue: { newValue in
                 localObservableValue.value = toLocalValue(newValue)
-        })
-            return ObservableValue<LocalValue>(localObservableValue)
+            })
+            return localObservableValue
+        }
+
+        private func valuePublisher() -> AnyPublisher<Value, Never> {
+            guard let isDuplicate = isDuplicate else {
+                return subject.eraseToAnyPublisher()
+            }
+
+            return subject.removeDuplicates(by: isDuplicate).eraseToAnyPublisher()
         }
     }
 
