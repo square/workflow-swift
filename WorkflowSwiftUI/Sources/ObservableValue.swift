@@ -40,7 +40,7 @@
         private var parentCancellable: AnyCancellable?
 
         public static func makeObservableValue(
-            value: Value,
+            _ value: Value,
             isDuplicate: ((Value, Value) -> Bool)? = nil
         ) -> (ObservableValue, Sink<Value>) {
             let observableValue = ObservableValue(value: value, isDuplicate: isDuplicate)

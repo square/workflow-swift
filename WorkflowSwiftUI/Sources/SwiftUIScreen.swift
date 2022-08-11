@@ -47,8 +47,8 @@
             ViewControllerDescription(
                 type: ModeledHostingController<Self, WithModel<Self, EnvironmentInjectingView<Content>>>.self,
                 build: {
-                    let (model, modelSink) = ObservableValue.makeObservableValue(value: self, isDuplicate: Self.isDuplicate)
-                    let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(value: environment)
+                    let (model, modelSink) = ObservableValue.makeObservableValue(self, isDuplicate: Self.isDuplicate)
+                    let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(environment)
                     return ModeledHostingController(
                         modelSink: modelSink,
                         viewEnvironmentSink: envSink,
