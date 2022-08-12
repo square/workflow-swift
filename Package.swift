@@ -74,8 +74,13 @@ let package = Package(
         ),
         .target(
             name: "WorkflowSwiftUI",
-            dependencies: ["ReactiveSwift", "Workflow"],
+            dependencies: ["ReactiveSwift", "Workflow", "WorkflowUI"],
             path: "WorkflowSwiftUI/Sources"
+        ),
+        .testTarget(
+            name: "WorkflowSwiftUITests",
+            dependencies: ["WorkflowSwiftUI", "Workflow", "WorkflowTesting"],
+            path: "WorkflowSwiftUI/Tests"
         ),
         .target(
             name: "WorkflowReactiveSwift",

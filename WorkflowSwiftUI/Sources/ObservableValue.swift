@@ -51,15 +51,18 @@
             return (observableValue, sink)
         }
 
-        private init(value: Value, isDuplicate: ((Value, Value) -> Bool)? = nil) {
+        private init(value: Value, isDuplicate: ((Value, Value) -> Bool)?) {
             self.internalValue = value
             self.isDuplicate = isDuplicate
             self.cancellable = valuePublisher()
+                .dropFirst()
                 .sink { [weak self] newValue in
                     guard let self = self else { return }
                     self.objectWillChange.send()
                     self.internalValue = newValue
                 }
+            // Allows removeDuplicates operator to have the initial value.
+            subject.send(value)
         }
 
         public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
