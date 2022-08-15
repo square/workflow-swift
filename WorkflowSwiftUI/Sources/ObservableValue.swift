@@ -65,10 +65,18 @@
             subject.send(value)
         }
 
+        //// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure while allowing to optionally remove duplicates.
+        /// - Parameters:
+        ///   - toLocalValue: A closure that takes a Value and returns a LocalValue.
+        ///   - isDuplicate: An optional closure that checks to see if a LocalValue is a duplicate.
+        /// - Returns: a scoped ObservableValue of LocalValue.
         public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
             return scopeToLocalValue(toLocalValue, isDuplicate: isDuplicate)
         }
 
+        /// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure and removes duplicate values using Equatable.
+        /// - Parameter toLocalValue: A closure that takes a Value and returns a LocalValue.
+        /// - Returns: a scoped ObservableValue of LocalValue.
         public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
             return scopeToLocalValue(toLocalValue, isDuplicate: { $0 == $1 })
         }
