@@ -52,7 +52,7 @@
                     return ModeledHostingController(
                         modelSink: modelSink,
                         viewEnvironmentSink: envSink,
-                        rootView: WithModel(model: model, content: { model in
+                        rootView: WithModel(model, content: { model in
                             EnvironmentInjectingView(
                                 viewEnvironment: viewEnvironment,
                                 content: Self.makeView(model: model)

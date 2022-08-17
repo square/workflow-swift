@@ -24,7 +24,7 @@
         private let content: (ObservableValue<Model>) -> Content
 
         public init(
-            model: ObservableValue<Model>,
+            _ model: ObservableValue<Model>,
             @ViewBuilder content: @escaping (ObservableValue<Model>) -> Content
         ) {
             self.model = model
