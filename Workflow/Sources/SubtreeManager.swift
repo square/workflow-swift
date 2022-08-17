@@ -406,7 +406,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func render() -> W.Rendering {
-            return node.render()
+            return node.render(isRootNode: false)
         }
 
         func update(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
