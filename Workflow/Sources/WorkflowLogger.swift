@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import OSLog
+import os.signpost
 
 private extension OSLog {
     /// Logging will use this log handle when enabled
@@ -27,9 +27,11 @@ private extension OSLog {
 // MARK: -
 
 /// Namespace for specifying logging configuration data.
-public enum WorkflowLogging {
+public enum WorkflowLogging {}
+
+extension WorkflowLogging {
     public struct Config {
-        /// Configuration
+        /// Configuration options to control logging during a render pass.
         public enum RenderLoggingMode {
             /// No data will be recorded for WorkflowNode render timings.
             case none
@@ -54,13 +56,19 @@ public enum WorkflowLogging {
     /// Global setting to enable or disable logging.
     /// Note, this is independent of the specified `config` value, and simply governs whether
     /// the runtime should emit any logs.
+    ///
+    /// To enable logging, at a minimum you must set:
+    /// `WorkflowLogging.enabled = true`
+    ///
+    /// If you wish for more control over what the runtime will log, you may additionally specify
+    /// a custom value for `WorkflowLogging.config`.
     public static var enabled: Bool {
         get { OSLog.active === OSLog.workflow }
         set { OSLog.active = newValue ? .workflow : .disabled }
     }
 
     /// Configuration options used to determine which activities are logged.
-    public static var config: Config = .debug
+    public static var config: Config = .rootRendersAndActions
 }
 
 extension WorkflowLogging.Config {
@@ -163,6 +171,8 @@ final class WorkflowLogger {
             os_signpost(.end, log: .active, name: "Render", signpostID: signpostID)
         }
     }
+
+    // MARK: - Utilities
 
     private static func shouldLogRenderTimingsForMode(
         _ renderLoggingMode: WorkflowLogging.Config.RenderLoggingMode,

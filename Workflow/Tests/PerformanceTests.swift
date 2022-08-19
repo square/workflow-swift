@@ -29,7 +29,7 @@ class PerformanceTests: XCTestCase {
         WorkflowLogging.enabled = false
     }
 
-    func test_render_shallowWideTree() throws {
+    func test_render_wideShallowTree() throws {
         measure {
             let node = WorkflowNode(workflow: WideShallowParentWorkflow())
             _ = node.render(isRootNode: true)
@@ -43,7 +43,7 @@ class PerformanceTests: XCTestCase {
         }
     }
 
-    func test_debugLogging_render_wideTree() throws {
+    func test_debugLogging_render_wideShallowTree() throws {
         WorkflowLogging.enabled = true
         WorkflowLogging.config = .debug
 
@@ -53,7 +53,7 @@ class PerformanceTests: XCTestCase {
         }
     }
 
-    func test_rootNodeLogging_render_wideTree() throws {
+    func test_rootNodeLogging_render_wideShallowTree() throws {
         WorkflowLogging.enabled = true
         WorkflowLogging.config = .rootRendersAndActions
 
