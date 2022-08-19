@@ -74,6 +74,11 @@ final class WorkflowNode<WorkflowType: Workflow> {
         onOutput?(output)
     }
 
+    /// Internal method that forwards the render call through the underlying `subtreeManager`,
+    /// and eventually to the client-specified `Workflow` instance.
+    /// - Parameter isRootNode: whether or not this is the root node of the tree. Note, this
+    /// is currently only used as a hint for the logging infrastructure, and is up to callers to correctly specify.
+    /// - Returns: A `Rendering` of appropriate type
     func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
         WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
 
