@@ -35,7 +35,7 @@ dependencies: [
 In Xcode 11+, add Workflow directly as a dependency to your project with
 `File` > `Swift Packages` > `Add Package Dependency...`. Provide the git URL when prompted: `git@github.com:square/workflow-swift.git`.
 
-### Cocoapods
+### CocoaPods
 
 [![CocoaPods compatible](https://img.shields.io/cocoapods/v/Workflow.svg)](https://cocoapods.org/pods/Workflow)
 
