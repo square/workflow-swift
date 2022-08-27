@@ -41,11 +41,15 @@
         /// When creating container view controllers that contain other view controllers
         /// (eg, a navigation stack), you usually want to set this value to `false` to avoid
         /// duplicate updates to your children if they are created in `init`.
-        public var performInitialUpdate: Bool = true
+        public var performInitialUpdate: Bool
 
-        private let viewControllerType: UIViewController.Type
+        /// Describes the `UIViewController` type that backs the `ViewControllerDescription`
+        /// in a way that is `Equatable` and `Hashable`. When implementing view controller
+        /// updating and diffing, you can use this type to identify if the backing view controller
+        /// type changed.
+        public let kind: KindIdentifier
+
         private let build: () -> UIViewController
-        private let checkViewControllerType: (UIViewController) -> Bool
         private let update: (UIViewController) -> Void
 
         /// Constructs a view controller description by providing closures used to
@@ -70,13 +74,16 @@
             update: @escaping (VC) -> Void
         ) {
             self.performInitialUpdate = performInitialUpdate
-            self.viewControllerType = type
+
+            self.kind = .init(VC.self)
+
             self.build = build
-            self.checkViewControllerType = { $0 is VC }
+
             self.update = { untypedViewController in
                 guard let viewController = untypedViewController as? VC else {
                     fatalError("Unable to update \(untypedViewController), expecting a \(VC.self)")
                 }
+
                 update(viewController)
             }
         }
@@ -97,11 +104,8 @@
         /// If the given view controller is of the correct type to be updated by this view controller description.
         ///
         /// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
-        ///
-        /// ### Note
-        /// Failure to confirm the view controller is updatable will result in a fatal `precondition`.
         public func canUpdate(viewController: UIViewController) -> Bool {
-            return checkViewControllerType(viewController)
+            kind.canUpdate(viewController: viewController)
         }
 
         /// Update the given view controller with the content from the view controller description.
@@ -118,11 +122,49 @@
                 """
                 `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
 
-                The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(viewControllerType)).
+                The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(kind.viewControllerType)).
                 """
             )
 
             update(viewController)
+        }
+    }
+
+    extension ViewControllerDescription {
+        /// Describes the `UIViewController` type that backs the `ViewControllerDescription`
+        /// in a way that is `Equatable` and `Hashable`. When implementing view controller
+        /// updating and diffing, you can use this type to identify if the backing view controller
+        /// type changed.
+        public struct KindIdentifier: Hashable {
+            fileprivate let viewControllerType: UIViewController.Type
+
+            private let checkViewControllerType: (UIViewController) -> Bool
+
+            /// Creates a new kind for the given view controller type.
+            public init<VC: UIViewController>(_ kind: VC.Type) {
+                self.viewControllerType = VC.self
+
+                self.checkViewControllerType = { $0 is VC }
+            }
+
+            /// If the given view controller is of the correct type to be updated by this view controller description.
+            ///
+            /// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
+            public func canUpdate(viewController: UIViewController) -> Bool {
+                return checkViewControllerType(viewController)
+            }
+
+            // MARK: Hashable
+
+            public func hash(into hasher: inout Hasher) {
+                hasher.combine(ObjectIdentifier(viewControllerType))
+            }
+
+            // MARK: Equatable
+
+            public static func == (lhs: Self, rhs: Self) -> Bool {
+                lhs.viewControllerType == rhs.viewControllerType
+            }
         }
     }
 
