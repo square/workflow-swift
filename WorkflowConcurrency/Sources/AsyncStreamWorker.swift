@@ -57,9 +57,7 @@ struct AsyncStreamWorkerWorkflow<WorkerType: AsyncStreamWorker>: Workflow {
         context.runSideEffect(key: "") { lifetime in
             let task = Task {
                 for await output in worker.run() {
-                    DispatchQueue.main.async {
-                        sink.send(AnyWorkflowAction(sendingOutput: output))
-                    }
+                    await sendAction(output: output, sink: sink)
                 }
             }
 
@@ -67,5 +65,10 @@ struct AsyncStreamWorkerWorkflow<WorkerType: AsyncStreamWorker>: Workflow {
                 task.cancel()
             }
         }
+    }
+
+    @MainActor
+    func sendAction(output: Output, sink: Sink<AnyWorkflowAction<AsyncStreamWorkerWorkflow<WorkerType>>>) {
+        sink.send(AnyWorkflowAction(sendingOutput: output))
     }
 }
