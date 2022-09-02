@@ -140,8 +140,7 @@ final class WorkflowLogger {
         isRootNode: Bool
     ) {
         if #available(iOS 12.0, macOS 10.14, *) {
-            guard shouldLogRenderTimingsForMode(
-                WorkflowLogging.config.renderLoggingMode,
+            guard shouldLogRenderTimings(
                 isRootNode: isRootNode
             ) else { return }
 
@@ -162,8 +161,7 @@ final class WorkflowLogger {
         isRootNode: Bool
     ) {
         if #available(iOS 12.0, macOS 10.14, *) {
-            guard shouldLogRenderTimingsForMode(
-                WorkflowLogging.config.renderLoggingMode,
+            guard shouldLogRenderTimings(
                 isRootNode: isRootNode
             ) else { return }
 
@@ -174,16 +172,15 @@ final class WorkflowLogger {
 
     // MARK: - Utilities
 
-    private static func shouldLogRenderTimingsForMode(
-        _ renderLoggingMode: WorkflowLogging.Config.RenderLoggingMode,
+    private static func shouldLogRenderTimings(
         isRootNode: Bool
     ) -> Bool {
         switch WorkflowLogging.config.renderLoggingMode {
         case .none:
             return false
-        case .rootsOnly where !isRootNode:
-            return false
-        default:
+        case .rootsOnly:
+            return isRootNode
+        case .allNodes:
             return true
         }
     }
