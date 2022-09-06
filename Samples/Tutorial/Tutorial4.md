@@ -18,7 +18,7 @@ A gap in the usability of the todo app is that it does not let the user create n
 
 The `TodoListWorkflow` has started to grow and has multiple concerns it's handling — specifically all of the `ListScreen` behavior, as well as the actions that can come from the `TodoEditWorkflow`.
 
-When a single workflow seems to be doing too many things, a common pattern is to extract some of its responsibilty into a parent.
+When a single workflow seems to be doing too many things, a common pattern is to extract some of its responsibility into a parent.
 
 ### TodoWorkflow
 
