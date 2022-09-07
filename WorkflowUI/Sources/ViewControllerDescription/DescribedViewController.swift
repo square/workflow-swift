@@ -57,6 +57,8 @@
                 }
 
                 currentViewController.didMove(toParent: self)
+
+                updatePreferredContentSizeIfNeeded()
             }
         }
 
@@ -67,6 +69,7 @@
         override public func viewDidLoad() {
             super.viewDidLoad()
 
+            currentViewController.view.frame = view.bounds
             view.addSubview(currentViewController.view)
 
             updatePreferredContentSizeIfNeeded()
@@ -124,5 +127,4 @@
             preferredContentSize = newPreferredContentSize
         }
     }
-
 #endif

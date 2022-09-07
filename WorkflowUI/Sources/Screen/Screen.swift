@@ -16,6 +16,8 @@
 
 #if canImport(UIKit)
 
+    import UIKit
+
     /// Screens are the building blocks of an interactive application.
     ///
     /// Conforming types contain any information needed to populate a screen: data,
@@ -24,6 +26,30 @@
         /// A view controller description that acts as a recipe to either build
         /// or update a previously-built view controller to match this screen.
         func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription
+    }
+
+    extension Screen {
+        /// If the given view controller is of the correct type to be updated by this screen.
+        ///
+        /// If your view controller type can change between updates, call this method before invoking `update(viewController:with:)`.
+        public func canUpdate(viewController: UIViewController, with environment: ViewEnvironment) -> Bool {
+            viewControllerDescription(environment: environment).canUpdate(viewController: viewController)
+        }
+
+        /// Update the given view controller with the content from the screen.
+        ///
+        /// ### Note
+        /// You must pass a view controller previously created by a compatible `ViewControllerDescription`
+        /// that passes `canUpdate(viewController:with:)`. Failure to do so will result in a fatal precondition.
+        public func update(viewController: UIViewController, with environment: ViewEnvironment) {
+            viewControllerDescription(environment: environment).update(viewController: viewController)
+        }
+
+        /// Construct and update a new view controller as described by this Screen.
+        /// The view controller will be updated before it is returned, so it is fully configured and prepared for display.
+        public func buildViewController(in environment: ViewEnvironment) -> UIViewController {
+            viewControllerDescription(environment: environment).buildViewController()
+        }
     }
 
 #endif

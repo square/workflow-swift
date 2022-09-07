@@ -148,4 +148,23 @@
         }
     }
 
+    class ViewControllerDescription_KindIdentifierTests: XCTestCase {
+        private final class VC1: UIViewController {}
+        private final class VC2: UIViewController {}
+
+        func test_kind() {
+            let kind1 = ViewControllerDescription.KindIdentifier(VC1.self)
+            let kind2 = ViewControllerDescription.KindIdentifier(VC2.self)
+
+            XCTAssertEqual(kind1, kind1)
+            XCTAssertNotEqual(kind1, kind2)
+
+            let vc1 = VC1()
+            let vc2 = VC2()
+
+            XCTAssertTrue(kind1.canUpdate(viewController: vc1))
+            XCTAssertFalse(kind1.canUpdate(viewController: vc2))
+        }
+    }
+
 #endif

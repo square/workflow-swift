@@ -27,7 +27,7 @@
             return workflowHost.output
         }
 
-        internal let rootViewController: DescribedViewController
+        private(set) var rootViewController: UIViewController
 
         private let workflowHost: WorkflowHost<RootWorkflow<ScreenType, Output>>
 
@@ -35,14 +35,18 @@
 
         public var rootViewEnvironment: ViewEnvironment {
             didSet {
-                // Re-render the current rendering with the new environment
-                render(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
+                update(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
             }
         }
 
         public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
             self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
-            self.rootViewController = DescribedViewController(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
+
+            self.rootViewController = workflowHost
+                .rendering
+                .value
+                .buildViewController(in: rootViewEnvironment)
+
             self.rootViewEnvironment = rootViewEnvironment
 
             super.init(nibName: nil, bundle: nil)
@@ -56,7 +60,8 @@
                 .take(during: lifetime)
                 .observeValues { [weak self] screen in
                     guard let self = self else { return }
-                    self.render(screen: screen, environment: self.rootViewEnvironment)
+
+                    self.update(screen: screen, environment: self.rootViewEnvironment)
                 }
         }
 
@@ -69,8 +74,10 @@
             fatalError("init(coder:) has not been implemented")
         }
 
-        private func render(screen: ScreenType, environment: ViewEnvironment) {
-            rootViewController.update(screen: screen, environment: environment)
+        private func update(screen: ScreenType, environment: ViewEnvironment) {
+            update(child: \.rootViewController, with: screen, in: environment)
+
+            updatePreferredContentSizeIfNeeded()
         }
 
         override public func viewDidLoad() {
@@ -78,6 +85,7 @@
 
             view.backgroundColor = .white
 
+            rootViewController.view.frame = view.bounds
             view.addSubview(rootViewController.view)
 
             updatePreferredContentSizeIfNeeded()
