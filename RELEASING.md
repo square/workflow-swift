@@ -41,4 +41,4 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
     bundle exec pod trunk push WorkflowConcurrency.podspec --synchronous
     ```
 
-1. [Square specific] To make the new version available internally, update the [CocoaPods spec repo](go/cocoapods-specs).
+1. [Square specific] To make the new version available internally, update the [CocoaPods spec repo](go/cocoapod-specs).
