@@ -88,7 +88,7 @@
             }
 
             func makeSink<ActionType>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
-                return Sink<ActionType> { action in
+                return Sink<ActionType>(key: ObjectIdentifier(actionType)) { action in
                     self.apply(action: action)
                 }
             }

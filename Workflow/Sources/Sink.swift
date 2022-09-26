@@ -18,10 +18,12 @@
 ///
 /// Use `RenderContext.makeSink` to create instances.
 public struct Sink<Value> {
+    private let key: ObjectIdentifier
     private let onValue: (Value) -> Void
 
     /// Initializes a new sink with the given closure.
-    public init(_ onValue: @escaping (Value) -> Void) {
+    public init(key: ObjectIdentifier, _ onValue: @escaping (Value) -> Void) {
+        self.key = key
         self.onValue = onValue
     }
 
@@ -53,8 +55,14 @@ public struct Sink<Value> {
     ///
     /// - Parameter transform: An escaping closure that transforms `T` into `Event`.
     public func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
-        return Sink<NewValue> { value in
+        return Sink<NewValue>(key: key) { value in
             self.send(transform(value))
         }
+    }
+}
+
+extension Sink: Equatable {
+    public static func == (lhs: Sink<Value>, rhs: Sink<Value>) -> Bool {
+        return lhs.key == lhs.key
     }
 }

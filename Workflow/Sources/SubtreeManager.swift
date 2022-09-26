@@ -200,7 +200,7 @@ extension WorkflowNode.SubtreeManager {
 
             let signpostRef = SignpostRef()
 
-            let sink = Sink<Action> { action in
+            let sink = Sink<Action>(key: reusableSink.key) { action in
                 WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
 
                 reusableSink.handle(action: action)
@@ -253,7 +253,7 @@ extension WorkflowNode.SubtreeManager {
                 reusableSink = usedSink
             } else {
                 // Create a new reusable sink.
-                reusableSink = ReusableSink<Action>()
+                reusableSink = ReusableSink<Action>(key: key)
             }
 
             usedSinks[key] = reusableSink
@@ -272,6 +272,11 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+        let key: ObjectIdentifier
+        init(key: ObjectIdentifier) {
+            self.key = key
+        }
+
         func handle(action: Action) {
             let output = Output.update(AnyWorkflowAction(action), source: .external)
 

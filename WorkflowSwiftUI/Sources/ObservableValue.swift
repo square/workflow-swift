@@ -44,7 +44,7 @@
             isDuplicate: ((Value, Value) -> Bool)? = nil
         ) -> (ObservableValue, Sink<Value>) {
             let observableValue = ObservableValue(value: value, isDuplicate: isDuplicate)
-            let sink = Sink { newValue in
+            let sink = Sink(key: ObjectIdentifier(observableValue)) { newValue in
                 observableValue.value = newValue
             }
 
