@@ -40,11 +40,11 @@
         }
     }
 
-    class ContainerViewControllerTests: XCTestCase {
+    class WorkflowHostingControllerTests: XCTestCase {
         func test_initialization_renders_workflow() {
             let (signal, _) = Signal<Int, Never>.pipe()
             let workflow = SubscribingWorkflow(subscription: signal)
-            let container = ContainerViewController(workflow: workflow)
+            let container = WorkflowHostingController(workflow: workflow)
 
             withExtendedLifetime(container) {
                 let vc = container.rootViewController as! TestScreenViewController
@@ -55,7 +55,7 @@
         func test_workflow_update_causes_rerender() {
             let (signal, observer) = Signal<Int, Never>.pipe()
             let workflow = SubscribingWorkflow(subscription: signal)
-            let container = ContainerViewController(workflow: workflow)
+            let container = WorkflowHostingController(workflow: workflow)
 
             withExtendedLifetime(container) {
                 let expectation = XCTestExpectation(description: "View Controller updated")
@@ -76,7 +76,7 @@
         func test_workflow_output_causes_container_output() {
             let (signal, observer) = Signal<Int, Never>.pipe()
             let workflow = SubscribingWorkflow(subscription: signal)
-            let container = ContainerViewController(workflow: workflow)
+            let container = WorkflowHostingController(workflow: workflow)
 
             let expectation = XCTestExpectation(description: "Output")
 
@@ -95,7 +95,7 @@
         func test_container_with_anyworkflow() {
             let (signal, observer) = Signal<Int, Never>.pipe()
             let workflow = SubscribingWorkflow(subscription: signal)
-            let container = ContainerViewController(workflow: workflow.asAnyWorkflow())
+            let container = WorkflowHostingController(workflow: workflow.asAnyWorkflow())
 
             let expectation = XCTestExpectation(description: "Output")
 
@@ -113,7 +113,7 @@
 
         func test_container_update_causes_rerender() {
             let firstWorkflow = PassthroughWorkflow(value: "first")
-            let container = ContainerViewController(workflow: firstWorkflow)
+            let container = WorkflowHostingController(workflow: firstWorkflow)
 
             withExtendedLifetime(container) {
                 let expectation = XCTestExpectation(description: "View Controller updated")
@@ -137,7 +137,7 @@
 
         func test_container_update_updates_output() {
             let firstWorkflow = EchoWorkflow(value: 1)
-            let container = ContainerViewController(workflow: firstWorkflow)
+            let container = WorkflowHostingController(workflow: firstWorkflow)
 
             let expectation = XCTestExpectation(description: "Second output")
 

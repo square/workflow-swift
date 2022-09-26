@@ -19,12 +19,12 @@ import UIKit
 import Workflow
 import WorkflowUI
 
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
-        // Create a `ContainerViewController` with the `RootWorkflow` as the root workflow
-        self.containerViewController = ContainerViewController(workflow: RootWorkflow())
+        // Create a `WorkflowHostingController` with the `RootWorkflow` as the root workflow
+        self.containerViewController = WorkflowHostingController(workflow: RootWorkflow())
 
         super.init(nibName: nil, bundle: nil)
     }

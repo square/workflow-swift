@@ -12,7 +12,7 @@ Start from the implementation of `Tutorial1` if you're skipping ahead. You can d
 
 ## Second Workflow
 
-Let's add a second screen and workflow so we have somewhere to land after we log in. Our next screen will be a list of "todo" items, as todo apps are the best apps. To see an example, modify the `TutorialContainerViewController` to show the `TodoListSampleViewController`. Once you're done looking around, the `TodoListSampleViewController` can be removed, as we will be replacing it with a screen and workflow.
+Let's add a second screen and workflow so we have somewhere to land after we log in. Our next screen will be a list of "todo" items, as todo apps are the best apps. To see an example, modify the `TutorialHostingViewController` to show the `TodoListSampleViewController`. Once you're done looking around, the `TodoListSampleViewController` can be removed, as we will be replacing it with a screen and workflow.
 
 Create a new Screen/ViewController pair called `TodoList`:
 
@@ -93,19 +93,19 @@ extension TodoListWorkflow {
 
 ### Showing the new screen and workflow
 
-For now, let's just show this new screen instead of the login screen/workflow. Update the `TutorialContainerViewController` to show the `TodoListWorkflow`:
+For now, let's just show this new screen instead of the login screen/workflow. Update the `TutorialHostingViewController` to show the `TodoListWorkflow`:
 
 ```swift
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
-        // Create a `ContainerViewController` with the `WelcomeWorkflow` as the root workflow.
-//        containerViewController = ContainerViewController(
+        // Create a `WorkflowHostingController` with the `WelcomeWorkflow` as the root workflow.
+//        containerViewController = WorkflowHostingController(
 //            workflow: WelcomeWorkflow()
 //        )
         // Show the TodoList Workflow instead:
-        containerViewController = ContainerViewController(
+        containerViewController = WorkflowHostingController(
             workflow: TodoListWorkflow()
         )
 
@@ -233,17 +233,17 @@ struct WelcomeWorkflow: Workflow {
 }
 ```
 
-Update the `TutorialContainerViewController` to start at the `RootWorkflow` and we'll see the welcome screen again:
+Update the `TutorialHostingViewController` to start at the `RootWorkflow` and we'll see the welcome screen again:
 
 ```swift
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
         // ...
 
-        // Create a `ContainerViewController` with the `RootWorkflow` as the root workflow.
-        containerViewController = ContainerViewController(
+        // Create a `WorkflowHostingController` with the `RootWorkflow` as the root workflow.
+        containerViewController = WorkflowHostingController(
             workflow: RootWorkflow()
         )
 

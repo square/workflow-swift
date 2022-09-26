@@ -177,21 +177,21 @@
             let screenB = TestScreen.counter(2)
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let containerViewController = ContainerViewController(describedViewController: describedViewController)
+            let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
             // When
             let expectation = self.expectation(description: "did observe size changes")
             expectation.expectedFulfillmentCount = 2
 
             var observedSizes: [CGSize] = []
-            let disposable = containerViewController.preferredContentSizeSignal.observeValues {
+            let disposable = WorkflowHostingController.preferredContentSizeSignal.observeValues {
                 observedSizes.append($0)
                 expectation.fulfill()
             }
 
             defer { disposable?.dispose() }
 
-            _ = containerViewController.view
+            _ = WorkflowHostingController.view
             describedViewController.update(screen: screenB, environment: .empty)
 
             // Then
@@ -207,21 +207,21 @@
             let screenC = TestScreen.message("Testing")
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let containerViewController = ContainerViewController(describedViewController: describedViewController)
+            let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
             // When
             let expectation = self.expectation(description: "did observe size changes")
             expectation.expectedFulfillmentCount = 3
 
             var observedSizes: [CGSize] = []
-            let disposable = containerViewController.preferredContentSizeSignal.observeValues {
+            let disposable = WorkflowHostingController.preferredContentSizeSignal.observeValues {
                 observedSizes.append($0)
                 expectation.fulfill()
             }
 
             defer { disposable?.dispose() }
 
-            _ = containerViewController.view
+            _ = WorkflowHostingController.view
             describedViewController.update(screen: screenB, environment: .empty)
             describedViewController.update(screen: screenC, environment: .empty)
 
@@ -260,7 +260,7 @@
         }
     }
 
-    fileprivate class ContainerViewController: UIViewController {
+    fileprivate class WorkflowHostingController: UIViewController {
         let describedViewController: DescribedViewController
 
         var preferredContentSizeSignal: Signal<CGSize, Never> { return signal.skipRepeats() }

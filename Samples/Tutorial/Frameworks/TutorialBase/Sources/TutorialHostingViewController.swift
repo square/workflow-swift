@@ -18,12 +18,12 @@ import UIKit
 import Workflow
 import WorkflowUI
 
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
-        // Create a `ContainerViewController` with the `WelcomeWorkflow` as the root workflow
-        self.containerViewController = ContainerViewController(workflow: WelcomeWorkflow())
+        // Show one of the sample view controllers, to demonstrate the provided views:
+        self.containerViewController = WelcomeSampleViewController()
 
         super.init(nibName: nil, bundle: nil)
     }
