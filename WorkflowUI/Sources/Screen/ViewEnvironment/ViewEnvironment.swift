@@ -23,7 +23,7 @@
 /// appearing in).
 public struct ViewEnvironment {
     /// An empty view environment. This should only be used when setting up a
-    /// root workflow into a root ContainerViewController or when writing tests.
+    /// root workflow into a root WorkflowHostingController or when writing tests.
     /// In other scenarios, containers should pass down the ViewEnvironment
     /// value they get from above.
     public static let empty: ViewEnvironment = ViewEnvironment()

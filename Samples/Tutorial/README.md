@@ -13,7 +13,7 @@ Nearly all of the code is in the `Frameworks` directory.
 To help with the setup, we have created a few helpers:
 - `TutorialViews`: A set of 3 views for the 3 screens we will be building, `Welcome`, `TodoList`, and `TodoEdit`.
 - `TutorialBase`: This is the starting point to build out the tutorial. It contains view controllers that host the views from `TutorialViews` to see how they display.
-    - Additionally, there is a `TutorialContainerViewController` that the AppDelegate sets as the root view controller. This will be our launching point for all of our workflows.
+    - Additionally, there is a `TutorialHostingViewController` that the AppDelegate sets as the root view controller. This will be our launching point for all of our workflows.
 - `TutorialFinal`: This is an example of the completed tutorial - could be used as a reference if you get stuck.
 
 ## Getting started

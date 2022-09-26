@@ -21,7 +21,7 @@
     import Workflow
 
     /// Drives view controllers from a root Workflow.
-    public final class ContainerViewController<ScreenType, Output>: UIViewController where ScreenType: Screen {
+    public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
         /// Emits output events from the bound workflow.
         public var output: Signal<Output, Never> {
             return workflowHost.output
@@ -145,7 +145,7 @@
     }
 
     /// Wrapper around an AnyWorkflow that allows us to have a concrete
-    /// WorkflowHost without ContainerViewController itself being generic
+    /// WorkflowHost without WorkflowHostingController itself being generic
     /// around a Workflow.
     fileprivate struct RootWorkflow<Rendering, Output>: Workflow {
         typealias State = Void
@@ -164,5 +164,8 @@
                 .rendered(in: context)
         }
     }
+
+    @available(*, deprecated, renamed: "WorkflowHostingController")
+    public typealias ContainerViewController = WorkflowHostingController
 
 #endif

@@ -125,11 +125,11 @@ extension WelcomeWorkflow {
 }
 ```
 
-### Setting up the ContainerViewController
+### Setting up the WorkflowHostingController
 
 Now we have our `WelcomeWorkflow` rendering a `WelcomeScreen`, and have a view controller that knows how to display with a `WelcomeScreen`. It's time to bind this all together and actually show it on the screen!
 
-We'll update the `TutorialContainerViewController` to hold a child *ContainerViewController* that will host our workflow:
+We'll update the `TutorialContainerViewController` to hold a child *WorkflowHostingController* that will host our workflow:
 
 ```swift
 import UIKit
@@ -137,12 +137,12 @@ import Workflow
 import WorkflowUI
 
 
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
-        // Create a `ContainerViewController` with the `WelcomeWorkflow` as the root workflow.
-        containerViewController = ContainerViewController(
+        // Create a `WorkflowHostingController` with the `WelcomeWorkflow` as the root workflow.
+        containerViewController = WorkflowHostingController(
             workflow: WelcomeWorkflow()
         )
 
@@ -150,7 +150,7 @@ public final class TutorialContainerViewController: UIViewController {
     }
 ```
 
-Now, we've created our `ContainerViewController` with the `WelcomeWorkflow` as the root.
+Now, we've created our `WorkflowHostingController` with the `WelcomeWorkflow` as the root.
 
 We can finally run the app again! It will look exactly the same as before, but now it is powered by our workflow.
 
@@ -294,7 +294,7 @@ Here is what is happening on each keypress:
 
 # Summary
 
-In this tutorial, we covered creating a Screen, ScreenViewController, Workflow, and binding them together in a ContainerViewController. We also covered the Workflow being responsible for the state of the UI instead of the view controller being responsible.
+In this tutorial, we covered creating a Screen, ScreenViewController, Workflow, and binding them together in a `WorkflowHostingController`. We also covered the Workflow being responsible for the state of the UI instead of the view controller being responsible.
 
 Next, we will create a second screen and workflow, and the use composition to navigate between them.
 

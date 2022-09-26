@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
+import BackStackContainer
 import UIKit
 import Workflow
 import WorkflowUI
 
-public final class TutorialContainerViewController: UIViewController {
+public final class TutorialHostingViewController: UIViewController {
     let containerViewController: UIViewController
 
     public init() {
-        // Show one of the sample view controllers, to demonstrate the provided views:
-        self.containerViewController = WelcomeSampleViewController()
+        // Create a `WorkflowHostingController` with the `RootWorkflow` as the root workflow
+        self.containerViewController = WorkflowHostingController(workflow: RootWorkflow())
 
         super.init(nibName: nil, bundle: nil)
     }

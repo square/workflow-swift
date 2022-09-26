@@ -652,7 +652,7 @@ class TodoWorkflowTests: XCTestCase {
 
 The `RenderTester` allows easy "mocking" of child workflows and workers. However, this means that we are not exercising the full infrastructure (even though we could get a fairly high confidence from the tests). Sometimes, it may be worth putting together integration tests that test a full tree of Workflows.
 
-Add another test to `RootWorkflowTests`. We will run the tree of workflows in a `WorkflowHost`, which is what the infrastructure uses for a `ContainerViewController`. This will be a "black box" test, as we can only test the behaviors from the rendering and will not be able to inspect the underlying states. This may be a useful test for validation when refactoring a tree of workflows to ensure they behave the same way.
+Add another test to `RootWorkflowTests`. We will run the tree of workflows in a `WorkflowHost`, which is what the infrastructure uses for a `WorkflowHostingController`. This will be a "black box" test, as we can only test the behaviors from the rendering and will not be able to inspect the underlying states. This may be a useful test for validation when refactoring a tree of workflows to ensure they behave the same way.
 
 ```swift
 // RootWorkflowTests.swift
