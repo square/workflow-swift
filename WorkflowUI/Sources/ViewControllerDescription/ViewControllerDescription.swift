@@ -43,6 +43,8 @@
         /// duplicate updates to your children if they are created in `init`.
         public var performInitialUpdate: Bool
 
+        public var transition: ViewTransition
+
         /// Describes the `UIViewController` type that backs the `ViewControllerDescription`
         /// in a way that is `Equatable` and `Hashable`. When implementing view controller
         /// updating and diffing, you can use this type to identify if the backing view controller
@@ -69,11 +71,13 @@
         ///   - update: Closure that updates the given view controller
         public init<VC: UIViewController>(
             performInitialUpdate: Bool = true,
+            transition: ViewTransition = .none,
             type: VC.Type = VC.self,
             build: @escaping () -> VC,
             update: @escaping (VC) -> Void
         ) {
             self.performInitialUpdate = performInitialUpdate
+            self.transition = transition
 
             self.kind = .init(VC.self)
 
