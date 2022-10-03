@@ -25,7 +25,7 @@ class TaskTests: XCTestCase {
     func testTaskWorkflow() {
         TestWorkflow()
             .renderTester()
-            .expectTask(task: Task<Int, Never>.self, output: 1, key: "123")
+            .expect(task: Task<Int, Never>.self, output: 1, key: "123")
             .render {}
     }
 

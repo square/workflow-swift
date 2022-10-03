@@ -22,9 +22,9 @@
     import XCTest
     @testable import WorkflowCombine
 
-@available(macOS 10.15, *)
-@available(iOS 13.0, *)
-extension RenderTester {
+    @available(macOS 10.15, *)
+    @available(iOS 13.0, *)
+    extension RenderTester {
         /// Expect a `Publisher`s.
         ///
         /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
@@ -32,7 +32,7 @@ extension RenderTester {
         /// - Parameters:
         ///   - producingOutput: An output that should be returned when this worker is requested, if any.
         ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expectPublisher<PublisherType: Publisher>(
+        public func expect<PublisherType: Publisher>(
             publisher: PublisherType.Type,
             output: PublisherType.Output,
             key: String = ""
