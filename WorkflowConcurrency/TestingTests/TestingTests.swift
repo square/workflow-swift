@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-import Combine
 import Workflow
-import WorkflowCombine
-import WorkflowCombineTesting
+import WorkflowConcurrency
+import WorkflowConcurrencyTesting
 import WorkflowTesting
 import XCTest
 
 @available(iOS 13.0, macOS 10.15, *)
-class WorkflowCombineTestingTests: XCTestCase {
+class WorkflowConcurrencyTestingTests: XCTestCase {
     func test_workers() {
         let renderTester = TestWorkflow()
             .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
@@ -188,11 +187,12 @@ private struct TestWorkflow: Workflow {
 @available(iOS 13.0, macOS 10.15, *)
 private struct TestWorker: Worker {
     typealias Output = String
-    typealias WorkerPublisher = Just<Output>
 
     let input: String
 
-    func run() -> WorkerPublisher { Just(input) }
+    func run() async -> String {
+        return input
+    }
 
     func isEquivalent(to otherWorker: TestWorker) -> Bool { input == otherWorker.input }
 }
