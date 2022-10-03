@@ -181,4 +181,12 @@ Pod::Spec.new do |s|
   #   test_spec.framework = 'XCTest'
   #   test_spec.dependency 'WorkflowTesting'
   # end
+  
+  # s.test_spec 'WorkflowConcurrencyTestingTests' do |test_spec|
+  #   test_spec.requires_app_host = true
+  #   test_spec.source_files = 'WorkflowConcurrency/TestingTests/**/*.swift'
+  #   test_spec.framework = 'XCTest'
+  #   test_spec.dependency 'WorkflowTesting'
+  #   test_spec.dependency 'WorkflowConcurrencyTesting'
+  # end
 end
