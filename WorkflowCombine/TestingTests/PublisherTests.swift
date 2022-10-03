@@ -12,6 +12,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowCombineTesting
 
+@available(iOS 13.0, macOS 10.15, *)
 class PublisherTests: XCTestCase {
     func testPublisherWorkflow() {
         TestWorkflow()
