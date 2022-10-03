@@ -17,7 +17,7 @@ class PublisherTests: XCTestCase {
     func testPublisherWorkflow() {
         TestWorkflow()
             .renderTester()
-            .expectPublisher(publisher: Publishers.Sequence<[Int], Never>.self, output: 1, key: "123")
+            .expect(publisher: Publishers.Sequence<[Int], Never>.self, output: 1, key: "123")
             .render {}
     }
 

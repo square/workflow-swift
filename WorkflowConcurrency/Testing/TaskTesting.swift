@@ -32,7 +32,7 @@
         /// - Parameters:
         ///   - producingOutput: An output that should be returned when this worker is requested, if any.
         ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expectTask<Value>(
+        public func expect<Value>(
             task: Task<Value, Never>.Type,
             output: Value,
             key: String = ""
