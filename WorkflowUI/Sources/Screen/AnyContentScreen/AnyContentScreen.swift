@@ -18,12 +18,29 @@
 
     import Foundation
 
+    /// Creates a wrapper screen and view controller that will animate between underlying view controllers
+    /// when their type changes. For example, you may use this screen to animate the transition between your
+    /// loading state, content state, and empty states:
     ///
-    ///
+    /// ```
+    /// AnyContentScreen(transition: .fade) {
+    ///    if isLoading {
+    ///        return LoadingScreen(with: ...)
+    ///    } else if isEmpty {
+    ///        return ContentScreen(with ...)
+    ///    } else {
+    ///        return EmptyStateScreen(with: ...)
+    ///    }
+    /// }
+    /// ```
     public struct AnyContentScreen: Screen {
+        /// The transition to use when the underlying screen changes. Defaults to `.fade`.
         public var transition: ViewTransition
+
+        /// The content screen currently displayed.
         public let content: AnyScreen
 
+        /// Creates a new screen with the given transition and content.
         public init<ScreenType: Screen>(
             transition: ViewTransition = .fade(),
             content: () -> ScreenType

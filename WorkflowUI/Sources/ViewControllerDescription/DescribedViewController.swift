@@ -19,10 +19,10 @@
     import UIKit
 
     /// Displays the backing `ViewControllerDescription` for a given `Screen`.
-    ///
     public final class DescribedViewController: UIViewController {
         var content: UIViewController
 
+        /// Creates a new view controller with the given description.
         public init(description: ViewControllerDescription) {
             self.content = description.buildViewController()
             super.init(nibName: nil, bundle: nil)
@@ -31,6 +31,7 @@
             content.didMove(toParent: self)
         }
 
+        /// Creates a new view controller with the screen and environment.
         public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
             self.init(description: screen.viewControllerDescription(environment: environment))
         }
@@ -40,6 +41,10 @@
             fatalError("init(coder:) is unavailable")
         }
 
+        /// Updates the content of the view controller with the given description.
+        /// If the view controller can't be updated (because it's type is not the same), the old
+        /// content will be transitioned out, and the new one will be transitioned in
+        /// with the new description's `ViewTransition`.
         public func update(description: ViewControllerDescription, animated: Bool = false) {
             if description.canUpdate(viewController: content) {
                 description.update(viewController: content)
@@ -70,6 +75,7 @@
                             old.removeFromParent()
 
                             self.currentViewControllerChanged()
+                            self.updatePreferredContentSizeIfNeeded()
                         }
                     )
 
@@ -79,9 +85,9 @@
 
                     old.willMove(toParent: nil)
                     old.removeFromParent()
-                }
 
-                updatePreferredContentSizeIfNeeded()
+                    updatePreferredContentSizeIfNeeded()
+                }
             }
         }
 
