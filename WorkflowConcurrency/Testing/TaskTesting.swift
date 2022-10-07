@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Square Inc.
+ * Copyright 2022 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,25 @@
     import Workflow
     import WorkflowTesting
     import XCTest
-    @testable import WorkflowCombine
+    @testable import WorkflowConcurrency
 
     @available(macOS 10.15, *)
     @available(iOS 13.0, *)
     extension RenderTester {
-        /// Expect a `Publisher`s.
+        /// Expect a `Task`s.
         ///
-        /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
+        /// `TaskWorkflow` is used to execute to `Task`s.
         ///
         /// - Parameters:
         ///   - producingOutput: An output that should be returned when this worker is requested, if any.
         ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expect<PublisherType: Publisher>(
-            publisher: PublisherType.Type,
-            output: PublisherType.Output,
+        public func expect<Value>(
+            task: Task<Value, Never>.Type,
+            output: Value,
             key: String = ""
-        ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
+        ) -> RenderTester<WorkflowType> {
             expectWorkflow(
-                type: PublisherWorkflow<PublisherType>.self,
+                type: TaskWorkflow<Value>.self,
                 key: key,
                 producingRendering: (),
                 producingOutput: output,
