@@ -16,9 +16,8 @@
 
 #if canImport(UIKit)
 
-    /// When the `UIViewController` backing a `DescribedViewController` changes,
-    /// the `ViewTransition` provided from the `ViewControllerDescription`
-    /// will be used to animate in the new view controller and animate out the old view controller.
+    /// Used by `AnyContentScreen` and `DescribedViewController` to the backing view
+    /// controller when it changes.
     ///
     /// There are default transition types provided, for example `.fade` and `.scale`. If you would like
     /// to create your own transition, create an instance of this type and provide the appropriate `setup` and `animate` actions.

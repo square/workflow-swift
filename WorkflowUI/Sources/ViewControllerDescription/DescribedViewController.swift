@@ -85,11 +85,11 @@
             }
         }
 
-        public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
+        public func update<S: Screen>(screen: S, environment: ViewEnvironment, animated: Bool = false) {
             if let screen = screen as? AnyContentScreen {
-                update(description: screen.content.viewControllerDescription(environment: environment))
+                update(description: screen.content.viewControllerDescription(environment: environment), animated: animated)
             } else {
-                update(description: screen.viewControllerDescription(environment: environment))
+                update(description: screen.viewControllerDescription(environment: environment), animated: animated)
             }
         }
 
