@@ -50,14 +50,12 @@
                 let context = Context(from: from, to: to, in: container, completion: completion)
 
                 UIView.performWithoutAnimation {
-                    self.setup(context)
                     setup()
+                    self.setup(context)
                 }
 
                 animate(context)
             } else {
-                to.frame = container.bounds
-
                 setup()
                 completion()
             }
@@ -71,9 +69,7 @@
         /// An instant transition from the old view controller to the new view controller with no animation.
         static var none: Self {
             .init(
-                setup: { context in
-                    context.to.frame = context.container.bounds
-                },
+                setup: { _ in },
                 animate: { context in
                     context.setCompleted()
                 }
@@ -84,7 +80,6 @@
         static func fade(with duration: TimeInterval = 0.15) -> Self {
             .init(
                 setup: { context in
-                    context.to.frame = context.container.bounds
                     context.to.alpha = 0.0
                 },
                 animate: { context in
@@ -101,7 +96,6 @@
         static func scale(with duration: TimeInterval = 0.15) -> Self {
             .init(
                 setup: { context in
-                    context.to.frame = context.container.bounds
                     context.to.alpha = 0.0
                     context.to.transform = .init(scaleX: 1.25, y: 1.25)
                 },

@@ -66,6 +66,7 @@
                         in: view,
                         animated: animated,
                         setup: {
+                            new.view.frame = self.view.bounds
                             self.view.addSubview(new.view)
                         },
                         completion: {
@@ -78,7 +79,6 @@
                             self.updatePreferredContentSizeIfNeeded()
                         }
                     )
-
                 } else {
                     addChild(new)
                     new.didMove(toParent: self)
@@ -92,11 +92,7 @@
         }
 
         public func update<S: Screen>(screen: S, environment: ViewEnvironment, animated: Bool = false) {
-            if let screen = screen as? AnyContentScreen {
-                update(description: screen.content.viewControllerDescription(environment: environment), animated: animated)
-            } else {
-                update(description: screen.viewControllerDescription(environment: environment), animated: animated)
-            }
+            update(description: screen.viewControllerDescription(environment: environment), animated: animated)
         }
 
         override public func viewDidLoad() {
