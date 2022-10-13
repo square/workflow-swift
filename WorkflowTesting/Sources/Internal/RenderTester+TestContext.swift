@@ -62,7 +62,9 @@
                     } else if sameKeyDifferentTypes.count > 1 {
                         diagnosticMessage = "Found expectations for types \(sameKeyDifferentTypes) with key \"\(key)\"."
                     } else {
-                        diagnosticMessage = ""
+                        diagnosticMessage = """
+                        If this child Workflow is expected, please add a call to `expectWorkflow(...)` with the appropriate parameters before invoking `render()`.
+                        """
                     }
                     XCTFail("Unexpected workflow of type \(Child.self) with key \"\(key)\". \(diagnosticMessage)", file: file, line: line)
 

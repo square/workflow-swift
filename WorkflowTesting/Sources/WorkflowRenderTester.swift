@@ -53,7 +53,11 @@
     ///         type: ChildWorkflow.self,
     ///         key: "key",
     ///         rendering: "rendering",
-    ///         producingOutput: ChildWorkflow.Output.success
+    ///         // ⚠️ N.B. Only one output per call to `render` may be produced,
+    ///         // even if multiple child Workflows are expected in a call
+    ///         // to `render`. This is an invariant enforced by `RenderTester`
+    ///         // and the real runtime.
+    ///         producingOutput: nil
     ///     )
     ///     .render { rendering in
     ///         XCTAssertEqual("expected text on rendering", rendering.text)
