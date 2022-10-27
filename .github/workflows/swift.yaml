@@ -50,7 +50,7 @@ jobs:
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=14.5,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   spm:
     runs-on: macos-latest
@@ -94,7 +94,7 @@ jobs:
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=14.5,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   documentation-lint:
     runs-on: macos-latest
