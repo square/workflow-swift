@@ -24,8 +24,13 @@ jobs:
         - Development-Unit-WorkflowRxSwiftTestingTests
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.7.6' # Not needed with a .ruby-version file
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+        
     - name: Cache gems
       uses: actions/cache@v1
       with:
