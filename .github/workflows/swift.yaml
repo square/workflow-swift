@@ -29,7 +29,6 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7.6' # Not needed with a .ruby-version file
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
     - name: Pod Install
       run: |
@@ -65,8 +64,17 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7.6' # Not needed with a .ruby-version file
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
         
+    - name: Cache gems
+      uses: actions/cache@v1
+      with:
+          path: .bundle
+          key: gems-${{ hashFiles('Gemfile.lock') }}
+
+    - name: Bundle Install
+      run: |
+        bundle check || bundle install --path .bundle
+
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
 
@@ -85,7 +93,17 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7.6' # Not needed with a .ruby-version file
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+        
+    - name: Cache gems
+      uses: actions/cache@v1
+      with:
+          path: .bundle
+          key: gems-${{ hashFiles('Gemfile.lock') }}
+
+    - name: Bundle Install
+      run: |
+        bundle check || bundle install --path .bundle
+        brew install sourcedocs
         
     - name: Swiftdocs
       run: |
