@@ -29,6 +29,16 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7.6' # Not needed with a .ruby-version file
+        
+    - name: Cache gems
+      uses: actions/cache@v1
+      with:
+          path: .bundle
+          key: gems-${{ hashFiles('Gemfile.lock') }}
+
+    - name: Bundle Install
+      run: |
+        bundle check || bundle install --path .bundle
 
     - name: Pod Install
       run: |
