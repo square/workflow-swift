@@ -42,7 +42,7 @@ jobs:
 
     - name: help me
       run: |
-        ls .bundle/ruby/2.7.0
+        ls .bundle/ruby/2.7.0/gems
 
     - name: help me too
       run: |
