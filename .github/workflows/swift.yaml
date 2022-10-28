@@ -26,9 +26,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: guptalakshya92/delete_gem@v1
-      with:
-        package-name: xcpretty
+    - name: xcpretty UnInstall
+      run: |
+        gem uninstall xcpretty
         
     - uses: ruby/setup-ruby@v1
       with:
