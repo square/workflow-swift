@@ -25,10 +25,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: xcpretty UnInstall
-      run: |
-        gem cleanup xcpretty
         
     - uses: ruby/setup-ruby@v1
       with:
@@ -44,6 +40,14 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
 
+    - name: help me
+      run: |
+        ls .bundle
+
+    - name: help me too
+      run: |
+        ls .bundle/bin
+
     - name: Pod Install
       run: |
         bundle exec pod gen Development.podspec
@@ -53,7 +57,7 @@ jobs:
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | /usr/local/lib/ruby/gems/3.0.0/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/bin/xcpretty
 
   spm:
     runs-on: macos-latest
@@ -96,7 +100,7 @@ jobs:
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | /usr/local/lib/ruby/gems/3.0.0/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/bin/xcpretty
 
   documentation-lint:
     runs-on: macos-latest
