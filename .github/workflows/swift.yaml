@@ -40,14 +40,6 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
 
-    - name: help me
-      run: |
-        ls .bundle/ruby/2.7.0/gems/xcpretty-0.3.0
-
-    - name: help me too
-      run: |
-        ls .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin
-
     - name: Pod Install
       run: |
         bundle exec pod gen Development.podspec
@@ -57,7 +49,7 @@ jobs:
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
 
   spm:
     runs-on: macos-latest
@@ -100,7 +92,7 @@ jobs:
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
 
   documentation-lint:
     runs-on: macos-latest
