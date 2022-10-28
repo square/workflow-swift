@@ -42,11 +42,11 @@ jobs:
 
     - name: help me
       run: |
-        ls .bundle
+        ls .bundle/ruby/2.7.0
 
     - name: help me too
       run: |
-        ls .bundle/ruby
+        ls .bundle/ruby/2.7.0/gems/bin
 
     - name: Pod Install
       run: |
