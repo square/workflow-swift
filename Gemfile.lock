@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/segiddins/cocoapods-disable-podfile-validations.git
+  revision: 55598d677fa995be496a47b810f4f9dce732b169
+  ref: 55598d677fa995be496a47b810f4f9dce732b169
+  specs:
+    cocoapods-disable-podfile-validations (0.1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -45,7 +52,6 @@ GEM
       public_suffix (~> 4.0)
       typhoeus (~> 1.0)
     cocoapods-deintegrate (1.0.5)
-    cocoapods-disable-podfile-validations (0.1.1)
     cocoapods-downloader (1.6.3)
     cocoapods-generate (2.2.2)
       cocoapods-disable-podfile-validations (~> 0.1.1)
@@ -98,6 +104,7 @@ PLATFORMS
 
 DEPENDENCIES
   cocoapods
+  cocoapods-disable-podfile-validations!
   cocoapods-generate
   cocoapods-trunk (>= 1.6.0)
   xcpretty

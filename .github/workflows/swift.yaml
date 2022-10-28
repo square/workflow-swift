@@ -26,10 +26,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
         
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '2.7.6' # Not needed with a .ruby-version file
-        
     - name: Cache gems
       uses: actions/cache@v1
       with:
@@ -49,7 +45,7 @@ jobs:
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   spm:
     runs-on: macos-latest
@@ -71,10 +67,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '2.7.6' # Not needed with a .ruby-version file
-        
     - name: Cache gems
       uses: actions/cache@v1
       with:
@@ -92,7 +84,7 @@ jobs:
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | ../../.bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   documentation-lint:
     runs-on: macos-latest
