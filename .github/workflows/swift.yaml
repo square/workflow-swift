@@ -92,7 +92,7 @@ jobs:
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | ~/.bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin/xcpretty
 
   documentation-lint:
     runs-on: macos-latest
