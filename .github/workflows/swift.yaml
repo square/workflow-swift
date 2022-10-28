@@ -42,11 +42,11 @@ jobs:
 
     - name: help me
       run: |
-        ls .bundle/ruby/2.7.0/gems
+        ls .bundle/ruby/2.7.0/gems/xcpretty-0.3.0
 
     - name: help me too
       run: |
-        ls .bundle/ruby/2.7.0/gems/bin
+        ls .bundle/ruby/2.7.0/gems/xcpretty-0.3.0/bin
 
     - name: Pod Install
       run: |
