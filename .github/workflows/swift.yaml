@@ -46,7 +46,7 @@ jobs:
 
     - name: help me too
       run: |
-        ls .bundle/bin
+        ls .bundle/ruby
 
     - name: Pod Install
       run: |
