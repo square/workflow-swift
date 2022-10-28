@@ -28,7 +28,7 @@ jobs:
 
     - name: xcpretty UnInstall
       run: |
-        gem uninstall rouge xcpretty
+        gem cleanup xcpretty
         
     - uses: ruby/setup-ruby@v1
       with:
