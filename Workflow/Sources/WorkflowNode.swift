@@ -20,17 +20,47 @@ final class WorkflowNode<WorkflowType: Workflow> {
     private var state: WorkflowType.State
 
     /// Holds the current workflow.
-    private var workflow: WorkflowType
+    private(set) var workflow: WorkflowType
+
+    /// An optional `WorkflowObserver` instance
+    let observer: WorkflowObserver?
 
     var onOutput: ((Output) -> Void)?
 
     /// Manages the children of this workflow, including diffs during/after render passes.
-    private let subtreeManager = SubtreeManager()
+    private let subtreeManager: SubtreeManager
 
-    init(workflow: WorkflowType) {
+    /// 'Session' metadata associated with this node
+    let session: WorkflowSession
+
+    init(
+        workflow: WorkflowType,
+        key: String = "",
+        parentSession: WorkflowSession? = nil,
+        observer: WorkflowObserver? = nil
+    ) {
         /// Get the initial state
         self.workflow = workflow
+        self.observer = observer
+        self.session = WorkflowSession(
+            workflow: workflow,
+            renderKey: key,
+            parent: parentSession
+        )
+        self.subtreeManager = SubtreeManager(
+            session: session,
+            observer: observer
+        )
+
+        self.observer?.sessionDidBegin(session)
+
         self.state = workflow.makeInitialState()
+
+        self.observer?.workflowDidMakeInitialState(
+            workflow,
+            initialState: state,
+            session: session
+        )
 
         WorkflowLogger.logWorkflowStarted(ref: self)
 
@@ -40,6 +70,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     deinit {
+        observer?.sessionDidEnd(session)
         WorkflowLogger.logWorkflowFinished(ref: self)
     }
 
@@ -49,6 +80,13 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         switch subtreeOutput {
         case .update(let event, let source):
+            let actionObserverCompletion = observer?.workflowWillApplyAction(
+                event,
+                workflow: workflow,
+                state: state,
+                session: session
+            )
+
             /// Apply the update to the current state
             let outputEvent = event.apply(toState: &state)
 
@@ -60,6 +98,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
                     kind: .didUpdate(source: source)
                 )
             )
+
+            actionObserverCompletion?(state, outputEvent)
 
         case .childDidUpdate(let debugInfo):
             output = Output(
@@ -82,17 +122,29 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
         WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
 
+        let renderObserverCompletion = observer?.workflowWillRender(
+            workflow,
+            state: state,
+            session: session
+        )
+
+        let rendering: WorkflowType.Rendering
+
         defer {
+            renderObserverCompletion?(rendering)
+
             WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
         }
 
-        return subtreeManager.render { context in
+        rendering = subtreeManager.render({ context in
             workflow
                 .render(
                     state: state,
                     context: context
                 )
-        }
+        }, workflow: workflow)
+
+        return rendering
     }
 
     func enableEvents() {
@@ -101,8 +153,17 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     /// Updates the workflow.
     func update(workflow: WorkflowType) {
-        workflow.workflowDidChange(from: self.workflow, state: &state)
+        let oldWorkflow = self.workflow
+
+        workflow.workflowDidChange(from: oldWorkflow, state: &state)
         self.workflow = workflow
+
+        observer?.workflowDidChange(
+            from: oldWorkflow,
+            to: workflow,
+            state: state,
+            session: session
+        )
     }
 
     func makeDebugSnapshot() -> WorkflowHierarchyDebugSnapshot {

@@ -193,6 +193,49 @@ final class WorkflowNodeTests: XCTestCase {
 
         XCTAssertEqual(snapshot, expectedSnapshot)
     }
+
+    func test_sessionCreation_init() {
+        let workflow = SimpleWorkflow(string: "abc")
+
+        let node = WorkflowNode(
+            workflow: workflow,
+            key: "key",
+            parentSession: nil,
+            observer: nil
+        )
+
+        let session = node.session
+
+        XCTAssertNil(session.parent)
+        XCTAssertEqual(session.renderKey, "key")
+        XCTAssertEqual("\(session.workflowType)", "\(SimpleWorkflow.self)")
+    }
+
+    func test_sessionCreation_render() {
+        let workflow = CompositeWorkflow(
+            a: SimpleWorkflow(string: "left"),
+            b: EventEmittingWorkflow(string: "right")
+        )
+
+        let sessionCollector = SessionCollectingObserver()
+
+        let node = WorkflowNode(
+            workflow: workflow,
+            observer: sessionCollector
+        )
+
+        XCTAssertEqual(sessionCollector.sessions.count, 1)
+
+        _ = node.render()
+
+        let sessions = sessionCollector.sessions
+
+        XCTAssertEqual(sessions.count, 3)
+        XCTAssertNotNil(sessions[0].workflowType is CompositeWorkflow<SimpleWorkflow, EventEmittingWorkflow>.Type)
+        XCTAssertTrue(sessions[1].workflowType is SimpleWorkflow.Type)
+        XCTAssertTrue(sessions[2].workflowType is EventEmittingWorkflow.Type)
+        XCTAssertEqual(sessions[0].sessionID, sessions[1].parent?.sessionID)
+    }
 }
 
 /// Renders two child state machines of types `A` and `B`.
@@ -323,42 +366,11 @@ extension EventEmittingWorkflow {
     }
 }
 
-/// Renders to a model that contains a callback, which in turn sends an output event.
-private struct StateTransitioningWorkflow: Workflow {
-    typealias State = Bool
+private class SessionCollectingObserver: WorkflowObserver {
+    var sessions: [WorkflowSession] = []
 
-    typealias Output = Never
-
-    struct Rendering {
-        var toggle: () -> Void
-        var currentValue: Bool
-    }
-
-    func makeInitialState() -> Bool {
-        return false
-    }
-
-    func render(state: State, context: RenderContext<StateTransitioningWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: Event.self)
-
-        return Rendering(
-            toggle: { sink.send(.toggle) },
-            currentValue: state
-        )
-    }
-
-    enum Event: WorkflowAction {
-        case toggle
-
-        typealias WorkflowType = StateTransitioningWorkflow
-
-        func apply(toState state: inout Bool) -> Never? {
-            switch self {
-            case .toggle:
-                state.toggle()
-            }
-            return nil
-        }
+    func sessionDidBegin(_ session: WorkflowSession) {
+        sessions.append(session)
     }
 }
 

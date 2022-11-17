@@ -37,6 +37,10 @@ public protocol WorkflowAction {
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
 
+    /// Underlying type-erased `WorkflowAction` value, if it exists. Will be nil if the
+    /// action is defined by a closure. Primarily used for testing purposes.
+    let _wrappedValue: Any?
+
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
     /// - Parameter base: A workflow action to wrap.
@@ -46,6 +50,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             return
         }
         self._apply = { return base.apply(toState: &$0) }
+        self._wrappedValue = base
     }
 
     /// Creates a type-erased workflow action with the given `apply` implementation.
@@ -53,6 +58,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// - Parameter apply: the apply function for the resulting action.
     public init(_ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?) {
         self._apply = apply
+        self._wrappedValue = nil
     }
 
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {

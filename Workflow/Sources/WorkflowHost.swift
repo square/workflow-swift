@@ -36,7 +36,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
 
-    private let rootNode: WorkflowNode<WorkflowType>
+    let rootNode: WorkflowNode<WorkflowType>
 
     private let mutableRendering: MutableProperty<WorkflowType.Rendering>
 
@@ -47,12 +47,21 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
+    /// - Parameter observers: An optional array of `WorkflowObservers` that will allow runtime introspection for this `WorkflowHost`
     /// - Parameter debugger: An optional debugger. If provided, the host will notify the debugger of updates
     ///                       to the workflow hierarchy as state transitions occur.
-    public init(workflow: WorkflowType, debugger: WorkflowDebugger? = nil) {
+    public init(
+        workflow: WorkflowType,
+        observers: [WorkflowObserver] = [],
+        debugger: WorkflowDebugger? = nil
+    ) {
         self.debugger = debugger
 
-        self.rootNode = WorkflowNode(workflow: workflow)
+        self.rootNode = WorkflowNode(
+            workflow: workflow,
+            parentSession: nil,
+            observer: observers.chained()
+        )
 
         self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))
         self.rendering = Property(mutableRendering)
