@@ -19,7 +19,7 @@ import XCTest
 
 final class WorkflowNodeTests: XCTestCase {
     func test_rendersSimpleWorkflow() {
-        let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))
+        let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"), observer: .test)
         XCTAssertEqual(node.render(), "ooF")
     }
 
@@ -28,7 +28,9 @@ final class WorkflowNodeTests: XCTestCase {
             workflow: CompositeWorkflow(
                 a: SimpleWorkflow(string: "Hello"),
                 b: SimpleWorkflow(string: "World")
-            ))
+            ),
+            observer: .test
+        )
 
         XCTAssertEqual(node.render().aRendering, "olleH")
         XCTAssertEqual(node.render().bRendering, "dlroW")
@@ -68,12 +70,20 @@ final class WorkflowNodeTests: XCTestCase {
     func test_childWorkflowsEmitStateChangeEvents() {
         typealias WorkflowType = CompositeWorkflow<StateTransitioningWorkflow, SimpleWorkflow>
 
+        let observers: [WorkflowObserver] = [
+            WorkflowObserverImpl(),
+            SimpleActionLogger(),
+            SimpleSessionCounter(),
+        ]
+
+        let chained = observers.chained()
+
         let workflow = CompositeWorkflow(
             a: StateTransitioningWorkflow(),
             b: SimpleWorkflow(string: "World")
         )
 
-        let node = WorkflowNode(workflow: workflow)
+        let node = WorkflowNode(workflow: workflow, observer: chained)
 
         let expectation = XCTestExpectation(description: "State Change")
         var stateChangeCount = 0
@@ -347,10 +357,14 @@ private struct StateTransitioningWorkflow: Workflow {
         )
     }
 
-    enum Event: WorkflowAction {
+    enum Event: WorkflowAction, LoggableAction {
         case toggle
 
         typealias WorkflowType = StateTransitioningWorkflow
+
+        var loggingDescription: String {
+            "logging-description for \(String(describing: self.self))"
+        }
 
         func apply(toState state: inout Bool) -> Never? {
             switch self {
