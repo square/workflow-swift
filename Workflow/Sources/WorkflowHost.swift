@@ -49,10 +49,21 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// - Parameter workflow: The root workflow in the hierarchy
     /// - Parameter debugger: An optional debugger. If provided, the host will notify the debugger of updates
     ///                       to the workflow hierarchy as state transitions occur.
-    public init(workflow: WorkflowType, debugger: WorkflowDebugger? = nil) {
+    public init(
+        workflow: WorkflowType,
+        debugger: WorkflowDebugger? = nil,
+        interceptors: [WorkflowInterceptor] = []
+    ) {
         self.debugger = debugger
 
-        self.rootNode = WorkflowNode(workflow: workflow)
+        let interceptor: WorkflowInterceptor = !interceptors.isEmpty ? interceptors.chained() : NoOpWorkflowInterceptorImpl()
+
+        self.rootNode = WorkflowNode(
+            workflow: workflow,
+            key: "root",
+            interceptor: interceptor,
+            parentSession: nil
+        )
 
         self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))
         self.rendering = Property(mutableRendering)

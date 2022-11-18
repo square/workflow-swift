@@ -34,7 +34,17 @@ extension WorkflowNode {
         /// The current array of side-effects
         internal private(set) var sideEffectLifetimes: [AnyHashable: SideEffectLifetime] = [:]
 
-        init() {}
+        private let session: WorkflowSession
+
+        private let interceptor: WorkflowInterceptor
+
+        init(
+            session: WorkflowSession,
+            interceptor: WorkflowInterceptor
+        ) {
+            self.session = session
+            self.interceptor = interceptor
+        }
 
         /// Performs an update pass using the given closure.
         func render<Rendering>(_ actions: (RenderContext<WorkflowType>) -> Rendering) -> Rendering {
@@ -47,7 +57,9 @@ extension WorkflowNode {
             let context = Context(
                 previousSinks: previousSinks,
                 originalChildWorkflows: childWorkflows,
-                originalSideEffectLifetimes: sideEffectLifetimes
+                originalSideEffectLifetimes: sideEffectLifetimes,
+                session: session,
+                interceptor: interceptor
             )
 
             let wrapped = RenderContext.make(implementation: context)
@@ -134,10 +146,16 @@ extension WorkflowNode.SubtreeManager {
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
         internal private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
+        private var session: WorkflowSession
+
+        private var interceptor: WorkflowInterceptor
+
         internal init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
-            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
+            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
+            session: WorkflowSession,
+            interceptor: WorkflowInterceptor
         ) {
             self.eventPipes = []
 
@@ -148,9 +166,18 @@ extension WorkflowNode.SubtreeManager {
 
             self.originalSideEffectLifetimes = originalSideEffectLifetimes
             self.usedSideEffectLifetimes = [:]
+
+            self.session = session
+            self.interceptor = interceptor
         }
 
-        func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+        func render<Child, Action>(
+            workflow: Child,
+            key: String,
+            outputMap: @escaping (Child.Output) -> Action
+        ) -> Child.Rendering where Child: Workflow,
+            Action: WorkflowAction,
+            WorkflowType == Action.WorkflowType {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
 
@@ -185,7 +212,10 @@ extension WorkflowNode.SubtreeManager {
                 child = ChildWorkflow<Child>(
                     workflow: workflow,
                     outputMap: { AnyWorkflowAction(outputMap($0)) },
-                    eventPipe: eventPipe
+                    eventPipe: eventPipe,
+                    key: key,
+                    interceptor: interceptor,
+                    parentSession: session
                 )
             }
 
@@ -200,10 +230,14 @@ extension WorkflowNode.SubtreeManager {
 
             let signpostRef = SignpostRef()
 
-            let sink = Sink<Action> { action in
+            let sink = Sink<Action> { [interceptor] action in
                 WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
 
-                reusableSink.handle(action: action)
+                interceptor.onActionSent(action: action) { action in
+                    reusableSink.handle(action: action)
+                }
+
+//                reusableSink.handle(action: action)
             }
 
             return sink
@@ -390,9 +424,21 @@ extension WorkflowNode.SubtreeManager {
         private let node: WorkflowNode<W>
         private var outputMap: (W.Output) -> AnyWorkflowAction<WorkflowType>
 
-        init(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
+        init(
+            workflow: W,
+            outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>,
+            eventPipe: EventPipe,
+            key: String,
+            interceptor: WorkflowInterceptor,
+            parentSession: WorkflowSession
+        ) {
             self.outputMap = outputMap
-            self.node = WorkflowNode<W>(workflow: workflow)
+            self.node = WorkflowNode<W>(
+                workflow: workflow,
+                key: key,
+                interceptor: interceptor,
+                parentSession: parentSession
+            )
 
             super.init(eventPipe: eventPipe)
 
@@ -450,5 +496,35 @@ extension WorkflowNode.SubtreeManager {
             // Explicitly end the lifetime in case someone retained it from outside
             lifetime.end()
         }
+    }
+}
+
+// MARK: test convenience/backwards compat stuff
+
+extension WorkflowSession {
+    public static func testing() -> WorkflowSession {
+        struct SessionTestWorkflow: Workflow {
+            func render(state: Void, context: RenderContext<SessionTestWorkflow>) -> Never {
+                fatalError()
+            }
+
+            typealias State = Void
+            typealias Rendering = Never
+        }
+
+        return WorkflowSession(
+            workflow: SessionTestWorkflow(),
+            renderKey: "testing",
+            parent: nil
+        )
+    }
+}
+
+extension WorkflowNode.SubtreeManager {
+    convenience init() {
+        self.init(
+            session: .testing(),
+            interceptor: NoOpWorkflowInterceptorImpl()
+        )
     }
 }

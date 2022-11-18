@@ -68,12 +68,22 @@ final class WorkflowNodeTests: XCTestCase {
     func test_childWorkflowsEmitStateChangeEvents() {
         typealias WorkflowType = CompositeWorkflow<StateTransitioningWorkflow, SimpleWorkflow>
 
+        let interceptors: [WorkflowInterceptor] = [
+            RootRenderPassTimer(),
+            WorkflowInterceptorImpl(),
+            SimpleActionLogger(),
+            SimpleSessionCounter(),
+        ]
+
         let workflow = CompositeWorkflow(
             a: StateTransitioningWorkflow(),
             b: SimpleWorkflow(string: "World")
         )
 
-        let node = WorkflowNode(workflow: workflow)
+        let node = WorkflowNode(
+            workflow: workflow,
+            interceptor: interceptors.chained()
+        )
 
         let expectation = XCTestExpectation(description: "State Change")
         var stateChangeCount = 0
@@ -347,10 +357,14 @@ private struct StateTransitioningWorkflow: Workflow {
         )
     }
 
-    enum Event: WorkflowAction {
+    enum Event: WorkflowAction, LoggableAction {
         case toggle
 
         typealias WorkflowType = StateTransitioningWorkflow
+
+        var loggingDescription: String {
+            "logging-description for \(String(describing: self.self))"
+        }
 
         func apply(toState state: inout Bool) -> Never? {
             switch self {
