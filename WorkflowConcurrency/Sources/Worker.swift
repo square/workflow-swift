@@ -14,75 +14,79 @@
  * limitations under the License.
  */
 
-import Foundation
-import Workflow
+#if swift(>=5.7)
 
-/// Workers define a unit of asynchronous work.
-///
-/// During a render pass, a workflow can ask the context to await the result of a worker.
-///
-/// When this occurs, the context checks to see if there is already a running worker of the same type.
-/// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
-///
-/// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-@available(iOS 13.0, macOS 10.15, *)
-public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
-    /// The type of output events returned by this worker.
-    associatedtype Output
+    import Foundation
+    import Workflow
 
-    /// Execute the work represented by this worker asynchronously and return the result.
-    func run() async -> Output
-    /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
-    /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
-    /// would not be equivalent to another worker with a different user ID.
-    func isEquivalent(to otherWorker: Self) -> Bool
-}
+    /// Workers define a unit of asynchronous work.
+    ///
+    /// During a render pass, a workflow can ask the context to await the result of a worker.
+    ///
+    /// When this occurs, the context checks to see if there is already a running worker of the same type.
+    /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
+    ///
+    /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
+    @available(iOS 13.0, macOS 10.15, *)
+    public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
+        /// The type of output events returned by this worker.
+        associatedtype Output
 
-@available(iOS 13.0, macOS 10.15, *)
-extension Worker {
-    public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
-        WorkerWorkflow(worker: self).asAnyWorkflow()
+        /// Execute the work represented by this worker asynchronously and return the result.
+        func run() async -> Output
+        /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
+        /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
+        /// would not be equivalent to another worker with a different user ID.
+        func isEquivalent(to otherWorker: Self) -> Bool
     }
-}
 
-@available(iOS 13.0, macOS 10.15, *)
-struct WorkerWorkflow<WorkerType: Worker>: Workflow {
-    let worker: WorkerType
-
-    typealias Output = WorkerType.Output
-    typealias Rendering = Void
-    typealias State = UUID
-
-    func makeInitialState() -> State { UUID() }
-
-    func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
-        if !worker.isEquivalent(to: previousWorkflow.worker) {
-            state = UUID()
+    @available(iOS 13.0, macOS 10.15, *)
+    extension Worker {
+        public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+            WorkerWorkflow(worker: self).asAnyWorkflow()
         }
     }
 
-    func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
-        let logger = WorkerLogger<WorkerType>()
-        Task.init { () -> AnyWorkflowAction in
-            logger.logStarted()
-            let output = await worker.run()
-            logger.logOutput()
-            logger.logFinished(status: "Finished")
+    @available(iOS 13.0, macOS 10.15, *)
+    struct WorkerWorkflow<WorkerType: Worker>: Workflow {
+        let worker: WorkerType
 
-            if Task.isCancelled {
-                logger.logFinished(status: "Cancelled")
-                logger.logFinished(status: "Finished")
+        typealias Output = WorkerType.Output
+        typealias Rendering = Void
+        typealias State = UUID
+
+        func makeInitialState() -> State { UUID() }
+
+        func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
+            if !worker.isEquivalent(to: previousWorkflow.worker) {
+                state = UUID()
             }
-
-            return AnyWorkflowAction<Self>(sendingOutput: output)
         }
-        .running(in: context, key: state.uuidString)
-    }
-}
 
-@available(iOS 13.0, macOS 10.15, *)
-extension Worker where Self: Equatable {
-    public func isEquivalent(to otherWorker: Self) -> Bool {
-        self == otherWorker
+        func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
+            let logger = WorkerLogger<WorkerType>()
+            Task.init { () -> AnyWorkflowAction in
+                logger.logStarted()
+                let output = await worker.run()
+                logger.logOutput()
+                logger.logFinished(status: "Finished")
+
+                if Task.isCancelled {
+                    logger.logFinished(status: "Cancelled")
+                    logger.logFinished(status: "Finished")
+                }
+
+                return AnyWorkflowAction<Self>(sendingOutput: output)
+            }
+            .running(in: context, key: state.uuidString)
+        }
     }
-}
+
+    @available(iOS 13.0, macOS 10.15, *)
+    extension Worker where Self: Equatable {
+        public func isEquivalent(to otherWorker: Self) -> Bool {
+            self == otherWorker
+        }
+    }
+
+#endif
