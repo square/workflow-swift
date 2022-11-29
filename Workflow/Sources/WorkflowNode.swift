@@ -15,6 +15,7 @@
  */
 
 import CloudKit
+import QuartzCore
 
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
@@ -54,12 +55,18 @@ final class WorkflowNode<WorkflowType: Workflow> {
             observer: observer
         )
 
+        self.observer?.workflowSessionDidBegin(
+            workflow: workflow,
+            session: session
+        )
+
         self.state = workflow.makeInitialState()
 
         // TODO: add session info and/or ability to identify root node
         self.observer?.didMakeInitialState(
             workflow: workflow,
-            initialState: state
+            initialState: state,
+            session: session
         )
 
         WorkflowLogger.logWorkflowStarted(ref: self)
@@ -70,7 +77,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     deinit {
-        observer?.workflowSessionDidEnd(workflow: workflow)
+        observer?.workflowSessionDidEnd(
+            workflow: workflow,
+            session: session
+        )
         WorkflowLogger.logWorkflowFinished(ref: self)
     }
 
@@ -111,27 +121,49 @@ final class WorkflowNode<WorkflowType: Workflow> {
     /// is currently only used as a hint for the logging infrastructure, and is up to callers to correctly specify.
     /// - Returns: A `Rendering` of appropriate type
     func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
+        // TODO: full-tree render pass info can be recorded based on root node info
         WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
 
-        // TODO: full-tree render pass info can be recorded based on root node info
+        // callback API
+        observer?.willRender(
+            workflow: workflow,
+            state: state,
+            session: session
+        )
+
+        // completion block API
+        let renderObserverCompletion = observer?.willRender_completionAPI(
+            workflow: workflow,
+            state: state,
+            session: session
+        )
+
+        let rendering: WorkflowType.Rendering
 
         defer {
+            // callback API
+            observer?.didRender(
+                workflow: workflow,
+                state: state,
+                rendering: rendering,
+                session: session
+            )
+
+            // completion block API
+            renderObserverCompletion?(rendering)
+
             WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
         }
 
-        return subtreeManager.render { context in
-            observer?.willRender(workflow: workflow)
-
-            let rendering = workflow
+        rendering = subtreeManager.render { context in
+            workflow
                 .render(
                     state: state,
                     context: context
                 )
-
-            observer?.didRender(workflow: workflow, rendering: rendering)
-
-            return rendering
         }
+
+        return rendering
     }
 
     func enableEvents() {
@@ -148,7 +180,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         observer?.workflowDidUpdate(
             oldWorkflow: oldWorkflow,
-            newWorkflow: newWorkflow
+            newWorkflow: newWorkflow,
+            session: session
         )
     }
 
@@ -221,30 +254,44 @@ public protocol WorkflowObserver {
     )
 
     func workflowSessionDidEnd<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        session: WorkflowSession
     )
 
     func didMakeInitialState<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        initialState: WorkflowType.State
+        initialState: WorkflowType.State,
+        session: WorkflowSession
     )
 
+    func willRender_completionAPI<WorkflowType: Workflow>(
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)?
+
     func willRender<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
     )
 
     func didRender<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        rendering: WorkflowType.Rendering
+        state: WorkflowType.State,
+        rendering: WorkflowType.Rendering,
+        session: WorkflowSession
     )
 
     func workflowDidUpdate<WorkflowType: Workflow>(
         oldWorkflow: WorkflowType,
-        newWorkflow: WorkflowType
+        newWorkflow: WorkflowType,
+        session: WorkflowSession
     )
 
     func onActionSent<Action: WorkflowAction>(
-        action: Action
+        action: Action,
+        session: WorkflowSession
     )
 }
 
@@ -261,36 +308,49 @@ final class WorkflowObserverImpl: WorkflowObserver {
     }
 
     func workflowSessionDidEnd<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        session: WorkflowSession
     ) {
         print("session ended")
     }
 
     func didMakeInitialState<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        initialState: WorkflowType.State
+        initialState: WorkflowType.State,
+        session: WorkflowSession
     ) {
         print("did make initial state: \(type(of: initialState))")
     }
 
     func willRender<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
     ) {
         print("will render: \(type(of: workflow))")
     }
 
     func didRender<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        rendering: WorkflowType.Rendering
+        state: WorkflowType.State,
+        rendering: WorkflowType.Rendering,
+        session: WorkflowSession
     ) {
         print("did render: \(type(of: rendering))")
     }
 
-    func workflowDidUpdate<WorkflowType: Workflow>(oldWorkflow: WorkflowType, newWorkflow: WorkflowType) {
+    func workflowDidUpdate<WorkflowType: Workflow>(
+        oldWorkflow: WorkflowType,
+        newWorkflow: WorkflowType,
+        session: WorkflowSession
+    ) {
         print("workflow did update")
     }
 
-    func onActionSent<Action: WorkflowAction>(action: Action) {
+    func onActionSent<Action: WorkflowAction>(
+        action: Action,
+        session: WorkflowSession
+    ) {
         print("action sent: \(action)")
     }
 }
@@ -302,30 +362,46 @@ public extension WorkflowObserver {
     ) {}
 
     func workflowSessionDidEnd<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        session: WorkflowSession
     ) {}
 
     func didMakeInitialState<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        initialState: WorkflowType.State
+        initialState: WorkflowType.State,
+        session: WorkflowSession
     ) {}
 
+    func willRender_completionAPI<WorkflowType: Workflow>(
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)? {
+        nil
+    }
+
     func willRender<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
     ) {}
 
     func didRender<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        rendering: WorkflowType.Rendering
+        state: WorkflowType.State,
+        rendering: WorkflowType.Rendering,
+        session: WorkflowSession
     ) {}
 
     func workflowDidUpdate<WorkflowType: Workflow>(
         oldWorkflow: WorkflowType,
-        newWorkflow: WorkflowType
+        newWorkflow: WorkflowType,
+        session: WorkflowSession
     ) {}
 
     func onActionSent<Action: WorkflowAction>(
-        action: Action
+        action: Action,
+        session: WorkflowSession
     ) {}
 }
 
@@ -344,51 +420,95 @@ struct ChainedWorkflowObserver: WorkflowObserver {
     }
 
     func workflowSessionDidEnd<WorkflowType: Workflow>(
-        workflow: WorkflowType
+        workflow: WorkflowType,
+        session: WorkflowSession
     ) {
-        observers.forEach { $0.workflowSessionDidEnd(workflow: workflow) }
+        observers.forEach {
+            $0.workflowSessionDidEnd(workflow: workflow, session: session)
+        }
     }
 
     func didMakeInitialState<WorkflowType: Workflow>(
         workflow: WorkflowType,
-        initialState: WorkflowType.State
+        initialState: WorkflowType.State,
+        session: WorkflowSession
     ) {
         observers.forEach { $0.didMakeInitialState(
             workflow: workflow,
-            initialState: initialState
+            initialState: initialState,
+            session: session
         ) }
     }
 
-    func willRender<WorkflowType: Workflow>(
-        workflow: WorkflowType
-    ) {
-        observers.forEach { $0.willRender(workflow: workflow) }
-    }
-
-    func didRender<WorkflowType: Workflow>(
+    func willRender_completionAPI<WorkflowType>(
         workflow: WorkflowType,
-        rendering: WorkflowType.Rendering
-    ) {
-        observers.forEach { $0.didRender(
-            workflow: workflow,
-            rendering: rendering
-        ) }
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
+        let callbacks = observers.compactMap {
+            $0.willRender_completionAPI(
+                workflow: workflow,
+                state: state,
+                session: session
+            )
+        }
+
+        guard !callbacks.isEmpty else { return nil }
+
+        return { rendering in
+            callbacks.forEach { callback in
+                callback(rendering)
+            }
+        }
+    }
+
+    func willRender<WorkflowType>(
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) where WorkflowType: Workflow {
+        observers.forEach {
+            $0.willRender(
+                workflow: workflow,
+                state: state,
+                session: session
+            )
+        }
+    }
+
+    func didRender<WorkflowType>(
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        rendering: WorkflowType.Rendering,
+        session: WorkflowSession
+    ) where WorkflowType: Workflow {
+        observers.forEach {
+            $0.didRender(
+                workflow: workflow,
+                state: state,
+                rendering: rendering,
+                session: session
+            )
+        }
     }
 
     func workflowDidUpdate<WorkflowType: Workflow>(
         oldWorkflow: WorkflowType,
-        newWorkflow: WorkflowType
+        newWorkflow: WorkflowType,
+        session: WorkflowSession
     ) {
         observers.forEach { $0.workflowDidUpdate(
             oldWorkflow: oldWorkflow,
-            newWorkflow: newWorkflow
+            newWorkflow: newWorkflow,
+            session: session
         ) }
     }
 
     func onActionSent<Action: WorkflowAction>(
-        action: Action
+        action: Action,
+        session: WorkflowSession
     ) {
-        observers.forEach { $0.onActionSent(action: action) }
+        observers.forEach { $0.onActionSent(action: action, session: session) }
     }
 }
 
@@ -429,4 +549,52 @@ final class SimpleSessionCounter: WorkflowObserver {
         sessionCount += 1
         print("session count: \(sessionCount)")
     }
+}
+
+final class SimpleRenderTimingObserver: WorkflowObserver {
+    var renderStartTimes: [UInt64: TimeInterval] = [:]
+
+    init() {}
+
+    func willRender_completionAPI<WorkflowType>(
+        workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
+        let start = CACurrentMediaTime()
+
+        let onRenderComplete = { (rendering: WorkflowType.Rendering) in
+            let end = CACurrentMediaTime()
+            let renderTime = end - start
+            let timingMillis = renderTime / 1000
+            print("render of node: \(session.sessionID) completed in \(timingMillis) ms")
+        }
+
+        return onRenderComplete
+    }
+
+    /*
+     func willRender<WorkflowType>(
+         workflow: WorkflowType,
+         state: WorkflowType.State,
+         session: WorkflowSession
+     ) where WorkflowType : Workflow {
+         let start = CACurrentMediaTime()
+         renderStartTimes[session.sessionID] = start
+     }
+
+     func didRender<WorkflowType>(
+         workflow: WorkflowType,
+         state: WorkflowType.State,
+         rendering: WorkflowType.Rendering,
+         session: WorkflowSession
+     ) where WorkflowType : Workflow {
+         let end = CACurrentMediaTime()
+         let start = renderStartTimes.removeValue(forKey: session.sessionID)!
+
+         let renderTime = end - start
+         let timingMillis = renderTime / 1000
+         print("render of node: \(session.sessionID) completed in \(timingMillis) ms")
+     }
+      */
 }

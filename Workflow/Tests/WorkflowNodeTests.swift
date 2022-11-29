@@ -71,6 +71,7 @@ final class WorkflowNodeTests: XCTestCase {
         typealias WorkflowType = CompositeWorkflow<StateTransitioningWorkflow, SimpleWorkflow>
 
         let observers: [WorkflowObserver] = [
+            SimpleRenderTimingObserver(),
             WorkflowObserverImpl(),
             SimpleActionLogger(),
             SimpleSessionCounter(),

@@ -231,10 +231,10 @@ extension WorkflowNode.SubtreeManager {
 
             let signpostRef = SignpostRef()
 
-            let sink = Sink<Action> { [observer] action in
+            let sink = Sink<Action> { [observer, session] action in
                 WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
 
-                observer?.onActionSent(action: action)
+                observer?.onActionSent(action: action, session: session)
 
                 reusableSink.handle(action: action)
             }
