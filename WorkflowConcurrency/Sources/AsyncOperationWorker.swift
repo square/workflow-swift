@@ -21,9 +21,14 @@ import Workflow
 @available(iOS 13.0, macOS 10.15, *)
 public struct AsyncOperationWorker<OutputType>: Worker {
     private let operation: () async -> OutputType
+    private let compare: (AsyncOperationWorker, AsyncOperationWorker) -> Bool
 
-    public init(_ operation: @escaping () async -> OutputType) {
+    public init(
+        _ operation: @escaping () async -> OutputType,
+        isEquivalent compare: @escaping (AsyncOperationWorker, AsyncOperationWorker) -> Bool = { _, _ in true }
+    ) {
         self.operation = operation
+        self.compare = compare
     }
 
     public func run() async -> OutputType {
@@ -33,6 +38,6 @@ public struct AsyncOperationWorker<OutputType>: Worker {
     public typealias Output = OutputType
 
     public func isEquivalent(to otherWorker: AsyncOperationWorker) -> Bool {
-        return false
+        return compare(self, otherWorker)
     }
 }
