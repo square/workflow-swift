@@ -39,6 +39,39 @@ final class AsyncOperationWorkerTests: XCTestCase {
         disposable?.dispose()
     }
 
+    func testAsyncWorkerRunsOnlyOnce() {
+        let host = WorkflowHost(
+            workflow: TestAsyncOperationWorkerWorkflow(key: "")
+        )
+
+        var expectation = XCTestExpectation()
+        var disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        XCTAssertEqual(0, host.rendering.value)
+
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertEqual(1, host.rendering.value)
+
+        disposable?.dispose()
+
+        expectation = XCTestExpectation()
+        disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        // Trigger a render
+        host.update(workflow: TestAsyncOperationWorkerWorkflow(key: ""))
+
+        wait(for: [expectation], timeout: 1.0)
+        // If the render value is 1 then the state has not been incremented
+        // by running the worker's async operation again.
+        XCTAssertEqual(1, host.rendering.value)
+
+        disposable?.dispose()
+    }
+
     func testCancelAsyncOperationWorker() {
         struct WorkerWorkflow: Workflow {
             typealias State = Void
@@ -107,7 +140,7 @@ private struct TestAsyncOperationWorkerWorkflow: Workflow {
         AsyncOperationWorker(outputOne)
             .mapOutput { output in
                 AnyWorkflowAction { state in
-                    state = output
+                    state += output
                     return nil
                 }
             }
