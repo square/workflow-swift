@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2022 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import XCTest
 @testable import WorkflowConcurrency
 
 @available(iOS 13.0, macOS 10.15, *)
-class WorkerTests: XCTestCase {
+final class AsyncOperationWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(
-            workflow: TaskTestWorkerWorkflow(key: "")
+            workflow: TestAsyncOperationWorkerWorkflow(key: "")
         )
 
         let expectation = XCTestExpectation()
@@ -39,24 +39,40 @@ class WorkerTests: XCTestCase {
         disposable?.dispose()
     }
 
-    func testExpectedWorker() {
-        TaskTestWorkerWorkflow(key: "123")
-            .renderTester()
-            .expectWorkflow(
-                type: WorkerWorkflow<TaskTestWorker>.self,
-                key: "123",
-                producingRendering: (),
-                producingOutput: 1,
-                assertions: { _ in }
-            )
-            .render { _ in }
-            .verifyState { state in
-                XCTAssertEqual(state, 1)
-            }
+    func testAsyncWorkerRunsOnlyOnce() {
+        let host = WorkflowHost(
+            workflow: TestAsyncOperationWorkerWorkflow(key: "")
+        )
+
+        var expectation = XCTestExpectation()
+        var disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        XCTAssertEqual(0, host.rendering.value)
+
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertEqual(1, host.rendering.value)
+
+        disposable?.dispose()
+
+        expectation = XCTestExpectation()
+        disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        // Trigger a render
+        host.update(workflow: TestAsyncOperationWorkerWorkflow(key: ""))
+
+        wait(for: [expectation], timeout: 1.0)
+        // If the render value is 1 then the state has not been incremented
+        // by running the worker's async operation again.
+        XCTAssertEqual(1, host.rendering.value)
+
+        disposable?.dispose()
     }
 
-    // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.
-    func test_cancelsWorkers() {
+    func testCancelAsyncOperationWorker() {
         struct WorkerWorkflow: Workflow {
             typealias State = Void
 
@@ -72,37 +88,25 @@ class WorkerTests: XCTestCase {
                 case .notWorking:
                     return false
                 case .working(start: let startExpectation, end: let endExpectation):
-                    ExpectingWorker(
-                        startExpectation: startExpectation,
-                        endExpectation: endExpectation
-                    )
+                    AsyncOperationWorker {
+                        await asyncOperation(startExpectation: startExpectation, endExpectation: endExpectation)
+                    }
                     .mapOutput { _ in AnyWorkflowAction.noAction }
                     .running(in: context)
                     return true
                 }
             }
 
-            struct ExpectingWorker: Worker {
-                typealias Output = Void
-
-                let startExpectation: XCTestExpectation
-                let endExpectation: XCTestExpectation
-
-                func run() async -> Void {
-                    startExpectation.fulfill()
-                    for _ in 1 ... 200 {
-                        if Task.isCancelled {
-                            endExpectation.fulfill()
-                            return
-                        }
-                        try? await Task.sleep(nanoseconds: 10000000)
+            func asyncOperation(startExpectation: XCTestExpectation, endExpectation: XCTestExpectation) async -> Void {
+                startExpectation.fulfill()
+                for _ in 1 ... 200 {
+                    if Task.isCancelled {
+                        endExpectation.fulfill()
+                        return
                     }
-                    endExpectation.fulfill()
+                    try? await Task.sleep(nanoseconds: 10000000)
                 }
-
-                func isEquivalent(to otherWorker: WorkerWorkflow.ExpectingWorker) -> Bool {
-                    true
-                }
+                endExpectation.fulfill()
             }
         }
 
@@ -124,7 +128,7 @@ class WorkerTests: XCTestCase {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-private struct TaskTestWorkerWorkflow: Workflow {
+private struct TestAsyncOperationWorkerWorkflow: Workflow {
     typealias State = Int
     typealias Rendering = Int
 
@@ -132,30 +136,19 @@ private struct TaskTestWorkerWorkflow: Workflow {
 
     func makeInitialState() -> Int { 0 }
 
-    func render(state: Int, context: RenderContext<TaskTestWorkerWorkflow>) -> Int {
-        TaskTestWorker()
+    func render(state: Int, context: RenderContext<TestAsyncOperationWorkerWorkflow>) -> Int {
+        AsyncOperationWorker(outputOne)
             .mapOutput { output in
                 AnyWorkflowAction { state in
-                    state = output
+                    state += output
                     return nil
                 }
             }
             .running(in: context, key: key)
         return state
     }
-}
 
-@available(iOS 13.0, macOS 10.15, *)
-private struct TaskTestWorker: Worker {
-    typealias Output = Int
-
-    func run() async -> Int {
-        do {
-            try await Task.sleep(nanoseconds: 10000000)
-        } catch {}
-
+    func outputOne() async -> Int {
         return 1
     }
-
-    func isEquivalent(to otherWorker: TaskTestWorker) -> Bool { true }
 }

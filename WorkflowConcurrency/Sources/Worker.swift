@@ -63,20 +63,25 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
 
     func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
         let logger = WorkerLogger<WorkerType>()
-        Task.init { () -> AnyWorkflowAction in
-            logger.logStarted()
-            let output = await worker.run()
-            logger.logOutput()
-            logger.logFinished(status: "Finished")
-
-            if Task.isCancelled {
-                logger.logFinished(status: "Cancelled")
+        let sink = context.makeOutputSink()
+        context.runSideEffect(key: "") { lifetime in
+            let send: @MainActor(Output) -> Void = sink.send
+            let task = Task {
+                logger.logStarted()
+                let output = await worker.run()
+                if Task.isCancelled {
+                    logger.logFinished(status: "Cancelled")
+                    logger.logFinished(status: "Finished")
+                    return
+                }
+                logger.logOutput()
                 logger.logFinished(status: "Finished")
+                await send(output)
             }
-
-            return AnyWorkflowAction<Self>(sendingOutput: output)
+            lifetime.onEnded {
+                task.cancel()
+            }
         }
-        .running(in: context, key: state.uuidString)
     }
 }
 
