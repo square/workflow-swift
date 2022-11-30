@@ -17,7 +17,32 @@
 import Foundation
 import Workflow
 
-/// A worker for executing an async operation
+/// Convenience to execute an async function in a worker.
+///
+/// Example of using an async function.
+/// ```
+/// func render(state: State, context: RenderContext<Self>) -> MyScreen {
+///     AsyncOperationWorker(myAsyncFunction)
+///         .mapOutput { MyAction($0) }
+///         .running(in: context, key: "UniqueKey")
+///
+///     return MyScreen()
+/// }
+/// ```
+///
+/// Example of using a closure.
+/// ```
+/// func render(state: State, context: RenderContext<Self>) -> MyScreen {
+///     AsyncOperationWorker {
+///         return await asyncFunctionCall()
+///     }
+///         .mapOutput { MyAction($0) }
+///         .running(in: context, key: "UniqueKey")
+///
+///     return MyScreen()
+/// }
+/// ```
+
 @available(iOS 13.0, macOS 10.15, *)
 public struct AsyncOperationWorker<OutputType>: Worker {
     private let operation: () async -> OutputType
