@@ -15,6 +15,7 @@
  */
 
 import UIKit
+import Workflow
 import WorkflowUI
 
 @UIApplicationMain
@@ -24,7 +25,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         window = UIWindow(frame: UIScreen.main.bounds)
 
-        window?.rootViewController = WorkflowHostingController(workflow: RootWorkflow())
+        let observers: [any WorkflowObserver] = [
+            SimpleRenderTimingObserver(),
+            SimpleActionLogger(),
+        ]
+
+        window?.rootViewController = WorkflowHostingController(
+            workflow: RootWorkflow(),
+            observers: observers
+        )
 
         window?.makeKeyAndVisible()
 

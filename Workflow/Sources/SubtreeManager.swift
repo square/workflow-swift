@@ -182,7 +182,7 @@ extension WorkflowNode.SubtreeManager {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
 
-            /// If the key already exists in `used`, than a workflow of the same type has been rendered multiple times
+            /// If the key already exists in `used`, then a workflow of the same type has been rendered multiple times
             /// during this render pass with the same key. This is not allowed.
             guard usedChildWorkflows[childKey] == nil else {
                 fatalError("Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
@@ -234,7 +234,10 @@ extension WorkflowNode.SubtreeManager {
             let sink = Sink<Action> { [observer, session] action in
                 WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
 
-                observer?.onActionSent(action: action, session: session)
+                observer?.onActionSent(
+                    action: action,
+                    session: session
+                )
 
                 reusableSink.handle(action: action)
             }

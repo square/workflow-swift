@@ -52,16 +52,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     public init(
         workflow: WorkflowType,
         debugger: WorkflowDebugger? = nil,
-        observer: WorkflowObserver? = nil
+        observers: [WorkflowObserver]? = nil
     ) {
         self.debugger = debugger
-        let observer = observer ?? .test
 
         self.rootNode = WorkflowNode(
             workflow: workflow,
             key: "root",
             parentSession: nil,
-            observer: observer
+            observer: observers?.chained()
         )
 
         self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))

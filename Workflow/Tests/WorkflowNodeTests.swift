@@ -19,7 +19,7 @@ import XCTest
 
 final class WorkflowNodeTests: XCTestCase {
     func test_rendersSimpleWorkflow() {
-        let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"), observer: .test)
+        let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))
         XCTAssertEqual(node.render(), "ooF")
     }
 
@@ -28,8 +28,7 @@ final class WorkflowNodeTests: XCTestCase {
             workflow: CompositeWorkflow(
                 a: SimpleWorkflow(string: "Hello"),
                 b: SimpleWorkflow(string: "World")
-            ),
-            observer: .test
+            )
         )
 
         XCTAssertEqual(node.render().aRendering, "olleH")
