@@ -39,8 +39,12 @@
             }
         }
 
-        public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
-            self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
+        public init<W: AnyWorkflowConvertible>(
+            workflow: W,
+            interceptors: [WorkflowInterceptor] = [],
+            rootViewEnvironment: ViewEnvironment = .empty
+        ) where W.Rendering == ScreenType, W.Output == Output {
+            self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow), interceptors: interceptors)
 
             self.rootViewController = workflowHost
                 .rendering

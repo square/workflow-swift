@@ -19,9 +19,16 @@ import XCTest
 @testable import Workflow
 
 class PerformanceTests: XCTestCase {
+    var interceptor: WorkflowInterceptor!
+
     override func setUp() {
         super.setUp()
         WorkflowLogging.enabled = false
+
+        interceptor = [
+            RootRenderPassTimer(),
+            SimpleActionLogger(),
+        ].chained()
     }
 
     override func tearDown() {
@@ -36,9 +43,23 @@ class PerformanceTests: XCTestCase {
         }
     }
 
+    func test_render_wideShallowTree_withInterceptors() throws {
+        measure {
+            let node = WorkflowNode(workflow: WideShallowParentWorkflow(), interceptor: interceptor)
+            _ = node.render(isRootNode: true)
+        }
+    }
+
     func test_render_narrowDeepTree() throws {
         measure {
             let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
+            _ = node.render(isRootNode: true)
+        }
+    }
+
+    func test_render_narrowDeepTree_withInterceptors() throws {
+        measure {
+            let node = WorkflowNode(workflow: NarrowDeepParentWorkflow(), interceptor: interceptor)
             _ = node.render(isRootNode: true)
         }
     }
