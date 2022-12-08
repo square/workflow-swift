@@ -83,18 +83,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         switch subtreeOutput {
         case .update(let event, let source):
-
-            let observerDidApplyAction = observer?.workflowWillApplyAction(
-                event,
-                workflow: workflow,
-                state: state,
-                session: session
-            )
-
             /// Apply the update to the current state
             let outputEvent = event.apply(toState: &state)
-
-            observerDidApplyAction?(state)
 
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
@@ -162,15 +152,17 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
-        workflow.workflowDidChange(from: oldWorkflow, state: &state)
-        self.workflow = workflow
-
-        observer?.workflowDidChange(
-            from: oldWorkflow,
+        let workflowDidChange = observer?.workflowWillChange(
+            from: self.workflow,
             to: workflow,
             state: state,
             session: session
         )
+
+        workflow.workflowDidChange(from: oldWorkflow, state: &state)
+        self.workflow = workflow
+
+        workflowDidChange?(state)
     }
 
     func makeDebugSnapshot() -> WorkflowHierarchyDebugSnapshot {

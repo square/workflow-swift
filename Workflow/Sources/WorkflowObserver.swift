@@ -33,32 +33,24 @@ public protocol WorkflowObserver {
         session: WorkflowSession
     )
 
-    // pseudo-one-shot before/after render hook
     func workflowWillRender<WorkflowType: Workflow>(
         _ workflow: WorkflowType,
         state: WorkflowType.State,
         session: WorkflowSession
     ) -> ((WorkflowType.Rendering) -> Void)?
 
-    // is just providing the state after update sufficient?
-    func workflowDidChange<WorkflowType: Workflow>(
+    func workflowWillChange<WorkflowType: Workflow>(
         from oldWorkflow: WorkflowType,
         to newWorkflow: WorkflowType,
         state: WorkflowType.State,
         session: WorkflowSession
-    )
+    ) -> ((WorkflowType.State) -> Void)?
 
-    func onActionSent<Action: WorkflowAction>(
-        action: Action,
-        session: WorkflowSession
-    )
-
-    func workflowWillApplyAction<WorkflowType, Action: WorkflowAction>(
+    func workflowDidReceiveAction<Action: WorkflowAction>(
         _ action: Action,
-        workflow: WorkflowType,
-        state: Action.WorkflowType.State,
+        workflow: Action.WorkflowType,
         session: WorkflowSession
-    ) -> ((WorkflowType.State) -> Void)? where Action.WorkflowType == WorkflowType
+    )
 }
 
 // example impl
@@ -86,7 +78,7 @@ final class WorkflowObserverImpl: WorkflowObserver {
         print("did change")
     }
 
-    func onActionSent<Action>(action: Action, session: WorkflowSession) where Action: WorkflowAction {
+    func workflowDidReceiveAction<Action>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) where Action: WorkflowAction {
         print("on action sent")
     }
 
@@ -101,17 +93,21 @@ final class WorkflowObserverImpl: WorkflowObserver {
 // MARK: - WorkflowSession
 
 public class WorkflowSession {
-    private static var _nextID: UInt64 = 0
-    static func makeSessionID() -> UInt64 {
-        _nextID += 1
-        return _nextID
+    public struct Identifier: Equatable {
+        private static var _nextRawID: UInt64 = 0
+        private static func _makeNextSessionID() -> UInt64 {
+            _nextRawID += 1
+            return _nextRawID
+        }
+
+        let rawIdentifier: UInt64 = Self._makeNextSessionID()
     }
 
-    public let typeDescriptor: String
+    public let workflowType: Any.Type
 
     public let renderKey: String
 
-    public let sessionID: UInt64
+    public let sessionID = Identifier()
 
     public let parent: WorkflowSession?
 
@@ -120,9 +116,8 @@ public class WorkflowSession {
         renderKey: String,
         parent: WorkflowSession?
     ) {
-        self.typeDescriptor = String(describing: workflow.self)
+        self.workflowType = WorkflowType.self
         self.renderKey = renderKey
-        self.sessionID = Self.makeSessionID()
         self.parent = parent
     }
 }
@@ -152,29 +147,28 @@ public extension WorkflowObserver {
     ) -> ((WorkflowType.Rendering) -> Void)? { nil }
 
     // is just providing the state after update sufficient?
-    func workflowDidChange<WorkflowType: Workflow>(
+    func workflowWillChange<WorkflowType: Workflow>(
         from oldWorkflow: WorkflowType,
         to newWorkflow: WorkflowType,
         state: WorkflowType.State,
         session: WorkflowSession
-    ) {}
+    ) -> ((WorkflowType.State) -> Void)? { nil }
 
     func onActionSent<Action: WorkflowAction>(
         action: Action,
         session: WorkflowSession
     ) {}
 
-    func workflowWillApplyAction<WorkflowType, Action: WorkflowAction>(
+    func workflowDidReceiveAction<Action: WorkflowAction>(
         _ action: Action,
-        workflow: WorkflowType,
-        state: Action.WorkflowType.State,
+        workflow: Action.WorkflowType,
         session: WorkflowSession
-    ) -> ((WorkflowType.State) -> Void)? where Action.WorkflowType == WorkflowType { nil }
+    ) {}
 }
 
 // MARK: Chained Observer
 
-struct ChainedWorkflowObserver: WorkflowObserver {
+final class ChainedWorkflowObserver: WorkflowObserver {
     private let observers: [WorkflowObserver]
 
     init(observers: [WorkflowObserver]) {
@@ -199,7 +193,11 @@ struct ChainedWorkflowObserver: WorkflowObserver {
         }
     }
 
-    func workflowWillRender<WorkflowType>(_ workflow: WorkflowType, state: WorkflowType.State, session: WorkflowSession) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
+    func workflowWillRender<WorkflowType>(
+        _ workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
         let callbacks = observers.compactMap {
             $0.workflowWillRender(workflow, state: state, session: session)
         }
@@ -207,53 +205,57 @@ struct ChainedWorkflowObserver: WorkflowObserver {
         guard !callbacks.isEmpty else { return nil }
 
         return { rendering in
-            for callback in callbacks {
+            for callback in callbacks.reversed() {
                 callback(rendering)
             }
         }
     }
 
-    func workflowDidChange<WorkflowType>(from oldWorkflow: WorkflowType, to newWorkflow: WorkflowType, state: WorkflowType.State, session: WorkflowSession) where WorkflowType: Workflow {
-        for observer in observers {
-            observer.workflowDidChange(
+    func workflowWillChange<WorkflowType>(
+        from oldWorkflow: WorkflowType,
+        to newWorkflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.State) -> Void)? where WorkflowType: Workflow {
+        let callbacks = observers.compactMap {
+            $0.workflowWillChange(
                 from: oldWorkflow,
                 to: newWorkflow,
                 state: state,
                 session: session
             )
         }
-    }
 
-    func workflowWillApplyAction<WorkflowType, Action>(_ action: Action, workflow: WorkflowType, state: Action.WorkflowType.State, session: WorkflowSession) -> ((WorkflowType.State) -> Void)? where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
-        let callbacks = observers.compactMap { observer in
-            observer.workflowWillApplyAction(
-                action,
-                workflow: workflow,
-                state: state,
-                session: session
-            )
+        guard !callbacks.isEmpty else {
+            return nil
         }
 
         return { state in
-            for callback in callbacks {
+            for callback in callbacks.reversed() {
                 callback(state)
             }
         }
     }
 
-    func onActionSent<Action: WorkflowAction>(
-        action: Action,
-        session: WorkflowSession
-    ) {
+    func workflowDidReceiveAction<Action>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) where Action: WorkflowAction {
         for observer in observers {
-            observer.onActionSent(action: action, session: session)
+            observer.workflowDidReceiveAction(
+                action,
+                workflow: workflow,
+                session: session
+            )
         }
     }
 }
 
 extension Array where Element == WorkflowObserver {
     func chained() -> WorkflowObserver? {
-        isEmpty ? nil : ChainedWorkflowObserver(observers: self)
+        if count <= 1 {
+            // no wrapping needed if empty or a single element
+            return first
+        } else {
+            return ChainedWorkflowObserver(observers: self)
+        }
     }
 }
 
@@ -270,28 +272,13 @@ public struct SimpleActionLogger: WorkflowObserver {
 
     public init() {}
 
-    public func onActionSent<Action>(
-        action: Action,
-        session: WorkflowSession
-    ) where Action: WorkflowAction {
+    public func workflowDidReceiveAction<Action>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) where Action: WorkflowAction {
         switch action {
         case let action as LoggableAction:
             // TODO: maybe there is a way to avoid dynamic casting
             log("got loggable action: \(action.loggingDescription)")
         default:
             log("got default action: \(String(describing: action))")
-        }
-    }
-
-    public func actionWillBeApplied_completionAPI<Action>(
-        action: Action,
-        state: Action.WorkflowType.State,
-        onPostApply: inout ((Action.WorkflowType.State) -> Void)?,
-        session: WorkflowSession
-    ) where Action: WorkflowAction {
-        print("action applied")
-        onPostApply = { state in
-            print("got updated state: \(state)")
         }
     }
 }
