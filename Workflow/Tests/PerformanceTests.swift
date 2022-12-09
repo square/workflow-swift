@@ -26,8 +26,15 @@ class PerformanceTests: XCTestCase {
         WorkflowLogging.enabled = false
 
         interceptor = [
-            RootRenderPassTimer(),
             SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+//            SimpleActionLogger(),
+//            SimpleActionLogger(),
         ].chained()
     }
 

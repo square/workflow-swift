@@ -105,30 +105,55 @@ public class WorkflowInterceptorImpl: NoOpDefaultWorkflowInterceptor {
     }
 }
 
-public class WorkflowSession {
-    private static var _nextID: UInt64 = 0
-    static func makeSessionID() -> UInt64 {
-        _nextID += 1
-        return _nextID
+public struct WorkflowSession {
+    public struct Identifier: Hashable {
+        private static var _nextRawID: UInt64 = 0
+        private static func _makeNextSessionID() -> UInt64 {
+            _nextRawID += 1
+            return _nextRawID
+        }
+
+        let rawIdentifier: UInt64 = Self._makeNextSessionID()
     }
 
-    public let type: Any.Type
+    private indirect enum IndirectParent {
+        case some(WorkflowSession)
+        case none
+
+        init(_ parent: WorkflowSession?) {
+            switch parent {
+            case .some(let value):
+                self = .some(value)
+            case .none:
+                self = .none
+            }
+        }
+    }
+
+    public let workflowType: Any.Type
 
     public let renderKey: String
 
-    public let sessionID: UInt64
+    public let sessionID = Identifier()
 
-    public let parent: WorkflowSession?
+    private let _indirectParent: IndirectParent
+    public var parent: WorkflowSession? {
+        switch _indirectParent {
+        case .some(let parent):
+            return parent
+        case .none:
+            return nil
+        }
+    }
 
     init<WorkflowType: Workflow>(
         workflow: WorkflowType,
         renderKey: String,
         parent: WorkflowSession?
     ) {
-        self.type = WorkflowType.self
+        self.workflowType = WorkflowType.self
         self.renderKey = renderKey
-        self.sessionID = Self.makeSessionID()
-        self.parent = parent
+        self._indirectParent = IndirectParent(parent)
     }
 }
 
