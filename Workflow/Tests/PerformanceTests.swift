@@ -19,9 +19,24 @@ import XCTest
 @testable import Workflow
 
 class PerformanceTests: XCTestCase {
+    var observer: WorkflowObserver!
+
     override func setUp() {
         super.setUp()
         WorkflowLogging.enabled = false
+
+        observer = [
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+            SimpleActionLogger(),
+//            SimpleActionLogger(),
+//            SimpleActionLogger(),
+//            SimpleActionLogger(),
+        ].chained()
     }
 
     override func tearDown() {
@@ -36,9 +51,29 @@ class PerformanceTests: XCTestCase {
         }
     }
 
+    func test_render_wideShallowTree_withObserver() throws {
+        measure {
+            let node = WorkflowNode(
+                workflow: WideShallowParentWorkflow(),
+                observer: observer
+            )
+            _ = node.render(isRootNode: true)
+        }
+    }
+
     func test_render_narrowDeepTree() throws {
         measure {
             let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
+            _ = node.render(isRootNode: true)
+        }
+    }
+
+    func test_render_narrowDeepTree_withObserver() throws {
+        measure {
+            let node = WorkflowNode(
+                workflow: NarrowDeepParentWorkflow(),
+                observer: observer
+            )
             _ = node.render(isRootNode: true)
         }
     }
