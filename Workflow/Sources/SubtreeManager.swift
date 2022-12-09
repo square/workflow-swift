@@ -517,7 +517,7 @@ extension WorkflowSession {
         return WorkflowSession(
             workflow: SessionTestWorkflow(),
             renderKey: "testing",
-            parent: nil
+            parent: .none
         )
     }
 }

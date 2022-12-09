@@ -92,8 +92,8 @@ final class WorkflowObserverImpl: WorkflowObserver {
 
 // MARK: - WorkflowSession
 
-public class WorkflowSession {
-    public struct Identifier: Equatable {
+public struct WorkflowSession {
+    public struct Identifier: Hashable {
         private static var _nextRawID: UInt64 = 0
         private static func _makeNextSessionID() -> UInt64 {
             _nextRawID += 1
@@ -103,13 +103,35 @@ public class WorkflowSession {
         let rawIdentifier: UInt64 = Self._makeNextSessionID()
     }
 
+    private indirect enum IndirectParent {
+        case some(WorkflowSession)
+        case none
+
+        init(_ parent: WorkflowSession?) {
+            switch parent {
+            case .some(let value):
+                self = .some(value)
+            case .none:
+                self = .none
+            }
+        }
+    }
+
     public let workflowType: Any.Type
 
     public let renderKey: String
 
     public let sessionID = Identifier()
 
-    public let parent: WorkflowSession?
+    private let _indirectParent: IndirectParent
+    public var parent: WorkflowSession? {
+        switch _indirectParent {
+        case .some(let parent):
+            return parent
+        case .none:
+            return nil
+        }
+    }
 
     init<WorkflowType: Workflow>(
         workflow: WorkflowType,
@@ -118,7 +140,7 @@ public class WorkflowSession {
     ) {
         self.workflowType = WorkflowType.self
         self.renderKey = renderKey
-        self.parent = parent
+        self._indirectParent = IndirectParent(parent)
     }
 }
 
@@ -202,7 +224,9 @@ final class ChainedWorkflowObserver: WorkflowObserver {
             $0.workflowWillRender(workflow, state: state, session: session)
         }
 
-        guard !callbacks.isEmpty else { return nil }
+        guard !callbacks.isEmpty else {
+            return nil
+        }
 
         return { rendering in
             for callback in callbacks.reversed() {
@@ -296,8 +320,6 @@ public final class SimpleSessionCounter: WorkflowObserver {
 }
 
 public final class SimpleRenderTimingObserver: WorkflowObserver {
-    var renderStartTimes: [UInt64: TimeInterval] = [:]
-
     public init() {}
 
     public func workflowWillRender<WorkflowType>(_ workflow: WorkflowType, state: WorkflowType.State, session: WorkflowSession) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
