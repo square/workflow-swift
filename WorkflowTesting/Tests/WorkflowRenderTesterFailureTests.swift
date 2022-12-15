@@ -16,7 +16,12 @@
 
 import Workflow
 import WorkflowTesting
+import WorkflowUI
 import XCTest
+
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 /// Who tests the tester?
 ///
@@ -131,6 +136,42 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             tester.render { _ in }
         }
     }
+
+    #if canImport(UIKit)
+        func test_childWorkflow_unexpected_anyScreenRendering() {
+            struct MyScreen: Screen {
+                func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+                    return ViewControllerDescription(
+                        type: UIViewController.self,
+                        build: { UIViewController() },
+                        update: { _ in }
+                    )
+                }
+            }
+
+            struct MyChildWorkflow: Workflow {
+                typealias State = Void
+                func render(state: State, context: RenderContext<Self>) -> AnyScreen {
+                    return MyScreen().asAnyScreen()
+                }
+            }
+
+            struct MyWorkflow: Workflow {
+                typealias State = Void
+                func render(state: State, context: RenderContext<Self>) -> AnyScreen {
+                    let childRendering = MyChildWorkflow().rendered(in: context)
+                    return childRendering
+                }
+            }
+
+            let tester = MyWorkflow()
+                .renderTester()
+
+            expectingFailure(#"Unexpected workflow of type MyChildWorkflow with key """#) {
+                tester.render { _ in }
+            }
+        }
+    #endif
 
     func test_childWorkflowMultipleRenders_sameKey() {
         let tester = ParentWorkflow()

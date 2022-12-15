@@ -113,8 +113,13 @@ let package = Package(
         ),
         .target(
             name: "WorkflowTesting",
-            dependencies: ["Workflow"],
+            dependencies: ["Workflow", "WorkflowUI"],
             path: "WorkflowTesting/Sources"
+        ),
+        .testTarget(
+            name: "WorkflowTestingTests",
+            dependencies: ["Workflow", "WorkflowTesting", "WorkflowUI"],
+            path: "WorkflowTesting/Tests"
         ),
         .target(
             name: "WorkflowReactiveSwiftTesting",

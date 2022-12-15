@@ -19,6 +19,10 @@
     import XCTest
     @testable import Workflow
 
+    #if canImport(UIKit) && canImport(WorkflowUI)
+        import WorkflowUI
+    #endif
+
     extension RenderTester {
         internal final class TestContext: RenderContextType {
             var state: WorkflowType.State
@@ -70,10 +74,18 @@
 
                     // We can “recover” from missing Void-rendering workflows since there’s only one possible value to return
                     if Child.Rendering.self == Void.self {
-                        // Couldn’t find a nicer way to do this polymorphically
                         return () as! Child.Rendering
                     }
-                    fatalError("Unable to continue.")
+
+                    #if canImport(UIKit) && canImport(WorkflowUI)
+                        // We can "recover" from missing AnyScreen-rendering workflows since they render an opaque type that we can construct a value of
+                        if Child.Rendering.self == AnyScreen.self {
+                            return RenderTesterPlaceholderScreen().asAnyScreen() as! Child.Rendering
+                        }
+                    #endif
+
+                    // At this point, without an return value from an expectation, we have nothing to return from render and are unable to continue
+                    fatalError("Unable to continue; no expectation has given RenderTester a value to return from `render` (and cannot construct an arbitrary value of type \"\(Child.Rendering.self)\").")
                 }
                 let (inserted, _) = usedWorkflowKeys.insert(WorkflowKey(type: ObjectIdentifier(Child.self), key: key))
                 if !inserted {
