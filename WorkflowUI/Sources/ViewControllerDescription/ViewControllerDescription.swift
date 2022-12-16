@@ -43,6 +43,9 @@
         /// duplicate updates to your children if they are created in `init`.
         public var performInitialUpdate: Bool
 
+        /// A visual transition to perform when the underlying view controller type changes during an update.
+        public var transition: ViewTransition
+
         /// Describes the `UIViewController` type that backs the `ViewControllerDescription`
         /// in a way that is `Equatable` and `Hashable`. When implementing view controller
         /// updating and diffing, you can use this type to identify if the backing view controller
@@ -69,11 +72,13 @@
         ///   - update: Closure that updates the given view controller
         public init<VC: UIViewController>(
             performInitialUpdate: Bool = true,
+            transition: ViewTransition = .none,
             type: VC.Type = VC.self,
             build: @escaping () -> VC,
             update: @escaping (VC) -> Void
         ) {
             self.performInitialUpdate = performInitialUpdate
+            self.transition = transition
 
             self.kind = .init(VC.self)
 
@@ -136,7 +141,8 @@
         /// updating and diffing, you can use this type to identify if the backing view controller
         /// type changed.
         public struct KindIdentifier: Hashable {
-            fileprivate let viewControllerType: UIViewController.Type
+            /// The type of the view controller represented by the description.
+            let viewControllerType: UIViewController.Type
 
             private let checkViewControllerType: (UIViewController) -> Bool
 
@@ -151,7 +157,7 @@
             ///
             /// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
             public func canUpdate(viewController: UIViewController) -> Bool {
-                return checkViewControllerType(viewController)
+                checkViewControllerType(viewController)
             }
 
             // MARK: Hashable

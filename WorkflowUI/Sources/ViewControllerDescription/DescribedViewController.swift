@@ -18,17 +18,20 @@
 
     import UIKit
 
+    /// Displays the backing `ViewControllerDescription` for a given `Screen`.
     public final class DescribedViewController: UIViewController {
-        var currentViewController: UIViewController
+        var content: UIViewController
 
+        /// Creates a new view controller with the given description.
         public init(description: ViewControllerDescription) {
-            self.currentViewController = description.buildViewController()
+            self.content = description.buildViewController()
             super.init(nibName: nil, bundle: nil)
 
-            addChild(currentViewController)
-            currentViewController.didMove(toParent: self)
+            addChild(content)
+            content.didMove(toParent: self)
         }
 
+        /// Creates a new view controller with the screen and environment.
         public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
             self.init(description: screen.viewControllerDescription(environment: environment))
         }
@@ -38,75 +41,101 @@
             fatalError("init(coder:) is unavailable")
         }
 
-        public func update(description: ViewControllerDescription) {
-            if description.canUpdate(viewController: currentViewController) {
-                description.update(viewController: currentViewController)
+        /// Updates the content of the view controller with the given description.
+        /// If the view controller can't be updated (because it's type is not the same), the old
+        /// content will be transitioned out, and the new one will be transitioned in
+        /// with the new description's `ViewTransition`.
+        public func update(description: ViewControllerDescription, animated: Bool = false) {
+            if description.canUpdate(viewController: content) {
+                description.update(viewController: content)
             } else {
-                currentViewController.willMove(toParent: nil)
-                currentViewController.viewIfLoaded?.removeFromSuperview()
-                currentViewController.removeFromParent()
+                let old = content
+                let new = description.buildViewController()
 
-                currentViewController = description.buildViewController()
-
-                addChild(currentViewController)
+                content = new
 
                 if isViewLoaded {
-                    currentViewController.view.frame = view.bounds
-                    view.addSubview(currentViewController.view)
+                    let animated = animated && view.window != nil
+
+                    addChild(new)
+                    old.willMove(toParent: nil)
+
+                    description.transition.transition(
+                        from: old.view,
+                        to: new.view,
+                        in: view,
+                        animated: animated,
+                        setup: {
+                            new.view.frame = self.view.bounds
+                            self.view.addSubview(new.view)
+                        },
+                        completion: {
+                            new.didMove(toParent: self)
+
+                            old.view.removeFromSuperview()
+                            old.removeFromParent()
+
+                            self.currentViewControllerChanged()
+                            self.updatePreferredContentSizeIfNeeded()
+                        }
+                    )
+                } else {
+                    addChild(new)
+                    new.didMove(toParent: self)
+
+                    old.willMove(toParent: nil)
+                    old.removeFromParent()
+
                     updatePreferredContentSizeIfNeeded()
                 }
-
-                currentViewController.didMove(toParent: self)
-
-                updatePreferredContentSizeIfNeeded()
             }
         }
 
-        public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
-            update(description: screen.viewControllerDescription(environment: environment))
+        public func update<S: Screen>(screen: S, environment: ViewEnvironment, animated: Bool = false) {
+            update(description: screen.viewControllerDescription(environment: environment), animated: animated)
         }
 
         override public func viewDidLoad() {
             super.viewDidLoad()
 
-            currentViewController.view.frame = view.bounds
-            view.addSubview(currentViewController.view)
+            content.view.frame = view.bounds
+            view.addSubview(content.view)
 
             updatePreferredContentSizeIfNeeded()
         }
 
         override public func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
-            currentViewController.view.frame = view.bounds
+            content.view.frame = view.bounds
         }
 
         override public var childForStatusBarStyle: UIViewController? {
-            return currentViewController
+            return content
         }
 
         override public var childForStatusBarHidden: UIViewController? {
-            return currentViewController
+            return content
         }
 
         override public var childForHomeIndicatorAutoHidden: UIViewController? {
-            return currentViewController
+            return content
         }
 
         override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-            return currentViewController
+            return content
         }
 
         override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-            return currentViewController.supportedInterfaceOrientations
+            return content.supportedInterfaceOrientations
         }
 
         override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-            return currentViewController.preferredStatusBarUpdateAnimation
+            return content.preferredStatusBarUpdateAnimation
         }
 
         @available(iOS 14.0, *)
         override public var childViewControllerForPointerLock: UIViewController? {
-            return currentViewController
+            return content
         }
 
         override public func preferredContentSizeDidChange(
@@ -114,17 +143,31 @@
         ) {
             super.preferredContentSizeDidChange(forChildContentContainer: container)
 
-            guard container === currentViewController else { return }
+            guard container === content else { return }
 
             updatePreferredContentSizeIfNeeded()
         }
 
         private func updatePreferredContentSizeIfNeeded() {
-            let newPreferredContentSize = currentViewController.preferredContentSize
+            let newPreferredContentSize = content.preferredContentSize
 
             guard newPreferredContentSize != preferredContentSize else { return }
 
             preferredContentSize = newPreferredContentSize
+        }
+
+        private func currentViewControllerChanged() {
+            setNeedsFocusUpdate()
+            setNeedsUpdateOfHomeIndicatorAutoHidden()
+
+            if #available(iOS 14.0, *) {
+                self.setNeedsUpdateOfPrefersPointerLocked()
+            }
+
+            setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
+            setNeedsStatusBarAppearanceUpdate()
+
+            UIAccessibility.post(notification: .screenChanged, argument: nil)
         }
     }
 #endif

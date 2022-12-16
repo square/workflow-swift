@@ -87,28 +87,38 @@
 
                         let isVisible = parent.view.window != nil
 
-                        // The view should end up with the same frame.
+                        description.transition.transition(
+                            from: old.view,
+                            to: new.view,
+                            in: container,
+                            animated: isVisible,
+                            setup: {
+                                new.view.frame = old.view.frame
 
-                        new.view.frame = old.view.frame
+                                if isVisible {
+                                    new.beginAppearanceTransition(true, animated: false)
+                                    old.beginAppearanceTransition(false, animated: false)
+                                }
 
-                        if isVisible {
-                            new.beginAppearanceTransition(true, animated: false)
-                            old.beginAppearanceTransition(false, animated: false)
-                        }
+                                container.insertSubview(new.view, aboveSubview: old.view)
+                            },
+                            completion: {
+                                new.didMove(toParent: parent)
 
-                        container.insertSubview(new.view, aboveSubview: old.view)
-                        old.view.removeFromSuperview()
+                                old.view.removeFromSuperview()
 
-                        if isVisible {
-                            new.endAppearanceTransition()
-                            old.endAppearanceTransition()
-                        }
+                                if isVisible {
+                                    new.endAppearanceTransition()
+                                    old.endAppearanceTransition()
+                                }
+
+                                old.removeFromParent()
+                            }
+                        )
+                    } else {
+                        new.didMove(toParent: parent)
+                        old.removeFromParent()
                     }
-
-                    // Finish the transition by signaling the vc they've fully moved in / out.
-
-                    new.didMove(toParent: parent)
-                    old.removeFromParent()
                 }
 
                 onChange(new)
