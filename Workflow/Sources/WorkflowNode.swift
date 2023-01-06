@@ -30,6 +30,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     init(workflow: WorkflowType) {
         /// Get the initial state
         self.workflow = workflow
+
         self.state = workflow.makeInitialState()
 
         WorkflowLogger.logWorkflowStarted(ref: self)
