@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        scheme: 
+        scheme:
         - Development-Unit-WorkflowTesting
         - Development-Unit-WorkflowTests
         - Development-Unit-WorkflowUITests
@@ -25,7 +25,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-        
+
     - name: Cache gems
       uses: actions/cache@v3
       with:
@@ -102,7 +102,10 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
         brew install sourcedocs
-        
+
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
+
     - name: Swiftdocs
       run: |
         .buildscript/build_swift_docs.sh ${{ runner.temp }}/swiftdocs
