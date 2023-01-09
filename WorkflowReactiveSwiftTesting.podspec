@@ -24,6 +24,8 @@ Pod::Spec.new do |s|
 
   s.framework = 'XCTest'
 
+  s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
+
   s.test_spec 'WorkflowReactiveSwiftTestingTests' do |test_spec|
     test_spec.requires_app_host = true
     test_spec.source_files = 'WorkflowReactiveSwift/TestingTests/**/*.swift'
