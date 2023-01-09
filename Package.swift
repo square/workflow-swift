@@ -11,6 +11,7 @@ let package = Package(
     ],
     products: [
         // MARK: Workflow
+
         .library(
             name: "Workflow",
             targets: ["Workflow"]
@@ -21,6 +22,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowUI
+
         .library(
             name: "WorkflowUI",
             targets: ["WorkflowUI"]
@@ -31,6 +33,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowReactiveSwift
+
         .library(
             name: "WorkflowReactiveSwift",
             targets: ["WorkflowReactiveSwift"]
@@ -41,6 +44,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowRxSwift
+
         .library(
             name: "WorkflowRxSwift",
             targets: ["WorkflowReactiveSwift"]
@@ -51,6 +55,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowCombine
+
         .library(
             name: "WorkflowCombine",
             targets: ["WorkflowCombine"]
@@ -61,6 +66,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowConcurrency
+
         .library(
             name: "WorkflowConcurrency",
             targets: ["WorkflowConcurrency"]
@@ -72,11 +78,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2"),
+        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2.0"),
         .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.44.14")),
     ],
     targets: [
         // MARK: Workflow
+
         .target(
             name: "Workflow",
             path: "Workflow/Sources"
@@ -98,6 +105,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowUI
+
         .target(
             name: "WorkflowUI",
             dependencies: ["Workflow"],
@@ -115,6 +123,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowReactiveSwift
+
         .target(
             name: "WorkflowReactiveSwift",
             dependencies: ["ReactiveSwift", "Workflow"],
@@ -137,6 +146,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowRxSwift
+
         .target(
             name: "WorkflowRxSwift",
             dependencies: ["RxSwift", "Workflow"],
@@ -159,6 +169,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowCombine
+
         .target(
             name: "WorkflowCombine",
             dependencies: ["Workflow"],
@@ -181,6 +192,7 @@ let package = Package(
         ),
 
         // MARK: WorkflowConcurrency
+
         .target(
             name: "WorkflowConcurrency",
             dependencies: ["Workflow"],
