@@ -47,7 +47,7 @@ let package = Package(
 
         .library(
             name: "WorkflowRxSwift",
-            targets: ["WorkflowReactiveSwift"]
+            targets: ["WorkflowRxSwift"]
         ),
         .library(
             name: "WorkflowRxSwiftTesting",
