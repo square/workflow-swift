@@ -77,7 +77,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "6.3.0"),
+        .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2.0"),
         .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.44.14")),
     ],
@@ -86,6 +86,7 @@ let package = Package(
 
         .target(
             name: "Workflow",
+            dependencies: ["ReactiveSwift"],
             path: "Workflow/Sources"
         ),
         .testTarget(

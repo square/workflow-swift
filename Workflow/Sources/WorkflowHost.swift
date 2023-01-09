@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Foundation
+import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
 public protocol WorkflowDebugger {
