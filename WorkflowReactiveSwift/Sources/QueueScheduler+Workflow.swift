@@ -15,8 +15,14 @@
  */
 
 import Foundation
+import ReactiveSwift
 
-extension DispatchQueue {
-    @_spi(WorkflowInternals)
-    public static let workflowExecution: DispatchQueue = .main
+@_spi(WorkflowInternals) import Workflow
+
+extension QueueScheduler {
+    static let workflowExecution: QueueScheduler = QueueScheduler(
+        qos: .userInteractive,
+        name: "com.squareup.workflow",
+        targeting: DispatchQueue.workflowExecution
+    )
 }
