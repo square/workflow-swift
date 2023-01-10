@@ -19,7 +19,7 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
 > ```bash
 > bundle exec pod lib lint Workflow.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec
 > ```
-And then run a similar command to check the `WorkflowConcurrency*` libraries. These specs will fail default validation as their version differs from the git tag used, so run the command with the `--allow-warnings` option, and check that only that warning is produced.
+> And then run a similar command to check the `WorkflowConcurrency*` libraries. These specs will fail default validation as their version differs from the git tag used, so run the command with the `--allow-warnings` option, and check that only that warning is produced.
 > ```bash
 > bundle exec pod lib lint WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec --allow-warnings
 > ```
