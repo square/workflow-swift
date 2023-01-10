@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
+import Foundation
 
 /// `RenderContext` is the composition point for the workflow tree.
 ///
