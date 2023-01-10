@@ -15,6 +15,15 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
 
 ---
 
+> ⚠️ [Optional] To avoid possible headaches when publishing podspecs, validation can be performed before updating the Workflow version number(s). To do this, run the following in the root directory of this repo:
+> ```bash
+> bundle exec pod lib lint Workflow.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec
+> ```
+And then run a similar command to check the `WorkflowConcurrency*` libraries. These specs will fail default validation as their version differs from the git tag used, so run the command with the `--allow-warnings` option, and check that only that warning is produced.
+> ```bash
+> bundle exec pod lib lint WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec --allow-warnings
+> ```
+
 1. Update `VERSION` file based on [`semver`](https://semver.org/).
 
 1. Create a PR with the version change and merge to `main`.
@@ -38,6 +47,8 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
     bundle exec pod trunk push WorkflowSwiftUI.podspec --synchronous
     bundle exec pod trunk push WorkflowCombine.podspec --synchronous
     bundle exec pod trunk push WorkflowCombineTesting.podspec --synchronous
+
+    # Note: If the following fail due to a validation warning about their version number not matching the git tag, it is safe to ignore, and publish anyway by adding the `--allow-warnings` option to the command.
     bundle exec pod trunk push WorkflowConcurrency.podspec --synchronous
     bundle exec pod trunk push WorkflowConcurrencyTesting.podspec --synchronous
     ```
