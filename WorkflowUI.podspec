@@ -31,5 +31,7 @@ Pod::Spec.new do |s|
         # Create an app host so that we can host
         # view or view controller based tests in a real environment.
         test_spec.requires_app_host = true
+
+        test_spec.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'NO' }
     end
 end
