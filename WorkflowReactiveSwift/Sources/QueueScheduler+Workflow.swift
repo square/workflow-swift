@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2023 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,14 @@
  */
 
 import Foundation
+import ReactiveSwift
 
-extension DispatchQueue {
-    @_spi(WorkflowInternals)
-    public static let workflowExecution: DispatchQueue = .main
+@_spi(WorkflowInternals) import Workflow
+
+extension QueueScheduler {
+    static let workflowExecution: QueueScheduler = QueueScheduler(
+        qos: .userInteractive,
+        name: "com.squareup.workflow",
+        targeting: DispatchQueue.workflowExecution
+    )
 }
