@@ -29,7 +29,7 @@
 
         private(set) var rootViewController: UIViewController
 
-        private let workflowHost: WorkflowHost<RootWorkflow<ScreenType, Output>>
+        private let workflowHost: AnyWorkflowHost<ScreenType, Output>
 
         private let (lifetime, token) = Lifetime.make()
 
@@ -40,7 +40,7 @@
         }
 
         public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
-            self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
+            self.workflowHost = WorkflowHost(workflow: workflow)
 
             self.rootViewController = workflowHost
                 .rendering
@@ -141,27 +141,6 @@
             guard newPreferredContentSize != preferredContentSize else { return }
 
             preferredContentSize = newPreferredContentSize
-        }
-    }
-
-    /// Wrapper around an AnyWorkflow that allows us to have a concrete
-    /// WorkflowHost without WorkflowHostingController itself being generic
-    /// around a Workflow.
-    fileprivate struct RootWorkflow<Rendering, Output>: Workflow {
-        typealias State = Void
-        typealias Output = Output
-        typealias Rendering = Rendering
-
-        var wrapped: AnyWorkflow<Rendering, Output>
-
-        init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Rendering == Rendering, W.Output == Output {
-            self.wrapped = wrapped.asAnyWorkflow()
-        }
-
-        func render(state: State, context: RenderContext<RootWorkflow>) -> Rendering {
-            return wrapped
-                .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
-                .rendered(in: context)
         }
     }
 
