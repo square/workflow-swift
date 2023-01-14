@@ -24,11 +24,17 @@ public struct AnyWorkflow<Rendering, Output> {
 
     /// Initializes a new type-erased wrapper for the given workflow.
     public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
-        self.init(storage: Storage<T>(
-            workflow: workflow,
-            renderingTransform: { $0 },
-            outputTransform: { $0 }
-        ))
+        switch workflow as? AnyWorkflow<Rendering, Output> {
+        case let anyWorkflow?:
+            self = anyWorkflow
+
+        case nil:
+            self.init(storage: Storage<T>(
+                workflow: workflow,
+                renderingTransform: { $0 },
+                outputTransform: { $0 }
+            ))
+        }
     }
 
     /// The underlying workflow's implementation type.
@@ -37,7 +43,17 @@ public struct AnyWorkflow<Rendering, Output> {
     }
 }
 
-extension AnyWorkflow: AnyWorkflowConvertible {
+extension AnyWorkflow: Workflow {
+    public typealias Output = Output
+    public typealias State = Void
+    public typealias Rendering = Rendering
+
+    public func render(state: Void, context: RenderContext<AnyWorkflow<Rendering, Output>>) -> Rendering {
+        storage.render(context: context, key: "") {
+            AnyWorkflowAction(sendingOutput: $0)
+        }
+    }
+
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
         return self
     }
