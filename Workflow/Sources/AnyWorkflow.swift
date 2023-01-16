@@ -131,14 +131,18 @@ extension AnyWorkflow {
             return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
                 workflow: workflow,
                 renderingTransform: renderingTransform,
-                outputTransform: { transform(self.outputTransform($0)) }
+                outputTransform: { [outputTransform] in
+                    transform(outputTransform($0))
+                }
             )
         }
 
         override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
             return AnyWorkflow<NewRendering, Output>.Storage<T>(
                 workflow: workflow,
-                renderingTransform: { transform(self.renderingTransform($0)) },
+                renderingTransform: { [renderingTransform] in
+                    transform(renderingTransform($0))
+                },
                 outputTransform: outputTransform
             )
         }
