@@ -327,3 +327,41 @@ extension Array where Element == WorkflowObserver {
         }
     }
 }
+
+// MARK: - Observers Interceptor (SPI)
+
+@_spi(WorkflowInternals)
+public protocol ObserversInterceptor {
+    /// Provides a single access point to provide the final list of `WorkflowObserver` used by the runtime.
+    /// This may be used to ensure a known set of observers is used in a particular order for all
+    /// `WorkflowHost`s created over the life of a program.
+    /// - Parameter initialObservers: Array of observers passed to a `WorkflowHost` constructor
+    /// - Returns: The array of `WorkflowObserver`s to be used by the `WorkflowHost`
+    func workflowObservers(for initialObservers: [WorkflowObserver]) -> [WorkflowObserver]
+}
+
+@_spi(WorkflowInternals)
+public enum WorkflowObservation {
+    private static var _sharedInterceptorStorage: ObserversInterceptor = NoOpObserversInterceptor()
+
+    /// The `DefaultObserversProvider` used by all runtimes.
+    public static var sharedObserversInterceptor: ObserversInterceptor! {
+        get {
+            _sharedInterceptorStorage
+        }
+        set {
+            guard newValue != nil else {
+                _sharedInterceptorStorage = NoOpObserversInterceptor()
+                return
+            }
+
+            _sharedInterceptorStorage = newValue
+        }
+    }
+
+    private struct NoOpObserversInterceptor: ObserversInterceptor {
+        func workflowObservers(for initialObservers: [WorkflowObserver]) -> [WorkflowObserver] {
+            initialObservers
+        }
+    }
+}

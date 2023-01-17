@@ -16,14 +16,15 @@
 
 import XCTest
 
-@testable import Workflow
+@testable @_spi(WorkflowInternals) import Workflow
 
 final class WorkflowObserverTests: XCTestCase {
-    fileprivate var observer: TestObserver!
+    private var observer: TestObserver!
 
     override func setUp() {
         super.setUp()
         observer = TestObserver()
+        WorkflowObservation.sharedObserversInterceptor = nil
     }
 
     // MARK: Basic Callback Validations
@@ -451,6 +452,78 @@ extension WorkflowObserverTests {
     }
 }
 
+// MARK: - Observer Intercepting
+
+extension WorkflowObserverTests {
+    func test_sharedInterceptor() {
+        var invocations: [String] = []
+
+        let testObserver1 = TestObserver()
+        testObserver1.onSessionBegan = { _ in
+            invocations.append("observer 1")
+        }
+
+        let testObserver2 = TestObserver()
+        testObserver2.onSessionBegan = { _ in
+            invocations.append("observer 2")
+        }
+
+        WorkflowObservation.sharedObserversInterceptor = DefaultObservers(observers: [testObserver2])
+
+        _ = WorkflowHost(
+            workflow: Child(prop: ""),
+            observers: [testObserver1]
+        )
+
+        XCTAssertEqual(invocations, [
+            "observer 2",
+            "observer 1",
+        ])
+    }
+
+    func test_sharedInterceptor_reset() {
+        var invocations: [String] = []
+
+        let globalObserver = TestObserver()
+        globalObserver.onSessionBegan = { _ in
+            invocations.append("global observer")
+        }
+
+        let localObserver = TestObserver()
+        localObserver.onSessionBegan = { _ in
+            invocations.append("local observer")
+        }
+
+        XCTContext.runActivity(named: "custom interceptor") { _ in
+            WorkflowObservation.sharedObserversInterceptor = DefaultObservers(observers: [globalObserver])
+
+            _ = WorkflowHost(
+                workflow: Child(prop: ""),
+                observers: [localObserver]
+            )
+
+            XCTAssertEqual(invocations, [
+                "global observer",
+                "local observer",
+            ])
+        }
+
+        XCTContext.runActivity(named: "default interceptor") { _ in
+            invocations = []
+            WorkflowObservation.sharedObserversInterceptor = nil
+
+            _ = WorkflowHost(
+                workflow: Child(prop: ""),
+                observers: [localObserver]
+            )
+
+            XCTAssertEqual(invocations, [
+                "local observer",
+            ])
+        }
+    }
+}
+
 // MARK: - Utilities
 
 private final class TestObserver: WorkflowObserver {
@@ -534,5 +607,13 @@ private extension WorkflowSession {
 extension AnyWorkflowAction {
     func getWrappedValue<T: WorkflowAction>() -> T? {
         _wrappedValue as? T
+    }
+}
+
+private struct DefaultObservers: ObserversInterceptor {
+    var observers: [WorkflowObserver]
+
+    func workflowObservers(for initialObservers: [WorkflowObserver]) -> [WorkflowObserver] {
+        observers + initialObservers
     }
 }
