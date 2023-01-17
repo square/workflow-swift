@@ -282,6 +282,25 @@
         }
     }
 
+    extension RenderTester {
+        /// Expect a constant rendering workflow as created with `AnyWorkflow(rendering:)`
+        ///
+        /// - Parameters:
+        ///   - key: The key of the expected workflow (if specified).
+        ///   - rendering: The rendering result that should be returned when this workflow is rendered.
+        public func expectRenderingWorkflow<Rendering>(
+            key: String = "",
+            producingRendering rendering: Rendering,
+            file: StaticString = #file, line: UInt = #line
+        ) -> RenderTester<WorkflowType> {
+            return expectWorkflow(
+                type: RenderingWorkflow<Rendering>.self,
+                producingRendering: rendering,
+                file: file, line: line
+            )
+        }
+    }
+
     extension Collection {
         fileprivate func appending(_ element: Element) -> [Element] {
             return self + [element]
