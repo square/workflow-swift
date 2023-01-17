@@ -100,3 +100,40 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         return outputEvent
     }
 }
+
+extension WorkflowHost {
+    /// Initializes a new host with the given workflow at the root.
+    ///
+    /// - Parameter workflow: The root workflow in the hierarchy
+    /// - Parameter debugger: An optional debugger. If provided, the host will notify the debugger of updates
+    ///
+    @_disfavoredOverload
+    public convenience init<AnyWorkflowType: AnyWorkflowConvertible>(
+        workflow: AnyWorkflowType,
+        debugger: WorkflowDebugger? = nil
+    ) where WorkflowType == AnyWorkflowWrapper<AnyWorkflowType.Rendering, AnyWorkflowType.Output> {
+        self.init(workflow: AnyWorkflowWrapper(workflow), debugger: debugger)
+    }
+}
+
+public typealias AnyWorkflowHost<Rendering, Output> = WorkflowHost<AnyWorkflowWrapper<Rendering, Output>>
+
+/// A wrapper around an AnyWorkflow that allows consumers to create a WorkflowHost from an
+/// `AnyWorkflowConvertible`.
+public struct AnyWorkflowWrapper<Rendering, Output>: Workflow {
+    public typealias State = Void
+    public typealias Output = Output
+    public typealias Rendering = Rendering
+
+    var wrapped: AnyWorkflow<Rendering, Output>
+
+    public init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Rendering == Rendering, W.Output == Output {
+        self.wrapped = wrapped.asAnyWorkflow()
+    }
+
+    public func render(state: State, context: RenderContext<Self>) -> Rendering {
+        return wrapped
+            .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
+            .rendered(in: context)
+    }
+}
