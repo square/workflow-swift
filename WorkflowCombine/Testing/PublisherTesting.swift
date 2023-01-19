@@ -16,35 +16,35 @@
 
 #if DEBUG
 
-    import Combine
-    import Workflow
-    import WorkflowTesting
-    import XCTest
-    @testable import WorkflowCombine
+import Combine
+import Workflow
+import WorkflowTesting
+import XCTest
+@testable import WorkflowCombine
 
-    @available(macOS 10.15, *)
-    @available(iOS 13.0, *)
-    extension RenderTester {
-        /// Expect a `Publisher`s.
-        ///
-        /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
-        ///
-        /// - Parameters:
-        ///   - producingOutput: An output that should be returned when this worker is requested, if any.
-        ///   - key: Key to expect this `Workflow` to be rendered with.
-        public func expect<PublisherType: Publisher>(
-            publisher: PublisherType.Type,
-            output: PublisherType.Output,
-            key: String = ""
-        ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
-            expectWorkflow(
-                type: PublisherWorkflow<PublisherType>.self,
-                key: key,
-                producingRendering: (),
-                producingOutput: output,
-                assertions: { _ in }
-            )
-        }
+@available(macOS 10.15, *)
+@available(iOS 13.0, *)
+extension RenderTester {
+    /// Expect a `Publisher`s.
+    ///
+    /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
+    ///
+    /// - Parameters:
+    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
+    ///   - key: Key to expect this `Workflow` to be rendered with.
+    public func expect<PublisherType: Publisher>(
+        publisher: PublisherType.Type,
+        output: PublisherType.Output,
+        key: String = ""
+    ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
+        expectWorkflow(
+            type: PublisherWorkflow<PublisherType>.self,
+            key: key,
+            producingRendering: (),
+            producingOutput: output,
+            assertions: { _ in }
+        )
     }
+}
 
 #endif

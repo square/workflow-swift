@@ -34,7 +34,7 @@
 --fragment false
 --hexgrouping none
 --hexliteralcase uppercase
---ifdef indent
+--ifdef no-indent
 --indentcase false
 --linebreaks lf
 --maxwidth none
