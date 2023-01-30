@@ -15,6 +15,7 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowRxSwift'
   # s.dependency 'WorkflowCombine' # TODO: Disabled because app specs cannot increase the deployment target of the root
   # s.dependency 'WorkflowConcurrency' # TODO: Disabled because app specs cannot increase the deployment target of the root
+  s.dependency 'ViewEnvironment'
   
   s.source_files = 'Samples/Dummy.swift'
 
