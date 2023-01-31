@@ -40,9 +40,6 @@ jobs:
       run: |
         bundle exec pod gen Development.podspec
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
-
     - name: Build & Test
       run: |
         set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
@@ -52,9 +49,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
 
     - name: Swift Package Manager - iOS
       run: |
@@ -80,9 +74,6 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
-
     - name: Tutorial App
       run: |
         cd Samples/Tutorial
@@ -105,9 +96,6 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
         brew install sourcedocs
-
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_13.3.1.app
 
     - name: Swiftdocs
       run: |
