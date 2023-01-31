@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.author       = 'Square'
   s.source       = { :git => 'https://github.com/square/workflow-swift.git', :tag => "v#{s.version}" }
 
-  s.ios.deployment_target = '11.0'
+  s.ios.deployment_target = '14.0'
   s.swift_version = '5.0'
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
