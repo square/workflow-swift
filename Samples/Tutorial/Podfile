@@ -1,5 +1,5 @@
 project 'Tutorial.xcodeproj'
-platform :ios, '11.0'
+platform :ios, '14.0'
 
 target 'Tutorial' do
     pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']
