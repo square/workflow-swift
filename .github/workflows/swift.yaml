@@ -40,15 +40,21 @@ jobs:
       run: |
         bundle exec pod gen Development.podspec
 
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   spm:
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
 
     - name: Swift Package Manager - iOS
       run: |
@@ -74,11 +80,14 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
 
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+
     - name: Tutorial App
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=15.4,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
 
   documentation-lint:
     runs-on: macos-latest
@@ -96,6 +105,9 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
         brew install sourcedocs
+
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
 
     - name: Swiftdocs
       run: |
