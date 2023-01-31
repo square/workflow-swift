@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
   end
 
   s.app_spec 'SampleSwiftUIApp' do |app_spec|
-    app_spec.ios.deployment_target = '13.0'
+    app_spec.ios.deployment_target = '14.0'
     app_spec.dependency 'WorkflowSwiftUI'
     app_spec.pod_target_xcconfig = {
       'IFNFOPLIST_FILE' => '${PODS_ROOT}/../Samples/SampleSwiftUIApp/SampleSwiftUIApp/Configuration/Info.plist'
