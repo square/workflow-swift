@@ -328,9 +328,9 @@ extension Array where Element == WorkflowObserver {
     }
 }
 
-// MARK: - Observers Interceptor (SPI)
+// MARK: - Global Observation (SPI)
 
-@_spi(WorkflowInternals)
+@_spi(WorkflowGlobalObservation)
 public protocol ObserversInterceptor {
     /// Provides a single access point to provide the final list of `WorkflowObserver` used by the runtime.
     /// This may be used to ensure a known set of observers is used in a particular order for all
@@ -340,7 +340,7 @@ public protocol ObserversInterceptor {
     func workflowObservers(for initialObservers: [WorkflowObserver]) -> [WorkflowObserver]
 }
 
-@_spi(WorkflowInternals)
+@_spi(WorkflowGlobalObservation)
 public enum WorkflowObservation {
     private static var _sharedInterceptorStorage: ObserversInterceptor = NoOpObserversInterceptor()
 

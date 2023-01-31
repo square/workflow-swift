@@ -16,7 +16,7 @@
 
 import XCTest
 
-@testable @_spi(WorkflowInternals) import Workflow
+@testable @_spi(WorkflowGlobalObservation) import Workflow
 
 final class WorkflowObserverTests: XCTestCase {
     private var observer: TestObserver!

@@ -237,25 +237,25 @@ extension WorkflowNode.SubtreeManager {
 
             let signpostRef = SignpostRef()
 
-            // make the optional observer callback. doing this conditionally
-            // means we can avoid capturing values in the Sink closure unless
-            // they are actually needed.
-            let notifyObserver = observer.map { observer in
-                { [workflow, session] (action: Action) in
-                    observer.workflowDidReceiveAction(
-                        action,
-                        workflow: workflow,
-                        session: session
-                    )
-                }
+            // Update the observation info for use when an action is sent
+            // through the sink we vend to the 'outside world'. This data
+            // is stored on the `ReusableSink` instance so that any relevant
+            // references are decremented once the backing node in the tree
+            // is removed.
+            reusableSink.observerInfo = observer.map {
+                ReusableSink.ObserverInfo(
+                    workflow: workflow,
+                    observer: $0,
+                    session: session
+                )
             }
 
-            let sink = Sink<Action> { action in
+            // Use a weak capture to prevent event propagation once the
+            // node backing this sink is torn down.
+            let sink = Sink<Action> { [weak reusableSink] action in
                 WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
 
-                notifyObserver?(action)
-
-                reusableSink.handle(action: action)
+                reusableSink?.handle(action: action)
             }
 
             return sink
@@ -324,8 +324,25 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+        /// Information to support runtime observation when actions are handled
+        struct ObserverInfo {
+            var workflow: WorkflowType
+            var observer: WorkflowObserver
+            var session: WorkflowSession
+        }
+
+        var observerInfo: ObserverInfo?
+
         func handle(action: Action) {
             let output = Output.update(AnyWorkflowAction(action), source: .external)
+
+            if let observerInfo = observerInfo {
+                observerInfo.observer.workflowDidReceiveAction(
+                    action,
+                    workflow: observerInfo.workflow,
+                    session: observerInfo.session
+                )
+            }
 
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.
