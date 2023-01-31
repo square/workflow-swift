@@ -13,8 +13,8 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowUI'
   s.dependency 'WorkflowReactiveSwift'
   s.dependency 'WorkflowRxSwift'
-  # s.dependency 'WorkflowCombine' # TODO: Disabled because app specs cannot increase the deployment target of the root
-  # s.dependency 'WorkflowConcurrency' # TODO: Disabled because app specs cannot increase the deployment target of the root
+  s.dependency 'WorkflowCombine'
+  s.dependency 'WorkflowConcurrency'
   s.dependency 'ViewEnvironment'
   
   s.source_files = 'Samples/Dummy.swift'
@@ -45,17 +45,14 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'WorkflowTesting/Tests/**/*.swift'
   end
 
-  # TODO: Disabled because app specs cannot increase the deployment target of the root
-  # To use, increase the deployment target of this spec to 13.0 or higher
-  #
-  # s.app_spec 'SampleSwiftUIApp' do |app_spec|
-  #   app_spec.ios.deployment_target = '13.0'
-  #   app_spec.dependency 'WorkflowSwiftUI'
-  #   app_spec.pod_target_xcconfig = {
-  #     'IFNFOPLIST_FILE' => '${PODS_ROOT}/../Samples/SampleSwiftUIApp/SampleSwiftUIApp/Configuration/Info.plist'
-  #   }
-  #   app_spec.source_files = 'SampleSwiftUIApp/SampleSwiftUIApp/**/*.swift'
-  # end
+  s.app_spec 'SampleSwiftUIApp' do |app_spec|
+    app_spec.ios.deployment_target = '13.0'
+    app_spec.dependency 'WorkflowSwiftUI'
+    app_spec.pod_target_xcconfig = {
+      'IFNFOPLIST_FILE' => '${PODS_ROOT}/../Samples/SampleSwiftUIApp/SampleSwiftUIApp/Configuration/Info.plist'
+    }
+    app_spec.source_files = 'Samples/SampleSwiftUIApp/SampleSwiftUIApp/**/*.swift'
+  end
 
   s.app_spec 'SampleTicTacToe' do |app_spec|
     app_spec.source_files = 'Samples/TicTacToe/Sources/**/*.swift'
@@ -146,48 +143,46 @@ Pod::Spec.new do |s|
     test_spec.dependency 'WorkflowRxSwiftTesting'
   end
 
-  # TODO: Disabled because app specs cannot increase the deployment target of the root
-  #  To use, increase the deployment target of this spec to 13.0 or higher
-  # s.app_spec 'WorkflowCombineSampleApp' do |app_spec|
-  #   app_spec.source_files = 'Samples/WorkflowCombineSampleApp/WorkflowCombineSampleApp/**/*.swift'
-  # end
-  #
-  # s.test_spec 'WorkflowCombineSampleAppTests' do |test_spec|
-  #   test_spec.dependency 'Development/WorkflowCombineSampleApp'
-  #   test_spec.dependency 'WorkflowTesting'
-  #   test_spec.requires_app_host = true
-  #   test_spec.app_host_name = 'Development/WorkflowCombineSampleApp'
-  #   test_spec.source_files = 'Samples/WorkflowCombineSampleApp/WorkflowCombineSampleAppUnitTests/**/*.swift'
-  # end
-
-  # s.test_spec 'WorkflowCombineTests' do |test_spec|
-  #   test_spec.requires_app_host = true
-  #   test_spec.source_files = 'WorkflowCombine/Tests/**/*.swift'
-  #   test_spec.framework = 'XCTest'
-  #   test_spec.dependency 'WorkflowTesting'
-  #   test_spec.dependency 'WorkflowCombineTesting'
-  # end
-
-  # s.test_spec 'WorkflowCombineTestingTests' do |test_spec|
-  #   test_spec.requires_app_host = true
-  #   test_spec.source_files = 'WorkflowCombine/TestingTests/**/*.swift'
-  #   test_spec.framework = 'XCTest'
-  #   test_spec.dependency 'WorkflowTesting'
-  #   test_spec.dependency 'WorkflowCombineTesting'
-  # end
+  s.app_spec 'WorkflowCombineSampleApp' do |app_spec|
+    app_spec.source_files = 'Samples/WorkflowCombineSampleApp/WorkflowCombineSampleApp/**/*.swift'
+  end
   
-  # s.test_spec 'WorkflowConcurrencyTests' do |test_spec|
-  #   test_spec.requires_app_host = true
-  #   test_spec.source_files = 'WorkflowConcurrency/Tests/**/*.swift'
-  #   test_spec.framework = 'XCTest'
-  #   test_spec.dependency 'WorkflowTesting'
-  # end
+  s.test_spec 'WorkflowCombineSampleAppTests' do |test_spec|
+    test_spec.dependency 'Development/WorkflowCombineSampleApp'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.requires_app_host = true
+    test_spec.app_host_name = 'Development/WorkflowCombineSampleApp'
+    test_spec.source_files = 'Samples/WorkflowCombineSampleApp/WorkflowCombineSampleAppUnitTests/**/*.swift'
+  end
+
+  s.test_spec 'WorkflowCombineTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowCombine/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowCombineTesting'
+  end
+
+  s.test_spec 'WorkflowCombineTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowCombine/TestingTests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowCombineTesting'
+  end
   
-  # s.test_spec 'WorkflowConcurrencyTestingTests' do |test_spec|
-  #   test_spec.requires_app_host = true
-  #   test_spec.source_files = 'WorkflowConcurrency/TestingTests/**/*.swift'
-  #   test_spec.framework = 'XCTest'
-  #   test_spec.dependency 'WorkflowTesting'
-  #   test_spec.dependency 'WorkflowConcurrencyTesting'
-  # end
+  s.test_spec 'WorkflowConcurrencyTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowConcurrency/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+  end
+  
+  s.test_spec 'WorkflowConcurrencyTestingTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowConcurrency/TestingTests/**/*.swift'
+    test_spec.framework = 'XCTest'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.dependency 'WorkflowConcurrencyTesting'
+  end
 end
