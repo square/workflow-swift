@@ -21,7 +21,10 @@ Pod::Spec.new do |s|
     s.dependency 'Workflow', "#{s.version}"
     s.framework = 'XCTest'
 
-    s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
+    s.pod_target_xcconfig = {
+        'APPLICATION_EXTENSION_API_ONLY' => 'YES',
+        'ENABLE_TESTING_SEARCH_PATHS' => 'YES',
+    }
 
     s.test_spec 'Tests' do |test_spec|
         test_spec.source_files = 'WorkflowTesting/Tests/**/*.swift'
