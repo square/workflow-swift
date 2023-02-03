@@ -120,7 +120,6 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         return rootViewController.preferredStatusBarUpdateAnimation
     }
 
-    @available(iOS 14.0, *)
     override public var childViewControllerForPointerLock: UIViewController? {
         return rootViewController
     }
