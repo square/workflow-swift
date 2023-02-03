@@ -7,8 +7,8 @@ Pod::Spec.new do |s|
   s.author       = 'Square'
   s.source       = { :git => 'https://github.com/square/workflow-swift.git', :tag => "v#{s.version}" }
 
-  s.ios.deployment_target = '14.0'
-  s.swift_version = '5.0'
+  s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
+  s.swift_version = WORKFLOW_SWIFT_VERSION
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
   s.dependency 'WorkflowReactiveSwift'
@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
   end
 
   s.app_spec 'SampleSwiftUIApp' do |app_spec|
-    app_spec.ios.deployment_target = '14.0'
+    app_spec.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
     app_spec.dependency 'WorkflowSwiftUI'
     app_spec.pod_target_xcconfig = {
       'IFNFOPLIST_FILE' => '${PODS_ROOT}/../Samples/SampleSwiftUIApp/SampleSwiftUIApp/Configuration/Info.plist'
