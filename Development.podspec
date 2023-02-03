@@ -1,3 +1,5 @@
+require_relative('version')
+
 Pod::Spec.new do |s|
   s.name         = 'Development'
   s.version      = '0.1.0'

@@ -1,3 +1,5 @@
+require_relative('../../version')
+
 project 'Tutorial.xcodeproj'
 platform :ios, WORKFLOW_IOS_DEPLOYMENT_TARGET
 
