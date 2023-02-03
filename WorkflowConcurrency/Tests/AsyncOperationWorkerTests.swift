@@ -19,7 +19,6 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
-@available(iOS 13.0, macOS 10.15, *)
 final class AsyncOperationWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(
@@ -127,7 +126,6 @@ final class AsyncOperationWorkerTests: XCTestCase {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 private struct TestAsyncOperationWorkerWorkflow: Workflow {
     typealias State = Int
     typealias Rendering = Int

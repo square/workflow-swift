@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
 
     s.swift_versions = [WORKFLOW_SWIFT_VERSION]
     s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
-    s.osx.deployment_target = '10.13'
+    s.osx.deployment_target = WORKFLOW_MACOS_DEPLOYMENT_TARGET
 
     s.source_files = 'WorkflowUI/Sources/**/*.swift'
 

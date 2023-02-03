@@ -20,8 +20,6 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowCombine
 
-@available(macOS 10.15, *)
-@available(iOS 13.0, *)
 extension RenderTester {
     /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
     ///

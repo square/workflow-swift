@@ -104,7 +104,6 @@ public final class DescribedViewController: UIViewController {
         return currentViewController.preferredStatusBarUpdateAnimation
     }
 
-    @available(iOS 14.0, *)
     override public var childViewControllerForPointerLock: UIViewController? {
         return currentViewController
     }

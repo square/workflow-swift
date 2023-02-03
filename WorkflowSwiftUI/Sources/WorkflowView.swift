@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#if canImport(SwiftUI) && canImport(Combine) && swift(>=5.1)
+#if canImport(SwiftUI) && canImport(Combine)
 
 import Combine
 import ReactiveSwift
@@ -44,7 +44,6 @@ import Workflow
 ///     }
 /// }
 /// ```
-@available(iOS 13.0, macOS 10.15, *)
 public struct WorkflowView<T: Workflow, Content: View>: View {
     /// The workflow implementation to use
     public var workflow: T
@@ -70,7 +69,6 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 extension WorkflowView where T.Output == Never {
     /// Convenience initializer for workflows with no output.
     public init(workflow: T, content: @escaping (T.Rendering) -> Content) {
@@ -78,7 +76,6 @@ extension WorkflowView where T.Output == Never {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 extension WorkflowView where T.Rendering == Content {
     /// Convenience initializer for workflows whose rendering type conforms to `View`.
     public init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
@@ -86,7 +83,6 @@ extension WorkflowView where T.Rendering == Content {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 extension WorkflowView where T.Output == Never, T.Rendering == Content {
     /// Convenience initializer for workflows with no output whose rendering type conforms to `View`.
     public init(workflow: T) {
@@ -98,7 +94,6 @@ extension WorkflowView where T.Output == Never, T.Rendering == Content {
 // update mechanism via `updateUIViewController(_:context:)`. If we were to manage a `WorkflowHost` instance directly
 // within a SwiftUI view we would need to update the host with the updated workflow from our implementation of `body`.
 // Performing work within the body accessor is strongly discouraged, so we jump back into UIKit for a second here.
-@available(iOS 13.0, macOS 10.15, *)
 fileprivate struct IntermediateView<T: Workflow, Content: View> {
     var workflow: T
     var onOutput: (T.Output) -> Void
@@ -109,7 +104,6 @@ fileprivate struct IntermediateView<T: Workflow, Content: View> {
 
 import UIKit
 
-@available(iOS 13.0, *)
 extension IntermediateView: UIViewControllerRepresentable {
     func makeUIViewController(context: UIViewControllerRepresentableContext<IntermediateView<T, Content>>) -> WorkflowHostingViewController<T, Content> {
         WorkflowHostingViewController(workflow: workflow, content: content)
@@ -122,7 +116,6 @@ extension IntermediateView: UIViewControllerRepresentable {
     }
 }
 
-@available(iOS 13.0, *)
 fileprivate final class WorkflowHostingViewController<T: Workflow, Content: View>: UIViewController {
     private let workflowHost: WorkflowHost<T>
     private let hostingController: UIHostingController<RootView<Content>>
@@ -277,7 +270,6 @@ fileprivate final class WorkflowHostingViewController<T: Workflow, Content: View
 // Assigning `rootView` on a `UIHostingController` causes unwanted animated transitions.
 // To avoid this, we never change the root view, but we pass down an `ObservableObject`
 // so that we can still update the hierarchy as the workflow emits new renderings.
-@available(iOS 13.0, macOS 10.15, *)
 fileprivate final class RootViewProvider<T: View>: ObservableObject {
     @Published var view: T
 
@@ -286,7 +278,6 @@ fileprivate final class RootViewProvider<T: View>: ObservableObject {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 fileprivate struct RootView<T: View>: View {
     @ObservedObject var provider: RootViewProvider<T>
 

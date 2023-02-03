@@ -22,8 +22,6 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowCombine
 
-@available(macOS 10.15, *)
-@available(iOS 13.0, *)
 extension RenderTester {
     /// Expect a `Publisher`s.
     ///

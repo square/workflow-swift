@@ -19,7 +19,6 @@ import Workflow
 import XCTest
 @testable import WorkflowCombine
 
-@available(iOS 13.0, macOS 10.15, *)
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         PublisherTestWorkflow(key: "123")
@@ -169,7 +168,6 @@ class WorkerTests: XCTestCase {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 private struct PublisherTestWorkflow: Workflow {
     typealias State = Int
     typealias Rendering = Int
@@ -193,7 +191,6 @@ private struct PublisherTestWorkflow: Workflow {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 private struct PublisherTestWorker: Worker {
     typealias Output = Int
     func run() -> Just<Int> { Just(1) }

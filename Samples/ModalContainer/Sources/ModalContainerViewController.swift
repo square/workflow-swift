@@ -162,10 +162,8 @@ internal final class ModalContainerViewController<ModalScreen: Screen>: ScreenVi
 
         setNeedsStatusBarAppearanceUpdate()
 
-        if #available(iOS 11.0, *) {
-            setNeedsUpdateOfHomeIndicatorAutoHidden()
-            setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
-        }
+        setNeedsUpdateOfHomeIndicatorAutoHidden()
+        setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
 
         // Set the topmost screen to be the accessibility modal
         presentedScreens.last?.viewController.view.accessibilityViewIsModal = true
