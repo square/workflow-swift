@@ -120,10 +120,6 @@ internal final class SplitScreenContainerViewController<LeadingScreenType: Scree
 
 private extension UIViewController {
     var isLayoutDirectionRightToLeft: Bool {
-        if #available(iOS 10.0, *) {
-            return traitCollection.layoutDirection == .rightToLeft
-        } else {
-            return UIView.userInterfaceLayoutDirection(for: view.semanticContentAttribute) == .rightToLeft
-        }
+        return traitCollection.layoutDirection == .rightToLeft
     }
 }
