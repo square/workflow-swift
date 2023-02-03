@@ -12,8 +12,8 @@ Pod::Spec.new do |s|
     # 1.7 is needed for `swift_versions` support
     s.cocoapods_version = '>= 1.7.0'
 
-    s.swift_versions = ['5.0']
-    s.ios.deployment_target = '11.0'
+    s.swift_versions = [WORKFLOW_SWIFT_VERSION]
+    s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
     s.osx.deployment_target = '10.13'
 
     s.source_files = 'WorkflowTesting/Sources/**/*.swift'
@@ -21,7 +21,10 @@ Pod::Spec.new do |s|
     s.dependency 'Workflow', "#{s.version}"
     s.framework = 'XCTest'
 
-    s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
+    s.pod_target_xcconfig = {
+        'APPLICATION_EXTENSION_API_ONLY' => 'YES',
+        'ENABLE_TESTING_SEARCH_PATHS' => 'YES',
+    }
 
     s.test_spec 'Tests' do |test_spec|
         test_spec.source_files = 'WorkflowTesting/Tests/**/*.swift'

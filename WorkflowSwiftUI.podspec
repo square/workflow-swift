@@ -12,8 +12,8 @@ Pod::Spec.new do |s|
     # 1.7 is needed for `swift_versions` support
     s.cocoapods_version = '>= 1.7.0'
 
-    s.swift_versions = ['5.1']
-    s.ios.deployment_target = '13.0'
+    s.swift_versions = [WORKFLOW_SWIFT_VERSION]
+    s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
     s.osx.deployment_target = '10.15'
 
     s.source_files = 'WorkflowSwiftUI/Sources/*.swift'
