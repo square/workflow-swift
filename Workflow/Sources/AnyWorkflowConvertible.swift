@@ -16,7 +16,7 @@
 
 /// Conforming types can be converted into `AnyWorkflow` values, allowing them to participate
 /// in a workflow hierarchy.
-public protocol AnyWorkflowConvertible {
+public protocol AnyWorkflowConvertible<Rendering, Output> {
     /// The rendering type of this type's `AnyWorkflow` representation
     associatedtype Rendering
 
