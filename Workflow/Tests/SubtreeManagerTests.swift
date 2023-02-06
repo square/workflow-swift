@@ -243,6 +243,26 @@ final class SubtreeManagerTests: XCTestCase {
         XCTAssertEqual(manager.sideEffectLifetimes.count, 1)
         XCTAssertEqual(manager.sideEffectLifetimes.keys.first, "key-2")
     }
+
+    func test_eventPipes_notRetainedByExternalSinks() {
+        weak var weakEventPipe: WorkflowNode<TestWorkflow>.SubtreeManager.EventPipe?
+        var externalSink: Sink<TestWorkflow.Event>?
+        autoreleasepool {
+            let manager = WorkflowNode<TestWorkflow>.SubtreeManager()
+
+            manager.render { context in
+                externalSink = context.makeSink(of: TestWorkflow.Event.self)
+            }
+
+            weakEventPipe = manager.eventPipes.last
+
+            XCTAssertEqual(manager.eventPipes.count, 1)
+            XCTAssertNotNil(weakEventPipe)
+        }
+
+        XCTAssertNotNil(externalSink)
+        XCTAssertNil(weakEventPipe)
+    }
 }
 
 private struct TestViewModel {
