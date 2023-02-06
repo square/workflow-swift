@@ -16,7 +16,7 @@
 
 /// Conforming types represent an action that advances a workflow. When applied, an action emits the next
 /// state and / or output for the workflow.
-public protocol WorkflowAction {
+public protocol WorkflowAction<WorkflowType> {
     /// The type of workflow that this action can be applied to.
     associatedtype WorkflowType: Workflow
 
