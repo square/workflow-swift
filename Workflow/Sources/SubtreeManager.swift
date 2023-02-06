@@ -198,12 +198,11 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
 
-            let signpostRef = SignpostRef()
+            let sink = Sink<Action> { [weak reusableSink] action in
+                WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
 
-            let sink = Sink<Action> { action in
-                WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
-
-                reusableSink.handle(action: action)
+                // use a weak reference as we'd like control over the lifetime
+                reusableSink?.handle(action: action)
             }
 
             return sink
