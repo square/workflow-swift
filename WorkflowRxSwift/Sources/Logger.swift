@@ -38,40 +38,33 @@ private extension OSLog {
 final class WorkerLogger<WorkerType: Worker> {
     init() {}
 
-    @available(iOS 12.0, macOS 10.14, *)
     var signpostID: OSSignpostID { OSSignpostID(log: .active, object: self) }
 
     // MARK: - Workers
 
     func logStarted() {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            os_signpost(
-                .begin,
-                log: .active,
-                name: "Running",
-                signpostID: self.signpostID,
-                "Worker: %{private}@",
-                String(describing: WorkerType.self)
-            )
-        }
+        os_signpost(
+            .begin,
+            log: .active,
+            name: "Running",
+            signpostID: signpostID,
+            "Worker: %{private}@",
+            String(describing: WorkerType.self)
+        )
     }
 
     func logFinished(status: StaticString) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
-        }
+        os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
     }
 
     func logOutput() {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            os_signpost(
-                .event,
-                log: .active,
-                name: "Worker Event",
-                signpostID: signpostID,
-                "Event: %{private}@",
-                String(describing: WorkerType.self)
-            )
-        }
+        os_signpost(
+            .event,
+            log: .active,
+            name: "Worker Event",
+            signpostID: signpostID,
+            "Event: %{private}@",
+            String(describing: WorkerType.self)
+        )
     }
 }

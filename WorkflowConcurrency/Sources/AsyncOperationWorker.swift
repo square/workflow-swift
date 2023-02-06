@@ -43,7 +43,6 @@ import Workflow
 /// }
 /// ```
 
-@available(iOS 13.0, macOS 10.15, *)
 public struct AsyncOperationWorker<OutputType>: Worker {
     private let operation: () async -> OutputType
 

@@ -172,7 +172,4 @@ fileprivate struct RootWorkflow<Rendering, Output>: Workflow {
     }
 }
 
-@available(*, deprecated, renamed: "WorkflowHostingController")
-public typealias ContainerViewController = WorkflowHostingController
-
 #endif

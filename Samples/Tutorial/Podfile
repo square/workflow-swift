@@ -1,9 +1,12 @@
+require_relative('../../version')
+
 project 'Tutorial.xcodeproj'
-platform :ios, '11.0'
+platform :ios, WORKFLOW_IOS_DEPLOYMENT_TARGET
 
 target 'Tutorial' do
     pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']
     pod 'WorkflowUI', path: '../../WorkflowUI.podspec', :testspecs => ['Tests']
+    pod 'ViewEnvironment', path: '../../ViewEnvironment.podspec'
     pod 'WorkflowReactiveSwift', path: '../../WorkflowReactiveSwift.podspec', :testspecs => ['Tests']
     pod 'BackStackContainer', path: '../BackStackContainer/BackStackContainer.podspec'
 

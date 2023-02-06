@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 
-#if canImport(Combine) && swift(>=5.1)
+#if canImport(Combine)
 
-    import Combine
-    import Foundation
-    import Workflow
+import Combine
+import Foundation
+import Workflow
 
-    @available(iOS 13.0, macOS 10.15, *)
-    struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
-        public typealias Output = WorkflowPublisher.Output
-        public typealias State = Void
-        public typealias Rendering = Void
+struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
+    public typealias Output = WorkflowPublisher.Output
+    public typealias State = Void
+    public typealias Rendering = Void
 
-        let publisher: WorkflowPublisher
+    let publisher: WorkflowPublisher
 
-        public init(publisher: WorkflowPublisher) {
-            self.publisher = publisher
-        }
+    public init(publisher: WorkflowPublisher) {
+        self.publisher = publisher
+    }
 
-        public func render(state: State, context: RenderContext<Self>) -> Rendering {
-            let sink = context.makeSink(of: AnyWorkflowAction.self)
-            context.runSideEffect(key: "") { [publisher] lifetime in
-                let cancellable = publisher
-                    .map { AnyWorkflowAction(sendingOutput: $0) }
-                    .receive(on: DispatchQueue.main)
-                    .sink { sink.send($0) }
+    public func render(state: State, context: RenderContext<Self>) -> Rendering {
+        let sink = context.makeSink(of: AnyWorkflowAction.self)
+        context.runSideEffect(key: "") { [publisher] lifetime in
+            let cancellable = publisher
+                .map { AnyWorkflowAction(sendingOutput: $0) }
+                .receive(on: DispatchQueue.main)
+                .sink { sink.send($0) }
 
-                lifetime.onEnded {
-                    cancellable.cancel()
-                }
+            lifetime.onEnded {
+                cancellable.cancel()
             }
         }
     }
+}
 
 #endif

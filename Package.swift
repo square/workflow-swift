@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.7
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "Workflow",
     platforms: [
-        .iOS("11.0"),
-        .macOS("10.13"),
+        .iOS("14.0"),
+        .macOS("10.15"),
     ],
     products: [
         // MARK: Workflow
@@ -75,11 +75,18 @@ let package = Package(
             name: "WorkflowConcurrencyTesting",
             targets: ["WorkflowConcurrencyTesting"]
         ),
+
+        // MARK: ViewEnvironment
+
+        .library(
+            name: "ViewEnvironment",
+            targets: ["ViewEnvironment"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", .exact("0.44.14")),
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.44.14"),
     ],
     targets: [
         // MARK: Workflow
@@ -109,7 +116,7 @@ let package = Package(
 
         .target(
             name: "WorkflowUI",
-            dependencies: ["Workflow"],
+            dependencies: ["Workflow", "ViewEnvironment"],
             path: "WorkflowUI/Sources"
         ),
         .testTarget(
@@ -213,6 +220,13 @@ let package = Package(
             name: "WorkflowConcurrencyTestingTests",
             dependencies: ["WorkflowConcurrencyTesting"],
             path: "WorkflowConcurrency/TestingTests"
+        ),
+
+        // MARK: ViewEnvironment
+
+        .target(
+            name: "ViewEnvironment",
+            path: "ViewEnvironment/Sources"
         ),
     ],
     swiftLanguageVersions: [.v5]

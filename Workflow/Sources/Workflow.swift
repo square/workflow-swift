@@ -49,7 +49,7 @@
 /// }
 /// ```
 ///
-public protocol Workflow: AnyWorkflowConvertible {
+public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     /// Defines the state that is managed by this workflow.
     associatedtype State
 

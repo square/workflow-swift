@@ -1,13 +1,18 @@
-if !Object.const_defined?(:WORKFLOW_VERSION)
-    load('VERSION')
-    pre_release_append = ((PRE_RELEASE_IDENTIFIER ||= "") != "") ? "-"+PRE_RELEASE_IDENTIFIER : ""
-    WORKFLOW_VERSION="#{MAJOR}.#{MINOR}.#{PATCH}#{pre_release_append}"
+# frozen_string_literal: true
 
-    # Due to a source-breaking change, this currently differs from the standard
-    # `WORKFLOW_VERSION` used for the other libraries.
-    WORKFLOW_CONCURRENCY_VERSION="#{CONCURRENCY_MAJOR}.#{CONCURRENCY_MINOR}.#{CONCURRENCY_PATCH}"
+# The primary version number for Workflow-related pods
+WORKFLOW_VERSION ||= '1.3.1'
 
-    if (WORKFLOW_CONCURRENCY_VERSION <=> WORKFLOW_VERSION) != 1
-        puts "[note]: WORKFLOW_CONCURRENCY_VERSION (value: #{WORKFLOW_CONCURRENCY_VERSION}) is not greater than WORKFLOW_VERSION (value: #{WORKFLOW_VERSION}). Please remove WORKFLOW_CONCURRENCY_VERSION in favor of WORKFLOW_VERSION if differing versions are no longer required."
-    end
-end
+# The version number for the WorkflowConcurrency library which
+# currently differs from others due to a source-breaking change
+# TODO: unify version numbers on next Workflow major release
+WORKFLOW_CONCURRENCY_VERSION ||= '2.1.1'
+
+# iOS deployment target
+WORKFLOW_IOS_DEPLOYMENT_TARGET ||= '14.0'
+
+# macOS deployment target
+WORKFLOW_MACOS_DEPLOYMENT_TARGET ||= '10.15'
+
+# Required Swift version
+WORKFLOW_SWIFT_VERSION ||= '5.7'

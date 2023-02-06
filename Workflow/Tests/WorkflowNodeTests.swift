@@ -377,5 +377,5 @@ private class SessionCollectingObserver: WorkflowObserver {
 #if compiler(>=5.0)
 // Never gains Equatable and Hashable conformance in Swift 5
 #else
-    extension Never: Equatable {}
+extension Never: Equatable {}
 #endif
