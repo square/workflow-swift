@@ -23,7 +23,7 @@ extension WorkflowNode {
         internal var onUpdate: ((Output) -> Void)?
 
         /// Sinks from the outside world (i.e. UI)
-        private var eventPipes: [EventPipe] = []
+        internal private(set) var eventPipes: [EventPipe] = []
 
         /// Reusable sinks from the previous render pass
         private var previousSinks: [ObjectIdentifier: AnyReusableSink] = [:]
@@ -198,12 +198,11 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
 
-            let signpostRef = SignpostRef()
+            let sink = Sink<Action> { [weak reusableSink] action in
+                WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
 
-            let sink = Sink<Action> { action in
-                WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
-
-                reusableSink.handle(action: action)
+                // use a weak reference as we'd like control over the lifetime
+                reusableSink?.handle(action: action)
             }
 
             return sink
@@ -291,7 +290,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - EventPipe
 
 extension WorkflowNode.SubtreeManager {
-    fileprivate final class EventPipe {
+    internal final class EventPipe {
         var validationState: ValidationState
         enum ValidationState {
             case preparing
