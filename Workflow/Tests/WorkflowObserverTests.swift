@@ -44,14 +44,18 @@ final class WorkflowObserverTests: XCTestCase {
             sessionEndedCount += 1
         }
 
+        weak var weakHost: WorkflowHost<StateTransitioningWorkflow>?
+
         // session end happens in deinit, so need control over release timing
         autoreleasepool {
-            _ = WorkflowHost(
+            let host = WorkflowHost(
                 workflow: StateTransitioningWorkflow(),
                 observers: [observer]
             )
+            weakHost = host
         }
 
+        XCTAssertNil(weakHost, "host expected to deallocate")
         XCTAssertNotNil(beganSession)
         XCTAssertNotNil(beganSession?.sessionID)
         XCTAssertEqual(beganSession?.sessionID, endedSession?.sessionID)

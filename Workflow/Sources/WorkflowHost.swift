@@ -36,7 +36,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
 
-    let rootNode: WorkflowNode<WorkflowType>
+    // @testable
+    internal let rootNode: WorkflowNode<WorkflowType>
 
     private let mutableRendering: MutableProperty<WorkflowType.Rendering>
 
