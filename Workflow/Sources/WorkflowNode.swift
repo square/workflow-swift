@@ -48,9 +48,19 @@ final class WorkflowNode<WorkflowType: Workflow> {
         let output: Output
 
         switch subtreeOutput {
-        case .update(let event, let source):
-            /// Apply the update to the current state
-            let outputEvent = event.apply(toState: &state)
+        case .update(let action, let source):
+
+            /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
+            /// allowing the underlying conformance to be applied to the Workflow's State
+            func openAndApply<A: WorkflowAction>(
+                _ action: A,
+                to state: inout WorkflowType.State
+            ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
+                /// Apply the update to the current state
+                action.apply(toState: &state)
+            }
+
+            let outputEvent = openAndApply(action, to: &state)
 
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
