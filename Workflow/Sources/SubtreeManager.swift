@@ -235,21 +235,6 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
 
-            // Update the observation info for use when an action is sent
-            // through the sink we vend to the 'outside world'. This data
-            // is stored on the `ReusableSink` instance so that any relevant
-            // references are decremented once the backing node in the tree
-            // is removed.
-            reusableSink.observerInfo = observer.map {
-                ReusableSink.ObserverInfo(
-                    workflow: workflow,
-                    observer: $0,
-                    session: session
-                )
-            }
-
-            // Use a weak capture to prevent event propagation once the
-            // node backing this sink is torn down.
             let sink = Sink<Action> { [weak reusableSink] action in
                 WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
 
@@ -323,25 +308,8 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
-        /// Information to support runtime observation when actions are handled
-        struct ObserverInfo {
-            var workflow: WorkflowType
-            var observer: WorkflowObserver
-            var session: WorkflowSession
-        }
-
-        var observerInfo: ObserverInfo?
-
         func handle(action: Action) {
             let output = Output.update(action, source: .external)
-
-            if let observerInfo = observerInfo {
-                observerInfo.observer.workflowDidReceiveAction(
-                    action,
-                    workflow: observerInfo.workflow,
-                    session: observerInfo.session
-                )
-            }
 
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.

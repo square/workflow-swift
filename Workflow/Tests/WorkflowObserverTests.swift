@@ -170,8 +170,7 @@ final class WorkflowObserverTests: XCTestCase {
         var didApplyState: Bool?
 
         observer.onApplyAction = { action, workflow, state, session in
-            let anyAction = action as? AnyWorkflowAction<StateTransitioningWorkflow>
-            guard let action: StateTransitioningWorkflow.Event = anyAction?.getWrappedValue() else {
+            guard let action = action as? StateTransitioningWorkflow.Event else {
                 XCTFail("unexpected action. expecting \(StateTransitioningWorkflow.Event.self), got \(type(of: action))")
                 return nil
             }
@@ -605,12 +604,6 @@ private extension WorkflowSession {
             renderKey: "",
             parent: nil
         )
-    }
-}
-
-extension AnyWorkflowAction {
-    func getWrappedValue<T: WorkflowAction>() -> T? {
-        _wrappedValue as? T
     }
 }
 
