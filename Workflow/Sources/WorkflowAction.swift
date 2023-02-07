@@ -39,7 +39,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
 
     /// Underlying type-erased `WorkflowAction` value, if it exists. Will be nil if the
     /// action is defined by a closure. Primarily used for testing purposes.
-    let _wrappedValue: Any?
+    let _wrappedValue: (any WorkflowAction<WorkflowType>)?
 
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
