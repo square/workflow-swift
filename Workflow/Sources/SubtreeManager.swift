@@ -130,7 +130,7 @@ extension WorkflowNode {
 
 extension WorkflowNode.SubtreeManager {
     enum Output {
-        case update(AnyWorkflowAction<WorkflowType>, source: WorkflowUpdateDebugInfo.Source)
+        case update(any WorkflowAction<WorkflowType>, source: WorkflowUpdateDebugInfo.Source)
         case childDidUpdate(WorkflowUpdateDebugInfo)
     }
 }
@@ -209,7 +209,7 @@ extension WorkflowNode.SubtreeManager {
                 /// Update the existing child
                 existing.update(
                     workflow: workflow,
-                    outputMap: { AnyWorkflowAction(outputMap($0)) },
+                    outputMap: { outputMap($0) },
                     eventPipe: eventPipe
                 )
                 child = existing
@@ -218,7 +218,7 @@ extension WorkflowNode.SubtreeManager {
                 /// This spins up a new workflow node, etc to host the newly created child.
                 child = ChildWorkflow<Child>(
                     workflow: workflow,
-                    outputMap: { AnyWorkflowAction(outputMap($0)) },
+                    outputMap: { outputMap($0) },
                     eventPipe: eventPipe,
                     key: key,
                     parentSession: session,
@@ -333,7 +333,7 @@ extension WorkflowNode.SubtreeManager {
         var observerInfo: ObserverInfo?
 
         func handle(action: Action) {
-            let output = Output.update(AnyWorkflowAction(action), source: .external)
+            let output = Output.update(action, source: .external)
 
             if let observerInfo = observerInfo {
                 observerInfo.observer.workflowDidReceiveAction(
@@ -456,11 +456,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
-        private var outputMap: (W.Output) -> AnyWorkflowAction<WorkflowType>
+        private var outputMap: (W.Output) -> any WorkflowAction<WorkflowType>
 
         init(
             workflow: W,
-            outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>,
+            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe,
             key: String,
             parentSession: WorkflowSession?,
@@ -489,7 +489,11 @@ extension WorkflowNode.SubtreeManager {
             return node.render(isRootNode: false)
         }
 
-        func update(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
+        func update(
+            workflow: W,
+            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            eventPipe: EventPipe
+        ) {
             self.outputMap = outputMap
             self.eventPipe = eventPipe
             node.update(workflow: workflow)

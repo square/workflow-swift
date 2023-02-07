@@ -79,16 +79,14 @@ final class WorkflowNode<WorkflowType: Workflow> {
         let output: Output
 
         switch subtreeOutput {
-        case .update(let event, let source):
-            let actionObserverCompletion = observer?.workflowWillApplyAction(
-                event,
-                workflow: workflow,
-                state: state,
-                session: session
+        case .update(let action, let source):
+            /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
+            /// allowing the underlying conformance to be applied to the Workflow's State
+            let outputEvent = openAndApply(
+                action,
+                to: &state,
+                observerInfo: observer.map { ($0, workflow, session) }
             )
-
-            /// Apply the update to the current state
-            let outputEvent = event.apply(toState: &state)
 
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
@@ -98,8 +96,6 @@ final class WorkflowNode<WorkflowType: Workflow> {
                     kind: .didUpdate(source: source)
                 )
             )
-
-            actionObserverCompletion?(state, outputEvent)
 
         case .childDidUpdate(let debugInfo):
             output = Output(
@@ -179,5 +175,36 @@ extension WorkflowNode {
     struct Output {
         var outputEvent: WorkflowType.Output?
         var debugInfo: WorkflowUpdateDebugInfo
+    }
+}
+
+private extension WorkflowNode {
+    /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
+    /// - Parameters:
+    ///   - action: The `WorkflowAction` to apply
+    ///   - state: The `State` to which the action will be applied
+    ///   - observerInfo: Optional observation info to notify registered `WorkflowObserver`s
+    /// - Returns: An optional `Output` produced by the action application
+    func openAndApply<A: WorkflowAction>(
+        _ action: A,
+        to state: inout WorkflowType.State,
+        observerInfo: (WorkflowObserver, WorkflowType, WorkflowSession)?
+    ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
+        let output: WorkflowType.Output?
+
+        let observerCompletion = observerInfo.flatMap { observer, workflow, session in
+            observer.workflowWillApplyAction(
+                action,
+                workflow: workflow,
+                state: state,
+                session: session
+            )
+        }
+        defer { observerCompletion?(state, output) }
+
+        /// Apply the action to the current state
+        output = action.apply(toState: &state)
+
+        return output
     }
 }
