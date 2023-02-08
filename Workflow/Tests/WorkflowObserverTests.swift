@@ -163,6 +163,57 @@ final class WorkflowObserverTests: XCTestCase {
         XCTAssertEqual(actions, [.toggle])
     }
 
+    func test_didReceiveActionCallbacks_onlyInvokedForExternalEvents() {
+        var actionsReceived: [InjectableWorkflow.Action] = []
+        observer.onDidReceiveAction = { action, workflow, session in
+            guard let action = action as? InjectableWorkflow.Action else {
+                XCTFail("unexpected action. expecting \(InjectableWorkflow.Action.self), got \(type(of: action))")
+                return
+            }
+
+            actionsReceived.append(action)
+        }
+
+        var actionsApplied: [InjectableWorkflow.Action] = []
+        observer.onApplyAction = { action, _, _, _ in
+            guard let action = action as? InjectableWorkflow.Action else {
+                XCTFail("unexpected action. expecting \(InjectableWorkflow.Action.self), got \(type(of: action))")
+                return nil
+            }
+
+            actionsApplied.append(action)
+            return nil
+        }
+
+        var sink: Sink<InjectableWorkflow.Action>?
+
+        let child = InjectableWorkflow { context in
+            sink = context.makeSink(of: InjectableWorkflow.Action.self)
+            return 42
+        }
+
+        let parent = InjectableWorkflow { context in
+            child.rendered(in: context)
+        }
+
+        let node = WorkflowNode(
+            workflow: parent,
+            parentSession: nil,
+            observer: observer
+        )
+
+        _ = node.render()
+        node.enableEvents()
+
+        XCTAssertEqual(actionsReceived, [])
+        XCTAssertEqual(actionsApplied, [])
+
+        sink?.send(.externalInput)
+
+        XCTAssertEqual(actionsReceived, [.externalInput])
+        XCTAssertEqual(actionsApplied, [.externalInput, .forwardedOutput])
+    }
+
     func test_willApplyActionCallbacks() {
         var willApplyActions: [StateTransitioningWorkflow.Event] = []
         var didApplyActions: [StateTransitioningWorkflow.Event] = []
@@ -592,6 +643,28 @@ private struct Parent: Workflow {
             .rendered(in: context)
 
         return renderCount
+    }
+}
+
+private struct InjectableWorkflow: Workflow {
+    typealias Output = Action
+
+    enum Action: WorkflowAction {
+        typealias WorkflowType = InjectableWorkflow
+
+        case externalInput
+
+        case forwardedOutput
+
+        func apply(toState state: inout ()) -> InjectableWorkflow.Output? {
+            return .forwardedOutput
+        }
+    }
+
+    var renderImpl: (RenderContext<Self>) -> Rendering
+
+    func render(state: Void, context: RenderContext<Self>) -> Int {
+        renderImpl(context)
     }
 }
 
