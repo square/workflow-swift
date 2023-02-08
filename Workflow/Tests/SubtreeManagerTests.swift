@@ -250,9 +250,9 @@ final class SubtreeManagerTests: XCTestCase {
         autoreleasepool {
             let manager = WorkflowNode<TestWorkflow>.SubtreeManager()
 
-            manager.render({ context in
+            manager.render { context in
                 externalSink = context.makeSink(of: TestWorkflow.Event.self)
-            }, workflow: TestWorkflow())
+            }
 
             weakEventPipe = manager.eventPipes.last
 
@@ -355,13 +355,5 @@ private extension WorkflowNode.SubtreeManager {
             session: .testing(),
             observer: nil
         )
-    }
-}
-
-private extension WorkflowNode.SubtreeManager where WorkflowType == ParentWorkflow {
-    func render<Rendering>(
-        _ actions: (RenderContext<WorkflowType>) -> Rendering
-    ) -> Rendering {
-        render(actions, workflow: ParentWorkflow())
     }
 }

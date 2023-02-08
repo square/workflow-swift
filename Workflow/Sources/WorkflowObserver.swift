@@ -276,7 +276,11 @@ final class ChainedWorkflowObserver: WorkflowObserver {
         }
     }
 
-    func workflowDidReceiveAction<Action>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) where Action: WorkflowAction {
+    func workflowDidReceiveAction<Action>(
+        _ action: Action,
+        workflow: Action.WorkflowType,
+        session: WorkflowSession
+    ) where Action: WorkflowAction {
         for observer in observers {
             observer.workflowDidReceiveAction(
                 action,

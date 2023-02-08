@@ -58,7 +58,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     ) {
         self.debugger = debugger
 
-        let observers = WorkflowObservation
+        let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
             .chained()
@@ -66,7 +66,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         self.rootNode = WorkflowNode(
             workflow: workflow,
             parentSession: nil,
-            observer: observers
+            observer: observer
         )
 
         self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))

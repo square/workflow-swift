@@ -48,8 +48,7 @@ extension WorkflowNode {
 
         /// Performs an update pass using the given closure.
         func render<Rendering>(
-            _ actions: (RenderContext<WorkflowType>) -> Rendering,
-            workflow: WorkflowType
+            _ actions: (RenderContext<WorkflowType>) -> Rendering
         ) -> Rendering {
             /// Invalidate the previous action handlers.
             for eventPipe in eventPipes {
@@ -61,7 +60,6 @@ extension WorkflowNode {
                 previousSinks: previousSinks,
                 originalChildWorkflows: childWorkflows,
                 originalSideEffectLifetimes: sideEffectLifetimes,
-                workflow: workflow,
                 session: session,
                 observer: observer
             )
@@ -150,7 +148,6 @@ extension WorkflowNode.SubtreeManager {
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
         internal private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
-        private let workflow: WorkflowType
         private let session: WorkflowSession
         private let observer: WorkflowObserver?
 
@@ -158,7 +155,6 @@ extension WorkflowNode.SubtreeManager {
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
             originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
-            workflow: WorkflowType,
             session: WorkflowSession,
             observer: WorkflowObserver?
         ) {
@@ -172,7 +168,6 @@ extension WorkflowNode.SubtreeManager {
             self.originalSideEffectLifetimes = originalSideEffectLifetimes
             self.usedSideEffectLifetimes = [:]
 
-            self.workflow = workflow
             self.session = session
             self.observer = observer
         }
