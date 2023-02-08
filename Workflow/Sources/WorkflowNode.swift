@@ -20,7 +20,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     private var state: WorkflowType.State
 
     /// Holds the current workflow.
-    private(set) var workflow: WorkflowType
+    private var workflow: WorkflowType
 
     /// An optional `WorkflowObserver` instance
     let observer: WorkflowObserver?
