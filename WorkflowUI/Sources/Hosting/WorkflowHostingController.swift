@@ -39,8 +39,15 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         }
     }
 
-    public init<W: AnyWorkflowConvertible>(workflow: W, rootViewEnvironment: ViewEnvironment = .empty) where W.Rendering == ScreenType, W.Output == Output {
-        self.workflowHost = WorkflowHost(workflow: RootWorkflow(workflow))
+    public init<W: AnyWorkflowConvertible>(
+        workflow: W,
+        rootViewEnvironment: ViewEnvironment = .empty,
+        observers: [WorkflowObserver] = []
+    ) where W.Rendering == ScreenType, W.Output == Output {
+        self.workflowHost = WorkflowHost(
+            workflow: RootWorkflow(workflow),
+            observers: observers
+        )
 
         self.rootViewController = workflowHost
             .rendering

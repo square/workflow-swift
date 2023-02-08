@@ -19,6 +19,11 @@ import XCTest
 @testable import Workflow
 
 class PerformanceTests: XCTestCase {
+    var noOpObserver: WorkflowObserver {
+        struct NoOpObserverImpl: WorkflowObserver {}
+        return NoOpObserverImpl()
+    }
+
     override func setUp() {
         super.setUp()
         WorkflowLogging.enabled = false
@@ -36,9 +41,29 @@ class PerformanceTests: XCTestCase {
         }
     }
 
+    func test_render_wideShallowTree_withNoOpObserver() throws {
+        measure { [noOpObserver] in
+            let node = WorkflowNode(
+                workflow: WideShallowParentWorkflow(),
+                observer: noOpObserver
+            )
+            _ = node.render(isRootNode: true)
+        }
+    }
+
     func test_render_narrowDeepTree() throws {
         measure {
             let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
+            _ = node.render(isRootNode: true)
+        }
+    }
+
+    func test_render_narrowDeepTree_withNoOpObserver() throws {
+        measure { [noOpObserver] in
+            let node = WorkflowNode(
+                workflow: NarrowDeepParentWorkflow(),
+                observer: noOpObserver
+            )
             _ = node.render(isRootNode: true)
         }
     }

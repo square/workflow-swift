@@ -327,3 +327,33 @@ private struct TestWorkflow: Workflow {
         )
     }
 }
+
+// MARK: Testing conveniences
+
+private extension WorkflowSession {
+    static func testing() -> WorkflowSession {
+        struct SessionTestWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Void
+
+            func render(state: Void, context: RenderContext<SessionTestWorkflow>) {
+                XCTFail("SessionTestWorkflow should never be rendered")
+            }
+        }
+
+        return WorkflowSession(
+            workflow: SessionTestWorkflow(),
+            renderKey: "testing",
+            parent: .none
+        )
+    }
+}
+
+private extension WorkflowNode.SubtreeManager {
+    convenience init() {
+        self.init(
+            session: .testing(),
+            observer: nil
+        )
+    }
+}
