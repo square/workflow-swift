@@ -10,7 +10,6 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
-@available(iOS 13.0, macOS 10.15, *)
 class AsyncStreamWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(
