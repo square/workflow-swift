@@ -112,7 +112,6 @@ class AsyncStreamWorkerTests: XCTestCase {
         wait(for: [endExpectation], timeout: 1.0)
     }
 
-    @available(iOS 13.0, macOS 10.15, *)
     private struct TestAsyncStreamWorkerWorkflow: Workflow {
         typealias State = Int
         typealias Rendering = Int
@@ -134,7 +133,6 @@ class AsyncStreamWorkerTests: XCTestCase {
         }
     }
 
-    @available(iOS 13.0, macOS 10.15, *)
     struct IntWorker: AsyncStreamWorker {
         func run() -> AsyncStream<Int> {
             var i = 0
