@@ -47,6 +47,15 @@ struct SignalProducerWorkflow<Value>: Workflow {
     public typealias State = Void
     public typealias Rendering = Void
 
+    struct SignalProducerWorkflowAction: WorkflowAction {
+        typealias WorkflowType = SignalProducerWorkflow
+        let output: Value
+
+        func apply(toState state: inout Void) -> Value? {
+            output
+        }
+    }
+
     var signalProducer: SignalProducer<Value, Never>
 
     public init(signalProducer: SignalProducer<Value, Never>) {
@@ -54,11 +63,11 @@ struct SignalProducerWorkflow<Value>: Workflow {
     }
 
     public func render(state: State, context: RenderContext<SignalProducerWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: AnyWorkflowAction.self)
+        let sink = context.makeSink(of: SignalProducerWorkflowAction.self)
         context.runSideEffect(key: "") { [signalProducer] lifetime in
             signalProducer
                 .take(during: lifetime.reactiveLifetime)
-                .map { AnyWorkflowAction(sendingOutput: $0) }
+                .map { SignalProducerWorkflowAction(output: $0) }
                 .observe(on: QueueScheduler.main)
                 .startWithValues(sink.send)
         }
