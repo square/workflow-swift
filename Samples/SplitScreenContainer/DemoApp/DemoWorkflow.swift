@@ -18,6 +18,17 @@ import SplitScreenContainer
 import Workflow
 import WorkflowUI
 
+struct ScreenMapper: WorkflowObserver {
+    func workflowWillRender<WorkflowType>(
+        _ workflow: WorkflowType,
+        state: WorkflowType.State,
+        session: WorkflowSession
+    ) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
+        // do something with Screen renderings here?
+        nil
+    }
+}
+
 // MARK: Input and Output
 
 struct DemoWorkflow: Workflow {
@@ -62,11 +73,28 @@ extension DemoWorkflow {
     private static let colors: [UIColor] = [.red, .blue, .green, .yellow]
     private static let complimentaryColors: [UIColor] = [.blue, .green, .yellow, .purple]
 
+    struct IndexWorkflow: Workflow {
+        typealias State = Void
+        typealias Rendering = AnyScreen
+
+        func render(state: Void, context: RenderContext<DemoWorkflow.IndexWorkflow>) -> AnyScreen {
+            leadingScreenFor()
+        }
+
+        private func leadingScreenFor() -> AnyScreen {
+            return FooScreen(title: "", backgroundColor: .green, viewTapped: {}).asAnyScreen()
+        }
+    }
+
     func render(state: State, context: RenderContext<DemoWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
+        let leftRendering = IndexWorkflow()
+            .rendered(in: context)
+
         return SplitScreenContainerScreen(
-            leadingScreen: leadingScreenFor(state: state, context: context),
+            leadingScreen: leftRendering,
+            // leadingScreenFor(state: state, context: context),
             trailingScreen: FooScreen(title: "Trailing screen", backgroundColor: .green, viewTapped: { sink.send(.viewTapped) }),
             ratio: DemoWorkflow.sizes[state % DemoWorkflow.sizes.count],
             separatorColor: .black,

@@ -60,6 +60,7 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
         self.screen = screen
         let previousEnvironment = self.environment
         self.environment = environment
+        print("update screen \(ScreenType.self) from workflow: \(type(of: environment.originatingWorkflow))")
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
     }
 

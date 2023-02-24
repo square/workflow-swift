@@ -20,6 +20,27 @@ import ReactiveSwift
 import UIKit
 import Workflow
 
+struct OriginatingWorkflowViewEnvironmentKey: ViewEnvironmentKey {
+    typealias Value = WrappedWorkflow
+
+    static var defaultValue: WrappedWorkflow {
+        fatalError()
+    }
+}
+
+struct WrappedWorkflow {
+    let value: Any
+}
+
+extension ViewEnvironment {
+    var originatingWorkflow: Any {
+        get {
+            self[OriginatingWorkflowViewEnvironmentKey.self].value
+        }
+        set { self[OriginatingWorkflowViewEnvironmentKey.self] = WrappedWorkflow(value: newValue) }
+    }
+}
+
 /// Drives view controllers from a root Workflow.
 public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
     /// Emits output events from the bound workflow.
@@ -32,6 +53,8 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     private let workflowHost: WorkflowHost<RootWorkflow<ScreenType, Output>>
 
     private let (lifetime, token) = Lifetime.make()
+
+    var rootWorkflow: Any
 
     public var rootViewEnvironment: ViewEnvironment {
         didSet {
@@ -49,12 +72,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
             observers: observers
         )
 
+        self.rootWorkflow = workflow
+
+        let environment = rootViewEnvironment.setting(key: OriginatingWorkflowViewEnvironmentKey.self, to: WrappedWorkflow(value: workflow))
+
         self.rootViewController = workflowHost
             .rendering
             .value
-            .buildViewController(in: rootViewEnvironment)
+            .buildViewController(in: environment)
 
-        self.rootViewEnvironment = rootViewEnvironment
+        self.rootViewEnvironment = environment
 
         super.init(nibName: nil, bundle: nil)
 
@@ -74,6 +101,7 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
     /// Updates the root Workflow in this container.
     public func update<W: AnyWorkflowConvertible>(workflow: W) where W.Rendering == ScreenType, W.Output == Output {
+        rootWorkflow = workflow
         workflowHost.update(workflow: RootWorkflow(workflow))
     }
 
@@ -160,8 +188,11 @@ fileprivate struct RootWorkflow<Rendering, Output>: Workflow {
 
     var wrapped: AnyWorkflow<Rendering, Output>
 
+//    var root: Any
+
     init<W: AnyWorkflowConvertible>(_ wrapped: W) where W.Rendering == Rendering, W.Output == Output {
         self.wrapped = wrapped.asAnyWorkflow()
+//        self.root = wrapped
     }
 
     func render(state: State, context: RenderContext<RootWorkflow>) -> Rendering {
