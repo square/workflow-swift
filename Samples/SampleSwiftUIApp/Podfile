@@ -1,5 +1,5 @@
 project 'SampleSwiftUIApp.xcodeproj'
-platform :ios, '13'
+platform :ios, '14.0'
 
 target 'SampleSwiftUIApp' do
     pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']

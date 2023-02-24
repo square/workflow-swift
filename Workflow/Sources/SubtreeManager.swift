@@ -23,7 +23,7 @@ extension WorkflowNode {
         internal var onUpdate: ((Output) -> Void)?
 
         /// Sinks from the outside world (i.e. UI)
-        private var eventPipes: [EventPipe] = []
+        internal private(set) var eventPipes: [EventPipe] = []
 
         /// Reusable sinks from the previous render pass
         private var previousSinks: [ObjectIdentifier: AnyReusableSink] = [:]
@@ -34,10 +34,22 @@ extension WorkflowNode {
         /// The current array of side-effects
         internal private(set) var sideEffectLifetimes: [AnyHashable: SideEffectLifetime] = [:]
 
-        init() {}
+        private let session: WorkflowSession
+
+        private let observer: WorkflowObserver?
+
+        init(
+            session: WorkflowSession,
+            observer: WorkflowObserver? = nil
+        ) {
+            self.session = session
+            self.observer = observer
+        }
 
         /// Performs an update pass using the given closure.
-        func render<Rendering>(_ actions: (RenderContext<WorkflowType>) -> Rendering) -> Rendering {
+        func render<Rendering>(
+            _ actions: (RenderContext<WorkflowType>) -> Rendering
+        ) -> Rendering {
             /// Invalidate the previous action handlers.
             for eventPipe in eventPipes {
                 eventPipe.invalidate()
@@ -47,7 +59,9 @@ extension WorkflowNode {
             let context = Context(
                 previousSinks: previousSinks,
                 originalChildWorkflows: childWorkflows,
-                originalSideEffectLifetimes: sideEffectLifetimes
+                originalSideEffectLifetimes: sideEffectLifetimes,
+                session: session,
+                observer: observer
             )
 
             let wrapped = RenderContext.make(implementation: context)
@@ -114,7 +128,7 @@ extension WorkflowNode {
 
 extension WorkflowNode.SubtreeManager {
     enum Output {
-        case update(AnyWorkflowAction<WorkflowType>, source: WorkflowUpdateDebugInfo.Source)
+        case update(any WorkflowAction<WorkflowType>, source: WorkflowUpdateDebugInfo.Source)
         case childDidUpdate(WorkflowUpdateDebugInfo)
     }
 }
@@ -134,10 +148,15 @@ extension WorkflowNode.SubtreeManager {
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
         internal private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
+        private let session: WorkflowSession
+        private let observer: WorkflowObserver?
+
         internal init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
-            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
+            originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
+            session: WorkflowSession,
+            observer: WorkflowObserver?
         ) {
             self.eventPipes = []
 
@@ -148,13 +167,23 @@ extension WorkflowNode.SubtreeManager {
 
             self.originalSideEffectLifetimes = originalSideEffectLifetimes
             self.usedSideEffectLifetimes = [:]
+
+            self.session = session
+            self.observer = observer
         }
 
-        func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+        func render<Child, Action>(
+            workflow: Child,
+            key: String,
+            outputMap: @escaping (Child.Output) -> Action
+        ) -> Child.Rendering
+            where Child: Workflow,
+            Action: WorkflowAction,
+            WorkflowType == Action.WorkflowType {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
 
-            /// If the key already exists in `used`, than a workflow of the same type has been rendered multiple times
+            /// If the key already exists in `used`, then a workflow of the same type has been rendered multiple times
             /// during this render pass with the same key. This is not allowed.
             guard usedChildWorkflows[childKey] == nil else {
                 fatalError("Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
@@ -175,7 +204,7 @@ extension WorkflowNode.SubtreeManager {
                 /// Update the existing child
                 existing.update(
                     workflow: workflow,
-                    outputMap: { AnyWorkflowAction(outputMap($0)) },
+                    outputMap: { outputMap($0) },
                     eventPipe: eventPipe
                 )
                 child = existing
@@ -184,8 +213,11 @@ extension WorkflowNode.SubtreeManager {
                 /// This spins up a new workflow node, etc to host the newly created child.
                 child = ChildWorkflow<Child>(
                     workflow: workflow,
-                    outputMap: { AnyWorkflowAction(outputMap($0)) },
-                    eventPipe: eventPipe
+                    outputMap: { outputMap($0) },
+                    eventPipe: eventPipe,
+                    key: key,
+                    parentSession: session,
+                    observer: observer
                 )
             }
 
@@ -198,12 +230,11 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
 
-            let signpostRef = SignpostRef()
+            let sink = Sink<Action> { [weak reusableSink] action in
+                WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
 
-            let sink = Sink<Action> { action in
-                WorkflowLogger.logSinkEvent(ref: signpostRef, action: action)
-
-                reusableSink.handle(action: action)
+                // use a weak reference as we'd like control over the lifetime
+                reusableSink?.handle(action: action)
             }
 
             return sink
@@ -273,7 +304,7 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
-            let output = Output.update(AnyWorkflowAction(action), source: .external)
+            let output = Output.update(action, source: .external)
 
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.
@@ -291,7 +322,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - EventPipe
 
 extension WorkflowNode.SubtreeManager {
-    fileprivate final class EventPipe {
+    internal final class EventPipe {
         var validationState: ValidationState
         enum ValidationState {
             case preparing
@@ -388,11 +419,23 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
-        private var outputMap: (W.Output) -> AnyWorkflowAction<WorkflowType>
+        private var outputMap: (W.Output) -> any WorkflowAction<WorkflowType>
 
-        init(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
+        init(
+            workflow: W,
+            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            eventPipe: EventPipe,
+            key: String,
+            parentSession: WorkflowSession?,
+            observer: WorkflowObserver?
+        ) {
             self.outputMap = outputMap
-            self.node = WorkflowNode<W>(workflow: workflow)
+            self.node = WorkflowNode<W>(
+                workflow: workflow,
+                key: key,
+                parentSession: parentSession,
+                observer: observer
+            )
 
             super.init(eventPipe: eventPipe)
 
@@ -409,7 +452,11 @@ extension WorkflowNode.SubtreeManager {
             return node.render(isRootNode: false)
         }
 
-        func update(workflow: W, outputMap: @escaping (W.Output) -> AnyWorkflowAction<WorkflowType>, eventPipe: EventPipe) {
+        func update(
+            workflow: W,
+            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            eventPipe: EventPipe
+        ) {
             self.outputMap = outputMap
             self.eventPipe = eventPipe
             node.update(workflow: workflow)

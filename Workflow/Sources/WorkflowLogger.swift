@@ -93,44 +93,38 @@ final class WorkflowLogger {
     // MARK: Workflows
 
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            guard WorkflowLogging.config.logLifetimes else { return }
+        guard WorkflowLogging.config.logLifetimes else { return }
 
-            let signpostID = OSSignpostID(log: .active, object: ref)
-            os_signpost(
-                .begin,
-                log: .active,
-                name: "Alive",
-                signpostID: signpostID,
-                "Workflow: %{public}@",
-                String(describing: WorkflowType.self)
-            )
-        }
+        let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(
+            .begin,
+            log: .active,
+            name: "Alive",
+            signpostID: signpostID,
+            "Workflow: %{public}@",
+            String(describing: WorkflowType.self)
+        )
     }
 
     static func logWorkflowFinished<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            guard WorkflowLogging.config.logLifetimes else { return }
+        guard WorkflowLogging.config.logLifetimes else { return }
 
-            let signpostID = OSSignpostID(log: .active, object: ref)
-            os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
-        }
+        let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
     }
 
     static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            guard WorkflowLogging.config.logActions else { return }
+        guard WorkflowLogging.config.logActions else { return }
 
-            let signpostID = OSSignpostID(log: .active, object: ref)
-            os_signpost(
-                .event,
-                log: .active,
-                name: "Sink Event",
-                signpostID: signpostID,
-                "Event for workflow: %{public}@",
-                String(describing: Action.WorkflowType.self)
-            )
-        }
+        let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(
+            .event,
+            log: .active,
+            name: "Sink Event",
+            signpostID: signpostID,
+            "Event for workflow: %{public}@",
+            String(describing: Action.WorkflowType.self)
+        )
     }
 
     // MARK: Rendering
@@ -139,35 +133,31 @@ final class WorkflowLogger {
         ref: WorkflowNode<WorkflowType>,
         isRootNode: Bool
     ) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            guard shouldLogRenderTimings(
-                isRootNode: isRootNode
-            ) else { return }
+        guard shouldLogRenderTimings(
+            isRootNode: isRootNode
+        ) else { return }
 
-            let signpostID = OSSignpostID(log: .active, object: ref)
-            os_signpost(
-                .begin,
-                log: .active,
-                name: "Render",
-                signpostID: signpostID,
-                "Render Workflow: %{public}@",
-                String(describing: WorkflowType.self)
-            )
-        }
+        let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(
+            .begin,
+            log: .active,
+            name: "Render",
+            signpostID: signpostID,
+            "Render Workflow: %{public}@",
+            String(describing: WorkflowType.self)
+        )
     }
 
     static func logWorkflowFinishedRendering<WorkflowType>(
         ref: WorkflowNode<WorkflowType>,
         isRootNode: Bool
     ) {
-        if #available(iOS 12.0, macOS 10.14, *) {
-            guard shouldLogRenderTimings(
-                isRootNode: isRootNode
-            ) else { return }
+        guard shouldLogRenderTimings(
+            isRootNode: isRootNode
+        ) else { return }
 
-            let signpostID = OSSignpostID(log: .active, object: ref)
-            os_signpost(.end, log: .active, name: "Render", signpostID: signpostID)
-        }
+        let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(.end, log: .active, name: "Render", signpostID: signpostID)
     }
 
     // MARK: - Utilities

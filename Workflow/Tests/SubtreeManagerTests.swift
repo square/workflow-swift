@@ -72,7 +72,7 @@ final class SubtreeManagerTests: XCTestCase {
         manager.onUpdate = {
             switch $0 {
             case .update(let event, _):
-                events.append(event)
+                events.append(AnyWorkflowAction(event))
             default:
                 break
             }
@@ -243,6 +243,26 @@ final class SubtreeManagerTests: XCTestCase {
         XCTAssertEqual(manager.sideEffectLifetimes.count, 1)
         XCTAssertEqual(manager.sideEffectLifetimes.keys.first, "key-2")
     }
+
+    func test_eventPipes_notRetainedByExternalSinks() {
+        weak var weakEventPipe: WorkflowNode<TestWorkflow>.SubtreeManager.EventPipe?
+        var externalSink: Sink<TestWorkflow.Event>?
+        autoreleasepool {
+            let manager = WorkflowNode<TestWorkflow>.SubtreeManager()
+
+            manager.render { context in
+                externalSink = context.makeSink(of: TestWorkflow.Event.self)
+            }
+
+            weakEventPipe = manager.eventPipes.last
+
+            XCTAssertEqual(manager.eventPipes.count, 1)
+            XCTAssertNotNil(weakEventPipe)
+        }
+
+        XCTAssertNotNil(externalSink)
+        XCTAssertNil(weakEventPipe)
+    }
 }
 
 private struct TestViewModel {
@@ -304,6 +324,36 @@ private struct TestWorkflow: Workflow {
         return TestViewModel(
             onTap: { sink.send(.sendOutput) },
             onToggle: { sink.send(.changeState) }
+        )
+    }
+}
+
+// MARK: Testing conveniences
+
+private extension WorkflowSession {
+    static func testing() -> WorkflowSession {
+        struct SessionTestWorkflow: Workflow {
+            typealias State = Void
+            typealias Rendering = Void
+
+            func render(state: Void, context: RenderContext<SessionTestWorkflow>) {
+                XCTFail("SessionTestWorkflow should never be rendered")
+            }
+        }
+
+        return WorkflowSession(
+            workflow: SessionTestWorkflow(),
+            renderKey: "testing",
+            parent: .none
+        )
+    }
+}
+
+private extension WorkflowNode.SubtreeManager {
+    convenience init() {
+        self.init(
+            session: .testing(),
+            observer: nil
         )
     }
 }

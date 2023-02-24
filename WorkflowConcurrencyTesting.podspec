@@ -2,25 +2,25 @@ require_relative('version')
 
 Pod::Spec.new do |s|
     s.name         = 'WorkflowConcurrencyTesting'
-    s.version      = WORKFLOW_CONCURRENCY_VERSION
+    s.version      = WORKFLOW_VERSION
     s.summary      = 'Infrastructure for Concurrency-powered Workers'
     s.homepage     = 'https://www.github.com/square/workflow-swift'
     s.license      = 'Apache License, Version 2.0'
     s.author       = 'Square'
-    s.source       = { :git => 'https://github.com/square/workflow-swift.git', :tag => "v#{WORKFLOW_VERSION}" }
+    s.source       = { :git => 'https://github.com/square/workflow-swift.git', :tag => "v#{s.version}" }
 
     # 1.7 is needed for `swift_versions` support
     s.cocoapods_version = '>= 1.7.0'
 
-    s.swift_versions = ['5.1']
-    s.ios.deployment_target = '13.0'
-    s.osx.deployment_target = '10.15'
+    s.swift_versions = [WORKFLOW_SWIFT_VERSION]
+    s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
+    s.osx.deployment_target = WORKFLOW_MACOS_DEPLOYMENT_TARGET
 
     s.source_files = 'WorkflowConcurrency/Testing/**/*.swift'
 
-    s.dependency 'Workflow', "#{WORKFLOW_VERSION}"
+    s.dependency 'Workflow', "#{s.version}"
     s.dependency 'WorkflowConcurrency', "#{s.version}"
-    s.dependency 'WorkflowTesting', "#{WORKFLOW_VERSION}"
+    s.dependency 'WorkflowTesting', "#{s.version}"
 
     s.framework = 'XCTest'
 

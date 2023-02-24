@@ -41,9 +41,13 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
     public init<W: AnyWorkflowConvertible>(
         workflow: W,
-        rootViewEnvironment: ViewEnvironment = .empty
+        rootViewEnvironment: ViewEnvironment = .empty,
+        observers: [WorkflowObserver] = []
     ) where W.Rendering == ScreenType, W.Output == Output {
-        self.workflowHost = WorkflowHost(workflow: workflow.asAnyWorkflow())
+        self.workflowHost = WorkflowHost(
+            workflow: workflow.asAnyWorkflow(),
+            observers: observers
+        )
 
         self.rootViewController = workflowHost
             .rendering
@@ -123,7 +127,6 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         return rootViewController.preferredStatusBarUpdateAnimation
     }
 
-    @available(iOS 14.0, *)
     override public var childViewControllerForPointerLock: UIViewController? {
         return rootViewController
     }
@@ -146,8 +149,5 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         preferredContentSize = newPreferredContentSize
     }
 }
-
-@available(*, deprecated, renamed: "WorkflowHostingController")
-public typealias ContainerViewController = WorkflowHostingController
 
 #endif

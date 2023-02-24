@@ -124,8 +124,6 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
         }
     }
 
-    #if swift(>=5.3)
-
     // Undeprecated API on Xcode 12+ (which ships with Swift 5.3)
     override func record(_ issue: XCTIssue) {
         if removeFailure(withDescription: issue.compactDescription) {
@@ -134,19 +132,6 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
             super.record(issue)
         }
     }
-
-    #else
-
-    // Otherwise, use old API
-    override func recordFailure(withDescription description: String, inFile filePath: String, atLine lineNumber: Int, expected: Bool) {
-        if removeFailure(withDescription: description) {
-            // Don’t forward the failure, it was expected
-        } else {
-            super.recordFailure(withDescription: description, inFile: filePath, atLine: lineNumber, expected: expected)
-        }
-    }
-
-    #endif
 }
 
 private struct TestWorkflow: Workflow {

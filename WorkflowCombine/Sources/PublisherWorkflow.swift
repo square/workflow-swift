@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-#if canImport(Combine) && swift(>=5.1)
+#if canImport(Combine)
 
 import Combine
 import Foundation
 import Workflow
 
-@available(iOS 13.0, macOS 10.15, *)
 struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
     public typealias Output = WorkflowPublisher.Output
     public typealias State = Void

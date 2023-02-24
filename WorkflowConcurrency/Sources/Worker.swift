@@ -25,8 +25,7 @@ import Workflow
 /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
 ///
 /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-@available(iOS 13.0, macOS 10.15, *)
-public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
+public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
     /// The type of output events returned by this worker.
     associatedtype Output
 
@@ -38,14 +37,12 @@ public protocol Worker: AnyWorkflowConvertible where Rendering == Void {
     func isEquivalent(to otherWorker: Self) -> Bool
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 extension Worker {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
         WorkerWorkflow(worker: self).asAnyWorkflow()
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 struct WorkerWorkflow<WorkerType: Worker>: Workflow {
     let worker: WorkerType
 
@@ -85,7 +82,6 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
 extension Worker where Self: Equatable {
     public func isEquivalent(to otherWorker: Self) -> Bool {
         self == otherWorker
