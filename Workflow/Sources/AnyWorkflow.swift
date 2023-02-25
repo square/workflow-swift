@@ -18,17 +18,18 @@
 public struct AnyWorkflow<Rendering, Output> {
     private let storage: AnyStorage
 
+    /// The underlying erased workflow instance
+    public var base: Any { storage.base }
+
     private init(storage: AnyStorage) {
         self.storage = storage
     }
 
     /// Initializes a new type-erased wrapper for the given workflow.
     public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
-        switch workflow as? AnyWorkflow<Rendering, Output> {
-        case let anyWorkflow?:
-            self = anyWorkflow
-
-        case nil:
+        if let workflow = workflow as? AnyWorkflow<Rendering, Output> {
+            self = workflow
+        } else {
             self.init(storage: Storage<T>(
                 workflow: workflow,
                 renderingTransform: { $0 },
@@ -100,6 +101,8 @@ extension AnyWorkflow {
     ///
     /// This type is never used directly.
     fileprivate class AnyStorage {
+        var base: Any { fatalError() }
+
         func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
             fatalError()
         }
@@ -130,6 +133,8 @@ extension AnyWorkflow {
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
         }
+
+        override var base: Any { workflow }
 
         override var workflowType: Any.Type {
             return T.self
