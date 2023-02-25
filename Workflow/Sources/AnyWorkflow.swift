@@ -35,7 +35,17 @@ public struct AnyWorkflow<Rendering, Output> {
     public var workflowType: Any.Type {
         return storage.workflowType
     }
+
+    public var workflow: Any {
+        return storage.workflow
+    }
 }
+
+public protocol WrappedWorkflow {
+    var workflow: Any { get }
+}
+
+extension AnyWorkflow: WrappedWorkflow {}
 
 extension AnyWorkflow: AnyWorkflowConvertible {
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
@@ -99,20 +109,28 @@ extension AnyWorkflow {
         var workflowType: Any.Type {
             fatalError()
         }
+
+        var workflow: Any {
+            fatalError()
+        }
     }
 
     /// Subclass that adds type information about the underlying workflow implementation.
     ///
     /// This is the only type that is ever actually used by AnyWorkflow as storage.
     fileprivate final class Storage<T: Workflow>: AnyStorage {
-        let workflow: T
+        let _workflow: T
         let renderingTransform: (T.Rendering) -> Rendering
         let outputTransform: (T.Output) -> Output
 
         init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping (T.Output) -> Output) {
-            self.workflow = workflow
+            self._workflow = workflow
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
+        }
+
+        override var workflow: Any {
+            return _workflow
         }
 
         override var workflowType: Any.Type {
@@ -123,13 +141,13 @@ extension AnyWorkflow {
             let outputMap: (T.Output) -> Action = { [outputTransform] output in
                 outputMap(outputTransform(output))
             }
-            let rendering = context.render(workflow: workflow, key: key, outputMap: outputMap)
+            let rendering = context.render(workflow: _workflow, key: key, outputMap: outputMap)
             return renderingTransform(rendering)
         }
 
         override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
-                workflow: workflow,
+                workflow: _workflow,
                 renderingTransform: renderingTransform,
                 outputTransform: { [outputTransform] in
                     transform(outputTransform($0))
@@ -139,7 +157,7 @@ extension AnyWorkflow {
 
         override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
             return AnyWorkflow<NewRendering, Output>.Storage<T>(
-                workflow: workflow,
+                workflow: _workflow,
                 renderingTransform: { [renderingTransform] in
                     transform(renderingTransform($0))
                 },

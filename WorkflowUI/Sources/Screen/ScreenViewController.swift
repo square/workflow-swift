@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import UIKit
+@_spi(WorkflowGlobalObservation) import Workflow
 
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
@@ -55,13 +56,19 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override open func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        WorkflowObservation.sharedUIObserversInterceptor.workflowObservers(for: []).chained()?.screenDidAppear(screen, viewController: self, animated: animated, rootWorkflow: environment.originatingWorkflow)
+    }
+
     public final func update(screen: ScreenType, environment: ViewEnvironment) {
         let previousScreen = self.screen
         self.screen = screen
         let previousEnvironment = self.environment
         self.environment = environment
-        print("update screen \(ScreenType.self) from workflow: \(type(of: environment.originatingWorkflow))")
+//        print("update screen \(ScreenType.self) from workflow: \(type(of: environment.originatingWorkflow))")
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+        WorkflowObservation.sharedUIObserversInterceptor.workflowObservers(for: []).chained()?.viewControllerDidUpdateScreen(self, screen: screen, viewEnvironment: environment, rootWorkflow: environment.originatingWorkflow)
     }
 
     /// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.

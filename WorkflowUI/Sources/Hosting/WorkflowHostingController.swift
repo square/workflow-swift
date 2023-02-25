@@ -33,7 +33,7 @@ struct WrappedWorkflow {
 }
 
 extension ViewEnvironment {
-    var originatingWorkflow: Any {
+    public var originatingWorkflow: Any {
         get {
             self[OriginatingWorkflowViewEnvironmentKey.self].value
         }
