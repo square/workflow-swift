@@ -54,6 +54,12 @@ public class AnyWorkflowTests: XCTestCase {
         }
         wait(for: [renderingExpectation, outputExpectation], timeout: 1)
     }
+
+    func testBaseValue() {
+        let erased = OnOutputWorkflow().asAnyWorkflow()
+
+        XCTAssertNotNil(erased.base as? OnOutputWorkflow)
+    }
 }
 
 /// Has no state or output, simply renders a reversed string
