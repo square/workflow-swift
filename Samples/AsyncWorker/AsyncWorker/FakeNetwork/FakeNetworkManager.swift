@@ -8,8 +8,10 @@
 import Foundation
 
 class FakeNetworkManager {
+    static var requestCount = 0
     static func makeFakeNetworkRequest() -> FakeRequest {
-        return FakeRequest()
+        requestCount += 1
+        return FakeRequest(requestNumber: requestCount)
     }
 }
 
@@ -17,6 +19,13 @@ class FakeRequest {
     enum FakeRequestError: Error {
         case cancelled
     }
+    
+    let requestNumber: Int
+    
+    init(requestNumber: Int) {
+        self.requestNumber = requestNumber
+    }
+    
 
     var cancelled: Bool = false
 
@@ -31,7 +40,7 @@ class FakeRequest {
                 return
             }
 
-            completion(.success(Model(message: "Request Successful!")))
+            completion(.success(Model(message: "Request \(self.requestNumber) Successful!")))
         }
     }
 }

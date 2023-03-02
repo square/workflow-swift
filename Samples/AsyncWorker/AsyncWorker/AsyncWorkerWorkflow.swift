@@ -64,6 +64,12 @@ extension AsyncWorkerWorkflow {
             }
             .running(in: context)
 
+        PollingNetworkRequestWorker()
+            .mapOutput { result in
+                Action.fakeNetworkRequestLoaded(result)
+            }
+            .running(in: context)
+        
         return MessageScreen(model: state.model)
     }
 }
@@ -71,35 +77,63 @@ extension AsyncWorkerWorkflow {
 // MARK: Workers
 
 extension AsyncWorkerWorkflow {
+    static func networkRequest() async -> Result<Model, Error> {
+        // Create a network request
+        let request = FakeNetworkManager.makeFakeNetworkRequest()
+        // Create a closure to be called when the async task is cancelled.
+        let onCancel = { request.cancel() }
+
+        do {
+            return try await withTaskCancellationHandler(operation: {
+                try await withCheckedThrowingContinuation { continuation in
+                    // Perform the network request.
+                    request.perform { response in
+                        // Pass the result of the network request back asynchronously.
+                        continuation.resume(with: .success(response))
+                    }
+                }
+            }, onCancel: {
+                onCancel()
+            })
+        } catch {
+            return .failure(error)
+        }
+    }
+}
+
+extension AsyncWorkerWorkflow {
     // Example worker that calls a closure based network request api.
     struct NetworkRequestWorker: Worker {
         typealias Output = Result<Model, Error>
 
         func run() async -> Output {
-            // Create a network request
-            let request = FakeNetworkManager.makeFakeNetworkRequest()
-            // Create a closure to be called when the async task is cancelled.
-            let onCancel = { request.cancel() }
-
-            do {
-                return try await withTaskCancellationHandler {
-                    // Cancel the request.
-                    onCancel()
-                } operation: {
-                    try await withCheckedThrowingContinuation { continuation in
-                        // Perform the network request.
-                        request.perform { response in
-                            // Pass the result of the network request back asynchronously.
-                            continuation.resume(with: .success(response))
-                        }
-                    }
-                }
-            } catch {
-                return .failure(error)
-            }
+            return await AsyncWorkerWorkflow.networkRequest()
         }
 
         func isEquivalent(to otherWorker: AsyncWorkerWorkflow.NetworkRequestWorker) -> Bool {
+            true
+        }
+    }
+}
+
+extension AsyncWorkerWorkflow {
+    // Example AsyncStreamWorker that polls by creating a network request every second.
+    struct PollingNetworkRequestWorker: AsyncStreamWorker {
+        typealias Output = Result<Model, Error>
+        
+        func run() -> AsyncStream<Result<Model, Error>> {
+            return AsyncStream {
+                do {
+                    try await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+                }
+                catch {
+                    return .failure(error)
+                }
+                return await AsyncWorkerWorkflow.networkRequest()
+            }
+        }
+        
+        func isEquivalent(to otherWorker: AsyncWorkerWorkflow.PollingNetworkRequestWorker) -> Bool {
             true
         }
     }
