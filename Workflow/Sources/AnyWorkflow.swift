@@ -18,17 +18,24 @@
 public struct AnyWorkflow<Rendering, Output> {
     private let storage: AnyStorage
 
+    /// The underlying erased workflow instance
+    public var base: Any { storage.base }
+
     private init(storage: AnyStorage) {
         self.storage = storage
     }
 
     /// Initializes a new type-erased wrapper for the given workflow.
     public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
-        self.init(storage: Storage<T>(
-            workflow: workflow,
-            renderingTransform: { $0 },
-            outputTransform: { $0 }
-        ))
+        if let workflow = workflow as? AnyWorkflow<Rendering, Output> {
+            self = workflow
+        } else {
+            self.init(storage: Storage<T>(
+                workflow: workflow,
+                renderingTransform: { $0 },
+                outputTransform: { $0 }
+            ))
+        }
     }
 
     /// The underlying workflow's implementation type.
@@ -37,7 +44,17 @@ public struct AnyWorkflow<Rendering, Output> {
     }
 }
 
-extension AnyWorkflow: AnyWorkflowConvertible {
+extension AnyWorkflow: Workflow {
+    public typealias Output = Output
+    public typealias State = Void
+    public typealias Rendering = Rendering
+
+    public func render(state: Void, context: RenderContext<AnyWorkflow<Rendering, Output>>) -> Rendering {
+        storage.render(context: context, key: "") {
+            AnyWorkflowAction(sendingOutput: $0)
+        }
+    }
+
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
         return self
     }
@@ -84,6 +101,8 @@ extension AnyWorkflow {
     ///
     /// This type is never used directly.
     fileprivate class AnyStorage {
+        var base: Any { fatalError() }
+
         func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
             fatalError()
         }
@@ -114,6 +133,8 @@ extension AnyWorkflow {
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
         }
+
+        override var base: Any { workflow }
 
         override var workflowType: Any.Type {
             return T.self

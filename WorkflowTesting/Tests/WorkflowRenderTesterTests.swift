@@ -109,6 +109,40 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assertNoOutput()
     }
 
+    func test_ignoredOutput_opaqueChild() {
+        OpaqueChildOutputIgnoringWorkflow(
+            childProvider: {
+                OutputWorkflow()
+                    .mapRendering { _ in "screen" }
+                    .asAnyWorkflow()
+            }
+        )
+        .renderTester()
+        .expectWorkflowIgnoringOutput(
+            type: AnyWorkflow<String, OutputWorkflow.Output>.self,
+            producingRendering: "test"
+        )
+        .render { rendering in
+            XCTAssertEqual(rendering, "test")
+        }
+    }
+
+    func test_opaqueChild() {
+        OpaqueChildWorkflow(
+            childProvider: {
+                MockChildWorkflow().asAnyWorkflow()
+            }
+        )
+        .renderTester()
+        .expectWorkflow(
+            type: MockChildWorkflow.self,
+            producingRendering: "test"
+        )
+        .render { rendering in
+            XCTAssertEqual(rendering, "test")
+        }
+    }
+
     func test_childWorkflow() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
@@ -259,6 +293,41 @@ private struct OutputIgnoringWorkflow: Workflow {
 
     func render(state: Void, context: RenderContext<OutputIgnoringWorkflow>) -> Rendering {
         ChildWorkflow(text: text).ignoringOutput().rendered(in: context)
+    }
+}
+
+private struct MockChildWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = String
+
+    func render(state: Void, context: RenderContext<MockChildWorkflow>) -> String {
+        XCTFail("should never be rendered")
+        return ""
+    }
+}
+
+private struct OpaqueChildWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = String
+
+    var childProvider: () -> AnyWorkflow<String, Never>
+
+    func render(state: Void, context: RenderContext<Self>) -> Rendering {
+        childProvider()
+            .rendered(in: context)
+    }
+}
+
+private struct OpaqueChildOutputIgnoringWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = String
+
+    var childProvider: () -> AnyWorkflow<String, OutputWorkflow.Output>
+
+    func render(state: Void, context: RenderContext<Self>) -> Rendering {
+        childProvider()
+            .ignoringOutput()
+            .rendered(in: context)
     }
 }
 

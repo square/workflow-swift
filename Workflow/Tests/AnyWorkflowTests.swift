@@ -54,6 +54,34 @@ public class AnyWorkflowTests: XCTestCase {
         }
         wait(for: [renderingExpectation, outputExpectation], timeout: 1)
     }
+
+    func testOnlyWrapsOnce() {
+        // direct initializer
+        do {
+            let base = OnOutputWorkflow()
+            let wrappedOnce = AnyWorkflow(base)
+            let wrappedTwice = AnyWorkflow(wrappedOnce)
+
+            XCTAssertNotNil(wrappedOnce.base as? OnOutputWorkflow)
+            XCTAssertNotNil(wrappedTwice.base as? OnOutputWorkflow)
+        }
+
+        // method chaining
+        do {
+            let base = OnOutputWorkflow()
+            let wrappedOnce = base.asAnyWorkflow()
+            let wrappedTwice = base.asAnyWorkflow().asAnyWorkflow()
+
+            XCTAssertNotNil(wrappedOnce.base as? OnOutputWorkflow)
+            XCTAssertNotNil(wrappedTwice.base as? OnOutputWorkflow)
+        }
+    }
+
+    func testBaseValue() {
+        let erased = OnOutputWorkflow().asAnyWorkflow()
+
+        XCTAssertNotNil(erased.base as? OnOutputWorkflow)
+    }
 }
 
 /// Has no state or output, simply renders a reversed string
