@@ -32,10 +32,12 @@ public protocol WorkflowAction<WorkflowType> {
 
 /// A type-erased workflow action.
 ///
-/// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type,
-/// or to a closure that implements the `apply` logic.
+/// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+
+    /// The underlying type-erased `WorkflowAction`
+    public let base: Any
 
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
@@ -46,13 +48,29 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             return
         }
         self._apply = { return base.apply(toState: &$0) }
+        self.base = base
     }
 
     /// Creates a type-erased workflow action with the given `apply` implementation.
     ///
     /// - Parameter apply: the apply function for the resulting action.
-    public init(_ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?) {
-        self._apply = apply
+    public init(
+        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        file: String = #file, line: Int = #line
+    ) {
+        let closureAction = ClosureAction<WorkflowType>(
+            _apply: apply,
+            file: file,
+            line: line
+        )
+        self.init(closureAction: closureAction)
+    }
+
+    /// Private initializer forwarded to via `init(_ apply:...)`
+    /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
+    fileprivate init(closureAction: ClosureAction<WorkflowType>) {
+        self._apply = closureAction.apply(toState:)
+        self.base = closureAction
     }
 
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
@@ -76,5 +94,36 @@ extension AnyWorkflowAction {
         return AnyWorkflowAction { state in
             nil
         }
+    }
+}
+
+// MARK: Closure Action
+
+/// A `WorkflowAction` that wraps an `apply(...)` implementation defined by a closure.
+/// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
+/// defined via a closure.
+struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
+    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    let file: String
+    let line: Int
+
+    init(
+        _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        file: String,
+        line: Int
+    ) {
+        self._apply = _apply
+        self.file = file
+        self.line = line
+    }
+
+    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+        _apply(&state)
+    }
+}
+
+extension ClosureAction: CustomStringConvertible {
+    var description: String {
+        "\(Self.self)(file: \(file), line: \(line))"
     }
 }
