@@ -20,18 +20,18 @@ import UIKit
 
 public struct AnyScreen: Screen {
     /// The original screen, retained for debugging
-    public let base: Screen
+    public let wrappedScreen: Screen
 
     public init<T: Screen>(_ screen: T) {
         if let anyScreen = screen as? AnyScreen {
             self = anyScreen
             return
         }
-        self.base = screen
+        self.wrappedScreen = screen
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return base.viewControllerDescription(environment: environment)
+        return wrappedScreen.viewControllerDescription(environment: environment)
     }
 }
 
