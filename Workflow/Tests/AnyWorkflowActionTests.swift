@@ -35,14 +35,14 @@ final class AnyWorkflowActionTests: XCTestCase {
         }
 
         do {
-            let file = #file
-            let line = #line + 1 // must match line # the initializer is on
-            let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+            let fileID: StaticString = #fileID
+            // must match line # the initializer is on
+            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
                 nil
             }
 
             let closureAction = try XCTUnwrap(erased.base as? ClosureAction<ExampleWorkflow>)
-            XCTAssertEqual(closureAction.file, file)
+            XCTAssertEqual("\(closureAction.fileID)", "\(fileID)")
             XCTAssertEqual(closureAction.line, line)
         }
     }

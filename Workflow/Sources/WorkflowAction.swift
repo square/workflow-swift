@@ -56,11 +56,12 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// - Parameter apply: the apply function for the resulting action.
     public init(
         _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
-        file: String = #file, line: Int = #line
+        fileID: StaticString = #fileID,
+        line: UInt = #line
     ) {
         let closureAction = ClosureAction<WorkflowType>(
             _apply: apply,
-            file: file,
+            fileID: fileID,
             line: line
         )
         self.init(closureAction: closureAction)
@@ -104,16 +105,16 @@ extension AnyWorkflowAction {
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
-    let file: String
-    let line: Int
+    let fileID: StaticString
+    let line: UInt
 
     init(
         _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
-        file: String,
-        line: Int
+        fileID: StaticString,
+        line: UInt
     ) {
         self._apply = _apply
-        self.file = file
+        self.fileID = fileID
         self.line = line
     }
 
@@ -124,6 +125,6 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
 
 extension ClosureAction: CustomStringConvertible {
     var description: String {
-        "\(Self.self)(file: \(file), line: \(line))"
+        "\(Self.self)(fileID: \(fileID), line: \(line))"
     }
 }
