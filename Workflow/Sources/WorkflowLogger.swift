@@ -122,8 +122,9 @@ final class WorkflowLogger {
             log: .active,
             name: "Sink Event",
             signpostID: signpostID,
-            "Event for workflow: %{public}@",
-            String(describing: Action.WorkflowType.self)
+            "Event for workflow: %{public}@, Action: %{public}@",
+            String(describing: Action.WorkflowType.self),
+            "\(action)"
         )
     }
 
@@ -157,6 +158,7 @@ final class WorkflowLogger {
         ) else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
+        os_signpost(.event, log: .active, name: "Render Complete", signpostID: signpostID, "%{public}@", "\(WorkflowType.self)")
         os_signpost(.end, log: .active, name: "Render", signpostID: signpostID)
     }
 

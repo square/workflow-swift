@@ -26,9 +26,14 @@ public protocol Screen {
     /// A view controller description that acts as a recipe to either build
     /// or update a previously-built view controller to match this screen.
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription
+
+    var screenIdentifier: String { get }
 }
 
 extension Screen {
+
+    public var screenIdentifier: String { "\(type(of: self))" }
+
     /// If the given view controller is of the correct type to be updated by this screen.
     ///
     /// If your view controller type can change between updates, call this method before invoking `update(viewController:with:)`.

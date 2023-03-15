@@ -130,6 +130,15 @@ public struct WorkflowSession {
         }
     }
 
+    public var root: WorkflowSession {
+        var result = self
+        while let next = result.parent {
+            result = next
+        }
+        return result
+    }
+    public let workflow: Any
+
     public let workflowType: Any.Type
 
     public let renderKey: String
@@ -157,6 +166,7 @@ public struct WorkflowSession {
         renderKey: String,
         parent: WorkflowSession?
     ) {
+        self.workflow = workflow
         self.workflowType = WorkflowType.self
         self.renderKey = renderKey
         self._indirectParent = IndirectParent(parent)

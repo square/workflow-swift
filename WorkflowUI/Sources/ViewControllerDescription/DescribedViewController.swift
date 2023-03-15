@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import UIKit
+import os.signpost
 
 public final class DescribedViewController: UIViewController {
     var currentViewController: UIViewController
@@ -78,6 +79,7 @@ public final class DescribedViewController: UIViewController {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         currentViewController.view.frame = view.bounds
+        os_signpost(.event, log: .default, name: "DescribedViewController.viewDidLayoutSubviews")
     }
 
     override public var childForStatusBarStyle: UIViewController? {
