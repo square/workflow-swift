@@ -39,6 +39,9 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
 
+    /// True iff the underlying `apply` implementation is defined by a closure vs wrapping a `WorkflowAction` conformance
+    public let isClosureBased: Bool
+
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
     /// - Parameter base: A workflow action to wrap.
@@ -49,6 +52,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         }
         self._apply = { return base.apply(toState: &$0) }
         self.base = base
+        self.isClosureBased = false
     }
 
     /// Creates a type-erased workflow action with the given `apply` implementation.
@@ -72,6 +76,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
         self._apply = closureAction.apply(toState:)
         self.base = closureAction
+        self.isClosureBased = true
     }
 
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {

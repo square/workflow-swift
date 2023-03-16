@@ -87,6 +87,14 @@ final class AnyWorkflowActionTests: XCTestCase {
 
         XCTAssertEqual(log, ["action invoked"])
     }
+
+    func testIsClosureBased() {
+        let nonClosureBased = AnyWorkflowAction(ExampleAction())
+        XCTAssertFalse(nonClosureBased.isClosureBased)
+
+        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _ in .none }
+        XCTAssertTrue(closureBased.isClosureBased)
+    }
 }
 
 private struct ExampleWorkflow: Workflow {
