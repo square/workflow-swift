@@ -30,7 +30,7 @@ import ViewEnvironment
 ///     .adaptedEnvironment(keyPath: \.myValue, to: newValue)
 /// ```
 ///
-public struct AdaptedEnvironmentScreen<Content: Screen>: Screen {
+public struct AdaptedEnvironmentScreen<Content> {
     /// The screen wrapped by this screen.
     public var wrapped: Content
 
@@ -79,9 +79,9 @@ public struct AdaptedEnvironmentScreen<Content: Screen>: Screen {
     ) {
         self.init(wrapping: screen, adapting: { $0[keyPath: keyPath] = value })
     }
+}
 
-    // MARK: Screen
-
+extension AdaptedEnvironmentScreen: Screen where Content: Screen {
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         var environment = environment
 
