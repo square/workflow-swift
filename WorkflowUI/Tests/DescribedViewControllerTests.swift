@@ -34,9 +34,9 @@
 
             // Then
             guard
-                let currentViewController = describedViewController.currentViewController as? CounterViewController
+                let currentViewController = describedViewController.content as? CounterViewController
             else {
-                XCTFail("Expected a \(String(reflecting: CounterViewController.self)), but got:  \(describedViewController.currentViewController)")
+                XCTFail("Expected a \(String(reflecting: CounterViewController.self)), but got:  \(describedViewController.content)")
                 return
             }
 
@@ -55,8 +55,8 @@
             _ = describedViewController.view
 
             // Then
-            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
-            XCTAssertNotNil(describedViewController.currentViewController.viewIfLoaded?.superview)
+            XCTAssertEqual(describedViewController.content.parent, describedViewController)
+            XCTAssertNotNil(describedViewController.content.viewIfLoaded?.superview)
         }
 
         func test_update_toCompatibleDescription_beforeViewLoads() {
@@ -65,17 +65,17 @@
             let screenB = TestScreen.counter(1)
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let initialChildViewController = describedViewController.currentViewController
+            let initialChildViewController = describedViewController.content
 
             // When
             describedViewController.update(screen: screenB, environment: .empty)
 
             // Then
-            XCTAssertEqual(initialChildViewController, describedViewController.currentViewController)
-            XCTAssertEqual((describedViewController.currentViewController as? CounterViewController)?.count, 1)
+            XCTAssertEqual(initialChildViewController, describedViewController.content)
+            XCTAssertEqual((describedViewController.content as? CounterViewController)?.count, 1)
             XCTAssertFalse(describedViewController.isViewLoaded)
-            XCTAssertFalse(describedViewController.currentViewController.isViewLoaded)
-            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
+            XCTAssertFalse(describedViewController.content.isViewLoaded)
+            XCTAssertEqual(describedViewController.content.parent, describedViewController)
         }
 
         func test_update_toCompatibleDescription_afterViewLoads() {
@@ -84,15 +84,15 @@
             let screenB = TestScreen.counter(1)
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let initialChildViewController = describedViewController.currentViewController
+            let initialChildViewController = describedViewController.content
 
             // When
             _ = describedViewController.view
             describedViewController.update(screen: screenB, environment: .empty)
 
             // Then
-            XCTAssertEqual(initialChildViewController, describedViewController.currentViewController)
-            XCTAssertEqual((describedViewController.currentViewController as? CounterViewController)?.count, 1)
+            XCTAssertEqual(initialChildViewController, describedViewController.content)
+            XCTAssertEqual((describedViewController.content as? CounterViewController)?.count, 1)
         }
 
         func test_update_toIncompatibleDescription_beforeViewLoads() {
@@ -101,18 +101,18 @@
             let screenB = TestScreen.message("Test")
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let initialChildViewController = describedViewController.currentViewController
+            let initialChildViewController = describedViewController.content
 
             // When
             describedViewController.update(screen: screenB, environment: .empty)
 
             // Then
-            XCTAssertNotEqual(initialChildViewController, describedViewController.currentViewController)
+            XCTAssertNotEqual(initialChildViewController, describedViewController.content)
             XCTAssertNil(initialChildViewController.parent)
-            XCTAssertEqual((describedViewController.currentViewController as? MessageViewController)?.message, "Test")
+            XCTAssertEqual((describedViewController.content as? MessageViewController)?.message, "Test")
             XCTAssertFalse(describedViewController.isViewLoaded)
-            XCTAssertFalse(describedViewController.currentViewController.isViewLoaded)
-            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
+            XCTAssertFalse(describedViewController.content.isViewLoaded)
+            XCTAssertEqual(describedViewController.content.parent, describedViewController)
         }
 
         func test_update_toIncompatibleDescription_afterViewLoads() {
@@ -121,19 +121,19 @@
             let screenB = TestScreen.message("Test")
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let initialChildViewController = describedViewController.currentViewController
+            let initialChildViewController = describedViewController.content
 
             // When
             _ = describedViewController.view
             describedViewController.update(screen: screenB, environment: .empty)
 
             // Then
-            XCTAssertNotEqual(initialChildViewController, describedViewController.currentViewController)
-            XCTAssertEqual((describedViewController.currentViewController as? MessageViewController)?.message, "Test")
+            XCTAssertNotEqual(initialChildViewController, describedViewController.content)
+            XCTAssertEqual((describedViewController.content as? MessageViewController)?.message, "Test")
             XCTAssertNil(initialChildViewController.parent)
-            XCTAssertEqual(describedViewController.currentViewController.parent, describedViewController)
+            XCTAssertEqual(describedViewController.content.parent, describedViewController)
             XCTAssertNil(initialChildViewController.viewIfLoaded?.superview)
-            XCTAssertNotNil(describedViewController.currentViewController.viewIfLoaded?.superview)
+            XCTAssertNotNil(describedViewController.content.viewIfLoaded?.superview)
         }
 
         func test_childViewControllerFor() {
@@ -141,7 +141,7 @@
             let screen = TestScreen.counter(0)
 
             let describedViewController = DescribedViewController(screen: screen, environment: .empty)
-            let currentViewController = describedViewController.currentViewController
+            let currentViewController = describedViewController.content
 
             // When, Then
             XCTAssertEqual(describedViewController.childForStatusBarStyle, currentViewController)
@@ -157,10 +157,10 @@
             let screenB = TestScreen.message("Test")
 
             let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
-            let initialChildViewController = describedViewController.currentViewController
+            let initialChildViewController = describedViewController.content
 
             describedViewController.update(screen: screenB, environment: .empty)
-            let currentViewController = describedViewController.currentViewController
+            let currentViewController = describedViewController.content
 
             // When, Then
             XCTAssertNotEqual(initialChildViewController, currentViewController)

@@ -74,10 +74,12 @@
         public final class func description(
             for screen: ScreenType,
             environment: ViewEnvironment,
-            performInitialUpdate: Bool = true
+            performInitialUpdate: Bool = true,
+            transition: ViewTransition = .none
         ) -> ViewControllerDescription {
             ViewControllerDescription(
                 performInitialUpdate: performInitialUpdate,
+                transition: transition,
                 type: self,
                 build: { self.init(screen: screen, environment: environment) },
                 update: { $0.update(screen: screen, environment: environment) }

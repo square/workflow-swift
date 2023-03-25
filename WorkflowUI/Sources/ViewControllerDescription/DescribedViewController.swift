@@ -45,7 +45,7 @@
         /// If the view controller can't be updated (because it's type is not the same), the old
         /// content will be transitioned out, and the new one will be transitioned in
         /// with the new description's `ViewTransition`.
-        public func update(description: ViewControllerDescription, animated: Bool = false) {
+        public func update(description: ViewControllerDescription, animated: Bool = true) {
             if description.canUpdate(viewController: content) {
                 description.update(viewController: content)
             } else {
@@ -91,7 +91,7 @@
             }
         }
 
-        public func update<S: Screen>(screen: S, environment: ViewEnvironment, animated: Bool = false) {
+        public func update<S: Screen>(screen: S, environment: ViewEnvironment, animated: Bool = true) {
             update(description: screen.viewControllerDescription(environment: environment), animated: animated)
         }
 

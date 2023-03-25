@@ -36,6 +36,7 @@
             child: ReferenceWritableKeyPath<Self, VC>,
             with screen: ScreenType,
             in environment: ViewEnvironment,
+            animated: Bool = true,
             onChange: (VC) -> Void = { _ in }
         ) {
             let description = screen.viewControllerDescription(environment: environment)
@@ -87,24 +88,24 @@
 
                         let isVisible = parent.view.window != nil
 
+                        let animated = animated && isVisible
+
                         description.transition.transition(
                             from: old.view,
                             to: new.view,
                             in: container,
-                            animated: isVisible,
+                            animated: animated,
                             setup: {
                                 new.view.frame = old.view.frame
 
                                 if isVisible {
-                                    new.beginAppearanceTransition(true, animated: false)
-                                    old.beginAppearanceTransition(false, animated: false)
+                                    new.beginAppearanceTransition(true, animated: animated)
+                                    old.beginAppearanceTransition(false, animated: animated)
                                 }
 
                                 container.insertSubview(new.view, aboveSubview: old.view)
                             },
                             completion: {
-                                new.didMove(toParent: parent)
-
                                 old.view.removeFromSuperview()
 
                                 if isVisible {
@@ -112,6 +113,7 @@
                                     old.endAppearanceTransition()
                                 }
 
+                                new.didMove(toParent: parent)
                                 old.removeFromParent()
                             }
                         )
