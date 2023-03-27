@@ -1,8 +1,11 @@
 
+#if canImport(UIKit)
+
 import Foundation
 import ViewEnvironment
 import Workflow
 @_spi(WorkflowGlobalObservation) import Workflow
+import UIKit
 
 public protocol WorkflowUIObserver {
     // TODO:
@@ -21,45 +24,39 @@ public protocol WorkflowUIObserver {
         animated: Bool,
         rootWorkflow: Any
     )
+
+    func screenWillLayout<ScreenType: Screen>(
+        viewController: ScreenViewController<ScreenType>
+    )
+
+    func screenDidLayout<ScreenType: Screen>(
+        viewController: ScreenViewController<ScreenType>
+    )
 }
 
 extension WorkflowUIObserver {
-    func viewControllerDidUpdateScreen<ScreenType: Screen>(
+    public func viewControllerDidUpdateScreen<ScreenType: Screen>(
         _ viewController: UIViewController,
         screen: ScreenType,
         viewEnvironment: ViewEnvironment,
         rootWorkflow: Any
     ) {}
 
-    func screenDidAppear<ScreenType: Screen>(
+    public func screenDidAppear<ScreenType: Screen>(
         _ screen: ScreenType,
         viewController: UIViewController,
         animated: Bool,
         rootWorkflow: Any
     ) {}
-}
 
-// extension ChainedWorkflowObserver: WorkflowUIObserver {
-//    public func viewControllerDidUpdateScreen<ScreenType: Screen>(
-//        _ viewController: UIViewController,
-//        screen: ScreenType,
-//        viewEnvironment: ViewEnvironment
-//    ) {
-//        for case let observer as WorkflowUIObserver in observers {
-//            observer.viewControllerDidUpdateScreen(viewController, screen: screen, viewEnvironment: viewEnvironment)
-//        }
-//    }
-//
-//    public func screenDidAppear<ScreenType: Screen>(
-//        _ screen: ScreenType,
-//        viewController: UIViewController,
-//        animated: Bool
-//    ) {
-//        for case let observer as WorkflowUIObserver in observers {
-//            observer.screenDidAppear(screen, viewController: viewController, animated: animated)
-//        }
-//    }
-// }
+    public func screenWillLayout<ScreenType: Screen>(
+        viewController: ScreenViewController<ScreenType>
+    ) {}
+
+    public func screenDidLayout<ScreenType: Screen>(
+        viewController: ScreenViewController<ScreenType>
+    ) {}
+}
 
 final class ChainedWorkflowUIObserver: WorkflowUIObserver {
     let observers: [WorkflowUIObserver]
@@ -146,3 +143,5 @@ extension WorkflowObservation {
         }
     }
 }
+
+#endif
