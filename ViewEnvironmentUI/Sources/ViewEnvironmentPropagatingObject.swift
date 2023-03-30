@@ -226,7 +226,7 @@ extension ViewEnvironmentPropagatingObject {
             setNeedsApplyEnvironment()
         }
 
-        environmentDescendants.forEach { $0.setNeedsEnvironmentUpdate() }
+        setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }
 
     private var needsUpdateObservers: [NSObject: ViewEnvironmentUpdateObservation] {

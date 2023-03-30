@@ -58,6 +58,6 @@ public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
     }
 
     public func setNeedsEnvironmentUpdate() {
-        environmentDescendants.forEach { $0.setNeedsEnvironmentUpdate() }
+        setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }
 }
