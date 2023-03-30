@@ -81,7 +81,7 @@ public protocol ViewEnvironmentPropagating {
     /// `layoutSubviews()` respectively.
     ///
     @_spi(ViewEnvironmentWiring)
-    var viewEnvironment: ViewEnvironment { get }
+    var environment: ViewEnvironment { get }
 }
 
 extension ViewEnvironmentPropagating {
@@ -110,20 +110,20 @@ extension ViewEnvironmentPropagating {
     /// ``ViewEnvironmentObserving/applyEnvironmentIfNeeded()-8gr5k`` in `viewWillLayoutSubviews()` and
     /// `layoutSubviews()` respectively.
     ///
-    public var viewEnvironment: ViewEnvironment {
+    public var environment: ViewEnvironment {
         _defaultViewEnvironment
     }
 
-    /// The default `ViewEnvironment` returned by ``viewEnvironment-1p2gj``.
+    /// The default `ViewEnvironment` returned by ``environment``.
     ///
     /// The environment is constructed by recursively walking to the root of the propagation path
     /// and then applying all customizations on the way back down.
     ///
-    ///  You should only need to access this value if you are overriding ``viewEnvironment-1p2gj``
+    ///  You should only need to access this value if you are overriding ``environment``
     /// and want to conditionally return the default.
     @_spi(ViewEnvironmentWiring)
     public var _defaultViewEnvironment: ViewEnvironment {
-        var environment = environmentAncestor?.viewEnvironment
+        var environment = environmentAncestor?.environment
             ?? .empty
 
         (self as? ViewEnvironmentCustomizing)?.customize(environment: &environment)
