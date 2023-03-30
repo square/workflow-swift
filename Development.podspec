@@ -18,6 +18,7 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowCombine'
   s.dependency 'WorkflowConcurrency'
   s.dependency 'ViewEnvironment'
+  s.dependency 'ViewEnvironmentUI'
   
   s.source_files = 'Samples/Dummy.swift'
 
