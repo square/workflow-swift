@@ -72,8 +72,8 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
         self.screen = screen
         let previousEnvironment = self.environment
         _environment = environment
-        setNeedsEnvironmentUpdate()
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+        setNeedsEnvironmentUpdate()
     }
 
     open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}

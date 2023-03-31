@@ -22,7 +22,7 @@ import ViewEnvironment
 /// environment as it flows between two nodes.
 ///
 @_spi(ViewEnvironmentWiring)
-public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
+public class ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing, ViewEnvironmentObserving {
     public typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
 
     public typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]
@@ -39,14 +39,28 @@ public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
         didSet { setNeedsEnvironmentUpdate() }
     }
 
+    public var environmentDidChangeObserver: ((ViewEnvironment) -> Void)? {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
+    public var applyEnvironment: (ViewEnvironment) -> Void {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
+    private var needsEnvironmentUpdate: Bool = true
+
     public init(
         environmentAncestor: @escaping EnvironmentAncestorProvider = { nil },
         environmentDescendants: @escaping EnvironmentDescendantsProvider = { [] },
-        customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in }
+        customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in },
+        environmentDidChange: ((ViewEnvironment) -> Void)? = nil,
+        applyEnvironment: @escaping (ViewEnvironment) -> Void = { _ in }
     ) {
         self.environmentAncestorProvider = environmentAncestor
         self.environmentDescendantsProvider = environmentDescendants
         self.customizeEnvironment = customizeEnvironment
+        self.environmentDidChangeObserver = environmentDidChange
+        self.applyEnvironment = applyEnvironment
     }
 
     public var environmentAncestor: ViewEnvironmentPropagating? { environmentAncestorProvider() }
@@ -58,6 +72,26 @@ public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
     }
 
     public func setNeedsEnvironmentUpdate() {
+        needsEnvironmentUpdate = true
+
         setNeedsEnvironmentUpdateOnAppropriateDescendants()
+    }
+
+    public func environmentDidChange() {
+        guard let didChange = environmentDidChangeObserver else { return }
+
+        didChange(environment)
+    }
+
+    public func applyEnvironmentIfNeeded() {
+        guard needsEnvironmentUpdate else { return }
+
+        needsEnvironmentUpdate = false
+
+        apply(environment: environment)
+    }
+
+    public func apply(environment: ViewEnvironment) {
+        applyEnvironment(environment)
     }
 }

@@ -181,12 +181,12 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 }
 
 extension WorkflowHostingController: ViewEnvironmentCustomizing, ViewEnvironmentObserving {
-    public func apply(environment: ViewEnvironment) {
-        update(screen: workflowHost.rendering.value, environment: environment)
-    }
-
     public func customize(environment: inout ViewEnvironment) {
         customizeEnvironment(&environment)
+    }
+
+    public func environmentDidChange() {
+        update(screen: workflowHost.rendering.value, environment: environment)
     }
 }
 

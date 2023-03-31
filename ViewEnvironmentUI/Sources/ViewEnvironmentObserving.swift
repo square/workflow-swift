@@ -57,7 +57,7 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentCustomizing {
     ///
     func apply(environment: ViewEnvironment)
 
-    /// Consumers _must_ call this function when the envirnoment should be re-applied, e.g. in
+    /// Consumers _must_ call this function when the environment should be re-applied, e.g. in
     /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
     ///
     /// This will call ``apply(environment:)`` on the receiver if the node has been flagged for needing update.
@@ -65,4 +65,12 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentCustomizing {
     /// - Tag: ViewEnvironmentObserving.applyEnvironmentIfNeeded
     ///
     func applyEnvironmentIfNeeded()
+
+    func environmentDidChange()
+}
+
+extension ViewEnvironmentObserving {
+    public func apply(environment: ViewEnvironment) {}
+
+    public func environmentDidChange() {}
 }
