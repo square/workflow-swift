@@ -44,36 +44,25 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
         ScreenType.self
     }
 
-    private var _environment: ViewEnvironment
+    private var previousEnvironment: ViewEnvironment
 
     public required init(screen: ScreenType, environment: ViewEnvironment) {
         self.screen = screen
-        self._environment = environment
+        self.previousEnvironment = environment
         super.init(nibName: nil, bundle: nil)
-
-        let ancestor = ViewEnvironmentPropagationNode(
-            environmentDescendants: { [weak self] in
-                [self].compactMap { $0 }
-            },
-            customizeEnvironment: { [weak self] environment in
-                guard let self else { return }
-                environment = self._environment
-            }
-        )
-
-        environmentAncestorOverride = { ancestor }
     }
 
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) { fatalError() }
 
-    public final func update(screen: ScreenType, environment: ViewEnvironment) {
+    public final func update(screen: ScreenType) {
         let previousScreen = self.screen
         self.screen = screen
-        let previousEnvironment = self.environment
-        _environment = environment
+
+        let previousEnvironment = self.previousEnvironment
+        self.previousEnvironment = environment
+
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
-        setNeedsEnvironmentUpdate()
     }
 
     open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}
@@ -90,9 +79,10 @@ extension ScreenViewController {
     ) -> ViewControllerDescription {
         ViewControllerDescription(
             performInitialUpdate: performInitialUpdate,
+            environment: environment,
             type: self,
             build: { self.init(screen: screen, environment: environment) },
-            update: { $0.update(screen: screen, environment: environment) }
+            update: { $0.update(screen: screen) }
         )
     }
 }
