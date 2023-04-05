@@ -72,12 +72,12 @@ class WorkerTests: XCTestCase {
         }
 
         // Updated the workflow to a new initial state.
-        host.update(workflow: TaskTestWorkerWorkflow(key: "", initialState: 1))
+        host.update(workflow: TaskTestWorkerWorkflow(key: "", initialState: 7))
 
         // Wait for the workflow to render after being updated.
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering matches the initial state.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(7, host.rendering.value)
         
         expectation = XCTestExpectation()
         // Set to observe renderings
@@ -90,7 +90,7 @@ class WorkerTests: XCTestCase {
         // Wait for the worker to trigger a rendering.
         wait(for: [expectation], timeout: 1.0)
         // Check to make sure the rendering is correct.
-        XCTAssertEqual(2, host.rendering.value)
+        XCTAssertEqual(8, host.rendering.value)
     }
     
     func testWorkflowKeyChange() {
