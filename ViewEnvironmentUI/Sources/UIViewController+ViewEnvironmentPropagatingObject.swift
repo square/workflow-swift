@@ -37,10 +37,6 @@ extension UIViewController: ViewEnvironmentPropagatingObject {
     @_spi(ViewEnvironmentWiring)
     public func setNeedsApplyEnvironment() {
         viewIfLoaded?.setNeedsLayout()
-
-        if let observing = self as? ViewEnvironmentObserving {
-            observing.environmentDidChange()
-        }
     }
 }
 

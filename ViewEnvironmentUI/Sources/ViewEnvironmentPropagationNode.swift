@@ -74,6 +74,8 @@ public class ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing, ViewEnv
     public func setNeedsEnvironmentUpdate() {
         needsEnvironmentUpdate = true
 
+        environmentDidChange()
+
         setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }
 

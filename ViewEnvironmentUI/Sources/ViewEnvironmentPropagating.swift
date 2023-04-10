@@ -137,7 +137,9 @@ extension ViewEnvironmentPropagating {
             // If the descendant's ancestor is nil it has opted out of environment updates and is likely acting as
             // a root for propagation bridging purposes (e.g. from a Workflow ViewEnvironment update).
             // Avoid updating the descendant if this is the case.
-            guard descendant.environmentAncestor != nil else { continue }
+            guard descendant.environmentAncestor != nil else {
+                continue
+            }
 
             descendant.setNeedsEnvironmentUpdate()
         }

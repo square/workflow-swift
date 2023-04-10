@@ -214,6 +214,10 @@ extension ViewEnvironmentPropagatingObject {
     public func setNeedsEnvironmentUpdate() {
         needsEnvironmentUpdate = true
 
+        if let observing = self as? ViewEnvironmentObserving {
+            observing.environmentDidChange()
+        }
+
         if !needsUpdateObservers.isEmpty {
             let environment = self.environment
 
