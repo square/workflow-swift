@@ -16,14 +16,14 @@
 
 import ViewEnvironment
 
-/// `ViewEnvironmentObserving` allows an environment propagation node to observe updates to the
+/// `ViewEnvironmentPropagating` allows an environment propagation node to observe updates to the
 /// `ViewEnvironment` as it flows through the node hierarchy and have
 /// the environment applied to the node.
 ///
 /// For example, for a `UIViewController` hierarchy observing `ViewEnvironment`:
 /// ```swift
 /// final class MyViewController:
-///     UIViewController, ViewEnvironmentObserving
+///     UIViewController, ViewEnvironmentPropagating
 /// {
 ///     override func viewWillLayoutSubviews() {
 ///         super.viewWillLayoutSubviews()
@@ -47,9 +47,18 @@ import ViewEnvironment
 /// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
 ///   in `viewWillLayoutSubviews()` and `layoutSubviews()` respectively.
 ///
-/// - Tag: ViewEnvironmentObserving
-///
-public protocol ViewEnvironmentObserving: ViewEnvironmentCustomizing {
+public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
+    /// Customizes the `ViewEnvironment` as it flows through this propagation node to provide overrides to environment
+    /// values. These changes will be propagated to all descendant nodes.
+    ///
+    /// If you'd like to just inherit the environment from above, leave this function body empty.
+    ///
+    /// - Important: `UIViewController` and `UIView` conformers _must_ call
+    ///   ``ViewEnvironmentObserving/applyEnvironmentIfNeeded()-8gr5k``in `viewWillLayoutSubviews()` and
+    ///   `layoutSubviews()` respectively.
+    ///
+    func customize(environment: inout ViewEnvironment)
+
     /// Consumers should apply the `ViewEnvironment` to their node when this function is called.
     ///
     /// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
@@ -66,11 +75,25 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentCustomizing {
     ///
     func applyEnvironmentIfNeeded()
 
+    /// Called when the environment has been set for needing update, but before it has been applied.
+    ///
+    /// This may be called frequently when compared to ``apply(environment:)`` which should only be called
+    /// when it's appropriate to apply the environment to the backing object (e.g. `viewWillLayoutSubviews`).
+    ///
     func environmentDidChange()
+
+    @_spi(ViewEnvironmentWiring)
+    var _environmentOverride: ViewEnvironment { get }
 }
 
 extension ViewEnvironmentObserving {
+    public func customize(environment: inout ViewEnvironment) {}
+
     public func apply(environment: ViewEnvironment) {}
 
     public func environmentDidChange() {}
+
+    // Using SPI for this property will cause consumers to be unable to synthesize the default implementation if they do
+    // not @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI.
+    public var _environmentOverride: ViewEnvironment { _defaultEnvironment }
 }

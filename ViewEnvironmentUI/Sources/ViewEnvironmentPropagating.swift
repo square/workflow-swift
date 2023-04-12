@@ -16,6 +16,37 @@
 
 import ViewEnvironment
 
+/// `ViewEnvironmentPropagating` allows an environment propagation node to observe updates to the
+/// `ViewEnvironment` as it flows through the node hierarchy and have
+/// the environment applied to the node.
+///
+/// For example, for a `UIViewController` hierarchy observing `ViewEnvironment`:
+/// ```swift
+/// final class MyViewController:
+///     UIViewController, ViewEnvironmentPropagating
+/// {
+///     override func viewWillLayoutSubviews() {
+///         super.viewWillLayoutSubviews()
+///
+///         // You _must_ call this function in viewWillLayoutSubviews()
+///         applyEnvironmentIfNeeded()
+///     }
+///
+///     func apply(environment: ViewEnvironment) {
+///         // Apply values from the environment to your view controller (e.g. a theme)
+///     }
+///
+///     // If you'd like to override values in the environment you can provide them here. If you'd
+///     // like to just inherit the context from above there is no need to implement this function.
+///     func customize(environment: inout ViewEnvironment) {
+///         environment.traits.mode = .dark
+///     }
+/// }
+/// ```
+///
+/// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
+///   in `viewWillLayoutSubviews()` and `layoutSubviews()` respectively.
+///
 public protocol ViewEnvironmentPropagating {
     /// Calling this will flag this node for needing to update the `ViewEnvironment`. For `UIView`/`UIViewController`,
     /// this will occur on the next layout pass (`setNeedsLayout` will be called on the caller's behalf).
@@ -39,6 +70,10 @@ public protocol ViewEnvironmentPropagating {
     /// ``ViewEnvironmentPropagatingObject/environmentAncestorOverride`` property.  If no override is present, the
     /// return value will be `parent ?? presentingViewController`/`superview`.
     ///
+    /// If the value of the ancestor is `nil`, by default, ancestors will not call notify this node of needing an
+    /// environment update as it changes. This allows a node to effectively act as a root node when needed (e.g.
+    /// bridging from other propagation systems like WorkflowUI).
+    ///
     @_spi(ViewEnvironmentWiring)
     var environmentAncestor: ViewEnvironmentPropagating? { get }
 
@@ -54,34 +89,6 @@ public protocol ViewEnvironmentPropagating {
     ///
     @_spi(ViewEnvironmentWiring)
     var environmentDescendants: [ViewEnvironmentPropagating] { get }
-
-    /// The `ViewEnvironment` that is flowing through the propagation hierarchy.
-    ///
-    /// If you'd like to provide overrides for the environment as it flows through a node, you should conform to
-    /// `ViewEnvironmentObserving` and provide those overrides in `customize(environment:)`. E.g.:
-    /// ```swift
-    /// func customize(environment: inout ViewEnvironment) {
-    ///     environment.traits.mode = .dark
-    /// }
-    /// ```
-    ///
-    /// By default, this property gets the environment by recursively walking to the root of the
-    /// propagation path, and applying customizations on the way back down. You may override this
-    /// property instead if you want to completely interrupt the propagation flow and replace the
-    /// environment. You can get the default value that would normally be propagated by calling
-    /// `_defaultViewEnvironment`.
-    ///
-    /// If you'd like to update the return value of this variable and have those changes propagated through the
-    /// propagation hierarchy, conform to `ViewEnvironmentObserving` and call ``setNeedsEnvironmentUpdate()`` and wait
-    /// for the system to call `apply(context:)` when appropriate (e.g. on the next layout pass for
-    /// `UIViewController`/`UIView` subclasses).
-    ///
-    /// - Important: `UIViewController` and `UIView` conformers _must_ call
-    /// ``ViewEnvironmentObserving/applyEnvironmentIfNeeded()-8gr5k`` in `viewWillLayoutSubviews()` and
-    /// `layoutSubviews()` respectively.
-    ///
-    @_spi(ViewEnvironmentWiring)
-    var environment: ViewEnvironment { get }
 }
 
 extension ViewEnvironmentPropagating {
@@ -99,7 +106,7 @@ extension ViewEnvironmentPropagating {
     /// propagation path, and applying customizations on the way back down. You may override this
     /// property instead if you want to completely interrupt the propagation flow and replace the
     /// environment. You can get the default value that would normally be propagated by calling
-    /// `_defaultViewEnvironment`.
+    /// `_defaultEnvironment`.
     ///
     /// If you'd like to update the return value of this variable and have those changes propagated through the
     /// propagation hierarchy, conform to `ViewEnvironmentObserving` and call ``setNeedsEnvironmentUpdate()`` and wait
@@ -111,7 +118,7 @@ extension ViewEnvironmentPropagating {
     /// `layoutSubviews()` respectively.
     ///
     public var environment: ViewEnvironment {
-        _defaultViewEnvironment
+        (self as? ViewEnvironmentObserving)?._environmentOverride ?? _defaultEnvironment
     }
 
     /// The default `ViewEnvironment` returned by ``environment``.
@@ -122,15 +129,30 @@ extension ViewEnvironmentPropagating {
     ///  You should only need to access this value if you are overriding ``environment``
     /// and want to conditionally return the default.
     @_spi(ViewEnvironmentWiring)
-    public var _defaultViewEnvironment: ViewEnvironment {
-        var environment = environmentAncestor?.environment
-            ?? .empty
+    public var _defaultEnvironment: ViewEnvironment {
+        var environment: ViewEnvironment = {
+            guard let ancestor = environmentAncestor else {
+                return .empty
+            }
 
-        (self as? ViewEnvironmentCustomizing)?.customize(environment: &environment)
+            if let observing = ancestor as? ViewEnvironmentObserving {
+                return observing.environment
+            }
+
+            return ancestor._defaultEnvironment
+        }()
+
+        if let observing = self as? ViewEnvironmentObserving {
+            observing.customize(environment: &environment)
+        }
 
         return environment
     }
 
+    /// Notifies all appropriate descendants that the environment needs update.
+    ///
+    /// If a descendant's ancestor is `nil` it will not be notified of needing update.
+    ///
     @_spi(ViewEnvironmentWiring)
     public func setNeedsEnvironmentUpdateOnAppropriateDescendants() {
         for descendant in environmentDescendants {

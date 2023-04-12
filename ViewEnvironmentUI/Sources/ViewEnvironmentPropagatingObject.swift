@@ -45,13 +45,16 @@ public protocol ViewEnvironmentPropagatingObject: AnyObject, ViewEnvironmentProp
     func setNeedsApplyEnvironment()
 }
 
-extension ViewEnvironmentObserving where Self: ViewEnvironmentPropagatingObject {
+extension ViewEnvironmentPropagating where Self: ViewEnvironmentPropagatingObject {
     public func applyEnvironmentIfNeeded() {
         guard needsEnvironmentUpdate else { return }
 
         needsEnvironmentUpdate = false
 
-        apply(environment: environment)
+        if let observing = self as? ViewEnvironmentObserving {
+            let environment = observing.environment
+            observing.apply(environment: environment)
+        }
     }
 }
 
@@ -216,17 +219,15 @@ extension ViewEnvironmentPropagatingObject {
 
         if let observing = self as? ViewEnvironmentObserving {
             observing.environmentDidChange()
-        }
 
-        if !needsUpdateObservers.isEmpty {
-            let environment = self.environment
+            if !needsUpdateObservers.isEmpty {
+                let environment = observing.environment
 
-            for observer in needsUpdateObservers.values {
-                observer(environment)
+                for observer in needsUpdateObservers.values {
+                    observer(environment)
+                }
             }
-        }
 
-        if self is ViewEnvironmentObserving {
             setNeedsApplyEnvironment()
         }
 

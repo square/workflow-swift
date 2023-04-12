@@ -76,6 +76,8 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
             .observeValues { [weak self] screen in
                 self?.update(screen: screen)
             }
+
+        setNeedsEnvironmentUpdate()
     }
 
     /// Updates the root Workflow in this container.
@@ -180,7 +182,7 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     }
 }
 
-extension WorkflowHostingController: ViewEnvironmentCustomizing, ViewEnvironmentObserving {
+extension WorkflowHostingController: ViewEnvironmentObserving {
     public func customize(environment: inout ViewEnvironment) {
         customizeEnvironment(&environment)
     }

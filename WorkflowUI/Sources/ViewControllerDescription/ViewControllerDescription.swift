@@ -213,7 +213,7 @@ extension ViewControllerDescription {
 }
 
 extension ViewControllerDescription {
-    fileprivate struct PropagationNode: ViewEnvironmentCustomizing {
+    fileprivate struct PropagationNode: ViewEnvironmentObserving {
         typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
 
         typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]
@@ -252,6 +252,10 @@ extension ViewControllerDescription {
 
         func setNeedsEnvironmentUpdate() {
             setNeedsEnvironmentUpdateOnAppropriateDescendants()
+        }
+
+        func applyEnvironmentIfNeeded() {
+            /// `apply(environment:)` is not implemented so do nothing.
         }
     }
 }
