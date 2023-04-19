@@ -81,9 +81,6 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
     /// when it's appropriate to apply the environment to the backing object (e.g. `viewWillLayoutSubviews`).
     ///
     func environmentDidChange()
-
-    @_spi(ViewEnvironmentWiring)
-    var _environmentOverride: ViewEnvironment { get }
 }
 
 extension ViewEnvironmentObserving {
@@ -92,8 +89,4 @@ extension ViewEnvironmentObserving {
     public func apply(environment: ViewEnvironment) {}
 
     public func environmentDidChange() {}
-
-    // Using SPI for this property will cause consumers to be unable to synthesize the default implementation if they do
-    // not @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI.
-    public var _environmentOverride: ViewEnvironment { _defaultEnvironment }
 }

@@ -103,10 +103,9 @@ extension ViewEnvironmentPropagating {
     /// ```
     ///
     /// By default, this property gets the environment by recursively walking to the root of the
-    /// propagation path, and applying customizations on the way back down. You may override this
-    /// property instead if you want to completely interrupt the propagation flow and replace the
-    /// environment. You can get the default value that would normally be propagated by calling
-    /// `_defaultEnvironment`.
+    /// propagation path, and applying customizations on the way back down. The invalidation path may be
+    /// interrupted if a node has set it's `environmentAncestor` to `nil`, even if there is a node
+    /// which specifies this node as an `environmentDescendant`.
     ///
     /// If you'd like to update the return value of this variable and have those changes propagated through the
     /// propagation hierarchy, conform to `ViewEnvironmentObserving` and call ``setNeedsEnvironmentUpdate()`` and wait
@@ -118,29 +117,7 @@ extension ViewEnvironmentPropagating {
     /// `layoutSubviews()` respectively.
     ///
     public var environment: ViewEnvironment {
-        (self as? ViewEnvironmentObserving)?._environmentOverride ?? _defaultEnvironment
-    }
-
-    /// The default `ViewEnvironment` returned by ``environment``.
-    ///
-    /// The environment is constructed by recursively walking to the root of the propagation path
-    /// and then applying all customizations on the way back down.
-    ///
-    ///  You should only need to access this value if you are overriding ``environment``
-    /// and want to conditionally return the default.
-    @_spi(ViewEnvironmentWiring)
-    public var _defaultEnvironment: ViewEnvironment {
-        var environment: ViewEnvironment = {
-            guard let ancestor = environmentAncestor else {
-                return .empty
-            }
-
-            if let observing = ancestor as? ViewEnvironmentObserving {
-                return observing.environment
-            }
-
-            return ancestor._defaultEnvironment
-        }()
+        var environment = environmentAncestor?.environment ?? .empty
 
         if let observing = self as? ViewEnvironmentObserving {
             observing.customize(environment: &environment)
