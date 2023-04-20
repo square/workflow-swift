@@ -19,18 +19,33 @@
 import UIKit
 
 public final class DescribedViewController: UIViewController {
+    public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
+
+    public var customizeEnvironment: CustomizeEnvironment {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
+    var screen: AnyScreen
     var currentViewController: UIViewController
 
-    public init(description: ViewControllerDescription) {
-        self.currentViewController = description.buildViewController()
+    public init<S: Screen>(
+        screen: S,
+        customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in }
+    ) {
+        self.screen = screen.asAnyScreen()
+        self.customizeEnvironment = customizeEnvironment
+
+        var environment: ViewEnvironment = .empty
+        customizeEnvironment(&environment)
+
+        self.currentViewController = screen
+            .viewControllerDescription(environment: environment)
+            .buildViewController()
+
         super.init(nibName: nil, bundle: nil)
 
         addChild(currentViewController)
         currentViewController.didMove(toParent: self)
-    }
-
-    public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
-        self.init(description: screen.viewControllerDescription(environment: environment))
     }
 
     @available(*, unavailable)
@@ -38,7 +53,11 @@ public final class DescribedViewController: UIViewController {
         fatalError("init(coder:) is unavailable")
     }
 
-    public func update(description: ViewControllerDescription) {
+    public func update<S: Screen>(screen: S) {
+        self.screen = screen.asAnyScreen()
+
+        let description = screen.viewControllerDescription(environment: environment)
+
         if description.canUpdate(viewController: currentViewController) {
             description.update(viewController: currentViewController)
         } else {
@@ -60,10 +79,6 @@ public final class DescribedViewController: UIViewController {
 
             updatePreferredContentSizeIfNeeded()
         }
-    }
-
-    public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
-        update(description: screen.viewControllerDescription(environment: environment))
     }
 
     override public func viewDidLoad() {
@@ -126,4 +141,15 @@ public final class DescribedViewController: UIViewController {
         preferredContentSize = newPreferredContentSize
     }
 }
+
+extension DescribedViewController: ViewEnvironmentObserving {
+    public func customize(environment: inout ViewEnvironment) {
+        customizeEnvironment(&environment)
+    }
+
+    public func environmentDidChange() {
+        update(screen: screen)
+    }
+}
+
 #endif

@@ -90,10 +90,6 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     }
 
     private func update(screen: ScreenType) {
-        update(screen: screen, environment: environment)
-    }
-
-    private func update(screen: ScreenType, environment: ViewEnvironment) {
         let previousRoot = rootViewController
 
         update(child: \.rootViewController, with: screen, in: environment)
@@ -108,13 +104,11 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     override public func viewDidLoad() {
         super.viewDidLoad()
 
-        let environment = self.environment
-
         // Update before loading the contained view controller's view so that the environment can fully propagate
         // before descendant views have loaded.
         // Many screens rely on `ViewEnvironment` validations in viewDidLoad which could be using the initial
         // `ViewEnvironment` without this explicit update.
-        update(screen: workflowHost.rendering.value, environment: environment)
+        update(screen: workflowHost.rendering.value)
 
         view.backgroundColor = .white
 
@@ -188,7 +182,7 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
     }
 
     public func environmentDidChange() {
-        update(screen: workflowHost.rendering.value, environment: environment)
+        update(screen: workflowHost.rendering.value)
     }
 }
 
