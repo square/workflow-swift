@@ -30,7 +30,7 @@ class DescribedViewControllerTests: XCTestCase {
         let screen = TestScreen.counter(0)
 
         // When
-        let describedViewController = DescribedViewController(screen: screen)
+        let describedViewController = DescribedViewController(screen: screen, environment: .empty)
 
         // Then
         guard
@@ -49,7 +49,7 @@ class DescribedViewControllerTests: XCTestCase {
     func test_viewDidLoad() {
         // Given
         let screen = TestScreen.counter(0)
-        let describedViewController = DescribedViewController(screen: screen)
+        let describedViewController = DescribedViewController(screen: screen, environment: .empty)
 
         // When
         _ = describedViewController.view
@@ -64,11 +64,11 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(0)
         let screenB = TestScreen.counter(1)
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let initialChildViewController = describedViewController.currentViewController
 
         // When
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
 
         // Then
         XCTAssertEqual(initialChildViewController, describedViewController.currentViewController)
@@ -83,12 +83,12 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(0)
         let screenB = TestScreen.counter(1)
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let initialChildViewController = describedViewController.currentViewController
 
         // When
         _ = describedViewController.view
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
 
         // Then
         XCTAssertEqual(initialChildViewController, describedViewController.currentViewController)
@@ -100,11 +100,11 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(0)
         let screenB = TestScreen.message("Test")
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let initialChildViewController = describedViewController.currentViewController
 
         // When
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
 
         // Then
         XCTAssertNotEqual(initialChildViewController, describedViewController.currentViewController)
@@ -120,12 +120,12 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(0)
         let screenB = TestScreen.message("Test")
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let initialChildViewController = describedViewController.currentViewController
 
         // When
         _ = describedViewController.view
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
 
         // Then
         XCTAssertNotEqual(initialChildViewController, describedViewController.currentViewController)
@@ -140,7 +140,7 @@ class DescribedViewControllerTests: XCTestCase {
         // Given
         let screen = TestScreen.counter(0)
 
-        let describedViewController = DescribedViewController(screen: screen)
+        let describedViewController = DescribedViewController(screen: screen, environment: .empty)
         let currentViewController = describedViewController.currentViewController
 
         // When, Then
@@ -156,10 +156,10 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(0)
         let screenB = TestScreen.message("Test")
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let initialChildViewController = describedViewController.currentViewController
 
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
         let currentViewController = describedViewController.currentViewController
 
         // When, Then
@@ -176,7 +176,7 @@ class DescribedViewControllerTests: XCTestCase {
         let screenA = TestScreen.counter(1)
         let screenB = TestScreen.counter(2)
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
         // When
@@ -192,7 +192,7 @@ class DescribedViewControllerTests: XCTestCase {
         defer { disposable?.dispose() }
 
         _ = WorkflowHostingController.view
-        describedViewController.update(screen: screenB)
+        describedViewController.update(screen: screenB, environment: .empty)
 
         // Then
         let expectedSizes = [CGSize(width: 10, height: 0), CGSize(width: 20, height: 0)]
@@ -206,7 +206,7 @@ class DescribedViewControllerTests: XCTestCase {
         let screenB = TestScreen.message("Test")
         let screenC = TestScreen.message("Testing")
 
-        let describedViewController = DescribedViewController(screen: screenA)
+        let describedViewController = DescribedViewController(screen: screenA, environment: .empty)
         let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
         // When
@@ -222,8 +222,8 @@ class DescribedViewControllerTests: XCTestCase {
         defer { disposable?.dispose() }
 
         _ = WorkflowHostingController.view
-        describedViewController.update(screen: screenB)
-        describedViewController.update(screen: screenC)
+        describedViewController.update(screen: screenB, environment: .empty)
+        describedViewController.update(screen: screenC, environment: .empty)
 
         // Then
         let expectedSizes = [
@@ -247,14 +247,12 @@ fileprivate enum TestScreen: Screen, Equatable {
         switch self {
         case .counter(let count):
             return ViewControllerDescription(
-                environment: environment,
                 build: { CounterViewController(count: count) },
                 update: { $0.count = count }
             )
 
         case .message(let message):
             return ViewControllerDescription(
-                environment: environment,
                 build: { MessageViewController(message: message) },
                 update: { $0.message = message }
             )
