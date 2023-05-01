@@ -82,6 +82,13 @@ let package = Package(
             name: "ViewEnvironment",
             targets: ["ViewEnvironment"]
         ),
+
+        // MARK: ViewEnvironmentUI
+
+        .library(
+            name: "ViewEnvironmentUI",
+            targets: ["ViewEnvironmentUI"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
@@ -227,6 +234,13 @@ let package = Package(
         .target(
             name: "ViewEnvironment",
             path: "ViewEnvironment/Sources"
+        ),
+
+        // MARK: ViewEnvironmentUI
+
+        .target(
+            name: "ViewEnvironmentUI",
+            path: "ViewEnvironmentUI/Sources"
         ),
     ],
     swiftLanguageVersions: [.v5]
