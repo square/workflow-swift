@@ -225,7 +225,11 @@ extension ViewEnvironmentPropagatingObject {
             }
         }
 
-        setNeedsApplyEnvironment()
+        if let observer = self as? ViewEnvironmentObserving {
+            observer.environmentDidChange()
+
+            setNeedsApplyEnvironment()
+        }
 
         setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }

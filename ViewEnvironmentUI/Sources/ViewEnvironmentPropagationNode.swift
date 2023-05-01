@@ -39,6 +39,10 @@ public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagatingObject, V
         didSet { setNeedsEnvironmentUpdate() }
     }
 
+    public var environmentDidChangeObserver: ((ViewEnvironment) -> Void)? {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
     public var applyEnvironment: (ViewEnvironment) -> Void {
         didSet { setNeedsEnvironmentUpdate() }
     }
@@ -47,11 +51,13 @@ public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagatingObject, V
         environmentAncestor: @escaping EnvironmentAncestorProvider = { nil },
         environmentDescendants: @escaping EnvironmentDescendantsProvider = { [] },
         customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in },
+        environmentDidChange: ((ViewEnvironment) -> Void)? = nil,
         applyEnvironment: @escaping (ViewEnvironment) -> Void = { _ in }
     ) {
         self.environmentAncestorProvider = environmentAncestor
         self.environmentDescendantsProvider = environmentDescendants
         self.customizeEnvironment = customizeEnvironment
+        self.environmentDidChangeObserver = environmentDidChange
         self.applyEnvironment = applyEnvironment
     }
 
@@ -69,6 +75,12 @@ public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagatingObject, V
 
     public func customize(environment: inout ViewEnvironment) {
         customizeEnvironment(&environment)
+    }
+
+    public func environmentDidChange() {
+        guard let didChange = environmentDidChangeObserver else { return }
+
+        didChange(environment)
     }
 
     public func apply(environment: ViewEnvironment) {

@@ -164,6 +164,48 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         window.resignKey()
     }
 
+    // MARK: - environmentDidChange
+
+    func test_environmentDidChange() {
+        var rootEnvironmentDidChangeCallCount = 0
+        let rootNode = ViewEnvironmentPropagationNode(
+            environmentDidChange: { _ in
+                rootEnvironmentDidChangeCallCount += 1
+            }
+        )
+        XCTAssertEqual(rootEnvironmentDidChangeCallCount, 0)
+
+        let viewController = UIViewController()
+        rootNode.environmentDescendantsProvider = { [viewController] }
+
+        // Setting an environmentDescendantsProvider on ViewEnvironmentPropagationNode triggers a
+        // setNeedsEnvironmentUpdate()
+        XCTAssertEqual(rootEnvironmentDidChangeCallCount, 1)
+
+        viewController.environmentAncestorOverride = { [weak rootNode] in
+            rootNode
+        }
+
+        var leafEnvironmentDidChangeCallCount = 0
+        let leafNode = ViewEnvironmentPropagationNode(
+            environmentAncestor:  { [weak viewController] in
+                viewController
+            },
+            environmentDidChange: { _ in
+                leafEnvironmentDidChangeCallCount += 1
+            }
+        )
+        viewController.environmentDescendantsOverride = { [leafNode] }
+
+        XCTAssertEqual(rootEnvironmentDidChangeCallCount, 1)
+        XCTAssertEqual(leafEnvironmentDidChangeCallCount, 0)
+
+        rootNode.setNeedsEnvironmentUpdate()
+
+        XCTAssertEqual(rootEnvironmentDidChangeCallCount, 2)
+        XCTAssertEqual(leafEnvironmentDidChangeCallCount, 1)
+    }
+
     // MARK: - Overridden Flow
 
     func test_ancestor_customFlow() {

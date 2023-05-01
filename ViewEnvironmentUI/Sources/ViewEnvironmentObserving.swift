@@ -74,10 +74,19 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
     /// - Tag: ViewEnvironmentObserving.applyEnvironmentIfNeeded
     ///
     func applyEnvironmentIfNeeded()
+
+    /// Called when the environment has been set for needing update, but before it has been applied.
+    ///
+    /// This may be called frequently when compared to ``apply(environment:)`` which should only be called
+    /// when it's appropriate to apply the environment to the backing object (e.g. `viewWillLayoutSubviews`).
+    ///
+    func environmentDidChange()
 }
 
 extension ViewEnvironmentObserving {
     public func customize(environment: inout ViewEnvironment) {}
 
     public func apply(environment: ViewEnvironment) {}
+
+    public func environmentDidChange() {}
 }
