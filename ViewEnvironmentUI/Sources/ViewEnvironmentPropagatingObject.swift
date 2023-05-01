@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
 import ViewEnvironment
 
 /// A protocol describing a ``ViewEnvironmentPropagating`` object that can:
@@ -46,13 +45,16 @@ public protocol ViewEnvironmentPropagatingObject: AnyObject, ViewEnvironmentProp
     func setNeedsApplyEnvironment()
 }
 
-extension ViewEnvironmentObserving where Self: ViewEnvironmentPropagatingObject {
+extension ViewEnvironmentPropagating where Self: ViewEnvironmentPropagatingObject {
     public func applyEnvironmentIfNeeded() {
         guard needsEnvironmentUpdate else { return }
 
         needsEnvironmentUpdate = false
 
-        apply(environment: viewEnvironment)
+        if let observing = self as? ViewEnvironmentObserving {
+            let environment = observing.viewEnvironment
+            observing.apply(environment: environment)
+        }
     }
 }
 
@@ -223,11 +225,9 @@ extension ViewEnvironmentPropagatingObject {
             }
         }
 
-        if self is ViewEnvironmentObserving {
-            setNeedsApplyEnvironment()
-        }
+        setNeedsApplyEnvironment()
 
-        environmentDescendants.forEach { $0.setNeedsEnvironmentUpdate() }
+        setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }
 
     private var needsUpdateObservers: [NSObject: ViewEnvironmentUpdateObservation] {

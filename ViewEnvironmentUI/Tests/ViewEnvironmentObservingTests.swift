@@ -181,15 +181,25 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
     func test_descendant_customFlow() {
         let descendant = TestViewEnvironmentObservingViewController()
-
+        
         let viewController = TestViewEnvironmentObservingViewController()
         viewController.environmentDescendantsOverride = { [descendant] }
-
+        
         viewController.applyEnvironmentIfNeeded()
         descendant.applyEnvironmentIfNeeded()
         XCTAssertFalse(viewController.needsEnvironmentUpdate)
         XCTAssertFalse(descendant.needsEnvironmentUpdate)
-
+        
+        // With no ancestor configured the descendant should not respond to needing update
+        viewController.setNeedsEnvironmentUpdate()
+        XCTAssertTrue(viewController.needsEnvironmentUpdate)
+        XCTAssertFalse(descendant.needsEnvironmentUpdate)
+        
+        // With an ancestor defined the VC should respond to needing update
+        
+        descendant.environmentAncestorOverride = { [weak viewController] in
+            viewController
+        }
         viewController.setNeedsEnvironmentUpdate()
         XCTAssertTrue(viewController.needsEnvironmentUpdate)
         XCTAssertTrue(descendant.needsEnvironmentUpdate)

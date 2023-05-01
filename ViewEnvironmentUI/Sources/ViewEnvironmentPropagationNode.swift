@@ -22,7 +22,7 @@ import ViewEnvironment
 /// environment as it flows between two nodes.
 ///
 @_spi(ViewEnvironmentWiring)
-public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
+public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagatingObject, ViewEnvironmentObserving {
     public typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
 
     public typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]
@@ -39,25 +39,39 @@ public struct ViewEnvironmentPropagationNode: ViewEnvironmentCustomizing {
         didSet { setNeedsEnvironmentUpdate() }
     }
 
+    public var applyEnvironment: (ViewEnvironment) -> Void {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
     public init(
         environmentAncestor: @escaping EnvironmentAncestorProvider = { nil },
         environmentDescendants: @escaping EnvironmentDescendantsProvider = { [] },
-        customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in }
+        customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in },
+        applyEnvironment: @escaping (ViewEnvironment) -> Void = { _ in }
     ) {
         self.environmentAncestorProvider = environmentAncestor
         self.environmentDescendantsProvider = environmentDescendants
         self.customizeEnvironment = customizeEnvironment
+        self.applyEnvironment = applyEnvironment
     }
 
-    public var environmentAncestor: ViewEnvironmentPropagating? { environmentAncestorProvider() }
+    public var defaultEnvironmentAncestor: ViewEnvironmentPropagating? {
+        environmentAncestorProvider()
+    }
 
-    public var environmentDescendants: [ViewEnvironmentPropagating] { environmentDescendantsProvider() }
+    public var defaultEnvironmentDescendants: [ViewEnvironmentPropagating] {
+        environmentDescendantsProvider()
+    }
+
+    public func setNeedsApplyEnvironment() {
+        applyEnvironmentIfNeeded()
+    }
 
     public func customize(environment: inout ViewEnvironment) {
         customizeEnvironment(&environment)
     }
 
-    public func setNeedsEnvironmentUpdate() {
-        environmentDescendants.forEach { $0.setNeedsEnvironmentUpdate() }
+    public func apply(environment: ViewEnvironment) {
+        applyEnvironment(environment)
     }
 }
