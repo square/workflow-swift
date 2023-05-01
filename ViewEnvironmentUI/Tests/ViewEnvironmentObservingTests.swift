@@ -15,7 +15,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         container.addChild(child)
         child.didMove(toParent: container)
 
-        XCTAssertEqual(child.viewEnvironment.testContext.number, 1)
+        XCTAssertEqual(child.environment.testContext.number, 1)
     }
 
     func test_environment_propagation_to_presented() {
@@ -30,7 +30,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
         container.present(child, animated: false, completion: {})
 
-        XCTAssertEqual(child.viewEnvironment.testContext.number, 1)
+        XCTAssertEqual(child.environment.testContext.number, 1)
     }
 
     func test_environment_multiple_overrides_with_root() {
@@ -67,7 +67,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         // Mutation by child
         expectedContext.number = 2
 
-        XCTAssertEqual(child.viewEnvironment.testContext, expectedContext)
+        XCTAssertEqual(child.environment.testContext, expectedContext)
     }
 
     // MARK: - apply(environment:)
@@ -176,7 +176,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         let viewController = UIViewController()
         viewController.environmentAncestorOverride = { ancestor }
 
-        XCTAssertEqual(viewController.viewEnvironment.testContext, expectedTestContext)
+        XCTAssertEqual(viewController.environment.testContext, expectedTestContext)
     }
 
     func test_descendant_customFlow() {
@@ -239,7 +239,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         XCTAssertTrue(child.needsEnvironmentUpdate)
         XCTAssertTrue(descendant.needsEnvironmentUpdate)
 
-        XCTAssertEqual(descendant.viewEnvironment.testContext, expectedContext)
+        XCTAssertEqual(descendant.environment.testContext, expectedContext)
     }
 
     // MARK: - Observations

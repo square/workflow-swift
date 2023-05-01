@@ -116,8 +116,8 @@ extension ViewEnvironmentPropagating {
     /// ``ViewEnvironmentObserving/applyEnvironmentIfNeeded()-8gr5k`` in `viewWillLayoutSubviews()` and
     /// `layoutSubviews()` respectively.
     ///
-    public var viewEnvironment: ViewEnvironment {
-        var environment = environmentAncestor?.viewEnvironment ?? .empty
+    public var environment: ViewEnvironment {
+        var environment = environmentAncestor?.environment ?? .empty
 
         if let observing = self as? ViewEnvironmentObserving {
             observing.customize(environment: &environment)

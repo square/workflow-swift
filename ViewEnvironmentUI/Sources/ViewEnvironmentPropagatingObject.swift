@@ -52,7 +52,7 @@ extension ViewEnvironmentPropagating where Self: ViewEnvironmentPropagatingObjec
         needsEnvironmentUpdate = false
 
         if let observing = self as? ViewEnvironmentObserving {
-            let environment = observing.viewEnvironment
+            let environment = observing.environment
             observing.apply(environment: environment)
         }
     }
@@ -218,7 +218,7 @@ extension ViewEnvironmentPropagatingObject {
         needsEnvironmentUpdate = true
 
         if !needsUpdateObservers.isEmpty {
-            let environment = viewEnvironment
+            let environment = environment
 
             for observer in needsUpdateObservers.values {
                 observer(environment)
