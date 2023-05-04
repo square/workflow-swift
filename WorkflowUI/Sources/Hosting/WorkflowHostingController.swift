@@ -27,6 +27,11 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         return workflowHost.output
     }
 
+    /// Represents the `Rendering` produced by the hosted workflow.
+    public var rendering: Property<ScreenType> {
+        return workflowHost.rendering
+    }
+
     private(set) var rootViewController: UIViewController
 
     private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>

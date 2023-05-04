@@ -154,6 +154,25 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         disposable?.dispose()
     }
+
+    func test_workflow_render_causes_container_render() {
+        let (signal, observer) = Signal<Int, Never>.pipe()
+        let workflow = SubscribingWorkflow(subscription: signal)
+        let container = WorkflowHostingController(workflow: workflow)
+
+        let expectation = XCTestExpectation(description: "Render")
+
+        let disposable = container.rendering.signal.observeValues { rendering in
+            XCTAssertEqual(rendering.string, "7")
+            expectation.fulfill()
+        }
+
+        observer.send(value: 7)
+
+        wait(for: [expectation], timeout: 1.0)
+
+        disposable?.dispose()
+    }
 }
 
 fileprivate struct SubscribingWorkflow: Workflow {
