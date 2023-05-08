@@ -58,8 +58,6 @@ public protocol ViewEnvironmentPropagating {
     /// - Important: Nodes providing manual conformance to this protocol should call ``setNeedsEnvironmentUpdate()`` on
     ///   all `environmentDescendants` (which is behind the `ViewEnvironmentWiring` SPI namespace).
     ///
-    /// - Tag: ViewEnvironmentObserving.setNeedsEnvironmentUpdate
-    ///
     func setNeedsEnvironmentUpdate()
 
     /// The `ViewEnvironment` propagation ancestor.

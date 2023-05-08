@@ -66,12 +66,12 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
     ///
     func apply(environment: ViewEnvironment)
 
-    /// Consumers _must_ call this function when the environment should be re-applied, e.g. in
-    /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
+    /// Consumers must call this function when environment updates should be applied.
     ///
     /// This will call ``apply(environment:)`` on the receiver if the node has been flagged for needing update.
     ///
-    /// - Tag: ViewEnvironmentObserving.applyEnvironmentIfNeeded
+    /// When working with `UIViewController` and `UIView` nodes, consumers _must_ call this function in
+    /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
     ///
     func applyEnvironmentIfNeeded()
 

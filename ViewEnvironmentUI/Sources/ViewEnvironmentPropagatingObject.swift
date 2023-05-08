@@ -46,6 +46,11 @@ public protocol ViewEnvironmentPropagatingObject: AnyObject, ViewEnvironmentProp
 }
 
 extension ViewEnvironmentPropagating where Self: ViewEnvironmentPropagatingObject {
+    /// Consumers _must_ call this function when the environment should be re-applied, e.g. in
+    /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
+    ///
+    /// This will call ``apply(environment:)`` on the receiver if the node has been flagged for needing update.
+    ///
     public func applyEnvironmentIfNeeded() {
         guard needsEnvironmentUpdate else { return }
 
@@ -63,8 +68,6 @@ extension ViewEnvironmentPropagatingObject {
     ///
     /// The observation will only be active for as long as the returned lifetime is retained or
     /// `cancel()` is called on it.
-    ///
-    /// - Tag: ViewEnvironmentPropagatingObject.addEnvironmentNeedsUpdateObserver
     ///
     @_spi(ViewEnvironmentWiring)
     public func addEnvironmentNeedsUpdateObserver(
@@ -103,7 +106,7 @@ extension ViewEnvironmentPropagatingObject {
     }
 
     /// ## SeeAlso ##
-    /// - [environmentAncestorOverride](x-source-tag://ViewEnvironmentObserving.environmentAncestorOverride)
+    /// - ``environmentAncestorOverride``
     ///
     @_spi(ViewEnvironmentWiring)
     public typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
@@ -119,8 +122,6 @@ extension ViewEnvironmentPropagatingObject {
     ///  - You must not set overrides while overrides are already set—doing so will throw an assertion. This assertion
     ///    prevents accidentally clobbering an existing propagation path customization defined somewhere out of your
     ///    control (e.g. Modals customization).
-    ///
-    /// - Tag: ViewEnvironmentObserving.environmentAncestorOverride
     ///
     @_spi(ViewEnvironmentWiring)
     public var environmentAncestorOverride: EnvironmentAncestorProvider? {
@@ -182,7 +183,7 @@ public typealias ViewEnvironmentUpdateObservation = (ViewEnvironment) -> Void
 /// de-initialized.
 ///
 /// ## SeeAlso ##
-/// - [addEnvironmentNeedsUpdateObserver](x-source-tag://ViewEnvironmentPropagatingObject.addEnvironmentNeedsUpdateObserver)
+/// - ``ViewEnvironmentPropagatingObject/addEnvironmentNeedsUpdateObserver(_:)``
 ///
 public final class ViewEnvironmentUpdateObservationLifetime {
     /// Removes the observation.
