@@ -18,10 +18,13 @@
 
 import ReactiveSwift
 import UIKit
+import ViewEnvironmentUI
 import Workflow
 
 /// Drives view controllers from a root Workflow.
 public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
+    public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
+
     /// Emits output events from the bound workflow.
     public var output: Signal<Output, Never> {
         return workflowHost.output
@@ -33,15 +36,13 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
     private let (lifetime, token) = Lifetime.make()
 
-    public var rootViewEnvironment: ViewEnvironment {
-        didSet {
-            update(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
-        }
+    public var customizeEnvironment: CustomizeEnvironment {
+        didSet { setNeedsEnvironmentUpdate() }
     }
 
     public init<W: AnyWorkflowConvertible>(
         workflow: W,
-        rootViewEnvironment: ViewEnvironment = .empty,
+        customizeEnvironment: @escaping CustomizeEnvironment = { _ in },
         observers: [WorkflowObserver] = []
     ) where W.Rendering == ScreenType, W.Output == Output {
         self.workflowHost = WorkflowHost(
@@ -49,12 +50,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
             observers: observers
         )
 
+        self.customizeEnvironment = customizeEnvironment
+
+        var customizedEnvironment: ViewEnvironment = .empty
+        customizeEnvironment(&customizedEnvironment)
+
         self.rootViewController = workflowHost
             .rendering
             .value
-            .buildViewController(in: rootViewEnvironment)
-
-        self.rootViewEnvironment = rootViewEnvironment
+            .viewControllerDescription(environment: customizedEnvironment)
+            .buildViewController()
 
         super.init(nibName: nil, bundle: nil)
 
@@ -68,8 +73,12 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
             .observeValues { [weak self] screen in
                 guard let self = self else { return }
 
-                self.update(screen: screen, environment: self.rootViewEnvironment)
+                self.update(screen: screen, environment: self.environment)
             }
+
+        // Inform the rendered screen's backing view controller hierarchy that its environment can now be re-requested
+        // with the appropriate customizations now that it has been added as a child view controller.
+        rootViewController.setNeedsEnvironmentUpdate()
     }
 
     /// Updates the root Workflow in this container.
@@ -82,7 +91,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     }
 
     private func update(screen: ScreenType, environment: ViewEnvironment) {
+        let previousRoot = rootViewController
+
         update(child: \.rootViewController, with: screen, in: environment)
+
+        if previousRoot !== rootViewController {
+            // If a new view controller was instantiated and added as a child we need to inform it that the environment
+            // should be re-requested in order to respond to customizations in this WorkflowHostingController or any
+            // view controller above it in the UIViewController hierarchy.
+            setNeedsEnvironmentUpdate()
+        }
 
         updatePreferredContentSizeIfNeeded()
     }
@@ -96,6 +114,11 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         view.addSubview(rootViewController.view)
 
         updatePreferredContentSizeIfNeeded()
+    }
+
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        applyEnvironmentIfNeeded()
     }
 
     override public func viewDidLayoutSubviews() {
@@ -147,6 +170,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         guard newPreferredContentSize != preferredContentSize else { return }
 
         preferredContentSize = newPreferredContentSize
+    }
+}
+
+extension WorkflowHostingController: ViewEnvironmentObserving {
+    public func customize(environment: inout ViewEnvironment) {
+        customizeEnvironment(&environment)
+    }
+
+    public func environmentDidChange() {
+        update(screen: workflowHost.rendering.value, environment: environment)
     }
 }
 

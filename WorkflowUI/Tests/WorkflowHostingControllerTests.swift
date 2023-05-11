@@ -25,18 +25,23 @@ import WorkflowReactiveSwift
 
 fileprivate struct TestScreen: Screen {
     var string: String
+    var onEnvironmentDidChange: ((ViewEnvironment) -> Void)?
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         return TestScreenViewController.description(for: self, environment: environment)
     }
 }
 
-fileprivate final class TestScreenViewController: ScreenViewController<TestScreen> {
+fileprivate final class TestScreenViewController: ScreenViewController<TestScreen>, ViewEnvironmentObserving {
     var onScreenChange: (() -> Void)?
 
     override func screenDidChange(from previousScreen: TestScreen, previousEnvironment: ViewEnvironment) {
         super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
         onScreenChange?()
+    }
+
+    func environmentDidChange() {
+        screen.onEnvironmentDidChange?(environment)
     }
 }
 
@@ -154,6 +159,60 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         disposable?.dispose()
     }
+
+    func test_environment_bridging() throws {
+        struct TestKey: ViewEnvironmentKey {
+            static var defaultValue: Int = 0
+        }
+
+        var changedEnvironments: [ViewEnvironment] = []
+        let firstWorkflow = EnvironmentObservingWorkflow(
+            value: "first",
+            onEnvironmentDidChange: { env in
+                changedEnvironments.append(env)
+            }
+        )
+        let container = WorkflowHostingController(
+            workflow: firstWorkflow,
+            customizeEnvironment: { $0[TestKey.self] = 1 }
+        )
+
+        // Expect a `setNeedsEnvironmentUpdate()` in the `container`'s initializer.
+        XCTAssertEqual(changedEnvironments.count, 1)
+        do {
+            let environment = try XCTUnwrap(changedEnvironments.first)
+            XCTAssertEqual(environment[TestKey.self], 1)
+        }
+
+        // Test ancestor propagation
+        struct AncestorKey: ViewEnvironmentKey {
+            static var defaultValue: String = ""
+        }
+
+        let ancestorVC = EnvironmentCustomizingViewController { $0[AncestorKey.self] = "1" }
+        ancestorVC.addChild(container)
+        container.didMove(toParent: ancestorVC)
+        XCTAssertEqual(changedEnvironments.count, 1)
+
+        ancestorVC.setNeedsEnvironmentUpdate()
+        XCTAssertEqual(changedEnvironments.count, 2)
+        do {
+            let environment = try XCTUnwrap(changedEnvironments.last)
+            XCTAssertEqual(environment[AncestorKey.self], "1")
+            XCTAssertEqual(environment[TestKey.self], 1)
+        }
+
+        // Test an environment update. This does not implicitly trigger an environment update in this VC.
+        ancestorVC.customizeEnvironment = { $0[AncestorKey.self] = "2" }
+        // Updating customizeEnvironment on the WorkflowHostingController should trigger an environment update
+        container.customizeEnvironment = { $0[TestKey.self] = 2 }
+        XCTAssertEqual(changedEnvironments.count, 3)
+        do {
+            let environment = try XCTUnwrap(changedEnvironments.last)
+            XCTAssertEqual(environment[AncestorKey.self], "2")
+            XCTAssertEqual(environment[TestKey.self], 2)
+        }
+    }
 }
 
 fileprivate struct SubscribingWorkflow: Workflow {
@@ -216,6 +275,35 @@ fileprivate struct EchoWorkflow: Workflow {
             .mapOutput { AnyWorkflowAction(sendingOutput: $0) }
             .running(in: context)
         return TestScreen(string: "\(value)")
+    }
+}
+
+fileprivate struct EnvironmentObservingWorkflow: Workflow {
+    var value: String
+    var onEnvironmentDidChange: (ViewEnvironment) -> Void
+
+    typealias State = Void
+
+    typealias Output = Never
+
+    func render(state: State, context: RenderContext<Self>) -> TestScreen {
+        return TestScreen(string: value, onEnvironmentDidChange: onEnvironmentDidChange)
+    }
+}
+
+fileprivate final class EnvironmentCustomizingViewController: UIViewController, ViewEnvironmentObserving {
+
+    var customizeEnvironment: (inout ViewEnvironment) -> Void
+
+    init(customizeEnvironment: @escaping (inout ViewEnvironment) -> Void) {
+        self.customizeEnvironment = customizeEnvironment
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func customize(environment: inout ViewEnvironment) {
+        customizeEnvironment(&environment)
     }
 }
 
