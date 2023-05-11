@@ -19,10 +19,9 @@ Pod::Spec.new do |s|
     s.source_files = 'WorkflowRxSwift/Sources/**/*.swift'
 
     s.dependency 'Workflow', "#{s.version}"
-    s.dependency 'RxSwift', '~> 6.2'
+    s.dependency 'RxSwift', '~> 6.6'
 
-    # https://github.com/ReactiveX/RxSwift/pull/2475
-    # s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
+    s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
 
     s.test_spec 'Tests' do |test_spec|
         test_spec.source_files = 'WorkflowRxSwift/Tests/**/*.swift'
