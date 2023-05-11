@@ -179,7 +179,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         // Expect a `setNeedsEnvironmentUpdate()` in the `ViewControllerDescription`'s build method and the
         // `container`'s initializer.
-        XCTAssertEqual(changedEnvironments.count, 2)
+        XCTAssertEqual(changedEnvironments.count, 1)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[TestKey.self], 1)
@@ -193,10 +193,10 @@ class WorkflowHostingControllerTests: XCTestCase {
         let ancestorVC = EnvironmentCustomizingViewController { $0[AncestorKey.self] = "1" }
         ancestorVC.addChild(container)
         container.didMove(toParent: ancestorVC)
-        XCTAssertEqual(changedEnvironments.count, 2)
+        XCTAssertEqual(changedEnvironments.count, 1)
 
         ancestorVC.setNeedsEnvironmentUpdate()
-        XCTAssertEqual(changedEnvironments.count, 4)
+        XCTAssertEqual(changedEnvironments.count, 2)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "1")
@@ -207,7 +207,7 @@ class WorkflowHostingControllerTests: XCTestCase {
         ancestorVC.customizeEnvironment = { $0[AncestorKey.self] = "2" }
         // Updating customizeEnvironment on the WorkflowHostingController should trigger an environment update
         container.customizeEnvironment = { $0[TestKey.self] = 2 }
-        XCTAssertEqual(changedEnvironments.count, 6)
+        XCTAssertEqual(changedEnvironments.count, 3)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "2")

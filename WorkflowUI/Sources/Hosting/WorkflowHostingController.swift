@@ -18,7 +18,7 @@
 
 import ReactiveSwift
 import UIKit
-import ViewEnvironmentUI
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 import Workflow
 
 /// Drives view controllers from a root Workflow.
@@ -63,6 +63,11 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
         super.init(nibName: nil, bundle: nil)
 
+        // Do not automatically forward environment did change notifications to the rendered screen's backing view
+        // controller. Instead rely on `ViewControllerDescription` to call `setNeedsEnvironmentUpdate()` when updates
+        // occur.
+        environmentDescendantsOverride = { [] }
+
         addChild(rootViewController)
         rootViewController.didMove(toParent: self)
 
@@ -75,10 +80,6 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
                 self.update(screen: screen, environment: self.environment)
             }
-
-        // Inform the rendered screen's backing view controller hierarchy that its environment can now be re-requested
-        // with the appropriate customizations now that it has been added as a child view controller.
-        rootViewController.setNeedsEnvironmentUpdate()
     }
 
     /// Updates the root Workflow in this container.
