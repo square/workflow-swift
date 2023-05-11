@@ -1,5 +1,6 @@
 # ViewEnvironmentUI
 
-`ViewEnvironmentUI` provides a means to propagate a `ViewEnvironment` through the view controller hierarchy.
+`ViewEnvironmentUI` provides a means to propagate a `ViewEnvironment` through a heirarchy of object nodes.
 
-> **_Note:_** This is currently considered an implementation detail of `MarketUI` and is intended to bridge `MarketContext` propagation between `MarketUI` and the Modals framework. Use the wrapper types declared in `MarketUI` to access the propagation of Market features.
+Support for propagation of `ViewEnvironment` through `UIViewController`s and `UIView`s is provided by this framework.
+
