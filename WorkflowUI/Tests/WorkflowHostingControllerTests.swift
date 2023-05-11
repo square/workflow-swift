@@ -161,8 +161,11 @@ class WorkflowHostingControllerTests: XCTestCase {
     }
 
     func test_environment_bridging() throws {
-        struct TestKey: ViewEnvironmentKey {
+        struct WorkflowHostKeyKey: ViewEnvironmentKey {
             static var defaultValue: Int = 0
+        }
+        struct ScreenKey: ViewEnvironmentKey {
+            static var defaultValue: Bool = false
         }
 
         var changedEnvironments: [ViewEnvironment] = []
@@ -173,8 +176,11 @@ class WorkflowHostingControllerTests: XCTestCase {
             }
         )
         let container = WorkflowHostingController(
-            workflow: firstWorkflow,
-            customizeEnvironment: { $0[TestKey.self] = 1 }
+            workflow: firstWorkflow
+                .mapRendering {
+                    $0.adaptedEnvironment(key: ScreenKey.self, value: true)
+                },
+            customizeEnvironment: { $0[WorkflowHostKeyKey.self] = 1 }
         )
 
         // Expect a `setNeedsEnvironmentUpdate()` in the `ViewControllerDescription`'s build method and the
@@ -182,7 +188,8 @@ class WorkflowHostingControllerTests: XCTestCase {
         XCTAssertEqual(changedEnvironments.count, 1)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
-            XCTAssertEqual(environment[TestKey.self], 1)
+            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 1)
+            XCTAssertEqual(environment[ScreenKey.self], true)
         }
 
         // Test ancestor propagation
@@ -200,18 +207,20 @@ class WorkflowHostingControllerTests: XCTestCase {
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "1")
-            XCTAssertEqual(environment[TestKey.self], 1)
+            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 1)
+            XCTAssertEqual(environment[ScreenKey.self], true)
         }
 
         // Test an environment update. This does not implicitly trigger an environment update in this VC.
         ancestorVC.customizeEnvironment = { $0[AncestorKey.self] = "2" }
         // Updating customizeEnvironment on the WorkflowHostingController should trigger an environment update
-        container.customizeEnvironment = { $0[TestKey.self] = 2 }
+        container.customizeEnvironment = { $0[WorkflowHostKeyKey.self] = 2 }
         XCTAssertEqual(changedEnvironments.count, 3)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "2")
-            XCTAssertEqual(environment[TestKey.self], 2)
+            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 2)
+            XCTAssertEqual(environment[ScreenKey.self], true)
         }
     }
 }
