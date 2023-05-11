@@ -31,6 +31,7 @@ fileprivate class BlankViewController: UIViewController {}
 class ViewControllerDescriptionTests: XCTestCase {
     func test_build() {
         let description = ViewControllerDescription(
+            environment: .empty,
             build: { BlankViewController() },
             update: { _ in }
         )
@@ -46,6 +47,7 @@ class ViewControllerDescriptionTests: XCTestCase {
 
     func test_canUpdate() {
         let description = ViewControllerDescription(
+            environment: .empty,
             build: { BlankViewController() },
             update: { _ in }
         )
@@ -74,6 +76,7 @@ class ViewControllerDescriptionTests: XCTestCase {
         let viewController = makeAbstractViewController()
 
         let description = ViewControllerDescription(
+            environment: .empty,
             build: { viewController },
             update: { $0.update() }
         )
@@ -86,6 +89,7 @@ class ViewControllerDescriptionTests: XCTestCase {
         var updateCount = 0
         let description = ViewControllerDescription(
             performInitialUpdate: false,
+            environment: .empty,
             build: { BlankViewController() },
             update: { _ in updateCount += 1 }
         )
@@ -103,6 +107,7 @@ class ViewControllerDescriptionTests: XCTestCase {
     func test_update() {
         var updateCount = 0
         let description = ViewControllerDescription(
+            environment: .empty,
             build: { BlankViewController() },
             update: { viewController in
                 XCTAssertTrue(type(of: viewController) == BlankViewController.self)
@@ -121,6 +126,56 @@ class ViewControllerDescriptionTests: XCTestCase {
 
         description.update(viewController: viewController)
         XCTAssertEqual(updateCount, 3)
+    }
+
+    func test_environment_propagation() throws {
+        final class EnvironmentObservingViewController: UIViewController, ViewEnvironmentObserving {
+            let onEnvironmentDidChange: (ViewEnvironment) -> Void
+            init(onEnvironmentDidChange: @escaping (ViewEnvironment) -> Void) {
+                self.onEnvironmentDidChange = onEnvironmentDidChange
+                super.init(nibName: nil, bundle: nil)
+            }
+            required init?(coder: NSCoder) { fatalError() }
+            func environmentDidChange() { onEnvironmentDidChange(environment) }
+        }
+
+        struct TestKey: ViewEnvironmentKey {
+            static var defaultValue: Int = 0
+        }
+
+        var changedEnvironments: [ViewEnvironment] = []
+
+        func makeViewController() -> EnvironmentObservingViewController {
+            EnvironmentObservingViewController { changedEnvironments.append($0) }
+        }
+
+        func makeDescription(testValue: Int) -> ViewControllerDescription {
+            ViewControllerDescription(
+                environment: .empty.setting(key: TestKey.self, to: testValue),
+                build: makeViewController,
+                update: { _ in }
+            )
+        }
+
+        XCTAssertEqual(changedEnvironments.count, 0)
+
+        let viewController = makeDescription(testValue: 1)
+            .buildViewController()
+
+        XCTAssertEqual(changedEnvironments.count, 1)
+        do {
+            let environment = try XCTUnwrap(changedEnvironments.last)
+            XCTAssertEqual(environment[TestKey.self], 1)
+        }
+
+        makeDescription(testValue: 2)
+            .update(viewController: viewController)
+
+        XCTAssertEqual(changedEnvironments.count, 2)
+        do {
+            let environment = try XCTUnwrap(changedEnvironments.last)
+            XCTAssertEqual(environment[TestKey.self], 2)
+        }
     }
 
     func test_screenViewController() {

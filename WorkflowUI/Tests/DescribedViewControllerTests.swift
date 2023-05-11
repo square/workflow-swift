@@ -247,12 +247,14 @@ fileprivate enum TestScreen: Screen, Equatable {
         switch self {
         case .counter(let count):
             return ViewControllerDescription(
+                environment: environment,
                 build: { CounterViewController(count: count) },
                 update: { $0.count = count }
             )
 
         case .message(let message):
             return ViewControllerDescription(
+                environment: environment,
                 build: { MessageViewController(message: message) },
                 update: { $0.message = message }
             )

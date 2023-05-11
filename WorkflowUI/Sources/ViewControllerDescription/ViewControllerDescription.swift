@@ -17,6 +17,8 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 
 /// A ViewControllerDescription acts as a "recipe" for building and updating a specific `UIViewController`.
 /// It describes how to _create_ and later _update_ a given view controller instance, without creating one
@@ -49,6 +51,7 @@ public struct ViewControllerDescription {
     /// type changed.
     public let kind: KindIdentifier
 
+    private let environment: ViewEnvironment
     private let build: () -> UIViewController
     private let update: (UIViewController) -> Void
 
@@ -58,6 +61,11 @@ public struct ViewControllerDescription {
     /// - Parameters:
     ///   - performInitialUpdate: If an initial call to `update(viewController:)`
     ///     will be performed when the view controller is created. Defaults to `true`.
+    ///
+    ///   - environment: The `ViewEnvironment` that should be injected above the
+    ///     described view controller for ViewEnvironmentUI environment propagation.
+    ///     This is typically passed in from a `Screen` in its
+    ///     `viewControllerDescription(environment:)` method.
     ///
     ///   - type: The type of view controller produced by this description.
     ///     Typically, should should be able to omit this parameter, but
@@ -70,12 +78,15 @@ public struct ViewControllerDescription {
     public init<VC: UIViewController>(
         performInitialUpdate: Bool = true,
         type: VC.Type = VC.self,
+        environment: ViewEnvironment,
         build: @escaping () -> VC,
         update: @escaping (VC) -> Void
     ) {
         self.performInitialUpdate = performInitialUpdate
 
         self.kind = .init(VC.self)
+
+        self.environment = environment
 
         self.build = build
 
@@ -95,7 +106,10 @@ public struct ViewControllerDescription {
 
         if performInitialUpdate {
             // Perform an initial update of the built view controller
+            // Note that this also configures the environment ancestor node.
             update(viewController: viewController)
+        } else {
+            configureAncestor(for: viewController)
         }
 
         return viewController
@@ -126,7 +140,42 @@ public struct ViewControllerDescription {
             """
         )
 
+        configureAncestor(for: viewController)
+
         update(viewController)
+    }
+
+    private func configureAncestor(for viewController: UIViewController) {
+        guard let ancestorOverride = viewController.environmentAncestorOverride else {
+            // If no ancestor is currently present establish the initial ancestor override
+            establishAncestorOverride(for: viewController)
+            return
+        }
+
+        let currentAncestor = ancestorOverride()
+        // Check whether the VC's ancestor was overridden by a ViewControllerDescription.
+        guard currentAncestor is PropagationNode else {
+            // Do not override the VC's ancestor if it was overridden by something outside of the
+            // `ViewControllerDescription`'s management of this node.
+            // The view controller we're managing, or the container it's contained in, likely needs to manage this in a
+            // special way.
+            return
+        }
+
+        // We must nil this out first or we'll hit an assertion which protects against overriding the ancestor when
+        // some other system has already attempted to provide an override.
+        viewController.environmentAncestorOverride = nil
+        establishAncestorOverride(for: viewController)
+    }
+
+    private func establishAncestorOverride(for viewController: UIViewController) {
+        let ancestor = PropagationNode(
+            viewController: viewController,
+            environment: environment
+        )
+        viewController.environmentAncestorOverride = { ancestor }
+
+        ancestor.setNeedsEnvironmentUpdate()
     }
 }
 
@@ -164,6 +213,41 @@ extension ViewControllerDescription {
 
         public static func == (lhs: Self, rhs: Self) -> Bool {
             lhs.viewControllerType == rhs.viewControllerType
+        }
+    }
+}
+
+extension ViewControllerDescription {
+    fileprivate struct PropagationNode: ViewEnvironmentObserving {
+
+        weak var viewController: UIViewController?
+
+        let environment: ViewEnvironment
+
+        init(
+            viewController: UIViewController,
+            environment: ViewEnvironment
+        ) {
+            self.viewController = viewController
+            self.environment = environment
+        }
+
+        var environmentAncestor: ViewEnvironmentPropagating? { nil }
+
+        var environmentDescendants: [ViewEnvironmentPropagating] {
+            [viewController].compactMap { $0 }
+        }
+
+        func customize(environment: inout ViewEnvironment) {
+            environment = self.environment
+        }
+
+        func setNeedsEnvironmentUpdate() {
+            setNeedsEnvironmentUpdateOnAppropriateDescendants()
+        }
+
+        func applyEnvironmentIfNeeded() {
+            /// `apply(environment:)` is not implemented so do nothing.
         }
     }
 }

@@ -79,6 +79,7 @@ extension ScreenViewController {
         ViewControllerDescription(
             performInitialUpdate: performInitialUpdate,
             type: self,
+            environment: environment,
             build: { self.init(screen: screen, environment: environment) },
             update: { $0.update(screen: screen, environment: environment) }
         )
