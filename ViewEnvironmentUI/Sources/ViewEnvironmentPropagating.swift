@@ -68,9 +68,10 @@ public protocol ViewEnvironmentPropagating {
     /// ``ViewEnvironmentPropagatingObject/environmentAncestorOverride`` property.  If no override is present, the
     /// return value will be `parent ?? presentingViewController`/`superview`.
     ///
-    /// If the value of the ancestor is `nil`, by default, ancestors will not call notify this node of needing an
-    /// environment update as it changes. This allows a node to effectively act as a root node when needed (e.g.
-    /// bridging from other propagation systems like WorkflowUI).
+    /// If the value of the ancestor is `nil`, by default, ancestors will not notify this node of needing an
+    /// environment update as it changes. This allows a node to effectively detach from its ancestor and act as a root
+    /// node when needed, without any changes to the ancestor (e.g. bridging from other propagation systems like
+    /// WorkflowUI).
     ///
     @_spi(ViewEnvironmentWiring)
     var environmentAncestor: ViewEnvironmentPropagating? { get }
@@ -126,7 +127,8 @@ extension ViewEnvironmentPropagating {
 
     /// Notifies all appropriate descendants that the environment needs update.
     ///
-    /// If a descendant's ancestor is `nil` it will not be notified of needing update.
+    /// Ancestor-descendent bindings must be mutually agreed for this method to notify them. If a descendant's ancestor
+    /// is `nil` it will not be notified of needing update.
     ///
     @_spi(ViewEnvironmentWiring)
     public func setNeedsEnvironmentUpdateOnAppropriateDescendants() {
