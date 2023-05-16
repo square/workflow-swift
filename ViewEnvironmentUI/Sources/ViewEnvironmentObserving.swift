@@ -53,16 +53,9 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
     ///
     /// If you'd like to just inherit the environment from above, leave this function body empty.
     ///
-    /// - Important: `UIViewController` and `UIView` conformers _must_ call
-    ///   ``ViewEnvironmentObserving/applyEnvironmentIfNeeded()-8gr5k``in `viewWillLayoutSubviews()` and
-    ///   `layoutSubviews()` respectively.
-    ///
     func customize(environment: inout ViewEnvironment)
 
     /// Consumers should apply the `ViewEnvironment` to their node when this function is called.
-    ///
-    /// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
-    ///   in `viewWillLayoutSubviews()` and `layoutSubviews()` respectively.
     ///
     func apply(environment: ViewEnvironment)
 
