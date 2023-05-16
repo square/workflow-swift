@@ -25,7 +25,7 @@ extension Publisher where Failure == Never {
         asAnyWorkflow().mapOutput(transform)
     }
 
-    func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+    public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
         PublisherWorkflow(publisher: self).asAnyWorkflow()
     }
 }
