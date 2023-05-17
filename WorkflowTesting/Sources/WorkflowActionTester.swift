@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import CustomDump
 import Workflow
 import XCTest
 
@@ -32,10 +33,10 @@ extension WorkflowAction {
 ///     .tester(withState: .firstState)
 ///     .send(action: .exampleAction)
 ///     .verifyOutput { output in
-///         XCTAssertEqual(.finished, output)
+///         XCTAssertNoDifference(.finished, output)
 ///     }
 ///     .verifyState { state in
-///         XCTAssertEqual(.differentState, state)
+///         XCTAssertNoDifference(.differentState, state)
 ///     }
 /// ```
 ///
@@ -47,7 +48,7 @@ extension WorkflowAction {
 ///     .send(action: .actionProducingNoOutput)
 ///     .assertNoOutput()
 ///     .verifyState { state in
-///         XCTAssertEqual(.differentState, state)
+///         XCTAssertNoDifference(.differentState, state)
 ///     }
 /// ```
 ///
@@ -143,7 +144,7 @@ extension WorkflowActionTester where WorkflowType.State: Equatable {
     @discardableResult
     public func assert(state expectedState: WorkflowType.State, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         return verifyState { actualState in
-            XCTAssertEqual(actualState, expectedState, file: file, line: line)
+            XCTAssertNoDifference(actualState, expectedState, file: file, line: line)
         }
     }
 }
@@ -157,7 +158,7 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
     @discardableResult
     public func assert(output expectedOutput: WorkflowType.Output, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         return verifyOutput { actualOutput in
-            XCTAssertEqual(actualOutput, expectedOutput, file: file, line: line)
+            XCTAssertNoDifference(actualOutput, expectedOutput, file: file, line: line)
         }
     }
 }

@@ -87,6 +87,7 @@ let package = Package(
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2.0"),
         .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.44.14"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump.git", from: "0.6.1"),
     ],
     targets: [
         // MARK: Workflow
@@ -103,7 +104,10 @@ let package = Package(
         ),
         .target(
             name: "WorkflowTesting",
-            dependencies: ["Workflow"],
+            dependencies: [
+                .product(name: "CustomDump", package: "swift-custom-dump"),
+                "Workflow",
+            ],
             path: "WorkflowTesting/Sources"
         ),
         .testTarget(
