@@ -240,6 +240,7 @@ let package = Package(
 
         .target(
             name: "ViewEnvironmentUI",
+            dependencies: ["ViewEnvironment"],
             path: "ViewEnvironmentUI/Sources"
         ),
     ],

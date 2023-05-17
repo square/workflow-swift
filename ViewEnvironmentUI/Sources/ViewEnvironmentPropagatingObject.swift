@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Foundation
 import ViewEnvironment
 
 /// A protocol describing a ``ViewEnvironmentPropagating`` object that can:
