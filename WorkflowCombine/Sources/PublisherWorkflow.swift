@@ -21,17 +21,17 @@ import Foundation
 import Workflow
 
 struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
-    public typealias Output = WorkflowPublisher.Output
-    public typealias State = Void
-    public typealias Rendering = Void
+    typealias Output = WorkflowPublisher.Output
+    typealias State = Void
+    typealias Rendering = Void
 
     let publisher: WorkflowPublisher
 
-    public init(publisher: WorkflowPublisher) {
+    init(publisher: WorkflowPublisher) {
         self.publisher = publisher
     }
 
-    public func render(state: State, context: RenderContext<Self>) -> Rendering {
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
         let sink = context.makeSink(of: AnyWorkflowAction.self)
         context.runSideEffect(key: "") { [publisher] lifetime in
             let cancellable = publisher

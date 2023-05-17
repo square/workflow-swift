@@ -46,11 +46,22 @@ extension DemoWorkflow {
 // MARK: Rendering
 
 extension DemoWorkflow {
-    // TODO: Change this to your actual rendering type
     typealias Rendering = DemoScreen
 
     func render(state: DemoWorkflow.State, context: RenderContext<DemoWorkflow>) -> Rendering {
+        // Combine-based worker example
         DemoWorker()
+            .rendered(in: context)
+
+        // Directly consume a Publisher
+        Timer.publish(every: 2, on: .main, in: .common)
+            .autoconnect()
+            .delay(for: 1.0, scheduler: DispatchQueue.main)
+            .asAnyWorkflow()
+            .onOutput { state, output in
+                state.date = Date()
+                return nil
+            }
             .rendered(in: context)
 
         dateFormatter.dateStyle = .long

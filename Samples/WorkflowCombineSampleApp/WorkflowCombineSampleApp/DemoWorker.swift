@@ -17,7 +17,7 @@ extension DemoWorkflow {
 
         // This publisher publishes the current date on a timer that fires every second
         func run() -> AnyPublisher<Output, Never> {
-            Timer.publish(every: 1, on: .main, in: .common)
+            Timer.publish(every: 2, on: .main, in: .common)
                 .autoconnect()
                 .map { Action(publishedDate: $0) }
                 .eraseToAnyPublisher()
