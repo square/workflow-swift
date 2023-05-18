@@ -17,13 +17,13 @@
 import Foundation
 import ViewEnvironment
 
-/// A protocol describing a ``ViewEnvironmentPropagating`` object that can:
+/// A protocol describing a `ViewEnvironmentPropagating` object that can:
 /// - Override the ancestor and descendants
 /// - Add environment update observations
 /// - Flag the backing object for needing to have the `ViewEnvironment` reapplied (e.g. `setNeedsLayout()`)
 ///
 /// This protocol was abstracted to share propagation logic between `UIViewController` and `UIView`'s support for
-/// ``ViewEnvironmentPropagating``, but could be used for any object-based node that wants to support
+/// `ViewEnvironmentPropagating`, but could be used for any object-based node that wants to support
 /// `ViewEnvironment` propagation.
 ///
 public protocol ViewEnvironmentPropagatingObject: AnyObject, ViewEnvironmentPropagating {
@@ -50,7 +50,7 @@ extension ViewEnvironmentPropagating where Self: ViewEnvironmentPropagatingObjec
     /// Consumers _must_ call this function when the environment should be re-applied, e.g. in
     /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
     ///
-    /// This will call ``apply(environment:)`` on the receiver if the node has been flagged for needing update.
+    /// This will call `apply(environment:)` on the receiver if the node has been flagged for needing update.
     ///
     public func applyEnvironmentIfNeeded() {
         guard needsEnvironmentUpdate else { return }
@@ -81,11 +81,11 @@ extension ViewEnvironmentPropagatingObject {
         }
     }
 
-    /// The [`ViewEnvironment` propagation](x-source-tag://ViewEnvironmentObserving) ancestor.
+    /// The `ViewEnvironment` propagation ancestor.
     ///
     /// This describes the ancestor that the `ViewEnvironment` is inherited from.
     ///
-    /// To override the return value of this property, set the ``environmentAncestorOverride``.
+    /// To override the return value of this property, set the `environmentAncestorOverride`.
     /// If no override is present, the return value will be `defaultEnvironmentAncestor`.
     ///
     @_spi(ViewEnvironmentWiring)
@@ -93,15 +93,14 @@ extension ViewEnvironmentPropagatingObject {
         environmentAncestorOverride?() ?? defaultEnvironmentAncestor
     }
 
-    /// The [`ViewEnvironment` propagation](x-source-tag://ViewEnvironmentObserving)
-    /// descendants.
+    /// The `ViewEnvironment` propagation descendants.
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
     /// 
     /// If a descendant's ancestor is set to `nil`, that descendant will not be notified when the `ViewEnvironment` 
     /// changes.
     ///
-    /// To override the return value of this property, set the ``environmentDescendantsOverride``.
+    /// To override the return value of this property, set the `environmentDescendantsOverride`.
     /// If no override is present, the return value will be `defaultEnvironmentDescendants`.
     ///
     @_spi(ViewEnvironmentWiring)
@@ -110,7 +109,7 @@ extension ViewEnvironmentPropagatingObject {
     }
 
     /// ## SeeAlso ##
-    /// - ``environmentAncestorOverride``
+    /// - `environmentAncestorOverride`
     ///
     @_spi(ViewEnvironmentWiring)
     public typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
@@ -146,7 +145,7 @@ extension ViewEnvironmentPropagatingObject {
     }
 
     /// ## SeeAlso ##
-    /// - ``environmentDescendantsOverride``
+    /// - `environmentDescendantsOverride`
     ///
     @_spi(ViewEnvironmentWiring)
     public typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]
@@ -190,7 +189,7 @@ public typealias ViewEnvironmentUpdateObservation = (ViewEnvironment) -> Void
 /// de-initialized.
 ///
 /// ## SeeAlso ##
-/// - ``ViewEnvironmentPropagatingObject/addEnvironmentNeedsUpdateObserver(_:)``
+/// - `addEnvironmentNeedsUpdateObserver(_:)`
 ///
 public final class ViewEnvironmentUpdateObservationLifetime {
     /// Removes the observation.

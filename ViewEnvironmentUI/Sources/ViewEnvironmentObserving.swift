@@ -44,7 +44,7 @@ import ViewEnvironment
 /// }
 /// ```
 ///
-/// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
+/// - Important: `UIViewController` and `UIView` conformers _must_ call `applyEnvironmentIfNeeded()`
 ///   in `viewWillLayoutSubviews()` and `layoutSubviews()` respectively.
 ///
 public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
@@ -62,7 +62,7 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
 
     /// Consumers must call this function when environment updates should be applied.
     ///
-    /// This will call ``apply(environment:)`` on the receiver if the node has been flagged for needing update.
+    /// This will call `apply(environment:)` on the receiver if the node has been flagged for needing update.
     ///
     /// When working with `UIViewController` and `UIView` nodes, consumers _must_ call this function in
     /// `viewWillLayoutSubviews()` for `UIViewController`s and `layoutSubviews()` for `UIView`s.
@@ -71,7 +71,7 @@ public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
 
     /// Called when the environment has been set for needing update, but before it has been applied.
     ///
-    /// This may be called frequently when compared to ``apply(environment:)`` which should only be called
+    /// This may be called frequently when compared to `apply(environment:)` which should only be called
     /// when it's appropriate to apply the environment to the backing object (e.g. `viewWillLayoutSubviews`).
     ///
     func environmentDidChange()
