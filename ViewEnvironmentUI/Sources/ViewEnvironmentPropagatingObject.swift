@@ -97,6 +97,9 @@ extension ViewEnvironmentPropagatingObject {
     /// descendants.
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
+    /// 
+    /// If a descendant's ancestor is set to `nil`, that descendant will not be notified when the `ViewEnvironment` 
+    /// changes.
     ///
     /// To override the return value of this property, set the ``environmentDescendantsOverride``.
     /// If no override is present, the return value will be `defaultEnvironmentDescendants`.
@@ -115,7 +118,10 @@ extension ViewEnvironmentPropagatingObject {
     /// This property allows you to override the propagation path of the `ViewEnvironment` as it flows through the
     /// node hierarchy by overriding the return value of `environmentAncestor`.
     ///
-    /// The result of this closure should be the propagation node that the `ViewEnvironment` is inherited from.
+    /// The result of this closure should typically be the propagation node that the `ViewEnvironment` is inherited
+    /// from. If the value of the ancestor is nil, by default, other nodes configured with this node as a descendant
+    /// will not notify this node of needing an environment update as it changes. This allows a node to effectively 
+    /// act as a root node when needed (e.g. bridging from other propagation systems like WorkflowUI).
     ///
     /// If this value is `nil` (the default), the resolved value for the ancestor will be `defaultEnvironmentAncestor`.
     ///
