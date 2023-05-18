@@ -16,36 +16,10 @@
 
 import ViewEnvironment
 
-/// `ViewEnvironmentPropagating` allows an environment propagation node to observe updates to the
-/// `ViewEnvironment` as it flows through the node hierarchy and have
-/// the environment applied to the node.
-///
-/// For example, for a `UIViewController` hierarchy observing `ViewEnvironment`:
-/// ```swift
-/// final class MyViewController:
-///     UIViewController, ViewEnvironmentPropagating
-/// {
-///     override func viewWillLayoutSubviews() {
-///         super.viewWillLayoutSubviews()
-///
-///         // You _must_ call this function in viewWillLayoutSubviews()
-///         applyEnvironmentIfNeeded()
-///     }
-///
-///     func apply(environment: ViewEnvironment) {
-///         // Apply values from the environment to your view controller (e.g. a theme)
-///     }
-///
-///     // If you'd like to override values in the environment you can provide them here. If you'd
-///     // like to just inherit the context from above there is no need to implement this function.
-///     func customize(environment: inout ViewEnvironment) {
-///         environment.traits.mode = .dark
-///     }
-/// }
-/// ```
-///
-/// - Important: `UIViewController` and `UIView` conformers _must_ call ``applyEnvironmentIfNeeded()-3bamq``
-///   in `viewWillLayoutSubviews()` and `layoutSubviews()` respectively.
+/// Describes a node which supports `ViewEnvironment` propagation.
+/// 
+/// This framework provides conformance of this protocol to `UIViewController` and `UIView` via the 
+/// `ViewEnvironmentPropagatingObject` protocol.
 ///
 public protocol ViewEnvironmentPropagating {
     /// Calling this will flag this node for needing to update the `ViewEnvironment`. For `UIView`/`UIViewController`,
