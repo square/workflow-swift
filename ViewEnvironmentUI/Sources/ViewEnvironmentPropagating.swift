@@ -16,7 +16,13 @@
 
 import ViewEnvironment
 
-/// Describes a node which supports `ViewEnvironment` propagation.
+/// A node in a `ViewEnvironment` propagation tree.
+///
+/// This protocol describes the base functionality of every node in the tree:
+/// - Reading the environment, via `environment`.
+/// - Walking up the tree, via `environmentAncestor`.
+/// - Walking down the tree, via `environmentDescendants`.
+/// - Notifying a node that the environment changed, via `setNeedsEnvironmentUpdate()`.
 /// 
 /// This framework provides conformance of this protocol to `UIViewController` and `UIView` via the 
 /// `ViewEnvironmentPropagatingObject` protocol.
@@ -41,9 +47,10 @@ public protocol ViewEnvironmentPropagating {
     /// `environmentAncestorOverride` property.  If no override is present, the return value will be `parent ?? 
     /// `presentingViewController`/`superview`.
     ///
-    /// If the value of the ancestor is nil, by default, other nodes configured with this node as a descendant will not
-    /// notify this node of needing an environment update as it changes. This allows a node to effectively act as a 
-    /// root node when needed (e.g. bridging from other propagation systems like WorkflowUI).
+    /// Ancestor-descendent bindings must be mutually agreed. If the value of the ancestor is `nil`, then by default, 
+    /// other nodes configured with this node as a descendant will not notify this node of needing an environment 
+    /// update as it changes. This allows a node to effectively act as a root node when needed (e.g. bridging from 
+    /// other propagation systems like WorkflowUI).
     ///
     @_spi(ViewEnvironmentWiring)
     var environmentAncestor: ViewEnvironmentPropagating? { get }
@@ -52,8 +59,8 @@ public protocol ViewEnvironmentPropagating {
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
     /// 
-    /// If a descendant's `environmentAncestor` is `nil`, that descendant will not be notified when the
-    /// `ViewEnvironment` changes.
+    /// Ancestor-descendent bindings must be mutually agreed. If a descendant's `environmentAncestor` is `nil`, that 
+    /// descendant will not be notified when the `ViewEnvironment` changes.
     ///
     /// To override the return value of this property for `UIViewController`/`UIView` subclasses, set the
     /// `environmentDescendantsOverride` property.  If no override is present, the return value will be a collection 
