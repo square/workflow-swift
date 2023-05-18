@@ -97,8 +97,8 @@ extension ViewEnvironmentPropagatingObject {
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
     /// 
-    /// If a descendant's ancestor is set to `nil`, that descendant will not be notified when the `ViewEnvironment` 
-    /// changes.
+    /// If a descendant's `environmentAncestor` is set to `nil`, that descendant will not be notified when the 
+    /// `ViewEnvironment` changes.
     ///
     /// To override the return value of this property, set the `environmentDescendantsOverride`.
     /// If no override is present, the return value will be `defaultEnvironmentDescendants`.
