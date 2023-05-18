@@ -41,7 +41,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     /// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
     ///
     /// - Parameters:
-    ///   - update: The `State`` mutation to perform.
+    ///   - update: The `State` mutation to perform.
     public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
         sink.send(
             AnyWorkflowAction<WorkflowType> { state in

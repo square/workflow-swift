@@ -17,7 +17,7 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
 
 > ⚠️ [Optional] To avoid possible headaches when publishing podspecs, validation can be performed before updating the Workflow version number(s). To do this, run the following in the root directory of this repo:
 > ```bash
-> bundle exec pod lib lint Workflow.podspec ViewEnvironment.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec
+> bundle exec pod lib lint Workflow.podspec ViewEnvironment.podspec ViewEnvironmentUI.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec
 > ```
 
 1. Update `VERSION` file based on [`semver`](https://semver.org/).
@@ -37,6 +37,7 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
     bundle exec pod trunk push WorkflowTesting.podspec  --synchronous
     bundle exec pod trunk push WorkflowReactiveSwift.podspec --synchronous
     bundle exec pod trunk push ViewEnvironment.podspec --synchronous
+    bundle exec pod trunk push ViewEnvironmentUI.podspec --synchronous
     bundle exec pod trunk push WorkflowUI.podspec --synchronous
     bundle exec pod trunk push WorkflowRxSwift.podspec --synchronous
     bundle exec pod trunk push WorkflowReactiveSwiftTesting.podspec --synchronous
