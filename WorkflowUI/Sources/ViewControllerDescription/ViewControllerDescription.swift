@@ -109,7 +109,7 @@ public struct ViewControllerDescription {
             // Note that this also configures the environment ancestor node.
             update(viewController: viewController)
         } else {
-            configureAncestor(for: viewController)
+            configureAncestor(of: viewController)
         }
 
         return viewController
@@ -140,12 +140,12 @@ public struct ViewControllerDescription {
             """
         )
 
-        configureAncestor(for: viewController)
+        configureAncestor(of: viewController)
 
         update(viewController)
     }
 
-    private func configureAncestor(for viewController: UIViewController) {
+    private func configureAncestor(of viewController: UIViewController) {
         guard let ancestorOverride = viewController.environmentAncestorOverride else {
             // If no ancestor is currently present establish the initial ancestor override
             establishAncestorOverride(for: viewController)
