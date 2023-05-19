@@ -147,14 +147,24 @@ public struct ViewControllerDescription {
 
     private func configureAncestor(of viewController: UIViewController) {
         guard let ancestorOverride = viewController.environmentAncestorOverride else {
-            // If no ancestor is currently present establish the initial ancestor override
-            overrideAncestor(of: viewController)
+            // If no ancestor is currently present establish the initial ancestor override.
+            //
+            // Here we intentionally retain the node by capturing it in the `environmentAncestorOverride` closure,
+            // making the view controller effectively retain this node.
+            // The `viewController` passed into this `PropagationNode` is not retained by the node (it's a weak
+            // reference).
+            let node = PropagationNode(
+                viewController: viewController,
+                environment: environment
+            )
+            viewController.environmentAncestorOverride = { node }
+            viewController.setNeedsEnvironmentUpdate()
             return
         }
 
         let currentAncestor = ancestorOverride()
         // Check whether the VC's ancestor was overridden by a ViewControllerDescription.
-        guard currentAncestor is PropagationNode else {
+        guard let node = currentAncestor as? PropagationNode else {
             // Do not override the VC's ancestor if it was overridden by something outside of the
             // `ViewControllerDescription`'s management of this node.
             // The view controller we're managing, or the container it's contained in, likely needs to manage this in a
@@ -162,24 +172,10 @@ public struct ViewControllerDescription {
             return
         }
 
-        // We must nil this out first or we'll hit an assertion which protects against overriding the ancestor when
-        // some other system has already attempted to provide an override.
-        viewController.environmentAncestorOverride = nil
-        overrideAncestor(of: viewController)
-    }
-
-    private func overrideAncestor(of viewController: UIViewController) {
-        // Here we intentionally retain the node by capturing it in the `environmentAncestorOverride` closure, making 
-        // the view controller effectively retain this node.
-        // The `viewController` passed into this `PropagationNode` is not retained by the node (it's a weak 
-        // reference).
-        let ancestor = PropagationNode(
-            viewController: viewController,
-            environment: environment
-        )
-        viewController.environmentAncestorOverride = { ancestor }
-
-        ancestor.setNeedsEnvironmentUpdate()
+        // Update the existing node.
+        node.viewController = viewController
+        node.environment = environment
+        viewController.setNeedsEnvironmentUpdate()
     }
 }
 
@@ -222,14 +218,14 @@ extension ViewControllerDescription {
 }
 
 extension ViewControllerDescription {
-    fileprivate struct PropagationNode: ViewEnvironmentObserving {
+    fileprivate class PropagationNode: ViewEnvironmentObserving {
 
         // Since the viewController retains a reference to this node (via capture in the `environmentAncestorOverride`
         // closure) we use a weak reference here to avoid a retain cycle, and leave retainment of the view controller 
         // up to the consumer of the `ViewControllerDescription` (e.g. the parent view controller).
         weak var viewController: UIViewController?
 
-        let environment: ViewEnvironment
+        var environment: ViewEnvironment
 
         init(
             viewController: UIViewController,
