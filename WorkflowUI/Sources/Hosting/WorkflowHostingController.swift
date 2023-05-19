@@ -30,15 +30,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         return workflowHost.output
     }
 
+    /// An environment customization that will be applied to the environment of the root screen.
+    public var customizeEnvironment: CustomizeEnvironment {
+        didSet { setNeedsEnvironmentUpdate() }
+    }
+
     private(set) var rootViewController: UIViewController
 
     private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>
 
     private let (lifetime, token) = Lifetime.make()
-
-    public var customizeEnvironment: CustomizeEnvironment {
-        didSet { setNeedsEnvironmentUpdate() }
-    }
 
     public init<W: AnyWorkflowConvertible>(
         workflow: W,
