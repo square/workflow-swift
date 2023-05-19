@@ -161,7 +161,7 @@ class WorkflowHostingControllerTests: XCTestCase {
     }
 
     func test_environment_bridging() throws {
-        struct WorkflowHostKeyKey: ViewEnvironmentKey {
+        struct WorkflowHostKey: ViewEnvironmentKey {
             static var defaultValue: Int = 0
         }
         struct ScreenKey: ViewEnvironmentKey {
@@ -180,7 +180,7 @@ class WorkflowHostingControllerTests: XCTestCase {
                 .mapRendering {
                     $0.adaptedEnvironment(key: ScreenKey.self, value: true)
                 },
-            customizeEnvironment: { $0[WorkflowHostKeyKey.self] = 1 }
+            customizeEnvironment: { $0[WorkflowHostKey.self] = 1 }
         )
 
         // Expect a `setNeedsEnvironmentUpdate()` in the `ViewControllerDescription`'s build method and the
@@ -188,7 +188,7 @@ class WorkflowHostingControllerTests: XCTestCase {
         XCTAssertEqual(changedEnvironments.count, 1)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
-            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 1)
+            XCTAssertEqual(environment[WorkflowHostKey.self], 1)
             XCTAssertEqual(environment[ScreenKey.self], true)
         }
 
@@ -207,19 +207,19 @@ class WorkflowHostingControllerTests: XCTestCase {
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "1")
-            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 1)
+            XCTAssertEqual(environment[WorkflowHostKey.self], 1)
             XCTAssertEqual(environment[ScreenKey.self], true)
         }
 
         // Test an environment update. This does not implicitly trigger an environment update in this VC.
         ancestorVC.customizeEnvironment = { $0[AncestorKey.self] = "2" }
         // Updating customizeEnvironment on the WorkflowHostingController should trigger an environment update
-        container.customizeEnvironment = { $0[WorkflowHostKeyKey.self] = 2 }
+        container.customizeEnvironment = { $0[WorkflowHostKey.self] = 2 }
         XCTAssertEqual(changedEnvironments.count, 3)
         do {
             let environment = try XCTUnwrap(changedEnvironments.last)
             XCTAssertEqual(environment[AncestorKey.self], "2")
-            XCTAssertEqual(environment[WorkflowHostKeyKey.self], 2)
+            XCTAssertEqual(environment[WorkflowHostKey.self], 2)
             XCTAssertEqual(environment[ScreenKey.self], true)
         }
     }
