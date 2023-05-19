@@ -148,7 +148,7 @@ public struct ViewControllerDescription {
     private func configureAncestor(of viewController: UIViewController) {
         guard let ancestorOverride = viewController.environmentAncestorOverride else {
             // If no ancestor is currently present establish the initial ancestor override
-            establishAncestorOverride(for: viewController)
+            overrideAncestor(of: viewController)
             return
         }
 
@@ -165,10 +165,10 @@ public struct ViewControllerDescription {
         // We must nil this out first or we'll hit an assertion which protects against overriding the ancestor when
         // some other system has already attempted to provide an override.
         viewController.environmentAncestorOverride = nil
-        establishAncestorOverride(for: viewController)
+        overrideAncestor(of: viewController)
     }
 
-    private func establishAncestorOverride(for viewController: UIViewController) {
+    private func overrideAncestor(of viewController: UIViewController) {
         let ancestor = PropagationNode(
             viewController: viewController,
             environment: environment
