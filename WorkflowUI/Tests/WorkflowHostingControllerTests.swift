@@ -19,6 +19,7 @@
 import XCTest
 
 import ReactiveSwift
+import UIKit
 import Workflow
 import WorkflowReactiveSwift
 @testable import WorkflowUI

@@ -1,3 +1,6 @@
+#if canImport(UIKit)
+
+import UIKit
 import ViewEnvironment
 import XCTest
 
@@ -404,3 +407,5 @@ extension ViewEnvironmentObservingTests {
         required init?(coder: NSCoder) { fatalError("") }
     }
 }
+
+#endif
