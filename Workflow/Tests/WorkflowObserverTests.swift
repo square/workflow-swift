@@ -163,6 +163,35 @@ final class WorkflowObserverTests: XCTestCase {
         XCTAssertEqual(actions, [.toggle])
     }
 
+    // added to exercise a simultaneous memory access bug when observing action
+    // application for some Workflow's where State == Void
+    func test_didReceiveActionCallbacks_voidState() {
+        var actions: [VoidStateWorkflow.Action] = []
+        observer.onDidReceiveAction = { action, workflow, session in
+            guard let action = action as? VoidStateWorkflow.Action else {
+                XCTFail("unexpected action. expecting \(VoidStateWorkflow.Action.self), got \(type(of: action))")
+                return
+            }
+
+            actions.append(action)
+        }
+
+        let node = WorkflowNode(
+            workflow: VoidStateWorkflow(),
+            parentSession: nil,
+            observer: observer
+        )
+
+        let rendering = node.render()
+        node.enableEvents()
+
+        XCTAssertEqual(actions, [])
+
+        rendering.onTapped()
+
+        XCTAssertEqual(actions, [.actionValue])
+    }
+
     func test_didReceiveActionCallbacks_onlyInvokedForExternalEvents() {
         var actionsReceived: [InjectableWorkflow.Action] = []
         observer.onDidReceiveAction = { action, workflow, session in
@@ -685,5 +714,34 @@ private struct DefaultObservers: ObserversInterceptor {
 
     func workflowObservers(for initialObservers: [WorkflowObserver]) -> [WorkflowObserver] {
         observers + initialObservers
+    }
+}
+
+// MARK: Void State Observation Crash Example
+
+/// Example that cause a memory exclusivity violation in prior observation code
+private struct VoidStateWorkflow: Workflow {
+    typealias State = Void
+    typealias Output = Never
+
+    enum Action: WorkflowAction {
+        typealias WorkflowType = VoidStateWorkflow
+
+        case actionValue
+
+        func apply(toState state: inout VoidStateWorkflow.State) -> VoidStateWorkflow.Output? {
+            return nil
+        }
+    }
+
+    struct Rendering {
+        var onTapped: () -> Void
+    }
+
+    func render(state: VoidStateWorkflow.State, context: RenderContext<VoidStateWorkflow>) -> Rendering {
+        let sink = context.makeSink(of: VoidStateWorkflow.Action.self)
+        return Rendering(
+            onTapped: { sink.send(.actionValue) }
+        )
     }
 }
