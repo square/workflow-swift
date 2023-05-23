@@ -22,7 +22,7 @@ import ViewEnvironment
 /// environment as it flows between two nodes.
 ///
 @_spi(ViewEnvironmentWiring)
-public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagatingObject, ViewEnvironmentObserving {
+public class ViewEnvironmentPropagationNode: ViewEnvironmentPropagating, ViewEnvironmentObserving {
     public typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
 
     public typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]

@@ -19,7 +19,7 @@
 import UIKit
 import ViewEnvironment
 
-extension UIView: ViewEnvironmentPropagatingObject {
+extension UIView: ViewEnvironmentPropagating {
     @_spi(ViewEnvironmentWiring)
     public var defaultEnvironmentAncestor: ViewEnvironmentPropagating? { superview }
 
