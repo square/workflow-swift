@@ -17,9 +17,20 @@
 #if canImport(UIKit)
 
 import UIKit
+@_spi(WorkflowGlobalObservation) import Workflow
 
 public final class DescribedViewController: UIViewController {
     var currentViewController: UIViewController
+
+    public var observer: WorkflowUIObserver?
+
+    private var chainedObserver: WorkflowUIObserver {
+        if let observer {
+            return WorkflowObservation.sharedUIObserversInterceptor.chainedObservers(for: [observer])
+        } else {
+            return WorkflowObservation.sharedUIObserversInterceptor.chainedObservers(for: [])
+        }
+    }
 
     public init(description: ViewControllerDescription) {
         self.currentViewController = description.buildViewController()
@@ -60,6 +71,7 @@ public final class DescribedViewController: UIViewController {
 
             updatePreferredContentSizeIfNeeded()
         }
+        chainedObserver.observe(Event.didUpdateDescription(description), viewController: self)
     }
 
     public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
@@ -75,9 +87,25 @@ public final class DescribedViewController: UIViewController {
         updatePreferredContentSizeIfNeeded()
     }
 
+    override public func viewWillAppear(_ animated: Bool) {
+        chainedObserver.observe(Event.viewWillAppear(animated: animated), viewController: self)
+        super.viewWillAppear(animated)
+    }
+
+    override public func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        chainedObserver.observe(Event.viewDidAppear(animated: animated), viewController: self)
+    }
+
+    override public func viewWillLayoutSubviews() {
+        chainedObserver.observe(Event.viewWillLayoutSubviews, viewController: self)
+        super.viewWillLayoutSubviews()
+    }
+
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         currentViewController.view.frame = view.bounds
+        chainedObserver.observe(Event.viewWillLayoutSubviews, viewController: self)
     }
 
     override public var childForStatusBarStyle: UIViewController? {
