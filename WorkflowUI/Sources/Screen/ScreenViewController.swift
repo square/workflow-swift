@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import UIKit
+@_spi(WorkflowGlobalObservation) import Workflow
 
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
@@ -44,6 +45,16 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
 
     public private(set) final var environment: ViewEnvironment
 
+    public var observer: WorkflowUIObserver?
+
+    private var chainedObserver: WorkflowUIObserver {
+        if let observer {
+            return WorkflowObservation.sharedUIObserversInterceptor.chainedObservers(for: [observer])
+        } else {
+            return WorkflowObservation.sharedUIObserversInterceptor.chainedObservers(for: [])
+        }
+    }
+
     public required init(screen: ScreenType, environment: ViewEnvironment) {
         self.screen = screen
         self.environment = environment
@@ -55,12 +66,33 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override open func viewWillAppear(_ animated: Bool) {
+        chainedObserver.screenWillAppear(self, animated: animated)
+        super.viewWillAppear(animated)
+    }
+
+    override open func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        chainedObserver.screenDidAppear(self, animated: animated)
+    }
+
+    override open func viewWillLayoutSubviews() {
+        chainedObserver.screenWillLayoutSubviews(viewController: self)
+        super.viewWillLayoutSubviews()
+    }
+
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        chainedObserver.screenDidLayoutSubviews(viewController: self)
+    }
+
     public final func update(screen: ScreenType, environment: ViewEnvironment) {
         let previousScreen = self.screen
         self.screen = screen
         let previousEnvironment = self.environment
         self.environment = environment
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
+        chainedObserver.screenDidUpdate(self, previousScreen: previousScreen, previousEnvironment: previousEnvironment)
     }
 
     /// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.
