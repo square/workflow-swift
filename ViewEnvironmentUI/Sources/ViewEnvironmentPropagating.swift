@@ -62,8 +62,8 @@ public protocol ViewEnvironmentPropagating: AnyObject {
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
     ///
-    /// Ancestor-descendent bindings must be mutually agreed. If a descendant's `environmentAncestor` is `nil`, that
-    /// descendant will not be notified when the `ViewEnvironment` changes.
+    /// Ancestor-descendent bindings must be mutually agreed. If a descendant's `environmentAncestor` is not `self`,
+    /// that descendant will not be notified when the `ViewEnvironment` changes.
     ///
     /// To override the return value of this property for `UIViewController`/`UIView` subclasses, set the
     /// `environmentDescendantsOverride` property.  If no override is present, the return value will be a collection
@@ -145,19 +145,18 @@ extension ViewEnvironmentPropagating {
     /// Notifies all appropriate descendants that the environment needs update.
     ///
     /// Ancestor-descendent bindings must be mutually agreed for this method to notify them. If a descendant's
-    /// `environmentAncestor` is `nil` it will not be notified of needing update.
+    /// `environmentAncestor` is not `self` it will not be notified of needing update.
     ///
     @_spi(ViewEnvironmentWiring)
     public func setNeedsEnvironmentUpdateOnAppropriateDescendants() {
         for descendant in environmentDescendants {
-            // If the descendant's `environmentAncestor` is nil it has opted out of environment updates and is likely
-            // acting as a root for propagation bridging purposes (e.g. from a Workflow ViewEnvironment update).
+            // If the descendant's `environmentAncestor` is not `self` it has opted out of environment updates from this
+            // node. The node is is likely acting as a root for propagation bridging purposes (e.g. from a Workflow
+            // ViewEnvironment update).
             // Avoid updating the descendant if this is the case.
-            guard descendant.environmentAncestor != nil else {
-                continue
+            if descendant.environmentAncestor === self {
+                descendant.setNeedsEnvironmentUpdate()
             }
-
-            descendant.setNeedsEnvironmentUpdate()
         }
     }
 
@@ -193,7 +192,7 @@ extension ViewEnvironmentPropagating {
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
     /// 
-    /// If a descendant's `environmentAncestor` is set to `nil`, that descendant will not be notified when the 
+    /// If a descendant's `environmentAncestor` is not `self`, that descendant will not be notified when the
     /// `ViewEnvironment` changes.
     ///
     /// To override the return value of this property, set the `environmentDescendantsOverride`.
