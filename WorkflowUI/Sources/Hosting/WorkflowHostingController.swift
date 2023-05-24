@@ -18,13 +18,15 @@
 
 import ReactiveSwift
 import UIKit
+import ViewEnvironmentUI
 import Workflow
 
-/// Drives view controllers from a root Workflow.
 public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
+    public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
+
     /// Emits output events from the bound workflow.
     public var output: Signal<Output, Never> {
-        return workflowHost.output
+        workflowHost.output
     }
 
     private(set) var rootViewController: UIViewController
@@ -33,28 +35,34 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
 
     private let (lifetime, token) = Lifetime.make()
 
-    public var rootViewEnvironment: ViewEnvironment {
+    public var customizeEnvironment: CustomizeEnvironment {
         didSet {
-            update(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
+            setNeedsEnvironmentUpdate()
         }
     }
 
     public init<W: AnyWorkflowConvertible>(
         workflow: W,
-        rootViewEnvironment: ViewEnvironment = .empty,
-        observers: [WorkflowObserver] = []
+        observers: [WorkflowObserver] = [],
+        customizeEnvironment: @escaping CustomizeEnvironment = { _ in }
     ) where W.Rendering == ScreenType, W.Output == Output {
         self.workflowHost = WorkflowHost(
             workflow: workflow.asAnyWorkflow(),
             observers: observers
         )
 
-        self.rootViewController = workflowHost
+        self.customizeEnvironment = customizeEnvironment
+
+        // Customize the default environment for the first render so that we can perform updates and query view
+        // controller containment methods before the view has been added to the hierarchy.
+        var customizedEnvironment: ViewEnvironment = .empty
+        customizeEnvironment(&customizedEnvironment)
+
+        rootViewController = workflowHost
             .rendering
             .value
-            .buildViewController(in: rootViewEnvironment)
-
-        self.rootViewEnvironment = rootViewEnvironment
+            .viewControllerDescription(environment: customizedEnvironment)
+            .buildViewController()
 
         super.init(nibName: nil, bundle: nil)
 
@@ -66,10 +74,10 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
             .signal
             .take(during: lifetime)
             .observeValues { [weak self] screen in
-                guard let self = self else { return }
-
-                self.update(screen: screen, environment: self.rootViewEnvironment)
+                self?.update(screen: screen)
             }
+
+        setNeedsEnvironmentUpdate()
     }
 
     /// Updates the root Workflow in this container.
@@ -81,14 +89,26 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func update(screen: ScreenType, environment: ViewEnvironment) {
+    private func update(screen: ScreenType) {
+        let previousRoot = rootViewController
+
         update(child: \.rootViewController, with: screen, in: environment)
+
+        if previousRoot !== rootViewController {
+            setNeedsEnvironmentUpdate()
+        }
 
         updatePreferredContentSizeIfNeeded()
     }
 
     override public func viewDidLoad() {
         super.viewDidLoad()
+
+        // Update before loading the contained view controller's view so that the environment can fully propagate
+        // before descendant views have loaded.
+        // Many screens rely on `ViewEnvironment` validations in viewDidLoad which could be using the initial
+        // `ViewEnvironment` without this explicit update.
+        update(screen: workflowHost.rendering.value)
 
         view.backgroundColor = .white
 
@@ -98,37 +118,43 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         updatePreferredContentSizeIfNeeded()
     }
 
+    override public func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+
+        applyEnvironmentIfNeeded()
+    }
+
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         rootViewController.view.frame = view.bounds
     }
 
     override public var childForStatusBarStyle: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForStatusBarHidden: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForHomeIndicatorAutoHidden: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return rootViewController.supportedInterfaceOrientations
+        rootViewController.supportedInterfaceOrientations
     }
 
     override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return rootViewController.preferredStatusBarUpdateAnimation
+        rootViewController.preferredStatusBarUpdateAnimation
     }
 
     override public var childViewControllerForPointerLock: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public func preferredContentSizeDidChange(
@@ -147,6 +173,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         guard newPreferredContentSize != preferredContentSize else { return }
 
         preferredContentSize = newPreferredContentSize
+    }
+}
+
+extension WorkflowHostingController: ViewEnvironmentObserving {
+    public func customize(environment: inout ViewEnvironment) {
+        customizeEnvironment(&environment)
+    }
+
+    public func environmentDidChange() {
+        update(screen: workflowHost.rendering.value)
     }
 }
 

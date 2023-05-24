@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import UIKit
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 
 /// A ViewControllerDescription acts as a "recipe" for building and updating a specific `UIViewController`.
 /// It describes how to _create_ and later _update_ a given view controller instance, without creating one
@@ -52,6 +53,8 @@ public struct ViewControllerDescription {
     private let build: () -> UIViewController
     private let update: (UIViewController) -> Void
 
+    private let environment: ViewEnvironment
+
     /// Constructs a view controller description by providing closures used to
     /// build and update a specific view controller type.
     ///
@@ -69,6 +72,7 @@ public struct ViewControllerDescription {
     ///   - update: Closure that updates the given view controller
     public init<VC: UIViewController>(
         performInitialUpdate: Bool = true,
+        environment: ViewEnvironment,
         type: VC.Type = VC.self,
         build: @escaping () -> VC,
         update: @escaping (VC) -> Void
@@ -76,6 +80,8 @@ public struct ViewControllerDescription {
         self.performInitialUpdate = performInitialUpdate
 
         self.kind = .init(VC.self)
+
+        self.environment = environment
 
         self.build = build
 
@@ -96,6 +102,8 @@ public struct ViewControllerDescription {
         if performInitialUpdate {
             // Perform an initial update of the built view controller
             update(viewController: viewController)
+        } else {
+            configureAncestor(for: viewController, with: environment)
         }
 
         return viewController
@@ -126,7 +134,43 @@ public struct ViewControllerDescription {
             """
         )
 
+        configureAncestor(for: viewController, with: environment)
+
         update(viewController)
+    }
+
+    private func configureAncestor(for viewController: UIViewController, with environment: ViewEnvironment) {
+        guard let ancestorOverride = viewController.environmentAncestorOverride else {
+            establishAncestorOverride(for: viewController, with: environment)
+            return
+        }
+
+        let currentAncestor = ancestorOverride()
+        guard currentAncestor is PropagationNode else {
+            // Do not override the VC's ancestor if it was overridden by something outside of the
+            // `ViewControllerDescription`'s management of this node.
+            // The view controller we're managing, or the container it's contained in, needs to manage this in a special
+            // way.
+            return
+        }
+
+        // We must nil this out first or we'll hit an assertion which protects against overriding the ancestor when
+        // some other system has already attempted to provide an override.
+        viewController.environmentAncestorOverride = nil
+        establishAncestorOverride(for: viewController, with: environment)
+    }
+
+    private func establishAncestorOverride(for viewController: UIViewController, with environment: ViewEnvironment) {
+        let ancestor = PropagationNode(
+            environmentAncestor: { nil },
+            environmentDescendants: { [weak viewController] in
+                [viewController].compactMap { $0 }
+            },
+            customizeEnvironment: { $0 = environment }
+        )
+        viewController.environmentAncestorOverride = { ancestor }
+
+        ancestor.setNeedsEnvironmentUpdate()
     }
 }
 
@@ -164,6 +208,54 @@ extension ViewControllerDescription {
 
         public static func == (lhs: Self, rhs: Self) -> Bool {
             lhs.viewControllerType == rhs.viewControllerType
+        }
+    }
+}
+
+extension ViewControllerDescription {
+    fileprivate struct PropagationNode: ViewEnvironmentObserving {
+        typealias EnvironmentAncestorProvider = () -> ViewEnvironmentPropagating?
+
+        typealias EnvironmentDescendantsProvider = () -> [ViewEnvironmentPropagating]
+
+        var environmentAncestorProvider: EnvironmentAncestorProvider {
+            didSet { setNeedsEnvironmentUpdate() }
+        }
+
+        var environmentDescendantsProvider: EnvironmentDescendantsProvider {
+            didSet { setNeedsEnvironmentUpdate() }
+        }
+
+        var customizeEnvironment: (inout ViewEnvironment) -> Void {
+            didSet { setNeedsEnvironmentUpdate() }
+        }
+
+        private var needsEnvironmentUpdate: Bool = true
+
+        init(
+            environmentAncestor: @escaping EnvironmentAncestorProvider = { nil },
+            environmentDescendants: @escaping EnvironmentDescendantsProvider = { [] },
+            customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in }
+        ) {
+            self.environmentAncestorProvider = environmentAncestor
+            self.environmentDescendantsProvider = environmentDescendants
+            self.customizeEnvironment = customizeEnvironment
+        }
+
+        var environmentAncestor: ViewEnvironmentPropagating? { environmentAncestorProvider() }
+
+        var environmentDescendants: [ViewEnvironmentPropagating] { environmentDescendantsProvider() }
+
+        func customize(environment: inout ViewEnvironment) {
+            customizeEnvironment(&environment)
+        }
+
+        func setNeedsEnvironmentUpdate() {
+            setNeedsEnvironmentUpdateOnAppropriateDescendants()
+        }
+
+        func applyEnvironmentIfNeeded() {
+            /// `apply(environment:)` is not implemented so do nothing.
         }
     }
 }

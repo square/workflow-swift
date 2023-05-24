@@ -17,6 +17,8 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
@@ -39,31 +41,30 @@ open class ScreenViewController<ScreenType: Screen>: UIViewController {
     public private(set) final var screen: ScreenType
 
     public final var screenType: Screen.Type {
-        return ScreenType.self
+        ScreenType.self
     }
 
-    public private(set) final var environment: ViewEnvironment
+    private var previousEnvironment: ViewEnvironment
 
     public required init(screen: ScreenType, environment: ViewEnvironment) {
         self.screen = screen
-        self.environment = environment
+        self.previousEnvironment = environment
         super.init(nibName: nil, bundle: nil)
     }
 
     @available(*, unavailable)
-    public required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    public required init?(coder aDecoder: NSCoder) { fatalError() }
 
-    public final func update(screen: ScreenType, environment: ViewEnvironment) {
+    public final func update(screen: ScreenType) {
         let previousScreen = self.screen
         self.screen = screen
-        let previousEnvironment = self.environment
-        self.environment = environment
+
+        let previousEnvironment = self.previousEnvironment
+        self.previousEnvironment = environment
+
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
     }
 
-    /// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.
     open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}
 }
 
@@ -78,9 +79,10 @@ extension ScreenViewController {
     ) -> ViewControllerDescription {
         ViewControllerDescription(
             performInitialUpdate: performInitialUpdate,
+            environment: environment,
             type: self,
             build: { self.init(screen: screen, environment: environment) },
-            update: { $0.update(screen: screen, environment: environment) }
+            update: { $0.update(screen: screen) }
         )
     }
 }
