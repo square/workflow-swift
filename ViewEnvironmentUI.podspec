@@ -1,9 +1,9 @@
 require_relative('version')
 
 Pod::Spec.new do |s|
-    s.name         = 'WorkflowUI'
-    s.version      = WORKFLOW_VERSION
-    s.summary      = 'Infrastructure for Workflow-powered UI'
+    s.name = 'ViewEnvironmentUI'
+    s.version = WORKFLOW_VERSION
+    s.summary = 'Provides a way to propagate a ViewEnvironment through an imperative hierarchy'
     s.homepage     = 'https://www.github.com/square/workflow-swift'
     s.license      = 'Apache License, Version 2.0'
     s.author       = 'Square'
@@ -16,16 +16,14 @@ Pod::Spec.new do |s|
     s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
     s.osx.deployment_target = WORKFLOW_MACOS_DEPLOYMENT_TARGET
 
-    s.source_files = 'WorkflowUI/Sources/**/*.swift'
+    s.source_files = 'ViewEnvironmentUI/Sources/**/*.swift'
 
-    s.dependency 'Workflow', "#{s.version}"
     s.dependency 'ViewEnvironment', "#{s.version}"
-    s.dependency 'ViewEnvironmentUI', "#{s.version}"
 
     s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
 
     s.test_spec 'Tests' do |test_spec|
-        test_spec.source_files = 'WorkflowUI/Tests/**/*.swift'
+        test_spec.source_files = 'ViewEnvironmentUI/Tests/**/*.swift'
         test_spec.framework = 'XCTest'
         test_spec.library = 'swiftos'
         test_spec.dependency 'WorkflowReactiveSwift', "#{s.version}"
