@@ -21,7 +21,7 @@ import UIKit
 import Workflow
 
 /// Drives view controllers from a root Workflow.
-public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
+public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIViewController where ScreenType: Screen {
     /// Emits output events from the bound workflow.
     public var output: Signal<Output, Never> {
         return workflowHost.output
@@ -85,6 +85,16 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         update(child: \.rootViewController, with: screen, in: environment)
 
         updatePreferredContentSizeIfNeeded()
+
+        sendObservationEvent(WorkflowHostingControllerEvents.DidUpdate(
+            hostingController: self
+        ))
+
+        sendObservationEvent(
+            WorkflowHostingControllerEvents.DidUpdate2(
+                viewController: self,
+                screen: screen
+            ))
     }
 
     override public func viewDidLoad() {
@@ -99,7 +109,7 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     }
 
     override public func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+        defer { super.viewDidLayoutSubviews() }
         rootViewController.view.frame = view.bounds
     }
 
@@ -147,6 +157,31 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         guard newPreferredContentSize != preferredContentSize else { return }
 
         preferredContentSize = newPreferredContentSize
+    }
+}
+
+public protocol WorkflowHostingControllerEvent: ViewControllerEvent {
+    associatedtype ScreenType: Screen
+    associatedtype Output
+
+    var hostingController: WorkflowHostingController<ScreenType, Output> { get }
+}
+
+extension ViewControllerEvent where Self: WorkflowHostingControllerEvent {
+    public var viewController: UIViewController {
+        hostingController
+    }
+}
+
+public enum WorkflowHostingControllerEvents {
+    // TODO: is this better with type erased values?
+    public struct DidUpdate2: ViewControllerEvent {
+        public let viewController: UIViewController
+        public let screen: any Screen
+    }
+
+    public struct DidUpdate<ScreenType: Screen, Output>: WorkflowHostingControllerEvent {
+        public let hostingController: WorkflowHostingController<ScreenType, Output>
     }
 }
 

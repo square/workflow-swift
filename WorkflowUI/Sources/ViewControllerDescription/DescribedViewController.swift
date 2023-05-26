@@ -18,7 +18,7 @@
 
 import UIKit
 
-public final class DescribedViewController: UIViewController {
+public final class DescribedViewController: WorkflowUIViewController {
     var currentViewController: UIViewController
 
     public init(description: ViewControllerDescription) {
@@ -60,6 +60,13 @@ public final class DescribedViewController: UIViewController {
 
             updatePreferredContentSizeIfNeeded()
         }
+
+        sendObservationEvent(
+            DescribedViewControllerEvents.DidUpdate(
+                describedViewController: self,
+                viewDescription: description
+            )
+        )
     }
 
     public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
@@ -126,4 +133,24 @@ public final class DescribedViewController: UIViewController {
         preferredContentSize = newPreferredContentSize
     }
 }
+
+// MARK: Observation Events
+
+public protocol DescribedViewControllerEvent: ViewControllerEvent {
+    var describedViewController: DescribedViewController { get }
+}
+
+extension ViewControllerEvent where Self: DescribedViewControllerEvent {
+    public var viewController: UIViewController {
+        describedViewController
+    }
+}
+
+public enum DescribedViewControllerEvents {
+    public struct DidUpdate: DescribedViewControllerEvent {
+        public let describedViewController: DescribedViewController
+        public let viewDescription: ViewControllerDescription
+    }
+}
+
 #endif
