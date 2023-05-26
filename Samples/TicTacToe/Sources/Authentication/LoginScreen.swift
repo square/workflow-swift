@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import Workflow
-import WorkflowUI
+import SwiftUI
+import WorkflowSwiftUI
 
-struct LoginScreen: Screen {
+struct LoginScreen: SwiftUIScreen {
     var title: String
     var email: String
     var onEmailChanged: (String) -> Void
@@ -25,117 +25,32 @@ struct LoginScreen: Screen {
     var onPasswordChanged: (String) -> Void
     var onLoginTapped: () -> Void
 
-    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return ViewControllerDescription(
-            environment: environment,
-            build: { LoginViewController() },
-            update: { $0.update(with: self) }
-        )
-    }
-}
+    static func makeView(model: ObservableValue<LoginScreen>) -> some View {
+        VStack(spacing: 16) {
+            Text(model.title)
 
-private final class LoginViewController: UIViewController {
-    private let welcomeLabel: UILabel = UILabel(frame: .zero)
-    private let emailField: UITextField = UITextField(frame: .zero)
-    private let passwordField: UITextField = UITextField(frame: .zero)
-    private let button: UIButton = UIButton(frame: .zero)
-    private var onEmailChanged: (String) -> Void = { _ in }
-    private var onPasswordChanged: (String) -> Void = { _ in }
-    private var onLoginTapped: () -> Void = {}
+            TextField(
+                "email@address.com",
+                text: model.binding(
+                    get: \.email,
+                    set: \.onEmailChanged
+                )
+            )
+            .autocapitalization(.none)
+            .autocorrectionDisabled()
+            .textContentType(.emailAddress)
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+            SecureField(
+                "password",
+                text: model.binding(
+                    get: \.password,
+                    set: \.onPasswordChanged
+                ),
+                onCommit: model.onLoginTapped
+            )
 
-        view.backgroundColor = .white
-
-        welcomeLabel.textAlignment = .center
-
-        emailField.placeholder = "email@address.com"
-        emailField.autocapitalizationType = .none
-        emailField.autocorrectionType = .no
-        emailField.textContentType = .emailAddress
-        emailField.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
-        emailField.addTarget(self, action: #selector(textDidChange(sender:)), for: .editingChanged)
-
-        passwordField.placeholder = "password"
-        passwordField.isSecureTextEntry = true
-        passwordField.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
-        passwordField.addTarget(self, action: #selector(textDidChange(sender:)), for: .editingChanged)
-
-        button.backgroundColor = UIColor(red: 41 / 255, green: 150 / 255, blue: 204 / 255, alpha: 1.0)
-        button.setTitle("Login", for: .normal)
-        button.addTarget(self, action: #selector(buttonTapped(sender:)), for: .touchUpInside)
-
-        view.addSubview(welcomeLabel)
-        view.addSubview(emailField)
-        view.addSubview(passwordField)
-        view.addSubview(button)
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        let inset: CGFloat = 12.0
-        let height: CGFloat = 44.0
-        var yOffset = (view.bounds.size.height - (3 * height + inset)) / 2.0
-
-        welcomeLabel.frame = CGRect(
-            x: view.bounds.origin.x,
-            y: view.bounds.origin.y,
-            width: view.bounds.size.width,
-            height: yOffset
-        )
-
-        emailField.frame = CGRect(
-            x: view.bounds.origin.x,
-            y: yOffset,
-            width: view.bounds.size.width,
-            height: height
-        )
-        .insetBy(dx: inset, dy: 0.0)
-
-        yOffset += height + inset
-
-        passwordField.frame = CGRect(
-            x: view.bounds.origin.x,
-            y: yOffset,
-            width: view.bounds.size.width,
-            height: height
-        )
-        .insetBy(dx: inset, dy: 0.0)
-
-        yOffset += height + inset
-
-        button.frame = CGRect(
-            x: view.bounds.origin.x,
-            y: yOffset,
-            width: view.bounds.size.width,
-            height: height
-        )
-        .insetBy(dx: inset, dy: 0.0)
-    }
-
-    func update(with screen: LoginScreen) {
-        welcomeLabel.text = screen.title
-        emailField.text = screen.email
-        passwordField.text = screen.password
-        onEmailChanged = screen.onEmailChanged
-        onPasswordChanged = screen.onPasswordChanged
-        onLoginTapped = screen.onLoginTapped
-    }
-
-    @objc private func textDidChange(sender: UITextField) {
-        guard let text = sender.text else {
-            return
+            Button("Login", action: model.onLoginTapped)
         }
-        if sender == emailField {
-            onEmailChanged(text)
-        } else if sender == passwordField {
-            onPasswordChanged(text)
-        }
-    }
-
-    @objc private func buttonTapped(sender: UIButton) {
-        onLoginTapped()
+        .frame(maxWidth: 400)
     }
 }
