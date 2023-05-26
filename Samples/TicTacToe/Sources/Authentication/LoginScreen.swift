@@ -17,13 +17,11 @@
 import SwiftUI
 import WorkflowSwiftUI
 
-struct LoginScreen: SwiftUIScreen {
+struct LoginScreen: SwiftUIScreen, Equatable {
+    var actionSink: ScreenActionSink<LoginWorkflow.Action>
     var title: String
     var email: String
-    var onEmailChanged: (String) -> Void
     var password: String
-    var onPasswordChanged: (String) -> Void
-    var onLoginTapped: () -> Void
 
     static func makeView(model: ObservableValue<LoginScreen>) -> some View {
         VStack(spacing: 16) {
@@ -33,7 +31,7 @@ struct LoginScreen: SwiftUIScreen {
                 "email@address.com",
                 text: model.binding(
                     get: \.email,
-                    set: \.onEmailChanged
+                    set: { screen in { screen.actionSink.send(.emailUpdated($0)) } }
                 )
             )
             .autocapitalization(.none)
@@ -44,12 +42,12 @@ struct LoginScreen: SwiftUIScreen {
                 "password",
                 text: model.binding(
                     get: \.password,
-                    set: \.onPasswordChanged
+                    set: { screen in { screen.actionSink.send(.passwordUpdated($0)) } }
                 ),
-                onCommit: model.onLoginTapped
+                onCommit: { model.value.actionSink.send(.login) }
             )
 
-            Button("Login", action: model.onLoginTapped)
+            Button("Login", action: { model.value.actionSink.send(.login) })
         }
         .frame(maxWidth: 400)
     }

@@ -72,21 +72,11 @@ extension LoginWorkflow {
     typealias Rendering = LoginScreen
 
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: Action.self)
-
-        return LoginScreen(
+        LoginScreen(
+            actionSink: .init(context.makeSink(of: Action.self)),
             title: "Welcome! Please log in to play TicTacToe!",
             email: state.email,
-            onEmailChanged: { email in
-                sink.send(.emailUpdated(email))
-            },
-            password: state.password,
-            onPasswordChanged: { password in
-                sink.send(.passwordUpdated(password))
-            },
-            onLoginTapped: {
-                sink.send(.login)
-            }
+            password: state.password
         )
     }
 }

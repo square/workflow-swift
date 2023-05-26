@@ -22,9 +22,12 @@ import WorkflowUI
 
 public protocol SwiftUIScreen: Screen {
     associatedtype Content: View
+    associatedtype Action
 
     @ViewBuilder
     static func makeView(model: ObservableValue<Self>) -> Content
+
+    var actionSink: ScreenActionSink<Action> { get }
 
     static var isDuplicate: ((Self, Self) -> Bool)? { get }
 }

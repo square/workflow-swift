@@ -73,6 +73,7 @@ Pod::Spec.new do |s|
     test_spec.dependency 'BackStackContainer'
     test_spec.dependency 'ModalContainer'
     test_spec.dependency 'AlertContainer'
+    test_spec.dependency 'WorkflowSwiftUI'
     test_spec.requires_app_host = true
     test_spec.app_host_name = 'Development/SampleTicTacToe'
     test_spec.source_files = 'Samples/TicTacToe/Tests/**/*.swift'
