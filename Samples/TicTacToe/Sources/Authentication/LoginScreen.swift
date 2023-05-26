@@ -31,7 +31,7 @@ struct LoginScreen: SwiftUIScreen, Equatable {
                 "email@address.com",
                 text: model.binding(
                     get: \.email,
-                    set: { screen in { screen.actionSink.send(.emailUpdated($0)) } }
+                    set: Action.emailUpdated
                 )
             )
             .autocapitalization(.none)
@@ -42,7 +42,7 @@ struct LoginScreen: SwiftUIScreen, Equatable {
                 "password",
                 text: model.binding(
                     get: \.password,
-                    set: { screen in { screen.actionSink.send(.passwordUpdated($0)) } }
+                    set: Action.passwordUpdated
                 ),
                 onCommit: { model.value.actionSink.send(.login) }
             )

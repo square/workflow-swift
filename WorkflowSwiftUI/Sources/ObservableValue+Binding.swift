@@ -45,4 +45,16 @@ public extension ObservableValue {
     }
 }
 
+public extension ObservableValue where Value: SwiftUIScreen {
+    func binding<T>(
+        get: @escaping (Value) -> T,
+        set: @escaping (T) -> (Value.Action)
+    ) -> Binding<T> {
+        binding(
+            get: get,
+            set: { screen in { screen.actionSink.send(set($0)) } }
+        )
+    }
+}
+
 #endif
