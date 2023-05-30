@@ -104,3 +104,14 @@ public final class ObservableValue<Value>: ObservableObject {
         return subject.removeDuplicates(by: isDuplicate).eraseToAnyPublisher()
     }
 }
+
+#if canImport(UIKit)
+
+public extension ObservableValue where Value: SwiftUIScreen {
+    func action(_ action: Value.Action) -> () -> Void {
+        // TODO: Should this closure capture the current `actionSink` instead?
+        { [weak self] in self?.value.actionSink.send(action) }
+    }
+}
+
+#endif

@@ -44,10 +44,10 @@ struct LoginScreen: SwiftUIScreen, Equatable {
                     get: \.password,
                     set: Action.passwordUpdated
                 ),
-                onCommit: { model.value.actionSink.send(.login) }
+                onCommit: model.action(.login)
             )
 
-            Button("Login", action: { model.value.actionSink.send(.login) })
+            Button("Login", action: model.action(.login))
         }
         .frame(maxWidth: 400)
     }
