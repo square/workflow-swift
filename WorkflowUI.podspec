@@ -20,6 +20,7 @@ Pod::Spec.new do |s|
 
     s.dependency 'Workflow', "#{s.version}"
     s.dependency 'ViewEnvironment', "#{s.version}"
+    s.dependency 'ViewEnvironmentUI', "#{s.version}"
 
     s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
 
