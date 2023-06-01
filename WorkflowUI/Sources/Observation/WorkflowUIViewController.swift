@@ -18,70 +18,56 @@
 import Foundation
 import UIKit
 
-// TODO: contrast subclassing with protocol composition
-// public protocol ObservationEventEmitter {
-//    func sendObservationEvent<E: WorkflowUIEvent>(_ event: E)
-// }
-
-@propertyWrapper
-public struct GlobalUIObservable {
-    private var _localObserver: WorkflowUIObserver?
-    public var wrappedValue: WorkflowUIObserver? {
-        get { _localObserver }
-        set {
-            _localObserver = WorkflowUIObservation
-                .sharedObserversInterceptor
-                .workflowUIObservers(for: newValue)
-        }
-    }
-
-    public init(observer: WorkflowUIObserver? = nil) {
-        self._localObserver = observer
-    }
-}
-
 /// Ancestor type from which all ViewControllers in WorkflowUI inherit.
 open class WorkflowUIViewController: UIViewController {
-    @GlobalUIObservable
-    public var observer: WorkflowUIObserver?
+    /// Set to `true` once `viewDidAppear` has been called
+    public private(set) var hasViewAppeared: Bool = false
 
     // MARK: Event Emission
 
     public final func sendObservationEvent<E: WorkflowUIEvent>(
         _ event: @autoclosure () -> E
     ) {
-        observer?.observeEvent(event())
+        WorkflowUIObservation
+            .sharedUIObserver?
+            .observeEvent(event())
     }
 
     // MARK: Lifecycle Methods
 
     override open func viewWillAppear(_ animated: Bool) {
-        sendObservationEvent(ViewControllerEvents.ViewWillAppear(
+        sendObservationEvent(ViewWillAppearEvent(
             viewController: self,
-            animated: animated
+            animated: animated,
+            isFirstAppearance: !hasViewAppeared
         ))
         super.viewWillAppear(animated)
     }
 
     override open func viewDidAppear(_ animated: Bool) {
+        let isFirstAppearance = !hasViewAppeared
+        hasViewAppeared = true
+
         super.viewDidAppear(animated)
-        sendObservationEvent(ViewControllerEvents.ViewDidAppear(
+
+        sendObservationEvent(ViewDidAppearEvent(
             viewController: self,
-            animated: animated
+            animated: animated,
+            isFirstAppearance: isFirstAppearance
         ))
     }
 
     override open func viewWillLayoutSubviews() {
         // no need to call super since it does nothing
         sendObservationEvent(
-            ViewControllerEvents.WillLayoutSubviews(viewController: self)
+            ViewWillLayoutSubviewsEvent(viewController: self)
         )
     }
 
     override open func viewDidLayoutSubviews() {
         // no need to call super since it does nothing
         sendObservationEvent(
-            ViewControllerEvents.DidLayoutSubviews(viewController: self)
+            ViewDidLayoutSubviewsEvent(viewController: self)
         )
     }
 }

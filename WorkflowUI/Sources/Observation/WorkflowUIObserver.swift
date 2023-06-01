@@ -24,31 +24,8 @@ public protocol WorkflowUIObserver {
 // MARK: - Global Observation (SPI)
 
 @_spi(WorkflowUIGlobalObservation)
-public protocol UIObserversInterceptor {
-    func workflowUIObservers(for initialObserver: WorkflowUIObserver?) -> WorkflowUIObserver?
-}
-
-@_spi(WorkflowUIGlobalObservation)
 public enum WorkflowUIObservation {
-    private static var _sharedUIInterceptorStorage: UIObserversInterceptor = NoOpUIObserversInterceptor()
-
-    public static var sharedObserversInterceptor: UIObserversInterceptor! {
-        get { _sharedUIInterceptorStorage }
-        set {
-            guard newValue != nil else {
-                _sharedUIInterceptorStorage = NoOpUIObserversInterceptor()
-                return
-            }
-
-            _sharedUIInterceptorStorage = newValue
-        }
-    }
-
-    private struct NoOpUIObserversInterceptor: UIObserversInterceptor {
-        func workflowUIObservers(for initialObserver: WorkflowUIObserver?) -> WorkflowUIObserver? {
-            initialObserver
-        }
-    }
+    public static var sharedUIObserver: WorkflowUIObserver?
 }
 
 #endif

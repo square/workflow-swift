@@ -62,7 +62,7 @@ public final class DescribedViewController: WorkflowUIViewController {
         }
 
         sendObservationEvent(
-            DescribedViewControllerEvents.DidUpdate(
+            DescribedViewControllerDidUpdate(
                 describedViewController: self,
                 viewDescription: description
             )
@@ -136,21 +136,19 @@ public final class DescribedViewController: WorkflowUIViewController {
 
 // MARK: Observation Events
 
-public protocol DescribedViewControllerEvent: ViewControllerEvent {
+public protocol DescribedViewControllerEvent: WorkflowUIEvent {
     var describedViewController: DescribedViewController { get }
 }
 
-extension ViewControllerEvent where Self: DescribedViewControllerEvent {
+extension DescribedViewControllerEvent {
     public var viewController: UIViewController {
         describedViewController
     }
 }
 
-public enum DescribedViewControllerEvents {
-    public struct DidUpdate: DescribedViewControllerEvent {
-        public let describedViewController: DescribedViewController
-        public let viewDescription: ViewControllerDescription
-    }
+public struct DescribedViewControllerDidUpdate: DescribedViewControllerEvent {
+    public let describedViewController: DescribedViewController
+    public let viewDescription: ViewControllerDescription
 }
 
 #endif

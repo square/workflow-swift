@@ -18,31 +18,31 @@
 import Foundation
 import UIKit
 
-public protocol WorkflowUIEvent {}
-
-public protocol ViewControllerEvent: WorkflowUIEvent {
+public protocol WorkflowUIEvent {
     var viewController: UIViewController { get }
 }
 
-// MARK: ViewController Events
+// MARK: ViewController Lifecycle Events
 
-public enum ViewControllerEvents {
-    public struct WillLayoutSubviews: ViewControllerEvent {
-        public let viewController: UIViewController
-    }
+public protocol ViewControllerLifeCycleEvent: WorkflowUIEvent {}
 
-    public struct DidLayoutSubviews: ViewControllerEvent {
-        public let viewController: UIViewController
-    }
+public struct ViewWillLayoutSubviewsEvent: ViewControllerLifeCycleEvent, Equatable {
+    public let viewController: UIViewController
+}
 
-    public struct ViewWillAppear: ViewControllerEvent {
-        public let viewController: UIViewController
-        public let animated: Bool
-    }
+public struct ViewDidLayoutSubviewsEvent: ViewControllerLifeCycleEvent, Equatable {
+    public let viewController: UIViewController
+}
 
-    public struct ViewDidAppear: ViewControllerEvent {
-        public let viewController: UIViewController
-        public let animated: Bool
-    }
+public struct ViewWillAppearEvent: ViewControllerLifeCycleEvent, Equatable {
+    public let viewController: UIViewController
+    public let animated: Bool
+    public let isFirstAppearance: Bool
+}
+
+public struct ViewDidAppearEvent: ViewControllerLifeCycleEvent, Equatable {
+    public let viewController: UIViewController
+    public let animated: Bool
+    public let isFirstAppearance: Bool
 }
 #endif

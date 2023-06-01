@@ -86,15 +86,10 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
         updatePreferredContentSizeIfNeeded()
 
-        sendObservationEvent(WorkflowHostingControllerEvents.DidUpdate(
-            hostingController: self
+        sendObservationEvent(WorkflowHostingControllerDidUpdate(
+            hostingController: self,
+            newScreen: screen
         ))
-
-        sendObservationEvent(
-            WorkflowHostingControllerEvents.DidUpdate2(
-                viewController: self,
-                screen: screen
-            ))
     }
 
     override public func viewDidLoad() {
@@ -160,29 +155,23 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
     }
 }
 
-public protocol WorkflowHostingControllerEvent: ViewControllerEvent {
+// MARK: Observation Events
+
+public protocol WorkflowHostingControllerEvent: WorkflowUIEvent {
     associatedtype ScreenType: Screen
     associatedtype Output
 
     var hostingController: WorkflowHostingController<ScreenType, Output> { get }
 }
 
-extension ViewControllerEvent where Self: WorkflowHostingControllerEvent {
+extension WorkflowHostingControllerEvent {
     public var viewController: UIViewController {
         hostingController
     }
 }
 
-public enum WorkflowHostingControllerEvents {
-    // TODO: is this better with type erased values?
-    public struct DidUpdate2: ViewControllerEvent {
-        public let viewController: UIViewController
-        public let screen: any Screen
-    }
-
-    public struct DidUpdate<ScreenType: Screen, Output>: WorkflowHostingControllerEvent {
-        public let hostingController: WorkflowHostingController<ScreenType, Output>
-    }
+public struct WorkflowHostingControllerDidUpdate<ScreenType: Screen, Output>: WorkflowHostingControllerEvent {
+    public let hostingController: WorkflowHostingController<ScreenType, Output>
+    public let newScreen: ScreenType
 }
-
 #endif

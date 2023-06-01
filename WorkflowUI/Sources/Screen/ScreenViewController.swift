@@ -18,15 +18,6 @@
 
 import UIKit
 
-private struct ObserverPair: WorkflowUIObserver {
-    let observers: (first: any WorkflowUIObserver, second: any WorkflowUIObserver)
-
-    func observeEvent<E>(_ event: E) where E: WorkflowUIEvent {
-        observers.first.observeEvent(event)
-        observers.second.observeEvent(event)
-    }
-}
-
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
 ///
@@ -71,7 +62,7 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
         self.environment = environment
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
-        sendObservationEvent(ScreenViewControllerEvents.ScreenDidChange(
+        sendObservationEvent(ScreenDidChangeEvent(
             screenViewController: self,
             currentScreen: screen,
             previousScreen: previousScreen
@@ -100,24 +91,20 @@ extension ScreenViewController {
     }
 }
 
-// MARK: Observation Event Definitions
+// MARK: Observation Events
 
-public protocol ScreenViewControllerEvent: ViewControllerEvent {
+public protocol ScreenViewControllerEvent: WorkflowUIEvent {
     associatedtype ScreenType: Screen
     var screenViewController: ScreenViewController<ScreenType> { get }
 }
 
-extension ViewControllerEvent where Self: ScreenViewControllerEvent {
-    public var viewController: UIViewController {
-        screenViewController
-    }
+extension ScreenViewControllerEvent {
+    public var viewController: UIViewController { screenViewController }
 }
 
-public enum ScreenViewControllerEvents {
-    public struct ScreenDidChange<ScreenType: Screen>: ScreenViewControllerEvent {
-        public var screenViewController: ScreenViewController<ScreenType>
-        public var currentScreen: ScreenType
-        public var previousScreen: ScreenType
-    }
+public struct ScreenDidChangeEvent<ScreenType: Screen>: ScreenViewControllerEvent {
+    public var screenViewController: ScreenViewController<ScreenType>
+    public var currentScreen: ScreenType
+    public var previousScreen: ScreenType
 }
 #endif
