@@ -78,7 +78,7 @@ final class WelcomeViewController: ScreenViewController<WelcomeScreen> {
 
 The screen is passed into the view controller when it is initialized. `screenDidChange` is called as part of the view controller's initialization (see `ViewControllerDescription.buildViewController`) and anytime the backing screen is updated. Keep in mind, however, that the `welcomeView` will be `nil` until the view is loaded, so we'll need to guard against that to avoid unwrapping the optional. Additionally, when `viewDidLoad` _is_ called and we create the `WelcomeView` we will need to update it with the contents of the `WelcomeScreen`. To accomplish both of these, we'll create a separate helper method that both code paths can utilize:
 ```swift
-    override viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
 
         welcomeView = WelcomeView(frame: view.bounds)
