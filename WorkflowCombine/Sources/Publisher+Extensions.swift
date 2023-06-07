@@ -5,8 +5,6 @@
 //  Created by Soo Rin Park on 11/3/21.
 //
 
-#if canImport(Combine)
-
 import Combine
 import Foundation
 import Workflow
@@ -29,5 +27,3 @@ extension Publisher where Failure == Never {
         PublisherWorkflow(publisher: self).asAnyWorkflow()
     }
 }
-
-#endif

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(Combine)
-
 import Combine
 import Foundation
 import Workflow
@@ -94,5 +92,3 @@ extension Worker where Self: Equatable {
         self == otherWorker
     }
 }
-
-#endif

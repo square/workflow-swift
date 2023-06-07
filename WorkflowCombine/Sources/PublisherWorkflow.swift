@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(Combine)
-
 import Combine
 import Foundation
 import Workflow
@@ -45,5 +43,3 @@ struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowP
         }
     }
 }
-
-#endif

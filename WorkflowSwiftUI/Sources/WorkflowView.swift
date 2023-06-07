@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(SwiftUI) && canImport(Combine)
-
 import Combine
 import ReactiveSwift
 import SwiftUI
@@ -94,7 +92,7 @@ extension WorkflowView where T.Output == Never, T.Rendering == Content {
 // update mechanism via `updateUIViewController(_:context:)`. If we were to manage a `WorkflowHost` instance directly
 // within a SwiftUI view we would need to update the host with the updated workflow from our implementation of `body`.
 // Performing work within the body accessor is strongly discouraged, so we jump back into UIKit for a second here.
-fileprivate struct IntermediateView<T: Workflow, Content: View> {
+private struct IntermediateView<T: Workflow, Content: View> {
     var workflow: T
     var onOutput: (T.Output) -> Void
     var content: (T.Rendering) -> Content
@@ -270,7 +268,7 @@ fileprivate final class WorkflowHostingViewController<T: Workflow, Content: View
 // Assigning `rootView` on a `UIHostingController` causes unwanted animated transitions.
 // To avoid this, we never change the root view, but we pass down an `ObservableObject`
 // so that we can still update the hierarchy as the workflow emits new renderings.
-fileprivate final class RootViewProvider<T: View>: ObservableObject {
+private final class RootViewProvider<T: View>: ObservableObject {
     @Published var view: T
 
     init(view: T) {
@@ -278,12 +276,10 @@ fileprivate final class RootViewProvider<T: View>: ObservableObject {
     }
 }
 
-fileprivate struct RootView<T: View>: View {
+private struct RootView<T: View>: View {
     @ObservedObject var provider: RootViewProvider<T>
 
     var body: some View {
         provider.view
     }
 }
-
-#endif
