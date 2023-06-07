@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import Foundation
 import ViewEnvironment
 
@@ -115,5 +113,3 @@ extension Screen {
         AdaptedEnvironmentScreen(wrapping: self, adapting: adapting)
     }
 }
-
-#endif

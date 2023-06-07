@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 import XCTest
 @testable import WorkflowUI
@@ -98,7 +96,7 @@ class UIViewControllerExtensionTests: XCTestCase {
     }
 }
 
-fileprivate enum TestingEvent: Equatable {
+private enum TestingEvent: Equatable {
     // View Controller Events
 
     case child_viewWillAppear(identifier: String, animated: Bool)
@@ -267,5 +265,3 @@ private class VCBase: UIViewController {
         recordEvent(.child_didMoveTo(identifier: identifier, parent: parent))
     }
 }
-
-#endif

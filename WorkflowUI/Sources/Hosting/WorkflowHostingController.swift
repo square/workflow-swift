@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import ReactiveSwift
 import UIKit
 import Workflow
@@ -149,5 +147,3 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         preferredContentSize = newPreferredContentSize
     }
 }
-
-#endif

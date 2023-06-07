@@ -5,8 +5,6 @@
 //  Created by Kyle Van Essen on 9/1/22.
 //
 
-#if canImport(UIKit)
-
 import Foundation
 import UIKit
 import XCTest
@@ -62,5 +60,3 @@ extension XCTestCase {
         }
     }
 }
-
-#endif

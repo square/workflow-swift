@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 
 public struct AnyScreen: Screen {
@@ -41,5 +39,3 @@ extension Screen {
         AnyScreen(self)
     }
 }
-
-#endif

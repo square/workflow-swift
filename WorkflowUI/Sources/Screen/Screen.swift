@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 
 /// Screens are the building blocks of an interactive application.
@@ -51,5 +49,3 @@ extension Screen {
         viewControllerDescription(environment: environment).buildViewController()
     }
 }
-
-#endif

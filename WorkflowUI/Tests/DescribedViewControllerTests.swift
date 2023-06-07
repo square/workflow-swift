@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import XCTest
 
 import ReactiveSwift
@@ -239,7 +237,7 @@ class DescribedViewControllerTests: XCTestCase {
 
 // MARK: - Helper Types
 
-fileprivate enum TestScreen: Screen, Equatable {
+private enum TestScreen: Screen, Equatable {
     case counter(Int)
     case message(String)
 
@@ -260,7 +258,7 @@ fileprivate enum TestScreen: Screen, Equatable {
     }
 }
 
-fileprivate class WorkflowHostingController: UIViewController {
+private class WorkflowHostingController: UIViewController {
     let describedViewController: DescribedViewController
 
     var preferredContentSizeSignal: Signal<CGSize, Never> { return signal.skipRepeats() }
@@ -295,7 +293,7 @@ fileprivate class WorkflowHostingController: UIViewController {
     }
 }
 
-fileprivate class CounterViewController: UIViewController {
+private class CounterViewController: UIViewController {
     var count: Int {
         didSet {
             preferredContentSize.width = CGFloat(count * 10)
@@ -313,7 +311,7 @@ fileprivate class CounterViewController: UIViewController {
     }
 }
 
-fileprivate class MessageViewController: UIViewController {
+private class MessageViewController: UIViewController {
     var message: String {
         didSet {
             preferredContentSize.width = CGFloat(message.count * 10)
@@ -330,5 +328,3 @@ fileprivate class MessageViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 }
-
-#endif

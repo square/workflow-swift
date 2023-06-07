@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import XCTest
 
 import ReactiveSwift
 import Workflow
 @testable import WorkflowUI
 
-fileprivate class BlankViewController: UIViewController {}
+private class BlankViewController: UIViewController {}
 
-@objc fileprivate protocol MyProtocol {
+@objc private protocol MyProtocol {
     func update()
 }
 
@@ -166,5 +164,3 @@ class ViewControllerDescription_KindIdentifierTests: XCTestCase {
         XCTAssertFalse(kind1.canUpdate(viewController: vc2))
     }
 }
-
-#endif

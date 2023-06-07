@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 
 public final class DescribedViewController: UIViewController {
@@ -126,4 +124,3 @@ public final class DescribedViewController: UIViewController {
         preferredContentSize = newPreferredContentSize
     }
 }
-#endif

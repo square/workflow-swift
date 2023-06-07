@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import XCTest
 
 import ReactiveSwift
@@ -23,7 +21,7 @@ import Workflow
 import WorkflowReactiveSwift
 @testable import WorkflowUI
 
-fileprivate struct TestScreen: Screen {
+private struct TestScreen: Screen {
     var string: String
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
@@ -31,7 +29,7 @@ fileprivate struct TestScreen: Screen {
     }
 }
 
-fileprivate final class TestScreenViewController: ScreenViewController<TestScreen> {
+private final class TestScreenViewController: ScreenViewController<TestScreen> {
     var onScreenChange: (() -> Void)?
 
     override func screenDidChange(from previousScreen: TestScreen, previousEnvironment: ViewEnvironment) {
@@ -156,7 +154,7 @@ class WorkflowHostingControllerTests: XCTestCase {
     }
 }
 
-fileprivate struct SubscribingWorkflow: Workflow {
+private struct SubscribingWorkflow: Workflow {
     var subscription: Signal<Int, Never>
 
     typealias State = Int
@@ -180,7 +178,7 @@ fileprivate struct SubscribingWorkflow: Workflow {
     }
 }
 
-fileprivate struct PassthroughWorkflow: Workflow {
+private struct PassthroughWorkflow: Workflow {
     var value: String
 
     typealias State = Void
@@ -192,7 +190,7 @@ fileprivate struct PassthroughWorkflow: Workflow {
     }
 }
 
-fileprivate struct EchoWorkflow: Workflow {
+private struct EchoWorkflow: Workflow {
     var value: Int
 
     typealias State = Void
@@ -218,5 +216,3 @@ fileprivate struct EchoWorkflow: Workflow {
         return TestScreen(string: "\(value)")
     }
 }
-
-#endif

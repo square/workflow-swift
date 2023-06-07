@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 import XCTest
 @testable import WorkflowUI
@@ -39,15 +37,15 @@ class AdaptedEnvironmentScreenTests: XCTestCase {
     }
 }
 
-fileprivate enum TestingKey1: ViewEnvironmentKey {
+private enum TestingKey1: ViewEnvironmentKey {
     static let defaultValue: String? = nil
 }
 
-fileprivate enum TestingKey2: ViewEnvironmentKey {
+private enum TestingKey2: ViewEnvironmentKey {
     static let defaultValue: String? = nil
 }
 
-fileprivate struct TestScreen: Screen {
+private struct TestScreen: Screen {
     var read: (ViewEnvironment) -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
@@ -58,5 +56,3 @@ fileprivate struct TestScreen: Screen {
 
     private class ViewController: ScreenViewController<TestScreen> {}
 }
-
-#endif

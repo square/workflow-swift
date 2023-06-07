@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 
 extension UpdateChildScreenViewController where Self: UIViewController {
@@ -119,5 +117,3 @@ extension UpdateChildScreenViewController where Self: UIViewController {
 public protocol UpdateChildScreenViewController {}
 
 extension UIViewController: UpdateChildScreenViewController {}
-
-#endif

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
-
 import UIKit
 
 /// A ViewControllerDescription acts as a "recipe" for building and updating a specific `UIViewController`.
@@ -167,5 +165,3 @@ extension ViewControllerDescription {
         }
     }
 }
-
-#endif
