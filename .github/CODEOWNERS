@@ -2,4 +2,4 @@
 
 * @square/foundation-ios
 
-/WorkflowUI/ @square/ui-systems-ios
+/WorkflowUI/ @square/foundation-ios @square/ui-systems-ios
