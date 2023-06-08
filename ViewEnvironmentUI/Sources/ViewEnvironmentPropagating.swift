@@ -72,7 +72,7 @@ public protocol ViewEnvironmentPropagating: AnyObject {
     ///
     @_spi(ViewEnvironmentWiring)
     var environmentDescendants: [ViewEnvironmentPropagating] { get }
-    
+
     /// The default ancestor for `ViewEnvironment` propagation.
     ///
     @_spi(ViewEnvironmentWiring)
@@ -169,7 +169,7 @@ extension ViewEnvironmentPropagating {
     public func addEnvironmentNeedsUpdateObserver(
         _ onNeedsUpdate: @escaping (ViewEnvironment) -> Void
     ) -> ViewEnvironmentUpdateObservationLifetime {
-        let object = NSObject()
+        let object = ViewEnvironmentUpdateObservationKey()
         needsUpdateObservers[object] = onNeedsUpdate
         return .init { [weak self] in
             self?.needsUpdateObservers[object] = nil
@@ -191,7 +191,7 @@ extension ViewEnvironmentPropagating {
     /// The `ViewEnvironment` propagation descendants.
     ///
     /// This describes the descendants that will be notified when the `ViewEnvironment` changes.
-    /// 
+    ///
     /// If a descendant's `environmentAncestor` is not `self`, that descendant will not be notified when the
     /// `ViewEnvironment` changes.
     ///
@@ -214,7 +214,7 @@ extension ViewEnvironmentPropagating {
     ///
     /// The result of this closure should typically be the propagation node that the `ViewEnvironment` is inherited
     /// from. If the value of the ancestor is nil, by default, other nodes configured with this node as a descendant
-    /// will not notify this node of needing an environment update as it changes. This allows a node to effectively 
+    /// will not notify this node of needing an environment update as it changes. This allows a node to effectively
     /// act as a root node when needed (e.g. bridging from other propagation systems like WorkflowUI).
     ///
     /// If this value is `nil` (the default), the resolved value for the ancestor will be `defaultEnvironmentAncestor`.
@@ -336,12 +336,12 @@ extension ViewEnvironmentPropagating {
         setNeedsEnvironmentUpdateOnAppropriateDescendants()
     }
 
-    private var needsUpdateObservers: [NSObject: ViewEnvironmentUpdateObservation] {
+    private var needsUpdateObservers: [ViewEnvironmentUpdateObservationKey: ViewEnvironmentUpdateObservation] {
         get {
             objc_getAssociatedObject(
                 self,
                 &AssociatedKeys.needsUpdateObservers
-            ) as? [NSObject: ViewEnvironmentUpdateObservation] ?? [:]
+            ) as? [ViewEnvironmentUpdateObservationKey: ViewEnvironmentUpdateObservation] ?? [:]
         }
         set {
             objc_setAssociatedObject(
@@ -371,3 +371,5 @@ extension ViewEnvironmentPropagating {
         }
     }
 }
+
+private class ViewEnvironmentUpdateObservationKey: NSObject {}
