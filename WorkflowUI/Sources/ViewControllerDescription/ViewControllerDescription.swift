@@ -235,22 +235,20 @@ extension ViewControllerDescription {
             self.environment = environment
         }
 
-        var environmentAncestor: ViewEnvironmentPropagating? { nil }
-
-        var environmentDescendants: [ViewEnvironmentPropagating] {
-            [viewController].compactMap { $0 }
-        }
-
         func customize(environment: inout ViewEnvironment) {
             environment = self.environment
         }
 
-        func setNeedsEnvironmentUpdate() {
-            setNeedsEnvironmentUpdateOnAppropriateDescendants()
+        var defaultEnvironmentAncestor: ViewEnvironmentPropagating? {
+            nil
         }
 
-        func applyEnvironmentIfNeeded() {
-            /// `apply(environment:)` is not implemented so do nothing.
+        var defaultEnvironmentDescendants: [ViewEnvironmentPropagating] {
+            [viewController].compactMap { $0 }
+        }
+
+        func setNeedsApplyEnvironment() {
+            applyEnvironmentIfNeeded()
         }
     }
 }

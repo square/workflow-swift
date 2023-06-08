@@ -19,7 +19,7 @@
 import UIKit
 import ViewEnvironment
 
-extension UIViewController: ViewEnvironmentPropagatingObject {
+extension UIViewController: ViewEnvironmentPropagating {
     @_spi(ViewEnvironmentWiring)
     public var defaultEnvironmentAncestor: ViewEnvironmentPropagating? { parent ?? presentingViewController }
 
