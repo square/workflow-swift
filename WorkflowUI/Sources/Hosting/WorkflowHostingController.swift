@@ -110,7 +110,7 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
     override public func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = .clear
 
         rootViewController.view.frame = view.bounds
         view.addSubview(rootViewController.view)
