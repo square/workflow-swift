@@ -295,7 +295,7 @@ public final class ViewEnvironmentUpdateObservationLifetime {
         onRemove()
     }
 
-    var onRemove: () -> Void
+    private let onRemove: () -> Void
 
     init(onRemove: @escaping () -> Void) {
         self.onRemove = onRemove
