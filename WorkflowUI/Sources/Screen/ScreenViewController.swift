@@ -61,12 +61,6 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
         let previousEnvironment = self.environment
         self.environment = environment
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
-
-        sendObservationEvent(ScreenDidChangeEvent(
-            screenViewController: self,
-            currentScreen: screen,
-            previousScreen: previousScreen
-        ))
     }
 
     /// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.
@@ -89,22 +83,5 @@ extension ScreenViewController {
             update: { $0.update(screen: screen, environment: environment) }
         )
     }
-}
-
-// MARK: Observation Events
-
-public protocol ScreenViewControllerEvent: WorkflowUIEvent {
-    associatedtype ScreenType: Screen
-    var screenViewController: ScreenViewController<ScreenType> { get }
-}
-
-extension ScreenViewControllerEvent {
-    public var viewController: UIViewController { screenViewController }
-}
-
-public struct ScreenDidChangeEvent<ScreenType: Screen>: ScreenViewControllerEvent {
-    public var screenViewController: ScreenViewController<ScreenType>
-    public var currentScreen: ScreenType
-    public var previousScreen: ScreenType
 }
 #endif

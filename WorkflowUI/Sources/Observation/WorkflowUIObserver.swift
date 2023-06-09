@@ -17,13 +17,14 @@
 #if canImport(UIKit)
 import Foundation
 
+@_spi(ExperimentalObservation)
 public protocol WorkflowUIObserver {
     func observeEvent<E: WorkflowUIEvent>(_ event: E)
 }
 
-// MARK: - Global Observation (SPI)
+// MARK: - Global Observation
 
-@_spi(WorkflowUIGlobalObservation)
+@_spi(ExperimentalObservation)
 public enum WorkflowUIObservation {
     public static var sharedUIObserver: WorkflowUIObserver?
 }

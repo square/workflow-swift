@@ -218,42 +218,4 @@ fileprivate struct EchoWorkflow: Workflow {
         return TestScreen(string: "\(value)")
     }
 }
-
-// MARK: Observation Tests
-
-final class WorkflowHostingControllerObservationTests: WorkflowUIObservationTestCase {
-    func test_emitsObservationEvents() throws {
-        let firstWorkflow = EchoWorkflow(value: 1)
-        let container = WorkflowHostingController(workflow: firstWorkflow)
-
-        let observedEvents = observationEvents(from: container) {
-            container.viewWillAppear(false)
-            container.viewDidAppear(false)
-
-            container.viewWillLayoutSubviews()
-            container.viewDidLayoutSubviews()
-
-            let secondWorkflow = EchoWorkflow(value: 3)
-            container.update(workflow: secondWorkflow)
-        }
-
-        let expectedEventDescriptors: [EventDescriptor] = [
-            .viewWillAppear,
-            .viewDidAppear,
-            .viewWillLayoutSubviews,
-            .viewDidLayoutSubviews,
-            .hostingControllerDidUpdate(EchoWorkflow.self),
-        ]
-
-        let firstEvent = try XCTUnwrap(observedEvents.first as? ViewWillAppearEvent)
-        XCTAssertEqual(firstEvent.viewController, container)
-        XCTAssertFalse(firstEvent.animated)
-        XCTAssertTrue(firstEvent.isFirstAppearance)
-
-        XCTAssertEqual(
-            expectedEventDescriptors,
-            observedEvents.map(EventDescriptor.fromEvent)
-        )
-    }
-}
 #endif

@@ -18,29 +18,32 @@
 import Foundation
 import UIKit
 
+@_spi(ExperimentalObservation)
 public protocol WorkflowUIEvent {
     var viewController: UIViewController { get }
 }
 
 // MARK: ViewController Lifecycle Events
 
-public protocol ViewControllerLifeCycleEvent: WorkflowUIEvent {}
-
-public struct ViewWillLayoutSubviewsEvent: ViewControllerLifeCycleEvent, Equatable {
+@_spi(ExperimentalObservation)
+public struct ViewWillLayoutSubviewsEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
 }
 
-public struct ViewDidLayoutSubviewsEvent: ViewControllerLifeCycleEvent, Equatable {
+@_spi(ExperimentalObservation)
+public struct ViewDidLayoutSubviewsEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
 }
 
-public struct ViewWillAppearEvent: ViewControllerLifeCycleEvent, Equatable {
+@_spi(ExperimentalObservation)
+public struct ViewWillAppearEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
     public let animated: Bool
     public let isFirstAppearance: Bool
 }
 
-public struct ViewDidAppearEvent: ViewControllerLifeCycleEvent, Equatable {
+@_spi(ExperimentalObservation)
+public struct ViewDidAppearEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
     public let animated: Bool
     public let isFirstAppearance: Bool

@@ -60,13 +60,6 @@ public final class DescribedViewController: WorkflowUIViewController {
 
             updatePreferredContentSizeIfNeeded()
         }
-
-        sendObservationEvent(
-            DescribedViewControllerDidUpdate(
-                describedViewController: self,
-                viewDescription: description
-            )
-        )
     }
 
     public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
@@ -133,22 +126,4 @@ public final class DescribedViewController: WorkflowUIViewController {
         preferredContentSize = newPreferredContentSize
     }
 }
-
-// MARK: Observation Events
-
-public protocol DescribedViewControllerEvent: WorkflowUIEvent {
-    var describedViewController: DescribedViewController { get }
-}
-
-extension DescribedViewControllerEvent {
-    public var viewController: UIViewController {
-        describedViewController
-    }
-}
-
-public struct DescribedViewControllerDidUpdate: DescribedViewControllerEvent {
-    public let describedViewController: DescribedViewController
-    public let viewDescription: ViewControllerDescription
-}
-
 #endif

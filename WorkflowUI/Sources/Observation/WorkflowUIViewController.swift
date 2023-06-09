@@ -21,10 +21,11 @@ import UIKit
 /// Ancestor type from which all ViewControllers in WorkflowUI inherit.
 open class WorkflowUIViewController: UIViewController {
     /// Set to `true` once `viewDidAppear` has been called
-    public private(set) var hasViewAppeared: Bool = false
+    public private(set) final var hasViewAppeared: Bool = false
 
     // MARK: Event Emission
 
+    @_spi(ExperimentalObservation)
     public final func sendObservationEvent<E: WorkflowUIEvent>(
         _ event: @autoclosure () -> E
     ) {

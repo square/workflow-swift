@@ -16,22 +16,26 @@
 
 import Combine
 import Workflow
-@_spi(WorkflowUIGlobalObservation) import WorkflowUI
+@_spi(ExperimentalObservation) import WorkflowUI
 import XCTest
 
 open class WorkflowUIObservationTestCase: XCTestCase {
-    var testUIObserver: TestUIObserver!
+    var publishingObserver: PublishingObserver!
 
-    var uiEventPublisher: AnyPublisher<WorkflowUIEvent, Never>!
-    private var publishingObserver: PublishingObserver!
+    var observedEvents: [WorkflowUIEvent] = []
+
+    private var cancellables: [AnyCancellable] = []
 
     override open func invokeTest() {
-        testUIObserver = TestUIObserver()
         publishingObserver = PublishingObserver()
-        defer {
-            testUIObserver = nil
-            publishingObserver = nil
-        }
+        defer { publishingObserver = nil }
+
+        // collect all events emitted during test invocation
+        publishingObserver.subject
+            .sink { [weak self] event in
+                self?.observedEvents.append(event)
+            }
+            .store(in: &cancellables)
 
         withGlobalObserver(publishingObserver) {
             super.invokeTest()
@@ -54,11 +58,11 @@ open class WorkflowUIObservationTestCase: XCTestCase {
     ) -> [WorkflowUIEvent] {
         var events: [WorkflowUIEvent] = []
 
-        let scoped = publishingObserver
+        let scopedObserver = publishingObserver
             .publisher
             .filter { $0.viewController === viewController }
             .sink { events.append($0) }
-        defer { scoped.cancel() }
+        defer { scopedObserver.cancel() }
 
         perform()
 
@@ -79,38 +83,10 @@ final class PublishingObserver: WorkflowUIObserver {
     }
 }
 
-final class TestUIObserver: WorkflowUIObserver {
-    var recordedEvents: [WorkflowUIEvent] = []
-
-    var eventFilter: (WorkflowUIEvent) -> Bool
-
-    var recordedEventDescriptors: [String] {
-        func getStaticType<E: WorkflowUIEvent>(_ event: E) -> String {
-            "\(E.self)"
-        }
-        return recordedEvents.map { event in
-            getStaticType(event)
-        }
-    }
-
-    init(
-        eventFilter: @escaping (WorkflowUIEvent) -> Bool = { _ in true }
-    ) {
-        self.eventFilter = eventFilter
-    }
-
-    func observeEvent<E: WorkflowUIEvent>(_ event: E) {
-        guard eventFilter(event) else { return }
-        recordedEvents.append(event)
-    }
-}
-
 // MARK: Event Introspection Utilities
 
 typealias EventDescriptor = String
 extension EventDescriptor {
-    // MARK: ViewController lifecycle events
-
     static var viewWillAppear: EventDescriptor = "\(ViewWillAppearEvent.self)"
 
     static var viewDidAppear: EventDescriptor = "\(ViewDidAppearEvent.self)"
@@ -118,39 +94,10 @@ extension EventDescriptor {
     static var viewWillLayoutSubviews: EventDescriptor = "\(ViewWillLayoutSubviewsEvent.self)"
 
     static var viewDidLayoutSubviews: EventDescriptor = "\(ViewDidLayoutSubviewsEvent.self)"
-
-    // MARK: DescribedViewController Events
-
-    static var describedViewControllerDidUpdate: EventDescriptor =
-        "\(DescribedViewControllerDidUpdate.self)"
-
-    // MARK: ScreenViewController Events
-
-    static func screenDidChange<S: Screen>(
-        _ screenType: S.Type
-    ) -> EventDescriptor {
-        "\(ScreenDidChangeEvent<S>.self)"
-    }
-
-    // MARK: WorkflowHostingController Events
-
-    static func hostingControllerDidUpdate<W: Workflow>(
-        _ workflowType: W.Type
-    ) -> EventDescriptor where W.Rendering: Screen {
-        "\(WorkflowHostingControllerDidUpdate<W.Rendering, W.Output>.self)"
-    }
-
-    static func fromEvent(_ event: WorkflowUIEvent) -> EventDescriptor {
-        func staticTypeDescriptor<E: WorkflowUIEvent>(_ event: E) -> EventDescriptor {
-            "\(E.self)"
-        }
-
-        return staticTypeDescriptor(event)
-    }
 }
 
 extension WorkflowUIEvent {
     var descriptor: EventDescriptor {
-        EventDescriptor.fromEvent(self)
+        "\(type(of: self))"
     }
 }

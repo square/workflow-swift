@@ -85,11 +85,6 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         update(child: \.rootViewController, with: screen, in: environment)
 
         updatePreferredContentSizeIfNeeded()
-
-        sendObservationEvent(WorkflowHostingControllerDidUpdate(
-            hostingController: self,
-            newScreen: screen
-        ))
     }
 
     override public func viewDidLoad() {
@@ -153,25 +148,5 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
         preferredContentSize = newPreferredContentSize
     }
-}
-
-// MARK: Observation Events
-
-public protocol WorkflowHostingControllerEvent: WorkflowUIEvent {
-    associatedtype ScreenType: Screen
-    associatedtype Output
-
-    var hostingController: WorkflowHostingController<ScreenType, Output> { get }
-}
-
-extension WorkflowHostingControllerEvent {
-    public var viewController: UIViewController {
-        hostingController
-    }
-}
-
-public struct WorkflowHostingControllerDidUpdate<ScreenType: Screen, Output>: WorkflowHostingControllerEvent {
-    public let hostingController: WorkflowHostingController<ScreenType, Output>
-    public let newScreen: ScreenType
 }
 #endif
