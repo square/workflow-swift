@@ -123,6 +123,10 @@ extension ViewEnvironmentPropagating {
             observing.customize(environment: &environment)
         }
 
+        for customization in customizations {
+            customization.apply(to: &environment)
+        }
+
         return environment
     }
 
@@ -173,6 +177,16 @@ extension ViewEnvironmentPropagating {
         needsUpdateObservers[object] = onNeedsUpdate
         return .init { [weak self] in
             self?.needsUpdateObservers[object] = nil
+        }
+    }
+
+    public func addEnvironmentCustomization(
+        _ customization: @escaping ViewEnvironmentCustomization
+    ) -> ViewEnvironmentUpdateObservationLifetime {
+        let holder = ViewEnvironmentCustomizationHolder(customization: customization)
+        customizations.append(holder)
+        return ViewEnvironmentUpdateObservationLifetime { [weak self] in
+            self?.customizations.removeAll { $0 === holder }
         }
     }
 
@@ -278,6 +292,8 @@ extension ViewEnvironmentPropagating {
 ///
 public typealias ViewEnvironmentUpdateObservation = (ViewEnvironment) -> Void
 
+public typealias ViewEnvironmentCustomization = (inout ViewEnvironment) -> Void
+
 /// Describes the lifetime of a `ViewEnvironment` update observation.
 ///
 /// The observation will be removed when `remove()` is called or the lifetime token is
@@ -311,6 +327,7 @@ private enum ViewEnvironmentPropagatingNSObjectAssociatedKeys {
     static var needsUpdateObservers = NSObject()
     static var ancestorOverride = NSObject()
     static var descendantsOverride = NSObject()
+    static var customizations = NSObject()
 }
 
 extension ViewEnvironmentPropagating {
@@ -370,6 +387,35 @@ extension ViewEnvironmentPropagating {
             )
         }
     }
+
+    private var customizations: [ViewEnvironmentCustomizationHolder] {
+        get {
+            objc_getAssociatedObject(
+                self,
+                &AssociatedKeys.customizations
+            ) as? [ViewEnvironmentCustomizationHolder] ?? []
+        }
+        set {
+            objc_setAssociatedObject(
+                self,
+                &AssociatedKeys.customizations,
+                newValue,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            )
+        }
+    }
 }
 
 private class ViewEnvironmentUpdateObservationKey: NSObject {}
+
+private class ViewEnvironmentCustomizationHolder: NSObject {
+    private let customization: ViewEnvironmentCustomization
+
+    init(customization: @escaping ViewEnvironmentCustomization) {
+        self.customization = customization
+    }
+
+    func apply(to environment: inout ViewEnvironment) {
+        customization(&environment)
+    }
+}
