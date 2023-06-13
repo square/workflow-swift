@@ -17,6 +17,8 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
@@ -25,7 +27,7 @@ import UIKit
 /// ```
 /// struct MyScreen: Screen {
 ///     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-///         return MyScreenViewController.description(for: self)
+///         return MyScreenViewController.description(for: self, environment: environment)
 ///     }
 /// }
 ///
@@ -42,11 +44,11 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
         return ScreenType.self
     }
 
-    public private(set) final var environment: ViewEnvironment
+    private var previousEnvironment: ViewEnvironment
 
     public required init(screen: ScreenType, environment: ViewEnvironment) {
         self.screen = screen
-        self.environment = environment
+        self.previousEnvironment = environment
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -55,11 +57,11 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    public final func update(screen: ScreenType, environment: ViewEnvironment) {
+    public final func update(screen: ScreenType) {
         let previousScreen = self.screen
         self.screen = screen
-        let previousEnvironment = self.environment
-        self.environment = environment
+        let previousEnvironment = self.previousEnvironment
+        self.previousEnvironment = environment
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
     }
 
@@ -79,8 +81,9 @@ extension ScreenViewController {
         ViewControllerDescription(
             performInitialUpdate: performInitialUpdate,
             type: self,
+            environment: environment,
             build: { self.init(screen: screen, environment: environment) },
-            update: { $0.update(screen: screen, environment: environment) }
+            update: { $0.update(screen: screen) }
         )
     }
 }

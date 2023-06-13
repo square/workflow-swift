@@ -233,7 +233,11 @@ private struct TestScreen: Screen {
 
 private extension ViewControllerDescription {
     static var testing: Self {
-        .init(build: { UIViewController() }, update: { _ in })
+        .init(
+            environment: .empty,
+            build: { UIViewController() },
+            update: { _ in }
+        )
     }
 }
 #endif

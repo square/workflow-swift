@@ -7,6 +7,7 @@ target 'Tutorial' do
     pod 'Workflow', path: '../../Workflow.podspec', :testspecs => ['Tests']
     pod 'WorkflowUI', path: '../../WorkflowUI.podspec', :testspecs => ['Tests']
     pod 'ViewEnvironment', path: '../../ViewEnvironment.podspec'
+    pod 'ViewEnvironmentUI', path: '../../ViewEnvironmentUI.podspec', :testspecs => ['Tests']
     pod 'WorkflowReactiveSwift', path: '../../WorkflowReactiveSwift.podspec', :testspecs => ['Tests']
     pod 'BackStackContainer', path: '../BackStackContainer/BackStackContainer.podspec'
 
