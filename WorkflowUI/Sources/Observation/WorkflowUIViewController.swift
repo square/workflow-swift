@@ -59,14 +59,14 @@ open class WorkflowUIViewController: UIViewController {
     }
 
     override open func viewWillLayoutSubviews() {
-        // no need to call super since it does nothing
         sendObservationEvent(
             ViewWillLayoutSubviewsEvent(viewController: self)
         )
+        super.viewWillLayoutSubviews()
     }
 
     override open func viewDidLayoutSubviews() {
-        // no need to call super since it does nothing
+        super.viewDidLayoutSubviews()
         sendObservationEvent(
             ViewDidLayoutSubviewsEvent(viewController: self)
         )
