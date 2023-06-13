@@ -27,6 +27,7 @@ struct LoginScreen: Screen {
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         return ViewControllerDescription(
+            environment: environment,
             build: { LoginViewController() },
             update: { $0.update(with: self) }
         )

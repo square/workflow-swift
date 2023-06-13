@@ -18,6 +18,7 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowCombine'
   s.dependency 'WorkflowConcurrency'
   s.dependency 'ViewEnvironment'
+  s.dependency 'ViewEnvironmentUI'
   
   s.source_files = 'Samples/Dummy.swift'
 
@@ -99,6 +100,12 @@ Pod::Spec.new do |s|
     test_spec.scheme = { 
       environment_variables: snapshot_test_env
     }
+  end
+
+  s.test_spec 'ViewEnvironmentUITests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'ViewEnvironmentUI/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
   end
 
   s.test_spec 'WorkflowTests' do |test_spec|

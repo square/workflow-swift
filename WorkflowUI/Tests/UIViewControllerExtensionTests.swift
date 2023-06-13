@@ -155,6 +155,7 @@ private struct Screen1: Screen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         ViewControllerDescription(
             type: VC1.self,
+            environment: environment,
             build: { VC1(identifier: "1", recordEvent: recordEvent) },
             update: { $0.recordEvent = recordEvent }
         )
@@ -167,6 +168,7 @@ private struct Screen2: Screen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         ViewControllerDescription(
             type: VC2.self,
+            environment: environment,
             build: { VC2(identifier: "2", recordEvent: recordEvent) },
             update: { $0.recordEvent = recordEvent }
         )
