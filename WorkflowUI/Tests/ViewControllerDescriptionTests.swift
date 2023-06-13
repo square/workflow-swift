@@ -135,7 +135,6 @@ class ViewControllerDescriptionTests: XCTestCase {
                 self.onEnvironmentDidChange = onEnvironmentDidChange
                 super.init(nibName: nil, bundle: nil)
             }
-
             required init?(coder: NSCoder) { fatalError() }
             func environmentDidChange() { onEnvironmentDidChange(environment) }
         }

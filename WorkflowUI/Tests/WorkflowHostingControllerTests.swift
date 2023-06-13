@@ -303,6 +303,7 @@ fileprivate struct EnvironmentObservingWorkflow: Workflow {
 }
 
 fileprivate final class EnvironmentCustomizingViewController: UIViewController, ViewEnvironmentObserving {
+
     var customizeEnvironment: (inout ViewEnvironment) -> Void
 
     init(customizeEnvironment: @escaping (inout ViewEnvironment) -> Void) {

@@ -219,8 +219,9 @@ extension ViewControllerDescription {
 
 extension ViewControllerDescription {
     fileprivate class PropagationNode: ViewEnvironmentObserving {
+
         // Since the viewController retains a reference to this node (via capture in the `environmentAncestorOverride`
-        // closure) we use a weak reference here to avoid a retain cycle, and leave retainment of the view controller
+        // closure) we use a weak reference here to avoid a retain cycle, and leave retainment of the view controller 
         // up to the consumer of the `ViewControllerDescription` (e.g. the parent view controller).
         weak var viewController: UIViewController?
 

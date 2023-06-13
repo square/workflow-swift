@@ -49,7 +49,7 @@ import ViewEnvironment
 ///
 public protocol ViewEnvironmentObserving: ViewEnvironmentPropagating {
     /// Customizes the `ViewEnvironment` as it flows through this propagation node to provide overrides to environment
-    /// values. These customizations will apply to the environment on this node (e.g. `self.environment` and the
+    /// values. These customizations will apply to the environment on this node (e.g. `self.environment` and the 
     /// parameter of `apply(environment:)`) and will be propagated to all descendant nodes.
     ///
     /// If you'd like to just inherit the environment from above, leave this function body empty.
