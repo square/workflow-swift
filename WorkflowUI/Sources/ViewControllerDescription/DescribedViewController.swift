@@ -18,7 +18,7 @@
 
 import UIKit
 
-public final class DescribedViewController: UIViewController {
+public final class DescribedViewController: WorkflowUIViewController {
     var currentViewController: UIViewController
 
     public init(description: ViewControllerDescription) {

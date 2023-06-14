@@ -1,0 +1,77 @@
+/*
+ * Copyright 2023 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#if canImport(UIKit)
+import Foundation
+import UIKit
+
+/// Ancestor type from which all ViewControllers in WorkflowUI inherit.
+open class WorkflowUIViewController: UIViewController {
+    /// Set to `true` once `viewDidAppear` has been called
+    public private(set) final var hasViewAppeared: Bool = false
+
+    // MARK: Event Emission
+
+    /// Observation event emission point.
+    /// - Parameter event: The event forwarded to any observers.
+    @_spi(ExperimentalObservation)
+    public final func sendObservationEvent<E: WorkflowUIEvent>(
+        _ event: @autoclosure () -> E
+    ) {
+        WorkflowUIObservation
+            .sharedUIObserver?
+            .observeEvent(event())
+    }
+
+    // MARK: Lifecycle Methods
+
+    override open func viewWillAppear(_ animated: Bool) {
+        sendObservationEvent(ViewWillAppearEvent(
+            viewController: self,
+            animated: animated,
+            isFirstAppearance: !hasViewAppeared
+        ))
+        super.viewWillAppear(animated)
+    }
+
+    override open func viewDidAppear(_ animated: Bool) {
+        let isFirstAppearance = !hasViewAppeared
+        if isFirstAppearance { hasViewAppeared = true }
+
+        super.viewDidAppear(animated)
+
+        sendObservationEvent(ViewDidAppearEvent(
+            viewController: self,
+            animated: animated,
+            isFirstAppearance: isFirstAppearance
+        ))
+    }
+
+    override open func viewWillLayoutSubviews() {
+        sendObservationEvent(
+            ViewWillLayoutSubviewsEvent(viewController: self)
+        )
+        super.viewWillLayoutSubviews()
+    }
+
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        sendObservationEvent(
+            ViewDidLayoutSubviewsEvent(viewController: self)
+        )
+    }
+}
+#endif

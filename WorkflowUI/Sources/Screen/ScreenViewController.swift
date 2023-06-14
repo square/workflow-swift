@@ -37,7 +37,7 @@ import ViewEnvironment
 ///     }
 /// }
 /// ```
-open class ScreenViewController<ScreenType: Screen>: UIViewController {
+open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
     public private(set) final var screen: ScreenType
 
     public final var screenType: Screen.Type {
