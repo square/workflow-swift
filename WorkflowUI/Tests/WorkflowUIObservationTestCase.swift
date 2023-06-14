@@ -16,8 +16,9 @@
 
 import Combine
 import Workflow
-@_spi(ExperimentalObservation) import WorkflowUI
 import XCTest
+
+@testable @_spi(ExperimentalObservation) import WorkflowUI
 
 open class WorkflowUIObservationTestCase: XCTestCase {
     var publishingObserver: PublishingObserver!
