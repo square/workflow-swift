@@ -17,6 +17,8 @@
 #if canImport(UIKit)
 import Foundation
 
+/// Protocol to observe events emitted from WorkflowUI.
+/// **N.B. This is currently part of an experimental interface, and may have breaking changes in the future.**
 @_spi(ExperimentalObservation)
 public protocol WorkflowUIObserver {
     func observeEvent<E: WorkflowUIEvent>(_ event: E)
@@ -26,6 +28,7 @@ public protocol WorkflowUIObserver {
 
 @_spi(ExperimentalObservation)
 public enum WorkflowUIObservation {
+    /// The shared `WorkflowUIObserver` instance to which all `WorkflowUIEvent`s will be forwarded.
     public static var sharedUIObserver: WorkflowUIObserver?
 }
 

@@ -25,6 +25,8 @@ open class WorkflowUIViewController: UIViewController {
 
     // MARK: Event Emission
 
+    /// Observation event emission point.
+    /// - Parameter event: The event forwarded to any observers.
     @_spi(ExperimentalObservation)
     public final func sendObservationEvent<E: WorkflowUIEvent>(
         _ event: @autoclosure () -> E
@@ -47,7 +49,7 @@ open class WorkflowUIViewController: UIViewController {
 
     override open func viewDidAppear(_ animated: Bool) {
         let isFirstAppearance = !hasViewAppeared
-        hasViewAppeared = true
+        if isFirstAppearance { hasViewAppeared = true }
 
         super.viewDidAppear(animated)
 

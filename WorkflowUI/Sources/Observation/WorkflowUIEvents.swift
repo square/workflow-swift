@@ -18,6 +18,7 @@
 import Foundation
 import UIKit
 
+/// Protocol that describes an observable 'event' that may be emitted from `WorkflowUI`.
 @_spi(ExperimentalObservation)
 public protocol WorkflowUIEvent {
     var viewController: UIViewController { get }
@@ -25,16 +26,19 @@ public protocol WorkflowUIEvent {
 
 // MARK: ViewController Lifecycle Events
 
+/// Event emitted from a `WorkflowUIViewController`'s `viewWillLayoutSubviews` method.
 @_spi(ExperimentalObservation)
 public struct ViewWillLayoutSubviewsEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
 }
 
+/// Event emitted from a `WorkflowUIViewController`'s `viewDidLayoutSubviews` method.
 @_spi(ExperimentalObservation)
 public struct ViewDidLayoutSubviewsEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
 }
 
+/// Event emitted from a `WorkflowUIViewController`'s `viewWillAppear` method.
 @_spi(ExperimentalObservation)
 public struct ViewWillAppearEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
@@ -42,6 +46,7 @@ public struct ViewWillAppearEvent: WorkflowUIEvent, Equatable {
     public let isFirstAppearance: Bool
 }
 
+/// Event emitted from a `WorkflowUIViewController`'s `viewDidAppear` method.
 @_spi(ExperimentalObservation)
 public struct ViewDidAppearEvent: WorkflowUIEvent, Equatable {
     public let viewController: UIViewController
