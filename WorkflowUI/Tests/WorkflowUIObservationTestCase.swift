@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+#if canImport(UIKit)
 import Combine
 import Workflow
 import XCTest
 
-@testable @_spi(ExperimentalObservation) import WorkflowUI
+@_spi(ExperimentalObservation) import WorkflowUI
 
 open class WorkflowUIObservationTestCase: XCTestCase {
     var publishingObserver: PublishingObserver!
@@ -102,3 +103,4 @@ extension WorkflowUIEvent {
         "\(type(of: self))"
     }
 }
+#endif
