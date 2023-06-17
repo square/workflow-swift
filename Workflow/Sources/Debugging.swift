@@ -76,6 +76,7 @@ extension WorkflowUpdateDebugInfo {
         case external
         case worker
         case sideEffect
+        case observation
         case subtree(WorkflowUpdateDebugInfo)
     }
 }
@@ -99,6 +100,8 @@ extension WorkflowUpdateDebugInfo.Source: Codable {
             try container.encode(debugInfo, forKey: .debugInfo)
         case .sideEffect:
             try container.encode("side-effect", forKey: .type)
+        case .observation:
+            try container.encode("observation", forKey: .type)
         }
     }
 
@@ -119,6 +122,8 @@ extension WorkflowUpdateDebugInfo.Source: Codable {
             self = .subtree(debugInfo)
         case "side-effect":
             self = .sideEffect
+        case "observation":
+            self = .observation
         default:
             throw MalformedDataError()
         }

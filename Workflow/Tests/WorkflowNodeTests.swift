@@ -139,7 +139,7 @@ final class WorkflowNodeTests: XCTestCase {
             XCTFail()
         case .didUpdate(let source):
             switch source {
-            case .external, .worker, .sideEffect:
+            case .external, .worker, .sideEffect, .observation:
                 XCTFail()
             case .subtree(let childInfo):
                 XCTAssert(childInfo.workflowType == "\(EventEmittingWorkflow.self)")
@@ -150,7 +150,7 @@ final class WorkflowNodeTests: XCTestCase {
                     switch source {
                     case .external:
                         break
-                    case .subtree(_), .worker, .sideEffect:
+                    case .subtree(_), .worker, .sideEffect, .observation:
                         XCTFail()
                     }
                 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Observation
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// Holds the current state of the workflow
@@ -111,8 +113,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     /// Internal method that forwards the render call through the underlying `subtreeManager`,
     /// and eventually to the client-specified `Workflow` instance.
-    /// - Parameter isRootNode: whether or not this is the root node of the tree. Note, this
-    /// is currently only used as a hint for the logging infrastructure, and is up to callers to correctly specify.
+    /// - Parameter isRootNode: whether or not this is the root node of the tree
     /// - Returns: A `Rendering` of appropriate type
     func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
         WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
@@ -131,12 +132,30 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        // Only use observation tracking on the root node, since that will capture all
+        // observations across all renders further down the tree.
+        if isRootNode, #available(iOS 17.0, macOS 14.0, *) {
+            rendering = withObservationTracking {
+                subtreeManager.render { context in
+                    workflow
+                        .render(
+                            state: state,
+                            context: context
+                        )
+                }
+            } onChange: {
+                Task { @MainActor [weak self] in
+                    self?.handle(subtreeOutput:.update(AnyWorkflowAction.noAction, source: .observation))
+                }
+            }
+        } else {
+            rendering = subtreeManager.render { context in
+                workflow
+                    .render(
+                        state: state,
+                        context: context
+                    )
+            }
         }
 
         return rendering
@@ -208,7 +227,18 @@ private extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+
+        if #available(iOS 17.0, macOS 14.0, *) {
+            output = withObservationTracking {
+                action.apply(toState: &state)
+            } onChange: {
+                Task { @MainActor [weak self] in
+                    self?.handle(subtreeOutput:.update(AnyWorkflowAction.noAction, source: .observation))
+                }
+            }
+        } else {
+            output = action.apply(toState: &state)
+        }
 
         return output
     }
