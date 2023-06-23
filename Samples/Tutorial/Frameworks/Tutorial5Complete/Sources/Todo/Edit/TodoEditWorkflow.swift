@@ -116,12 +116,7 @@ extension TodoEditWorkflow {
         let todoEditScreen = TodoEditScreen(
             title: state.todo.title,
             note: state.todo.note,
-            onTitleChanged: { title in
-                sink.send(.titleChanged(title))
-            },
-            onNoteChanged: { note in
-                sink.send(.noteChanged(note))
-            }
+            actionSink: .init(sink)
         )
 
         let backStackItem = BackStackScreen.Item(

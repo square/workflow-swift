@@ -151,7 +151,7 @@ class RootWorkflowTests: XCTestCase {
             }
 
             // Update the title.
-            editScreen.onTitleChanged("New Title")
+            editScreen.actionSink.send(.titleChanged("New Title"))
         }
 
         // Save the selected todo.

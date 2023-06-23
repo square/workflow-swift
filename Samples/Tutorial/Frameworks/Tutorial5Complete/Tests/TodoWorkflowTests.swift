@@ -16,6 +16,7 @@
 
 import BackStackContainer
 import Workflow
+import WorkflowSwiftUI
 import WorkflowTesting
 import WorkflowUI
 import XCTest
@@ -78,8 +79,7 @@ class TodoWorkflowTests: XCTestCase {
                     screen: TodoEditScreen(
                         title: "Title",
                         note: "Note",
-                        onTitleChanged: { _ in },
-                        onNoteChanged: { _ in }
+                        actionSink: .noop()
                     ).asAnyScreen()
                 ),
                 // Simulate it emitting an output of `.save` to update the state.

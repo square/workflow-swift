@@ -14,60 +14,29 @@
  * limitations under the License.
  */
 
-import TutorialViews
-import Workflow
-import WorkflowUI
+import SwiftUI
+import WorkflowSwiftUI
 
-struct TodoEditScreen: Screen {
+struct TodoEditScreen: SwiftUIScreen, Equatable {
     // The title of this todo item.
     var title: String
     // The contents, or "note" of the todo.
     var note: String
 
-    // Callback for when the title or note changes
-    var onTitleChanged: (String) -> Void
-    var onNoteChanged: (String) -> Void
+    var actionSink: ScreenActionSink<TodoEditWorkflow.Action>
 
-    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return TodoEditViewController.description(for: self, environment: environment)
-    }
-}
+    static func makeView(model: ObservableValue<TodoEditScreen>) -> some View {
+        VStack {
+            TextField("Title", text: model.binding(
+                get: \.title,
+                set: Action.titleChanged
+            ))
+                .font(.title)
 
-final class TodoEditViewController: ScreenViewController<TodoEditScreen> {
-    private var todoEditView: TodoEditView!
-
-    required init(screen: TodoEditScreen, environment: ViewEnvironment) {
-        super.init(screen: screen, environment: environment)
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        todoEditView = TodoEditView(frame: view.bounds)
-        view.addSubview(todoEditView)
-
-        updateView(with: screen)
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        todoEditView.frame = view.bounds.inset(by: view.safeAreaInsets)
-    }
-
-    override func screenDidChange(from previousScreen: TodoEditScreen, previousEnvironment: ViewEnvironment) {
-        super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
-
-        guard isViewLoaded else { return }
-
-        updateView(with: screen)
-    }
-
-    private func updateView(with screen: TodoEditScreen) {
-        // Update the view with the data from the screen.
-        todoEditView.title = screen.title
-        todoEditView.note = screen.note
-        todoEditView.onTitleChanged = screen.onTitleChanged
-        todoEditView.onNoteChanged = screen.onNoteChanged
+            TextEditor(text: model.binding(
+                get: \.note,
+                set: Action.noteChanged
+            ))
+        }.padding()
     }
 }
