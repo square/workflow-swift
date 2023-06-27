@@ -60,6 +60,23 @@ open class WorkflowUIViewController: UIViewController {
         ))
     }
 
+    override open func viewWillDisappear(_ animated: Bool) {
+        sendObservationEvent(ViewWillDisappearEvent(
+            viewController: self,
+            animated: animated
+        ))
+        super.viewWillDisappear(animated)
+    }
+
+    override open func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        sendObservationEvent(ViewDidDisappearEvent(
+            viewController: self,
+            animated: animated
+        ))
+    }
+
     override open func viewWillLayoutSubviews() {
         sendObservationEvent(
             ViewWillLayoutSubviewsEvent(viewController: self)

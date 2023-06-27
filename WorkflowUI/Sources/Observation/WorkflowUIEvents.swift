@@ -53,4 +53,18 @@ public struct ViewDidAppearEvent: WorkflowUIEvent, Equatable {
     public let animated: Bool
     public let isFirstAppearance: Bool
 }
+
+/// Event emitted from a `WorkflowUIViewController`'s `viewWillDisappear` method.
+@_spi(ExperimentalObservation)
+public struct ViewWillDisappearEvent: WorkflowUIEvent, Equatable {
+    public let viewController: UIViewController
+    public let animated: Bool
+}
+
+/// Event emitted from a `WorkflowUIViewController`'s `viewDidDisappear` method.
+@_spi(ExperimentalObservation)
+public struct ViewDidDisappearEvent: WorkflowUIEvent, Equatable {
+    public let viewController: UIViewController
+    public let animated: Bool
+}
 #endif
