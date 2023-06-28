@@ -41,6 +41,8 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     private let (lifetime, token) = Lifetime.make()
 
+    private var lastEnvironmentAncestorPath: EnvironmentAncestorPath?
+
     public init<W: AnyWorkflowConvertible>(
         workflow: W,
         customizeEnvironment: @escaping CustomizeEnvironment = { _ in },
@@ -79,7 +81,10 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
             .observeValues { [weak self] screen in
                 guard let self = self else { return }
 
-                self.update(screen: screen, environment: self.environment)
+                self.update(
+                    screen: screen,
+                    environmentAncestorPath: self.environmentAncestorPath
+                )
             }
     }
 
@@ -92,7 +97,10 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func update(screen: ScreenType, environment: ViewEnvironment) {
+    private func update(screen: ScreenType, environmentAncestorPath: EnvironmentAncestorPath) {
+        lastEnvironmentAncestorPath = environmentAncestorPath
+
+        let environment = environment
         let previousRoot = rootViewController
 
         update(child: \.rootViewController, with: screen, in: environment)
@@ -120,7 +128,14 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     override public func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        applyEnvironmentIfNeeded()
+
+        let environmentAncestorPath = environmentAncestorPath
+        if environmentAncestorPath != lastEnvironmentAncestorPath {
+            update(
+                screen: workflowHost.rendering.value,
+                environmentAncestorPath: environmentAncestorPath
+            )
+        }
     }
 
     override public func viewDidLayoutSubviews() {
@@ -181,7 +196,10 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
     }
 
     public func environmentDidChange() {
-        update(screen: workflowHost.rendering.value, environment: environment)
+        update(
+            screen: workflowHost.rendering.value,
+            environmentAncestorPath: environmentAncestorPath
+        )
     }
 }
 

@@ -272,6 +272,45 @@ extension ViewEnvironmentPropagating {
             objc_setAssociatedObject(self, &AssociatedKeys.descendantsOverride, newValue, .OBJC_ASSOCIATION_RETAIN)
         }
     }
+
+    /// Returns an `Equatable` representation of the `ViewEnvironmentPropagating` environment
+    /// ancestor tree path.
+    ///
+    /// This can be useful, for example, if you need to determine if any ancestor was inserted or
+    /// removed above this node.
+    ///
+    /// The `Equatable` implementation of this type compares the tree as an array of object
+    /// identifiers for each node.
+    ///
+    @_spi(ViewEnvironmentWiring)
+    public var environmentAncestorPath: EnvironmentAncestorPath {
+        var path = EnvironmentAncestorPath()
+
+        if let first = environmentAncestor {
+            for node in sequence(first: first, next: \.environmentAncestor) {
+                path.nodes.append(ObjectIdentifier(node))
+            }
+        }
+
+        return path
+    }
+
+    @_spi(ViewEnvironmentWiring)
+    public typealias EnvironmentAncestorPath = ViewEnvironmentPropagatingAncestorPath
+}
+
+/// An `Equatable` representation of the `ViewEnvironmentPropagating` environment ancestor tree
+/// path.
+///
+/// This can be useful, for example, if you need to determine if any ancestor was inserted or
+/// removed above this node.
+///
+/// The `Equatable` implementation of this type compares the tree as an array of object
+/// identifiers for each node.
+///
+@_spi(ViewEnvironmentWiring)
+public struct ViewEnvironmentPropagatingAncestorPath: Equatable {
+    var nodes: [ObjectIdentifier] = []
 }
 
 /// A closure that is called when the `ViewEnvironment` needs to be updated.

@@ -224,6 +224,63 @@ class WorkflowHostingControllerTests: XCTestCase {
             XCTAssertEqual(environment[ScreenKey.self], true)
         }
     }
+
+    func test_environment_updates_on_layout_in_new_hierarchy() {
+        var changedEnvironments: [ViewEnvironment] = []
+        let hostingController = WorkflowHostingController(
+            workflow: EnvironmentObservingWorkflow(
+                value: "first",
+                onEnvironmentDidChange: { changedEnvironments.append($0) }
+            )
+        )
+
+        // Setup the initial hierarchy
+        let root1 = UIViewController()
+        let container = UIViewController()
+        root1.addChild(container)
+        root1.view.addSubview(container.view)
+        container.didMove(toParent: root1)
+
+        container.addChild(hostingController)
+        container.view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: container)
+
+        XCTAssertEqual(changedEnvironments.count, 1)
+
+        // Triggering a layout should cause an update to the workflow's rendering since the
+        // ancestor path has changed since the `WorkflowHostingController` was initialized
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+        XCTAssertEqual(changedEnvironments.count, 2)
+
+        // There should be no environment update if the Workflow state and ancestor tree path has
+        // not changed
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+        XCTAssertEqual(changedEnvironments.count, 2)
+
+        // Change the environment ancestor path
+        container.willMove(toParent: nil)
+        container.view.removeFromSuperview()
+        container.removeFromParent()
+
+        let root2 = UIViewController()
+        root2.addChild(container)
+        root2.view.addSubview(container.view)
+        container.didMove(toParent: root2)
+
+        // An environment update should occur since the ancestor path has changed since the last
+        // update and/or layout.
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+        XCTAssertEqual(changedEnvironments.count, 3)
+
+        // There should be no environment update if the Workflow state and ancestor tree path has
+        // not changed
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+        XCTAssertEqual(changedEnvironments.count, 3)
+    }
 }
 
 fileprivate struct SubscribingWorkflow: Workflow {
@@ -303,7 +360,6 @@ fileprivate struct EnvironmentObservingWorkflow: Workflow {
 }
 
 fileprivate final class EnvironmentCustomizingViewController: UIViewController, ViewEnvironmentObserving {
-
     var customizeEnvironment: (inout ViewEnvironment) -> Void
 
     init(customizeEnvironment: @escaping (inout ViewEnvironment) -> Void) {
