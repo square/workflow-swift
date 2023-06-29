@@ -21,8 +21,8 @@ import WorkflowSwiftUI
 struct LoginScreen: SwiftUIScreen, Equatable {
     var actionSink: ScreenActionSink<LoginWorkflow.Action>
     var title: String
-    @WorkflowBinding var email: String
-    @WorkflowBinding var password: String
+    @Writable var email: String
+    @Writable var password: String
 
     static func makeView(model: ObservableValue<LoginScreen>) -> some View {
         VStack(spacing: 16) {

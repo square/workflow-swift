@@ -16,7 +16,7 @@
 
 import SwiftUI
 
-@propertyWrapper public struct WorkflowBinding<Value> {
+@propertyWrapper public struct Writable<Value> {
     public let wrappedValue: Value
     public let set: (Value) -> Void
 
@@ -33,18 +33,18 @@ import SwiftUI
     }
 }
 
-extension WorkflowBinding: Equatable where Value: Equatable {
-    public static func == (lhs: WorkflowBinding<Value>, rhs: WorkflowBinding<Value>) -> Bool {
+extension Writable: Equatable where Value: Equatable {
+    public static func == (lhs: Writable<Value>, rhs: Writable<Value>) -> Bool {
         // TODO: Don't assume setters are equivalent. Use some kind of binding identity?
         lhs.wrappedValue == rhs.wrappedValue
     }
 }
 
-extension WorkflowBinding: ExpressibleByUnicodeScalarLiteral where Value == String {}
+extension Writable: ExpressibleByUnicodeScalarLiteral where Value == String {}
 
-extension WorkflowBinding: ExpressibleByExtendedGraphemeClusterLiteral where Value == String {}
+extension Writable: ExpressibleByExtendedGraphemeClusterLiteral where Value == String {}
 
-extension WorkflowBinding: ExpressibleByStringLiteral where Value == String {
+extension Writable: ExpressibleByStringLiteral where Value == String {
     public init(stringLiteral value: String) {
         self.init(value: value, set: { _ in })
     }

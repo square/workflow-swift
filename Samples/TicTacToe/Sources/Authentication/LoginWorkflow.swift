@@ -63,9 +63,9 @@ extension LoginWorkflow {
     typealias Rendering = LoginScreen
 
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
-        func binding<T>(_ keyPath: WritableKeyPath<State, T>) -> WorkflowBinding<T> {
+        func binding<T>(_ keyPath: WritableKeyPath<State, T>) -> Writable<T> {
             let sink = context.makeSink(of: SetterAction<Self, T>.self)
-            return WorkflowBinding(
+            return Writable(
                 value: state[keyPath: keyPath],
                 set: { value in sink.send(.set(keyPath, to: value)) }
             )
