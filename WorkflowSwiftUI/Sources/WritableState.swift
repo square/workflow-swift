@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Workflow
+
 @dynamicMemberLookup
 public struct WritableState<WorkflowType: Workflow> {
     private let state: WorkflowType.State
