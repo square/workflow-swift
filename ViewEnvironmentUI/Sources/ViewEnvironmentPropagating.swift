@@ -288,7 +288,7 @@ extension ViewEnvironmentPropagating {
 
         if let first = environmentAncestor {
             for node in sequence(first: first, next: \.environmentAncestor) {
-                path.nodes.append(ObjectIdentifier(node))
+                path.append(node)
             }
         }
 
@@ -310,7 +310,28 @@ extension ViewEnvironmentPropagating {
 ///
 @_spi(ViewEnvironmentWiring)
 public struct ViewEnvironmentPropagatingAncestorPath: Equatable {
-    var nodes: [ObjectIdentifier] = []
+    private var nodes: [WeakBox] = []
+
+    fileprivate mutating func append(_ node: ViewEnvironmentPropagating) {
+        nodes.append(WeakBox(node))
+    }
+
+    // Use a weak box to avoid retaining the node.
+    //
+    // We do this instead of `ObjectIdentifier` because `ObjectIdentifier`s are only valid for the
+    // lifetime of the object being identified—the value of the pointer could be re-used if it is
+    // deallocated.
+    private struct WeakBox: Equatable {
+        weak var node: ViewEnvironmentPropagating?
+
+        init(_ node: ViewEnvironmentPropagating) {
+            self.node = node
+        }
+
+        static func == (lhs: WeakBox, rhs: WeakBox) -> Bool {
+            lhs.node === rhs.node
+        }
+    }
 }
 
 /// A closure that is called when the `ViewEnvironment` needs to be updated.
