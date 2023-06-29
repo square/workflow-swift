@@ -30,7 +30,7 @@ struct LoginScreen: SwiftUIScreen, Equatable {
 
             TextField(
                 "email@address.com",
-                text: model.email.swiftUIBinding
+                text: model.email
             )
             .autocapitalization(.none)
             .autocorrectionDisabled()
@@ -38,21 +38,12 @@ struct LoginScreen: SwiftUIScreen, Equatable {
 
             SecureField(
                 "password",
-                text: model.password.swiftUIBinding,
+                text: model.password,
                 onCommit: model.action(.login)
             )
 
             Button("Login", action: model.action(.login))
         }
         .frame(maxWidth: 400)
-    }
-}
-
-extension WorkflowBinding {
-    var swiftUIBinding: Binding<Value> {
-        Binding(
-            get: { value },
-            set: set
-        )
     }
 }

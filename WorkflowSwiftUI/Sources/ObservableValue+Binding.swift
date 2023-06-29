@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import SwiftUI
+import Workflow
 
 public extension ObservableValue {
     func binding<T>(
@@ -53,6 +54,21 @@ public extension ObservableValue where Value: SwiftUIScreen {
         binding(
             get: get,
             set: { screen in { screen.actionSink.send(set($0)) } }
+        )
+    }
+}
+
+public extension ObservableValue {
+    subscript<T>(dynamicMember keyPath: KeyPath<Value, WorkflowBinding<T>>) -> Binding<T> {
+        self[dynamicMember: keyPath].swiftUIBinding
+    }
+}
+
+private extension WorkflowBinding {
+    var swiftUIBinding: Binding<Value> {
+        Binding(
+            get: { value },
+            set: set
         )
     }
 }
