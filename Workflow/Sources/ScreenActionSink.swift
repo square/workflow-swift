@@ -17,8 +17,8 @@
 /// A sink intended specifically to fulfill the `actionSink` requirement of ``SwiftUIScreen``. In order that the
 /// `SwiftUIScreen` can automatically be `Equatable`, this sink is `Equatable` and always compares equal.
 ///
-// TODO: Should this really _always_ compare equal? Can we pass in some identity when initializing? Maybe some identifier from the
-/// `RenderContext`, or even just the source location where the sink was initialized?
+/// *TODO:* Should this really _always_ compare equal? Can we pass in some identity when initializing? Maybe some identifier from
+/// the `RenderContext`, or even just the source location where the sink was initialized?
 public struct ScreenActionSink<Value>: Equatable {
     private let sink: Sink<Value>
 
@@ -39,4 +39,8 @@ public struct ScreenActionSink<Value>: Equatable {
     public static func == (lhs: ScreenActionSink<Value>, rhs: ScreenActionSink<Value>) -> Bool {
         true
     }
+}
+
+public extension RenderContext {
+    var actionSink: ScreenActionSink {}
 }
