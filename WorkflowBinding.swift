@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-public struct WorkflowBinding<Value> {
-    public let value: Value
+import SwiftUI
+
+@propertyWrapper public struct WorkflowBinding<Value> {
+    public let wrappedValue: Value
     public let set: (Value) -> Void
 
     public init(value: Value, set: @escaping (Value) -> Void) {
-        self.value = value
+        self.wrappedValue = value
         self.set = set
+    }
+
+    public var projectedValue: Binding<Value> {
+        Binding(
+            get: { wrappedValue },
+            set: set
+        )
     }
 }
 
 extension WorkflowBinding: Equatable where Value: Equatable {
     public static func == (lhs: WorkflowBinding<Value>, rhs: WorkflowBinding<Value>) -> Bool {
         // TODO: Don't assume setters are equivalent. Use some kind of binding identity?
-        lhs.value == rhs.value
+        lhs.wrappedValue == rhs.wrappedValue
     }
 }
 

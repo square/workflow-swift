@@ -58,19 +58,4 @@ public extension ObservableValue where Value: SwiftUIScreen {
     }
 }
 
-public extension ObservableValue {
-    subscript<T>(dynamicMember keyPath: KeyPath<Value, WorkflowBinding<T>>) -> Binding<T> {
-        self[dynamicMember: keyPath].swiftUIBinding
-    }
-}
-
-private extension WorkflowBinding {
-    var swiftUIBinding: Binding<Value> {
-        Binding(
-            get: { value },
-            set: set
-        )
-    }
-}
-
 #endif
