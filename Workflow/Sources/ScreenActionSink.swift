@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Workflow
-
 /// A sink intended specifically to fulfill the `actionSink` requirement of ``SwiftUIScreen``. In order that the
 /// `SwiftUIScreen` can automatically be `Equatable`, this sink is `Equatable` and always compares equal.
 ///

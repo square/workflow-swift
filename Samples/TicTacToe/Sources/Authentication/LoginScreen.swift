@@ -15,6 +15,7 @@
  */
 
 import SwiftUI
+import Workflow
 import WorkflowSwiftUI
 
 struct LoginScreen: SwiftUIScreen, Equatable {
