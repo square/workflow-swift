@@ -42,5 +42,7 @@ public struct ScreenActionSink<Value>: Equatable {
 }
 
 public extension RenderContext {
-    var actionSink: ScreenActionSink {}
+    func makeSink<Action: WorkflowAction>() -> ScreenActionSink<Action> where Action.WorkflowType == WorkflowType {
+        ScreenActionSink(makeSink(of: Action.self))
+    }
 }

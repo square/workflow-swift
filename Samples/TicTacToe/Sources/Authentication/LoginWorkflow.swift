@@ -73,7 +73,7 @@ extension LoginWorkflow {
 
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
         LoginScreen(
-            actionSink: .init(context.makeSink(of: Action.self)),
+            actionSink: context.makeSink(),
             title: "Welcome! Please log in to play TicTacToe!",
             email: state.email,
             password: state.password
