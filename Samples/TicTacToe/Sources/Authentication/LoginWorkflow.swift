@@ -16,6 +16,7 @@
 
 import ReactiveSwift
 import Workflow
+import WorkflowSwiftUI
 import WorkflowUI
 
 // MARK: Input and Output
@@ -45,23 +46,13 @@ extension LoginWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = LoginWorkflow
 
-        case emailUpdated(String)
-        case passwordUpdated(String)
         case login
 
         func apply(toState state: inout LoginWorkflow.State) -> LoginWorkflow.Output? {
             switch self {
-            case .emailUpdated(let email):
-                state.email = email
-
-            case .passwordUpdated(let password):
-                state.password = password
-
             case .login:
                 return .login(email: state.email, password: state.password)
             }
-
-            return nil
         }
     }
 }
@@ -72,11 +63,56 @@ extension LoginWorkflow {
     typealias Rendering = LoginScreen
 
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
-        LoginScreen(
+        func binding<T>(_ keyPath: WritableKeyPath<State, T>) -> WorkflowBinding<T> {
+            let sink = context.makeSink(of: SetterAction<Self, T>.self)
+            return WorkflowBinding(
+                value: state[keyPath: keyPath],
+                set: { value in sink.send(.set(keyPath, to: value)) }
+            )
+        }
+        return LoginScreen(
             actionSink: context.makeSink(),
             title: "Welcome! Please log in to play TicTacToe!",
-            email: state.email,
-            password: state.password
+            email: binding(\.email),
+            password: binding(\.password)
         )
+    }
+}
+
+public struct SetterAction<WorkflowType: Workflow, Value>: WorkflowAction {
+    public typealias KeyPath = WritableKeyPath<WorkflowType.State, Value>
+
+    private let keyPath: KeyPath
+    private let value: Value
+
+    public static func set(_ keyPath: KeyPath, to value: Value) -> Self {
+        Self(keyPath: keyPath, value: value)
+    }
+
+    public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+        state[keyPath: keyPath] = value
+        return nil
+    }
+}
+
+struct WorkflowBinding<Value> {
+    let value: Value
+    let set: (Value) -> Void
+}
+
+extension WorkflowBinding: Equatable where Value: Equatable {
+    static func == (lhs: WorkflowBinding<Value>, rhs: WorkflowBinding<Value>) -> Bool {
+        // TODO: Don't assume setters are equivalent. Use some kind of binding identity?
+        lhs.value == rhs.value
+    }
+}
+
+extension WorkflowBinding: ExpressibleByUnicodeScalarLiteral where Value == String {}
+
+extension WorkflowBinding: ExpressibleByExtendedGraphemeClusterLiteral where Value == String {}
+
+extension WorkflowBinding: ExpressibleByStringLiteral where Value == String {
+    init(stringLiteral value: String) {
+        self.init(value: value, set: { _ in })
     }
 }
