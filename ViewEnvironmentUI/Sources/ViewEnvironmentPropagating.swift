@@ -272,6 +272,65 @@ extension ViewEnvironmentPropagating {
             objc_setAssociatedObject(self, &AssociatedKeys.descendantsOverride, newValue, .OBJC_ASSOCIATION_RETAIN)
         }
     }
+
+    /// Returns an `Equatable` representation of the `ViewEnvironmentPropagating` environment
+    /// ancestor tree path.
+    ///
+    /// This can be useful, for example, if you need to determine if any ancestor was inserted or
+    /// removed above this node.
+    ///
+    /// The `Equatable` implementation of this type compares the tree as an array of weak
+    /// references.
+    ///
+    @_spi(ViewEnvironmentWiring)
+    public var environmentAncestorPath: EnvironmentAncestorPath {
+        var path = EnvironmentAncestorPath()
+
+        if let first = environmentAncestor {
+            for node in sequence(first: first, next: \.environmentAncestor) {
+                path.append(node)
+            }
+        }
+
+        return path
+    }
+
+    @_spi(ViewEnvironmentWiring)
+    public typealias EnvironmentAncestorPath = ViewEnvironmentPropagatingAncestorPath
+}
+
+/// An `Equatable` representation of the `ViewEnvironmentPropagating` environment ancestor tree
+/// path.
+///
+/// This can be useful, for example, if you need to determine if any ancestor was inserted or
+/// removed above this node.
+///
+/// The `Equatable` implementation of this type compares the tree as an array of weak references.
+///
+@_spi(ViewEnvironmentWiring)
+public struct ViewEnvironmentPropagatingAncestorPath: Equatable {
+    private var nodes: [WeakBox] = []
+
+    fileprivate mutating func append(_ node: ViewEnvironmentPropagating) {
+        nodes.append(WeakBox(node))
+    }
+
+    // Use a weak box to avoid retaining the node.
+    //
+    // We do this instead of `ObjectIdentifier` because `ObjectIdentifier`s are only valid for the
+    // lifetime of the object being identified—the value of the pointer could be re-used if it is
+    // deallocated.
+    private struct WeakBox: Equatable {
+        weak var node: ViewEnvironmentPropagating?
+
+        init(_ node: ViewEnvironmentPropagating) {
+            self.node = node
+        }
+
+        static func == (lhs: WeakBox, rhs: WeakBox) -> Bool {
+            lhs.node === rhs.node
+        }
+    }
 }
 
 /// A closure that is called when the `ViewEnvironment` needs to be updated.
