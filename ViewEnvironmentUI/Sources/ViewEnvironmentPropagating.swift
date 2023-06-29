@@ -279,8 +279,8 @@ extension ViewEnvironmentPropagating {
     /// This can be useful, for example, if you need to determine if any ancestor was inserted or
     /// removed above this node.
     ///
-    /// The `Equatable` implementation of this type compares the tree as an array of object
-    /// identifiers for each node.
+    /// The `Equatable` implementation of this type compares the tree as an array of weak
+    /// references.
     ///
     @_spi(ViewEnvironmentWiring)
     public var environmentAncestorPath: EnvironmentAncestorPath {
@@ -305,8 +305,7 @@ extension ViewEnvironmentPropagating {
 /// This can be useful, for example, if you need to determine if any ancestor was inserted or
 /// removed above this node.
 ///
-/// The `Equatable` implementation of this type compares the tree as an array of object
-/// identifiers for each node.
+/// The `Equatable` implementation of this type compares the tree as an array of weak references.
 ///
 @_spi(ViewEnvironmentWiring)
 public struct ViewEnvironmentPropagatingAncestorPath: Equatable {
