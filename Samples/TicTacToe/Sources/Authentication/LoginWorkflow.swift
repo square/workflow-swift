@@ -94,25 +94,3 @@ public struct SetterAction<WorkflowType: Workflow, Value>: WorkflowAction {
         return nil
     }
 }
-
-struct WorkflowBinding<Value> {
-    let value: Value
-    let set: (Value) -> Void
-}
-
-extension WorkflowBinding: Equatable where Value: Equatable {
-    static func == (lhs: WorkflowBinding<Value>, rhs: WorkflowBinding<Value>) -> Bool {
-        // TODO: Don't assume setters are equivalent. Use some kind of binding identity?
-        lhs.value == rhs.value
-    }
-}
-
-extension WorkflowBinding: ExpressibleByUnicodeScalarLiteral where Value == String {}
-
-extension WorkflowBinding: ExpressibleByExtendedGraphemeClusterLiteral where Value == String {}
-
-extension WorkflowBinding: ExpressibleByStringLiteral where Value == String {
-    init(stringLiteral value: String) {
-        self.init(value: value, set: { _ in })
-    }
-}
