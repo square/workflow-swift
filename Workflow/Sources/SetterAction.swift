@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2023 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-import SwiftUI
-import Workflow
-import WorkflowSwiftUI
+public struct SetterAction<WorkflowType: Workflow, Value>: WorkflowAction {
+    public typealias KeyPath = WritableKeyPath<WorkflowType.State, Value>
 
-struct TodoEditScreen: SwiftUIScreen, Equatable {
-    // The title of this todo item.
-    @Writable var title: String
-    // The contents, or "note" of the todo.
-    @Writable var note: String
+    private let keyPath: KeyPath
+    private let value: Value
 
-    static func makeView(model: ObservableValue<TodoEditScreen>) -> some View {
-        VStack {
-            TextField("Title", text: model.$title)
-                .font(.title)
+    public static func set(_ keyPath: KeyPath, to value: Value) -> Self {
+        Self(keyPath: keyPath, value: value)
+    }
 
-            TextEditor(text: model.$note)
-        }.padding()
+    public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+        state[keyPath: keyPath] = value
+        return nil
     }
 }

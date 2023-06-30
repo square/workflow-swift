@@ -24,15 +24,14 @@ class LoginWorkflowTests: XCTestCase {
     // MARK: Action Tests
 
     func test_action_emailUpdate() {
-        LoginWorkflow
-            .Action
+        SetterAction<LoginWorkflow, String>
             .tester(
                 withState: LoginWorkflow.State(
                     email: "reza@example.com",
                     password: "password"
                 )
             )
-            .send(action: .emailUpdated("square@example.com"))
+            .send(action: .set(\.email, to: "square@example.com"))
             .assertNoOutput()
             .verifyState { state in
                 XCTAssertEqual(state.email, "square@example.com")
@@ -41,15 +40,14 @@ class LoginWorkflowTests: XCTestCase {
     }
 
     func test_action_passwordUpdate() {
-        LoginWorkflow
-            .Action
+        SetterAction<LoginWorkflow, String>
             .tester(
                 withState: LoginWorkflow.State(
                     email: "reza@example.com",
                     password: "password"
                 )
             )
-            .send(action: .passwordUpdated("drowssap"))
+            .send(action: .set(\.password, to: "drowssap"))
             .assertNoOutput()
             .verifyState { state in
                 XCTAssertEqual(state.email, "reza@example.com")

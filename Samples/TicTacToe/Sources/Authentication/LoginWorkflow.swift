@@ -16,6 +16,7 @@
 
 import ReactiveSwift
 import Workflow
+import WorkflowSwiftUI
 import WorkflowUI
 
 // MARK: Input and Output
@@ -45,23 +46,13 @@ extension LoginWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = LoginWorkflow
 
-        case emailUpdated(String)
-        case passwordUpdated(String)
         case login
 
         func apply(toState state: inout LoginWorkflow.State) -> LoginWorkflow.Output? {
             switch self {
-            case .emailUpdated(let email):
-                state.email = email
-
-            case .passwordUpdated(let password):
-                state.password = password
-
             case .login:
                 return .login(email: state.email, password: state.password)
             }
-
-            return nil
         }
     }
 }
@@ -72,7 +63,8 @@ extension LoginWorkflow {
     typealias Rendering = LoginScreen
 
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
-        LoginScreen(
+        let state = WritableState(state: state, context: context)
+        return LoginScreen(
             actionSink: context.makeSink(),
             title: "Welcome! Please log in to play TicTacToe!",
             email: state.email,

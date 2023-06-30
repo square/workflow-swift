@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import SwiftUI
+import Workflow
 
 public extension ObservableValue {
     func binding<T>(

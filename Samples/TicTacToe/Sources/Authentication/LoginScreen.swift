@@ -21,8 +21,8 @@ import WorkflowSwiftUI
 struct LoginScreen: SwiftUIScreen, Equatable {
     var actionSink: ScreenActionSink<LoginWorkflow.Action>
     var title: String
-    var email: String
-    var password: String
+    @Writable var email: String
+    @Writable var password: String
 
     static func makeView(model: ObservableValue<LoginScreen>) -> some View {
         VStack(spacing: 16) {
@@ -30,10 +30,7 @@ struct LoginScreen: SwiftUIScreen, Equatable {
 
             TextField(
                 "email@address.com",
-                text: model.binding(
-                    get: \.email,
-                    set: Action.emailUpdated
-                )
+                text: model.$email
             )
             .autocapitalization(.none)
             .autocorrectionDisabled()
@@ -41,10 +38,7 @@ struct LoginScreen: SwiftUIScreen, Equatable {
 
             SecureField(
                 "password",
-                text: model.binding(
-                    get: \.password,
-                    set: Action.passwordUpdated
-                ),
+                text: model.$password,
                 onCommit: model.action(.login)
             )
 
