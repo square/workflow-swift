@@ -34,6 +34,10 @@ public struct ScreenActionSink<Value>: Equatable {
         ScreenActionSink<T>(Sink { _ in })
     }
 
+    public static func never() -> ScreenActionSink<Never> {
+        ScreenActionSink<Never>(Sink { _ in })
+    }
+
     // MARK: Equatable
 
     public static func == (lhs: ScreenActionSink<Value>, rhs: ScreenActionSink<Value>) -> Bool {

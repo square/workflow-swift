@@ -24,8 +24,6 @@ struct TodoEditScreen: SwiftUIScreen, Equatable {
     // The contents, or "note" of the todo.
     @Writable var note: String
 
-    var actionSink: ScreenActionSink<TodoEditWorkflow.Action>
-
     static func makeView(model: ObservableValue<TodoEditScreen>) -> some View {
         VStack {
             TextField("Title", text: model.$title)

@@ -108,8 +108,7 @@ extension TodoEditWorkflow {
 
         let todoEditScreen = TodoEditScreen(
             title: state[\.todo.title],
-            note: state[\.todo.note],
-            actionSink: .init(sink)
+            note: state[\.todo.note]
         )
 
         let backStackItem = BackStackScreen.Item(

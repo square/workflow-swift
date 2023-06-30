@@ -22,7 +22,7 @@ import WorkflowUI
 
 public protocol SwiftUIScreen: Screen {
     associatedtype Content: View
-    associatedtype Action
+    associatedtype Action = Never
 
     @ViewBuilder
     static func makeView(model: ObservableValue<Self>) -> Content
@@ -34,6 +34,8 @@ public protocol SwiftUIScreen: Screen {
 
 public extension SwiftUIScreen {
     static var isDuplicate: ((Self, Self) -> Bool)? { return nil }
+
+    var actionSink: ScreenActionSink<Never> { .never() }
 }
 
 public extension SwiftUIScreen where Self: Equatable {
