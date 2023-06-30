@@ -20,24 +20,18 @@ import WorkflowSwiftUI
 
 struct TodoEditScreen: SwiftUIScreen, Equatable {
     // The title of this todo item.
-    var title: String
+    @Writable var title: String
     // The contents, or "note" of the todo.
-    var note: String
+    @Writable var note: String
 
     var actionSink: ScreenActionSink<TodoEditWorkflow.Action>
 
     static func makeView(model: ObservableValue<TodoEditScreen>) -> some View {
         VStack {
-            TextField("Title", text: model.binding(
-                get: \.title,
-                set: Action.titleChanged
-            ))
+            TextField("Title", text: model.$title)
                 .font(.title)
 
-            TextEditor(text: model.binding(
-                get: \.note,
-                set: Action.noteChanged
-            ))
+            TextEditor(text: model.$note)
         }.padding()
     }
 }

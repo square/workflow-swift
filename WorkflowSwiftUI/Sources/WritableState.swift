@@ -37,4 +37,8 @@ public struct WritableState<WorkflowType: Workflow> {
             set: { value in sink.send(.set(keyPath, to: value)) }
         )
     }
+
+    public subscript<T>(_ keyPath: WritableKeyPath<WorkflowType.State, T>) -> Writable<T> {
+        self[dynamicMember: keyPath]
+    }
 }

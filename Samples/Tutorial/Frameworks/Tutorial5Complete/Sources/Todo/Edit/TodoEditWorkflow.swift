@@ -18,6 +18,7 @@ import BackStackContainer
 import ReactiveSwift
 import Workflow
 import WorkflowReactiveSwift
+import WorkflowSwiftUI
 import WorkflowUI
 
 // MARK: Input and Output
@@ -61,19 +62,11 @@ extension TodoEditWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = TodoEditWorkflow
 
-        case titleChanged(String)
-        case noteChanged(String)
         case discardChanges
         case saveChanges
 
         func apply(toState state: inout TodoEditWorkflow.State) -> TodoEditWorkflow.Output? {
             switch self {
-            case .titleChanged(let title):
-                state.todo.title = title
-
-            case .noteChanged(let note):
-                state.todo.note = note
-
             case .discardChanges:
                 // Return the .discard output when the discard action is received.
                 return .discard
@@ -82,8 +75,6 @@ extension TodoEditWorkflow {
                 // Return the .save output with the current todo state when the save action is received.
                 return .save(state.todo)
             }
-
-            return nil
         }
     }
 }
@@ -113,9 +104,11 @@ extension TodoEditWorkflow {
         // The sink is used to send actions back to this workflow.
         let sink = context.makeSink(of: Action.self)
 
+        let state = WritableState(state: state, context: context)
+
         let todoEditScreen = TodoEditScreen(
-            title: state.todo.title,
-            note: state.todo.note,
+            title: state[\.todo.title],
+            note: state[\.todo.note],
             actionSink: .init(sink)
         )
 
