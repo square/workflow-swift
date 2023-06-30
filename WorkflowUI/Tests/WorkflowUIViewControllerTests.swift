@@ -49,6 +49,30 @@ final class WorkflowUIViewControllerTests: WorkflowUIObservationTestCase {
         XCTAssertTrue(appearanceEvent.isFirstAppearance)
     }
 
+    func test_viewWillDisappear_emitsEvent() throws {
+        let subject = WorkflowUIViewController()
+
+        let observedEvents = observationEvents(from: subject) {
+            subject.viewWillDisappear(false)
+        }
+
+        let appearanceEvent = try XCTUnwrap(observedEvents.first as? ViewWillDisappearEvent)
+        XCTAssertEqual(appearanceEvent.viewController, subject)
+        XCTAssertFalse(appearanceEvent.animated)
+    }
+
+    func test_viewDidDisappear_emitsEvent() throws {
+        let subject = WorkflowUIViewController()
+
+        let observedEvents = observationEvents(from: subject) {
+            subject.viewDidDisappear(false)
+        }
+
+        let appearanceEvent = try XCTUnwrap(observedEvents.first as? ViewDidDisappearEvent)
+        XCTAssertEqual(appearanceEvent.viewController, subject)
+        XCTAssertFalse(appearanceEvent.animated)
+    }
+
     func test_viewWillLayoutSubviews_emitsEvent() throws {
         let subject = WorkflowUIViewController()
 
