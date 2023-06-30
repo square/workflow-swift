@@ -29,8 +29,8 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
    1. Go to the [Releases](https://github.com/square/workflow-swift/releases) and `Draft a new release`.
    1. `Choose a tag` and create a tag for the new version. ex: `v1.0.0`
    1. `Generate release notes`
-   1. Ensure the `Title` corresponds to the `VERSION` we're publishing and the generated `Release Notes` are accurate.
-   1. Hit "Publish release".
+   1. Ensure the `Title` corresponds to the version we're publishing and the generated `Release Notes` are accurate.
+   1. Hit `Publish release`.
 
 1. Publish to CocoaPods:
     ```bash
