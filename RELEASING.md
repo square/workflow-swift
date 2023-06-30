@@ -19,15 +19,16 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
 > ```bash
 > bundle exec pod lib lint Workflow.podspec ViewEnvironment.podspec ViewEnvironmentUI.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec
 > ```
+> You may need to `--include-podspecs` for pods that have changed and are depended on by other of the pods.
 
-1. Update `VERSION` file based on [`semver`](https://semver.org/).
+1. Update `WORKFLOW_VERSION` in `version.rb` based on [`semver`](https://semver.org/).
 
 1. Create a PR with the version change and merge to `main`.
 
 1. Create the release on GitHub:
-   1. Go to the [Releases](https://github.com/square/workflow-swift/releases).
-   1. `Choose a tag` and create a tag with the `VERSION`. ex: `v1.0.0`
-   1. `Auto-generate release notes`
+   1. Go to the [Releases](https://github.com/square/workflow-swift/releases) and `Draft a new release`.
+   1. `Choose a tag` and create a tag for the new version. ex: `v1.0.0`
+   1. `Generate release notes`
    1. Ensure the `Title` corresponds to the `VERSION` we're publishing and the generated `Release Notes` are accurate.
    1. Hit "Publish release".
 
