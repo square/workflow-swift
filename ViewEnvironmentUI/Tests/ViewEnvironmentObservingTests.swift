@@ -191,7 +191,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
         var leafEnvironmentDidChangeCallCount = 0
         let leafNode = ViewEnvironmentPropagationNode(
-            environmentAncestor:  { [weak viewController] in
+            environmentAncestor: { [weak viewController] in
                 viewController
             },
             environmentDidChange: { _ in
@@ -226,22 +226,22 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
     func test_descendant_customFlow() {
         let descendant = TestViewEnvironmentObservingViewController()
-        
+
         let viewController = TestViewEnvironmentObservingViewController()
         viewController.environmentDescendantsOverride = { [descendant] }
-        
+
         viewController.applyEnvironmentIfNeeded()
         descendant.applyEnvironmentIfNeeded()
         XCTAssertFalse(viewController.needsEnvironmentUpdate)
         XCTAssertFalse(descendant.needsEnvironmentUpdate)
-        
+
         // With no ancestor configured the descendant should not respond to needing update
         viewController.setNeedsEnvironmentUpdate()
         XCTAssertTrue(viewController.needsEnvironmentUpdate)
         XCTAssertFalse(descendant.needsEnvironmentUpdate)
-        
+
         // With an ancestor defined the VC should respond to needing update
-        
+
         descendant.environmentAncestorOverride = { [weak viewController] in
             viewController
         }
@@ -323,6 +323,70 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
         container.setNeedsEnvironmentUpdate()
         XCTAssertEqual(observedEnvironments.count, 2)
+    }
+
+    // MARK: - Customizations
+
+    func test_customization() throws {
+        let viewController = TestViewEnvironmentObservingViewController()
+
+        // Customizations should be respected.
+        do {
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            _ = customizationLifetime // Suppress warning about variable never being read
+            customizationLifetime = nil
+
+            // Customization should be removed when lifetime is deallocated
+            XCTAssertEqual(
+                viewController.environment.testContext.number,
+                TestContextKey.defaultValue.number
+            )
+        }
+
+        // Customizations should occur in the order they are added
+        do {
+            var customization1Lifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 100
+                }
+
+            var customization2Lifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            _ = customization1Lifetime // Suppress warning about variable never being read
+            customization1Lifetime = nil
+            _ = customization2Lifetime // Suppress warning about variable never being read
+            customization2Lifetime = nil
+        }
+
+        // Customizations should favor the nodes customizations if present
+        do {
+            viewController.customizeEnvironment = {
+                $0.testContext.number = 300
+            }
+
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                    $0.testContext.string = "200"
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 300)
+            XCTAssertEqual(viewController.environment.testContext.string, "200")
+
+            _ = customizationLifetime // Suppress warning about variable never being read
+            customizationLifetime = nil
+        }
     }
 }
 

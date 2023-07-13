@@ -119,6 +119,10 @@ extension ViewEnvironmentPropagating {
     public var environment: ViewEnvironment {
         var environment = environmentAncestor?.environment ?? .empty
 
+        for storedCustomization in customizations {
+            storedCustomization.customization(&environment)
+        }
+
         if let observing = self as? ViewEnvironmentObserving {
             observing.customize(environment: &environment)
         }
@@ -167,12 +171,37 @@ extension ViewEnvironmentPropagating {
     ///
     @_spi(ViewEnvironmentWiring)
     public func addEnvironmentNeedsUpdateObserver(
-        _ onNeedsUpdate: @escaping (ViewEnvironment) -> Void
+        _ onNeedsUpdate: @escaping ViewEnvironmentUpdateObservation
     ) -> ViewEnvironmentUpdateObservationLifetime {
         let object = ViewEnvironmentUpdateObservationKey()
         needsUpdateObservers[object] = onNeedsUpdate
         return .init { [weak self] in
             self?.needsUpdateObservers[object] = nil
+        }
+    }
+
+    /// Adds a `ViewEnvironment` customization to this node.
+    ///
+    /// These customizations will occur before the node's `customize(environment:)` in cases where
+    /// this node conforms to `ViewEnvironmentObserving`, and will occur the order in which they
+    /// were added.
+    ///
+    /// The customization will only be active for as long as the returned lifetime is retained or
+    /// `cancel()` is called on it.
+    ///
+    @_spi(ViewEnvironmentWiring)
+    public func addEnvironmentCustomization(
+        _ customization: @escaping ViewEnvironmentCustomization
+    ) -> ViewEnvironmentCustomizationLifetime {
+        let storedCustomization = StoredViewEnvironmentCustomization(customization: customization)
+        customizations.append(storedCustomization)
+        return .init { [weak self] in
+            guard let self,
+                let index = self.customizations.firstIndex(where: { $0 === storedCustomization })
+            else {
+                return
+            }
+            self.customizations.remove(at: index)
         }
     }
 
@@ -370,6 +399,7 @@ private enum ViewEnvironmentPropagatingNSObjectAssociatedKeys {
     static var needsUpdateObservers = NSObject()
     static var ancestorOverride = NSObject()
     static var descendantsOverride = NSObject()
+    static var customizations = NSObject()
 }
 
 extension ViewEnvironmentPropagating {
@@ -432,3 +462,62 @@ extension ViewEnvironmentPropagating {
 }
 
 private class ViewEnvironmentUpdateObservationKey: NSObject {}
+
+/// A closure that customizes the `ViewEnvironment` as it flows through a propagation node.
+///
+public typealias ViewEnvironmentCustomization = (inout ViewEnvironment) -> Void
+
+/// Describes the lifetime of a `ViewEnvironment` customization.
+///
+/// This customization will be removed when `remove()` is called or the lifetime token is
+/// de-initialized.
+///
+/// ## SeeAlso ##
+/// - `addEnvironmentCustomization(_:)`
+///
+public final class ViewEnvironmentCustomizationLifetime {
+    /// Removes the observation.
+    ///
+    /// This is called in `deinit`.
+    ///
+    public func remove() {
+        onRemove()
+    }
+
+    private let onRemove: () -> Void
+
+    init(onRemove: @escaping () -> Void) {
+        self.onRemove = onRemove
+    }
+
+    deinit {
+        remove()
+    }
+}
+
+extension ViewEnvironmentPropagating {
+    fileprivate var customizations: [StoredViewEnvironmentCustomization] {
+        get {
+            objc_getAssociatedObject(
+                self,
+                &AssociatedKeys.customizations
+            ) as? [StoredViewEnvironmentCustomization] ?? []
+        }
+        set {
+            objc_setAssociatedObject(
+                self,
+                &AssociatedKeys.customizations,
+                newValue,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            )
+        }
+    }
+}
+
+private final class StoredViewEnvironmentCustomization {
+    var customization: ViewEnvironmentCustomization
+
+    init(customization: @escaping ViewEnvironmentCustomization) {
+        self.customization = customization
+    }
+}
