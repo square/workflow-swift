@@ -380,17 +380,21 @@ public final class ViewEnvironmentUpdateObservationLifetime {
     /// This is called in `deinit`.
     ///
     public func remove() {
+        guard let onRemove else {
+            preconditionFailure("Environment customization was already removed")
+        }
+        self.onRemove = nil
         onRemove()
     }
 
-    private let onRemove: () -> Void
+    private var onRemove: (() -> Void)?
 
     init(onRemove: @escaping () -> Void) {
         self.onRemove = onRemove
     }
 
     deinit {
-        remove()
+        onRemove?()
     }
 }
 
