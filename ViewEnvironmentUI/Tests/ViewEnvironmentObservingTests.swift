@@ -318,7 +318,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         XCTAssertEqual(observedEnvironments.count, 2)
         XCTAssertEqual(expectedTestContext, observedEnvironments.last?.testContext)
 
-        _ = observation // Suppress warning about variable never being read
+        withExtendedLifetime(observation) {}
         observation = nil
 
         container.setNeedsEnvironmentUpdate()
@@ -339,7 +339,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
             XCTAssertEqual(viewController.environment.testContext.number, 200)
 
-            _ = customizationLifetime // Suppress warning about variable never being read
+            withExtendedLifetime(customizationLifetime) {}
             customizationLifetime = nil
 
             // Customization should be removed when lifetime is deallocated
@@ -363,9 +363,9 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
             XCTAssertEqual(viewController.environment.testContext.number, 200)
 
-            _ = customization1Lifetime // Suppress warning about variable never being read
+            withExtendedLifetime(customization1Lifetime) {}
             customization1Lifetime = nil
-            _ = customization2Lifetime // Suppress warning about variable never being read
+            withExtendedLifetime(customization2Lifetime) {}
             customization2Lifetime = nil
         }
 
@@ -384,7 +384,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
             XCTAssertEqual(viewController.environment.testContext.number, 300)
             XCTAssertEqual(viewController.environment.testContext.string, "200")
 
-            _ = customizationLifetime // Suppress warning about variable never being read
+            withExtendedLifetime(customizationLifetime) {}
             customizationLifetime = nil
         }
     }
