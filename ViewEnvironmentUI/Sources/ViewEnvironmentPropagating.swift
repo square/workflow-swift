@@ -187,7 +187,7 @@ extension ViewEnvironmentPropagating {
     /// were added.
     ///
     /// The customization will only be active for as long as the returned lifetime is retained or
-    /// `cancel()` is called on it.
+    /// until `remove()` is called on it.
     ///
     @_spi(ViewEnvironmentWiring)
     public func addEnvironmentCustomization(
