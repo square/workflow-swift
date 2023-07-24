@@ -330,7 +330,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
     func test_customization() throws {
         let viewController = TestViewEnvironmentObservingViewController()
 
-        // Customizations should be respected.
+        // Customizations should be respected as long as the lifetime exists.
         do {
             var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
                 .addEnvironmentCustomization {
@@ -347,6 +347,27 @@ final class ViewEnvironmentObservingTests: XCTestCase {
                 viewController.environment.testContext.number,
                 TestContextKey.defaultValue.number
             )
+        }
+
+        // Customizations should be respected until `remove()` is called on the lifetime.
+        do {
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            customizationLifetime?.remove()
+
+            // Customization should be removed when lifetime is deallocated
+            XCTAssertEqual(
+                viewController.environment.testContext.number,
+                TestContextKey.defaultValue.number
+            )
+
+            withExtendedLifetime(customizationLifetime) {}
+            customizationLifetime = nil
         }
 
         // Customizations should occur in the order they are added
