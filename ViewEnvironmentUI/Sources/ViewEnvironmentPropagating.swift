@@ -377,7 +377,8 @@ public typealias ViewEnvironmentUpdateObservation = (ViewEnvironment) -> Void
 public final class ViewEnvironmentUpdateObservationLifetime {
     /// Removes the observation.
     ///
-    /// This is called in `deinit`.
+    /// The observation is removed when the lifetime is de-initialized if this function was not
+    /// called before then.
     ///
     public func remove() {
         guard let onRemove else {
@@ -482,7 +483,8 @@ public typealias ViewEnvironmentCustomization = (inout ViewEnvironment) -> Void
 public final class ViewEnvironmentCustomizationLifetime {
     /// Removes the observation.
     ///
-    /// This is called in `deinit`.
+    /// The customization is removed when the lifetime is de-initialized if this function was not
+    /// called before then.
     ///
     public func remove() {
         onRemove()
