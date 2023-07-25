@@ -382,7 +382,8 @@ public final class ViewEnvironmentUpdateObservationLifetime {
     ///
     public func remove() {
         guard let onRemove else {
-            preconditionFailure("Environment customization was already removed")
+            assertionFailure("Environment update observation was already removed")
+            return
         }
         self.onRemove = nil
         onRemove()
