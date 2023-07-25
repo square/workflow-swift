@@ -488,17 +488,22 @@ public final class ViewEnvironmentCustomizationLifetime {
     /// called before then.
     ///
     public func remove() {
+        guard let onRemove else {
+            assertionFailure("Environment customization was already removed")
+            return
+        }
+        self.onRemove = nil
         onRemove()
     }
 
-    private let onRemove: () -> Void
+    private var onRemove: (() -> Void)?
 
     init(onRemove: @escaping () -> Void) {
         self.onRemove = onRemove
     }
 
     deinit {
-        remove()
+        onRemove?()
     }
 }
 
