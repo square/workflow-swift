@@ -482,7 +482,7 @@ public typealias ViewEnvironmentCustomization = (inout ViewEnvironment) -> Void
 /// - `addEnvironmentCustomization(_:)`
 ///
 public final class ViewEnvironmentCustomizationLifetime {
-    /// Removes the observation.
+    /// Removes the customization.
     ///
     /// The customization is removed when the lifetime is de-initialized if this function was not
     /// called before then.
