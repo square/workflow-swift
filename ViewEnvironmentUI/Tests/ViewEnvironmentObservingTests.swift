@@ -191,7 +191,7 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
         var leafEnvironmentDidChangeCallCount = 0
         let leafNode = ViewEnvironmentPropagationNode(
-            environmentAncestor:  { [weak viewController] in
+            environmentAncestor: { [weak viewController] in
                 viewController
             },
             environmentDidChange: { _ in
@@ -226,22 +226,22 @@ final class ViewEnvironmentObservingTests: XCTestCase {
 
     func test_descendant_customFlow() {
         let descendant = TestViewEnvironmentObservingViewController()
-        
+
         let viewController = TestViewEnvironmentObservingViewController()
         viewController.environmentDescendantsOverride = { [descendant] }
-        
+
         viewController.applyEnvironmentIfNeeded()
         descendant.applyEnvironmentIfNeeded()
         XCTAssertFalse(viewController.needsEnvironmentUpdate)
         XCTAssertFalse(descendant.needsEnvironmentUpdate)
-        
+
         // With no ancestor configured the descendant should not respond to needing update
         viewController.setNeedsEnvironmentUpdate()
         XCTAssertTrue(viewController.needsEnvironmentUpdate)
         XCTAssertFalse(descendant.needsEnvironmentUpdate)
-        
+
         // With an ancestor defined the VC should respond to needing update
-        
+
         descendant.environmentAncestorOverride = { [weak viewController] in
             viewController
         }
@@ -318,11 +318,96 @@ final class ViewEnvironmentObservingTests: XCTestCase {
         XCTAssertEqual(observedEnvironments.count, 2)
         XCTAssertEqual(expectedTestContext, observedEnvironments.last?.testContext)
 
-        _ = observation // Suppress warning about variable never being read
+        withExtendedLifetime(observation) {}
         observation = nil
 
         container.setNeedsEnvironmentUpdate()
         XCTAssertEqual(observedEnvironments.count, 2)
+    }
+
+    // MARK: - Customizations
+
+    func test_customization() throws {
+        let viewController = TestViewEnvironmentObservingViewController()
+
+        // Customizations should be respected as long as the lifetime exists.
+        do {
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            withExtendedLifetime(customizationLifetime) {}
+            customizationLifetime = nil
+
+            // Customization should be removed when lifetime is deallocated
+            XCTAssertEqual(
+                viewController.environment.testContext.number,
+                TestContextKey.defaultValue.number
+            )
+        }
+
+        // Customizations should be respected until `remove()` is called on the lifetime.
+        do {
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            customizationLifetime?.remove()
+
+            // Customization should be removed when lifetime is deallocated
+            XCTAssertEqual(
+                viewController.environment.testContext.number,
+                TestContextKey.defaultValue.number
+            )
+
+            withExtendedLifetime(customizationLifetime) {}
+            customizationLifetime = nil
+        }
+
+        // Customizations should occur in the order they are added
+        do {
+            var customization1Lifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 100
+                }
+
+            var customization2Lifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 200)
+
+            withExtendedLifetime(customization1Lifetime) {}
+            customization1Lifetime = nil
+            withExtendedLifetime(customization2Lifetime) {}
+            customization2Lifetime = nil
+        }
+
+        // Customizations should favor the nodes customizations if present
+        do {
+            viewController.customizeEnvironment = {
+                $0.testContext.number = 300
+            }
+
+            var customizationLifetime: ViewEnvironmentCustomizationLifetime? = viewController
+                .addEnvironmentCustomization {
+                    $0.testContext.number = 200
+                    $0.testContext.string = "200"
+                }
+
+            XCTAssertEqual(viewController.environment.testContext.number, 300)
+            XCTAssertEqual(viewController.environment.testContext.string, "200")
+
+            withExtendedLifetime(customizationLifetime) {}
+            customizationLifetime = nil
+        }
     }
 }
 
