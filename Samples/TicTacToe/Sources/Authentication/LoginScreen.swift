@@ -16,21 +16,44 @@
 
 import Workflow
 import WorkflowUI
+import SwiftUI
 
 struct LoginScreen: Screen {
-    var title: String
-    var email: String
-    var onEmailChanged: (String) -> Void
-    var password: String
-    var onPasswordChanged: (String) -> Void
-    var onLoginTapped: () -> Void
-
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return ViewControllerDescription(
+        ViewControllerDescription(
             environment: environment,
-            build: { LoginViewController() },
-            update: { $0.update(with: self) }
+            build: { UIHostingController(rootView: LoginView()) },
+            update: { _ in }
         )
+    }
+}
+
+struct LoginView: View {
+    var body: some View {
+        WorkflowView2(workflow: LoginWorkflow()) { model in
+            VStack(spacing: 16) {
+                Text(model.title)
+
+                TextField(
+                    "email@address.com",
+                    text: Binding(
+                        get: <#T##() -> Value#>,
+                        set: <#T##(Value) -> Void#>
+                    )
+                )
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .textContentType(.emailAddress)
+
+                SecureField(
+                    "password",
+                    text: model.binding(
+                        get: \.password,
+                        set: Action.passwordUpdated
+                    ),
+                    onCommit: model.action(.login)
+            }
+        }
     }
 }
 
