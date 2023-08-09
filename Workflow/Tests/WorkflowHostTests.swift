@@ -52,3 +52,99 @@ final class WorkflowHostTests: XCTestCase {
         }
     }
 }
+
+// MARK: Event Emission Tests
+
+final class WorkflowHost_EventEmissionTests: XCTestCase {
+    // Previous versions of Workflow would fatalError under this scenario
+    func test_event_sent_to_invalidated_sink_during_action_handling() {
+        let root = Parent()
+        let host = WorkflowHost(workflow: root)
+        let initialRendering = host.rendering.value
+
+        XCTAssertEqual(initialRendering.eventCount, 0)
+
+        host.rendering.signal.observeValues { rendering in
+            XCTAssertEqual(rendering.eventCount, 1)
+
+            // emit an second event using an old rendering
+            // while the first is still being processed, but
+            // the workflow that handles the event has been
+            // removed from the tree
+            initialRendering.eventHandler()
+        }
+
+        // send an event and cause a re-render
+        initialRendering.eventHandler()
+    }
+}
+
+// MARK: Utility Types
+
+extension WorkflowHost_EventEmissionTests {
+    struct Parent: Workflow {
+        struct Rendering {
+            var eventCount = 0
+            var eventHandler: () -> Void
+        }
+
+        typealias Output = Never
+
+        struct State {
+            var renderFirst = true
+            var eventCount = 0
+        }
+
+        func makeInitialState() -> State { .init() }
+
+        func render(state: State, context: RenderContext<Parent>) -> Rendering {
+            // swap which child is rendered
+            let key = state.renderFirst ? "first" : "second"
+            let handler = Child()
+                .mapOutput { _ in
+                    ParentAction.childChanged
+                }
+                .rendered(in: context, key: key)
+
+            return Rendering(
+                eventCount: state.eventCount,
+                eventHandler: handler
+            )
+        }
+
+        enum ParentAction: WorkflowAction {
+            typealias WorkflowType = Parent
+
+            case childChanged
+
+            func apply(toState state: inout Parent.State) -> Never? {
+                state.eventCount += 1
+                state.renderFirst.toggle()
+                return nil
+            }
+        }
+    }
+
+    struct Child: Workflow {
+        typealias Rendering = () -> Void
+        typealias State = Void
+        enum Output {
+            case eventOccurred
+        }
+
+        func render(state: Void, context: RenderContext<Child>) -> () -> Void {
+            let sink = context.makeSink(of: Action.self)
+            return { sink.send(Action.eventOccurred) }
+        }
+
+        enum Action: WorkflowAction {
+            typealias WorkflowType = Child
+
+            case eventOccurred
+
+            func apply(toState state: inout Void) -> Child.Output? {
+                return .eventOccurred
+            }
+        }
+    }
+}

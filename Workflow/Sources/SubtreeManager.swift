@@ -92,7 +92,7 @@ extension WorkflowNode {
         }
 
         /// Enable the eventPipes for the previous rendering. The eventPipes are not valid until this has
-        /// be called. If is an error to call this twice without generating a new rendering.
+        /// be called. It is an error to call this twice without generating a new rendering.
         func enableEvents() {
             /// Enable all action pipes.
             for eventPipe in eventPipes {
@@ -349,7 +349,12 @@ extension WorkflowNode.SubtreeManager {
                 handler(event)
 
             case .invalid:
-                fatalError("[\(WorkflowType.self)] Sink sent an action after it was invalidated. Sinks can only be used for a single valid `Rendering`.")
+                #if DEBUG
+                do {
+                    print("ℹ️ [Workflow::Note] – [\(WorkflowType.self)] Sink sent an action after it was invalidated. This action will be ignored. If this is unexpected, set a Swift error breakpoint on `\(InvalidSinkSentAction.self)` to debug.")
+                    throw InvalidSinkSentAction()
+                } catch {}
+                #endif
             }
         }
 
@@ -499,3 +504,9 @@ extension WorkflowNode.SubtreeManager {
         }
     }
 }
+
+// MARK: - Debugging Utilities
+
+#if DEBUG
+fileprivate struct InvalidSinkSentAction: Error {}
+#endif
