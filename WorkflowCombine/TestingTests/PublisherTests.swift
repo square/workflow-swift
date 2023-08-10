@@ -18,7 +18,7 @@ class PublisherTests: XCTestCase {
             .renderTester()
             .expect(
                 publisher: Publishers.Sequence<[Int], Never>.self,
-                output: 1,
+                producingOutput: 1,
                 key: "123"
             )
             .render {}
