@@ -16,8 +16,24 @@ class PublisherTests: XCTestCase {
     func testPublisherWorkflow() {
         TestWorkflow()
             .renderTester()
-            .expect(publisher: Publishers.Sequence<[Int], Never>.self, output: 1, key: "123")
+            .expect(
+                publisher: Publishers.Sequence<[Int], Never>.self,
+                producingOutput: 1,
+                key: "123"
+            )
             .render {}
+    }
+
+    func test_publisher_no_output() {
+        TestWorkflow()
+            .renderTester()
+            .expect(
+                publisher: Publishers.Sequence<[Int], Never>.self,
+                producingOutput: nil,
+                key: "123"
+            )
+            .render {}
+            .assertNoAction()
     }
 
     struct TestWorkflow: Workflow {
