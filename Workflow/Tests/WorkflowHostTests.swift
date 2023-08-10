@@ -61,21 +61,29 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         let root = Parent()
         let host = WorkflowHost(workflow: root)
         let initialRendering = host.rendering.value
+        var observedRenderCount = 0
 
         XCTAssertEqual(initialRendering.eventCount, 0)
 
-        host.rendering.signal.observeValues { rendering in
+        let disposable = host.rendering.signal.observeValues { rendering in
             XCTAssertEqual(rendering.eventCount, 1)
 
-            // emit an second event using an old rendering
+            // emit another event using an old rendering
             // while the first is still being processed, but
             // the workflow that handles the event has been
             // removed from the tree
-            initialRendering.eventHandler()
+            if observedRenderCount == 0 {
+                initialRendering.eventHandler()
+            }
+
+            observedRenderCount += 1
         }
+        defer { disposable?.dispose() }
 
         // send an event and cause a re-render
         initialRendering.eventHandler()
+
+        XCTAssertEqual(observedRenderCount, 1)
     }
 }
 

@@ -508,5 +508,5 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - Debugging Utilities
 
 #if DEBUG
-fileprivate struct InvalidSinkSentAction: Error {}
+private struct InvalidSinkSentAction: Error {}
 #endif
