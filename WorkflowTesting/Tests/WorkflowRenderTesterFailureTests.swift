@@ -112,7 +112,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         let tester = TestWorkflow()
             .renderTester(initialState: .voidWorkflow)
 
-        expectingFailure(#"Unexpected workflow of type VoidWorkflow with key "". If this child Workflow is expected, please add a call to `expectWorkflow(...)` with the appropriate parameters before invoking `render()`."#) {
+        expectingFailure(#"unexpected Workflow of type VoidWorkflow with key "". If this child Workflow is expected, please add a call to `expectWorkflow(...)` with the appropriate parameters before invoking `render()`."#) {
             tester.render { _ in }
         }
     }
