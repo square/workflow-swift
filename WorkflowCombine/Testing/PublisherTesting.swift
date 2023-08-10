@@ -32,7 +32,7 @@ extension RenderTester {
     ///   - key: Key to expect this `Workflow` to be rendered with.
     public func expect<PublisherType: Publisher>(
         publisher: PublisherType.Type,
-        output: PublisherType.Output,
+        producingOutput output: PublisherType.Output? = nil,
         key: String = ""
     ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
         expectWorkflow(
@@ -41,6 +41,19 @@ extension RenderTester {
             producingRendering: (),
             producingOutput: output,
             assertions: { _ in }
+        )
+    }
+
+    @available(*, deprecated, renamed: "expect(publisher:producingOutput:key:)")
+    public func expect<PublisherType: Publisher>(
+        publisher: PublisherType.Type,
+        output: PublisherType.Output,
+        key: String = ""
+    ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
+        expect(
+            publisher: publisher,
+            producingOutput: output,
+            key: key
         )
     }
 }
