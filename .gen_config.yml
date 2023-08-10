@@ -9,3 +9,7 @@ platforms:
   - ios
 podspec_paths:
   - Development.podspec
+
+external_source_pods:
+  - MarketWorkflowUI:
+    - :git: 'https://github.com/squareup/market.git'
