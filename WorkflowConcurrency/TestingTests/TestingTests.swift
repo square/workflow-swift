@@ -75,7 +75,7 @@ class WorkflowConcurrencyTestingTests: XCTestCase {
         let tester = TestWorkflow()
             .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
 
-        expectingFailure(#"Unexpected workflow of type WorkerWorkflow<TestWorker> with key """#) {
+        expectingFailure(#"unexpected Workflow of type WorkerWorkflow<TestWorker> with key """#) {
             tester.render { _ in }
         }
     }
