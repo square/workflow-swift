@@ -63,7 +63,6 @@ Pod::Spec.new do |s|
     app_spec.dependency 'BackStackContainer'
     app_spec.dependency 'ModalContainer'
     app_spec.dependency 'AlertContainer'
-    app_spec.dependency 'MarketWorkflowUI', '69.0.1'
   end
 
   s.test_spec 'TicTacToeTests' do |test_spec|
@@ -76,6 +75,11 @@ Pod::Spec.new do |s|
     test_spec.requires_app_host = true
     test_spec.app_host_name = 'Development/SampleTicTacToe'
     test_spec.source_files = 'Samples/TicTacToe/Tests/**/*.swift'
+  end
+
+  s.app_spec 'SwiftUITestbed' do |app_spec|
+    app_spec.source_files = 'Samples/SwiftUITestbed/Sources/**/*.swift'
+    app_spec.dependency 'MarketWorkflowUI', '69.0.1'
   end
 
   s.app_spec 'SampleSplitScreen' do |app_spec|
