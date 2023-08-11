@@ -27,18 +27,18 @@ struct RootWorkflow: Workflow {
 
         struct BackStack {
             let root: Screen
-            var other: [Screen]
+            var other: [Screen] = []
         }
 
         enum Screen {
             case placeholder
-            case main
+            case main(UUID)
         }
     }
 
     func makeInitialState() -> State {
         State(
-            backStack: .init(root: .placeholder, other: [.main]),
+            backStack: .init(root: .main(UUID())),
             modals: []
         )
     }
@@ -53,7 +53,7 @@ struct RootWorkflow: Workflow {
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
             case .main(.pushScreen):
-                state.backStack.other.append(.placeholder)
+                state.backStack.other.append(.main(UUID()))
             case .main(.presentScreen):
                 state.modals.append(.placeholder)
             case .popScreen:
@@ -73,11 +73,11 @@ struct RootWorkflow: Workflow {
 
         func rendering(_ screen: State.Screen) -> AnyMarketBackStackContentScreen {
             switch screen {
-            case .main:
+            case .main(let id):
                 return MainWorkflow()
                     .mapOutput(Action.main)
                     .mapRendering(AnyMarketBackStackContentScreen.init)
-                    .rendered(in: context)
+                    .rendered(in: context, key: id.uuidString)
             case .placeholder:
                 return PlaceholderScreen()
                     .asAnyMarketBackStackContentScreen()
