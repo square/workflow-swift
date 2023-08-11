@@ -19,29 +19,29 @@ import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
 
-struct MainScreen: MarketScreen {
-    let didTapPushScreen: () -> Void
-
+struct PlaceholderScreen: MarketScreen {
     func element(
         in context: MarketWorkflowUI.MarketScreenContext,
         with styles: MarketTheming.MarketStylesheet
     ) -> BlueprintUI.Element {
         MarketScreenContent {
             Column(
-                underflow: .justifyToStart,
-                minimumSpacing: styles.spacings.spacing200
+                alignment: .fill,
+                underflow: .justifyToStart
             ) {
-                MarketButton(
-                    style: styles.button(rank: .primary),
-                    text: "Push Screen",
-                    onTap: didTapPushScreen
-                )
+                MarketLabel(
+                    textStyle: styles.typography.paragraph20,
+                    color: styles.colors.text10,
+                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                ) {
+                    $0.lineLimit = nil
+                }
             }
         }
     }
 }
 
-extension MainScreen: MarketBackStackContentScreen {
+extension PlaceholderScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
             title: .text(.init(regular: String(describing: Self.self)))

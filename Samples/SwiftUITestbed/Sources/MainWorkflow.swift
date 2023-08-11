@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import MarketWorkflowUI
 import Workflow
 
 // MARK: Input and Output
@@ -27,6 +28,7 @@ struct MainWorkflow: Workflow {
 extension MainWorkflow {
     enum State: Equatable {
         case initial
+        case screenPushed
     }
 
     func makeInitialState() -> MainWorkflow.State {
@@ -40,8 +42,17 @@ extension MainWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = MainWorkflow
 
+        case pushScreen
+        case popScreen
+
         func apply(toState state: inout MainWorkflow.State) -> MainWorkflow.Output? {
-            switch self {}
+            switch self {
+            case .pushScreen:
+                state = .screenPushed
+            case .popScreen:
+                state = .initial
+            }
+            return nil
         }
     }
 }
@@ -49,12 +60,27 @@ extension MainWorkflow {
 // MARK: Rendering
 
 extension MainWorkflow {
-    typealias Rendering = MainScreen
+    typealias Rendering = MarketBackStack<AnyMarketBackStackContentScreen>
 
     func render(state: MainWorkflow.State, context: RenderContext<MainWorkflow>) -> Rendering {
+        let sink = context.makeSink(of: Action.self)
+
+        let rootScreen = MainScreen(
+            didTapPushScreen: { sink.send(.pushScreen) }
+        ).asAnyMarketBackStackContentScreen()
+
+        var backStack = MarketBackStack(root: rootScreen)
+
         switch state {
         case .initial:
-            return MainScreen()
+            break
+        case .screenPushed:
+            backStack.add(
+                screen: PlaceholderScreen().asAnyMarketBackStackContentScreen(),
+                onPop: { sink.send(.popScreen) }
+            )
         }
+
+        return backStack
     }
 }
