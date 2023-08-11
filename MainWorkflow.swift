@@ -23,10 +23,12 @@ struct MainWorkflow: Workflow {
         case presentScreen
     }
 
-    struct State {}
+    struct State {
+        var title: String
+    }
 
     func makeInitialState() -> State {
-        State()
+        State(title: "New item")
     }
 
     enum Action: WorkflowAction {
@@ -34,6 +36,7 @@ struct MainWorkflow: Workflow {
 
         case pushScreen
         case presentScreen
+        case changeTitle(newValue: String)
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -41,6 +44,9 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
+            case .changeTitle(let newValue):
+                state.title = newValue
+                return nil
             }
         }
     }
@@ -51,6 +57,8 @@ struct MainWorkflow: Workflow {
         let sink = context.makeSink(of: Action.self)
 
         return MainScreen(
+            title: state.title,
+            didChangeTitle: { sink.send(.changeTitle(newValue: $0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) }
         )

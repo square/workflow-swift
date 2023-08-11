@@ -20,6 +20,8 @@ import MarketWorkflowUI
 import ViewEnvironment
 
 struct MainScreen: MarketScreen {
+    let title: String
+    let didChangeTitle: (String) -> Void
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
 
@@ -32,6 +34,13 @@ struct MainScreen: MarketScreen {
                 underflow: .justifyToStart,
                 minimumSpacing: styles.spacings.spacing200
             ) {
+                MarketTextField(
+                    style: styles.fields.textField,
+                    label: "Title",
+                    text: title,
+                    onChange: didChangeTitle
+                )
+
                 MarketButton(
                     style: styles.button(rank: .primary),
                     text: "Push Screen",
@@ -51,7 +60,7 @@ struct MainScreen: MarketScreen {
 extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: String(describing: Self.self)))
+            title: .text(.init(regular: title))
         )
     }
 
