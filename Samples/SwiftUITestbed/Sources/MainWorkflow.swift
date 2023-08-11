@@ -29,6 +29,7 @@ extension MainWorkflow {
     enum State: Equatable {
         case initial
         case screenPushed
+        case screenPresented
     }
 
     func makeInitialState() -> MainWorkflow.State {
@@ -44,12 +45,18 @@ extension MainWorkflow {
 
         case pushScreen
         case popScreen
+        case presentScreen
+        case dismissScreen
 
         func apply(toState state: inout MainWorkflow.State) -> MainWorkflow.Output? {
             switch self {
             case .pushScreen:
                 state = .screenPushed
             case .popScreen:
+                state = .initial
+            case .presentScreen:
+                state = .screenPresented
+            case .dismissScreen:
                 state = .initial
             }
             return nil
@@ -60,27 +67,45 @@ extension MainWorkflow {
 // MARK: Rendering
 
 extension MainWorkflow {
-    typealias Rendering = MarketBackStack<AnyMarketBackStackContentScreen>
+    typealias Rendering = ModalContainer<
+        MarketBackStack<AnyMarketBackStackContentScreen>,
+        MarketDialogScreen
+    >
 
     func render(state: MainWorkflow.State, context: RenderContext<MainWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
         let rootScreen = MainScreen(
-            didTapPushScreen: { sink.send(.pushScreen) }
+            didTapPushScreen: { sink.send(.pushScreen) },
+            didTapPresentScreen: { sink.send(.presentScreen) }
         ).asAnyMarketBackStackContentScreen()
 
-        var backStack = MarketBackStack(root: rootScreen)
+        var modalContainer = Rendering(
+            base: MarketBackStack(root: rootScreen)
+        )
 
         switch state {
         case .initial:
             break
         case .screenPushed:
-            backStack.add(
+            modalContainer.base.add(
                 screen: PlaceholderScreen().asAnyMarketBackStackContentScreen(),
                 onPop: { sink.send(.popScreen) }
             )
+        case .screenPresented:
+            modalContainer.modals.append(Modal(
+                key: "modal",
+                content: MarketDialogScreen(
+                    title: "Lorem ipsum dolor",
+                    message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                    primaryAction: .init(
+                        text: "Dismiss",
+                        onTap: { sink.send(.dismissScreen) }
+                    )
+                )
+            ))
         }
 
-        return backStack
+        return modalContainer
     }
 }

@@ -21,6 +21,7 @@ import ViewEnvironment
 
 struct MainScreen: MarketScreen {
     let didTapPushScreen: () -> Void
+    let didTapPresentScreen: () -> Void
 
     func element(
         in context: MarketWorkflowUI.MarketScreenContext,
@@ -35,6 +36,12 @@ struct MainScreen: MarketScreen {
                     style: styles.button(rank: .primary),
                     text: "Push Screen",
                     onTap: didTapPushScreen
+                )
+
+                MarketButton(
+                    style: styles.button(rank: .primary),
+                    text: "Present Screen",
+                    onTap: didTapPresentScreen
                 )
             }
         }
