@@ -275,6 +275,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         try assertions(rendering)
 
         return RenderTesterResult<WorkflowType>(
+            initialState: state,
             state: contextImplementation.state,
             appliedAction: contextImplementation.appliedAction,
             output: contextImplementation.producedOutput

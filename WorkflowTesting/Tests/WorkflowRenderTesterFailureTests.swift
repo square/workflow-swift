@@ -340,6 +340,18 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
     }
+
+    func test_assertState() {
+        let result = TestWorkflow()
+            .renderTester(initialState: .idle)
+            .render { _ in }
+
+        expectingFailure("Initial state did not match new state") {
+            result.assertState { state in
+                state = .sideEffect(key: "nah")
+            }
+        }
+    }
 }
 
 private struct TestWorkflow: Workflow {

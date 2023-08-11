@@ -20,11 +20,13 @@ import XCTest
 /// The result of a `RenderTester` rendering. Used to verify state, output, and actions that were produced as a result of
 /// actions performed during the render (such as child workflow output being produced).
 public struct RenderTesterResult<WorkflowType: Workflow> {
+    let initialState: WorkflowType.State
     let state: WorkflowType.State
     let appliedAction: AppliedAction<WorkflowType>?
     let output: WorkflowType.Output?
 
-    internal init(state: WorkflowType.State, appliedAction: AppliedAction<WorkflowType>?, output: WorkflowType.Output?) {
+    internal init(initialState: WorkflowType.State, state: WorkflowType.State, appliedAction: AppliedAction<WorkflowType>?, output: WorkflowType.Output?) {
+        self.initialState = initialState
         self.state = state
         self.appliedAction = appliedAction
         self.output = output
@@ -38,6 +40,22 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         assertions: (WorkflowType.State) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         try assertions(state)
+        return self
+    }
+
+    /// Exhaustive state testing against the initial state.
+    /// - Parameters:
+    ///   - changes: A function that receives the initial state
+    ///   and is expected to mutate it to match the new state.
+    @discardableResult
+    public func assertState(
+        file: StaticString = #file,
+        line: UInt = #line,
+        changes: (inout WorkflowType.State) throws -> Void
+    ) rethrows -> RenderTesterResult<WorkflowType> where WorkflowType.State: Equatable {
+        var initialState = self.initialState
+        try changes(&initialState)
+        XCTAssertEqual(initialState, state, "Initial state did not match new state", file: file, line: line)
         return self
     }
 
