@@ -19,11 +19,13 @@ import Workflow
 import WorkflowUI
 
 struct RootWorkflow: Workflow {
+    let close: (() -> Void)?
+
     typealias Output = Never
 
     struct State {
         var backStack: BackStack
-        var modals: [Screen]
+        var isPresentingModal: Bool
 
         struct BackStack {
             let root: Screen
@@ -32,14 +34,14 @@ struct RootWorkflow: Workflow {
 
         enum Screen {
             case placeholder
-            case main(UUID)
+            case main(id: UUID = UUID())
         }
     }
 
     func makeInitialState() -> State {
         State(
-            backStack: .init(root: .main(UUID())),
-            modals: []
+            backStack: .init(root: .main()),
+            isPresentingModal: false
         )
     }
 
@@ -53,13 +55,13 @@ struct RootWorkflow: Workflow {
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
             case .main(.pushScreen):
-                state.backStack.other.append(.main(UUID()))
+                state.backStack.other.append(.main())
             case .main(.presentScreen):
-                state.modals.append(.placeholder)
+                state.isPresentingModal = true
             case .popScreen:
                 state.backStack.other.removeLast()
             case .dismissScreen:
-                state.modals.removeLast()
+                state.isPresentingModal = false
             }
             return nil
         }
@@ -71,10 +73,10 @@ struct RootWorkflow: Workflow {
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
-        func rendering(_ screen: State.Screen) -> AnyMarketBackStackContentScreen {
+        func rendering(_ screen: State.Screen, isRoot: Bool) -> AnyMarketBackStackContentScreen {
             switch screen {
             case .main(let id):
-                return MainWorkflow()
+                return MainWorkflow(didClose: isRoot ? close : nil)
                     .mapOutput(Action.main)
                     .mapRendering(AnyMarketBackStackContentScreen.init)
                     .rendered(in: context, key: id.uuidString)
@@ -84,27 +86,30 @@ struct RootWorkflow: Workflow {
             }
         }
 
-        func backStackContent(_ screen: State.Screen) -> BackStack.Content {
-            rendering(screen)
+        func backStackContent(_ screen: State.Screen, isRoot: Bool) -> BackStack.Content {
+            rendering(screen, isRoot: isRoot)
                 .asContent(onPop: { sink.send(.popScreen) })
         }
 
         let backStack = MarketBackStack(
-            root: backStackContent(state.backStack.root),
-            other: state.backStack.other.map(backStackContent)
+            root: backStackContent(state.backStack.root, isRoot: true),
+            other: state.backStack.other.map { backStackContent($0, isRoot: false) }
         )
 
         return Rendering(
             base: backStack,
-            modals: state.modals.enumerated().map { index, screen in
-                Modal(
-                    key: index,
+            modals: {
+                guard state.isPresentingModal else { return [] }
+                let screen = RootWorkflow(close: { sink.send(.dismissScreen) })
+                    .rendered(in: context)
+                    .asAnyScreen()
+                let modal = Modal(
+                    key: "",
                     style: .full(),
-                    screen: rendering(screen).asMarketBackStack(with: .init {
-                        $0.backButton = .close { sink.send(.dismissScreen) }
-                    })
+                    content: screen
                 )
-            }
+                return [modal]
+            }()
         )
     }
 }

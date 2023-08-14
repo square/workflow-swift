@@ -24,6 +24,7 @@ struct MainScreen: MarketScreen {
     let didChangeTitle: (String) -> Void
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
+    let didTapClose: (() -> Void)?
 
     func element(
         in context: MarketWorkflowUI.MarketScreenContext,
@@ -60,7 +61,8 @@ struct MainScreen: MarketScreen {
 extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: title))
+            title: .text(.init(regular: title)),
+            backButton: didTapClose.map { .close(onTap: $0) } ?? .automatic()
         )
     }
 

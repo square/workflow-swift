@@ -18,6 +18,8 @@ import MarketWorkflowUI
 import Workflow
 
 struct MainWorkflow: Workflow {
+    let didClose: (() -> Void)?
+
     enum Output {
         case pushScreen
         case presentScreen
@@ -60,7 +62,8 @@ struct MainWorkflow: Workflow {
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle(newValue: $0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
-            didTapPresentScreen: { sink.send(.presentScreen) }
+            didTapPresentScreen: { sink.send(.presentScreen) },
+            didTapClose: didClose
         )
     }
 }
