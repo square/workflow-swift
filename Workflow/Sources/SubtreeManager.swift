@@ -331,12 +331,19 @@ extension WorkflowNode.SubtreeManager {
             case invalid
         }
 
+        /// Utility to detect reentrancy in `handle()`
+        private var isHandlingEvent: Bool = false
+
         init() {
             self.validationState = .preparing
         }
 
         func handle(event: Output) {
             dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
+
+            let isReentrantCall = isHandlingEvent
+            isHandlingEvent = true
+            defer { isHandlingEvent = isReentrantCall }
 
             switch validationState {
             case .preparing:
@@ -350,11 +357,25 @@ extension WorkflowNode.SubtreeManager {
 
             case .invalid:
                 #if DEBUG
+                // Reentrancy seems to often be due to UIKit behaviors over
+                // which we have little control (e.g. synchronous resignation
+                // of first responder after a new Rendering is assigned). Emit
+                // some debug info in these cases.
+                if isReentrantCall {
+                    print("[\(WorkflowType.self)]: ℹ️ Sink sent another action after it was invalidated but before its original action handling was resolved. This new action will be ignored. If this is unexpected, set a Swift error breakpoint on `\(InvalidSinkSentAction.self)` to debug.")
+                }
+
                 do {
-                    print("ℹ️ [Workflow::Note] – [\(WorkflowType.self)] Sink sent an action after it was invalidated. This action will be ignored. If this is unexpected, set a Swift error breakpoint on `\(InvalidSinkSentAction.self)` to debug.")
                     throw InvalidSinkSentAction()
                 } catch {}
                 #endif
+
+                // If we're invalid and this is the first time `handle()` has
+                // been called, then it's likely we've somehow been inadvertently
+                // retained from the 'outside world'. Fail more loudly in this case.
+                assert(isReentrantCall, """
+                    [\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored.
+                """)
             }
         }
 
