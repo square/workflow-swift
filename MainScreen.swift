@@ -23,6 +23,7 @@ struct MainScreen: MarketScreen {
     let title: String
     let didChangeTitle: (String) -> Void
     let allCapsToggleIsOn: Bool
+    let allCapsToggleIsEnabled: Bool
     let didChangeAllCapsToggle: (Bool) -> Void
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
@@ -57,6 +58,7 @@ struct MainScreen: MarketScreen {
                     MarketToggle(
                         style: styles.toggle.normal,
                         isOn: allCapsToggleIsOn,
+                        isEnabled: allCapsToggleIsEnabled,
                         accessibilityLabel: "is all caps",
                         onChange: didChangeAllCapsToggle
                     )

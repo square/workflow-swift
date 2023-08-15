@@ -70,6 +70,7 @@ struct MainWorkflow: Workflow {
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle(newValue: $0)) },
             allCapsToggleIsOn: state.isAllCaps,
+            allCapsToggleIsEnabled: !state.title.isEmpty,
             didChangeAllCapsToggle: { sink.send(.changeAllCaps(isAllCaps: $0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
