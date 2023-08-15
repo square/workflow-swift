@@ -20,13 +20,22 @@ import MarketWorkflowUI
 import ViewEnvironment
 
 struct MainScreen: MarketScreen {
+    enum Field: Hashable {
+        case title
+    }
+
+    @FocusState var focusedField: Field?
+
     let title: String
     let didChangeTitle: (String) -> Void
+
     let allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
     let didChangeAllCapsToggle: (Bool) -> Void
+
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
+
     let didTapClose: (() -> Void)?
 
     func element(
@@ -42,8 +51,11 @@ struct MainScreen: MarketScreen {
                     style: styles.fields.textField,
                     label: "Title",
                     text: title,
-                    onChange: didChangeTitle
+                    onChange: didChangeTitle,
+                    onReturn: { _ in focusedField = nil }
                 )
+                .focused(when: $focusedField, equals: .title)
+                .onAppear { focusedField = .title }
 
                 Row(
                     alignment: .center,
