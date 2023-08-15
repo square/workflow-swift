@@ -125,7 +125,7 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
 
     /// Exhaustive state testing against the initial state.
     /// - Parameters:
-    ///   - changes: A function that receives the initial state
+    ///   - modifications: A function that receives the initial state
     ///   and is expected to mutate it to match the new state.
     @discardableResult
     public func assertStateModifications(
