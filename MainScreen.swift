@@ -22,6 +22,8 @@ import ViewEnvironment
 struct MainScreen: MarketScreen {
     let title: String
     let didChangeTitle: (String) -> Void
+    let allCapsToggleIsOn: Bool
+    let didChangeAllCapsToggle: (Bool) -> Void
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
     let didTapClose: (() -> Void)?
@@ -41,6 +43,24 @@ struct MainScreen: MarketScreen {
                     text: title,
                     onChange: didChangeTitle
                 )
+
+                Row(
+                    alignment: .center,
+                    minimumSpacing: styles.spacings.spacing200
+                ) {
+                    MarketLabel(
+                        textStyle: styles.typography.semibold30,
+                        color: styles.colors.text10,
+                        text: "All Caps"
+                    )
+
+                    MarketToggle(
+                        style: styles.toggle.normal,
+                        isOn: allCapsToggleIsOn,
+                        accessibilityLabel: "is all caps",
+                        onChange: didChangeAllCapsToggle
+                    )
+                }
 
                 MarketButton(
                     style: styles.button(rank: .primary),

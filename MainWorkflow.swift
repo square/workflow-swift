@@ -27,10 +27,11 @@ struct MainWorkflow: Workflow {
 
     struct State {
         var title: String
+        var isAllCaps: Bool
     }
 
     func makeInitialState() -> State {
-        State(title: "New item")
+        State(title: "New item", isAllCaps: false)
     }
 
     enum Action: WorkflowAction {
@@ -39,6 +40,7 @@ struct MainWorkflow: Workflow {
         case pushScreen
         case presentScreen
         case changeTitle(newValue: String)
+        case changeAllCaps(isAllCaps: Bool)
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -48,8 +50,14 @@ struct MainWorkflow: Workflow {
                 return .presentScreen
             case .changeTitle(let newValue):
                 state.title = newValue
-                return nil
+                state.isAllCaps = newValue.allSatisfy { character in
+                    character.isUppercase || !character.isCased
+                }
+            case .changeAllCaps(let isAllCaps):
+                state.isAllCaps = isAllCaps
+                state.title = isAllCaps ? state.title.uppercased() : state.title.lowercased()
             }
+            return nil
         }
     }
 
@@ -61,6 +69,8 @@ struct MainWorkflow: Workflow {
         return MainScreen(
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle(newValue: $0)) },
+            allCapsToggleIsOn: state.isAllCaps,
+            didChangeAllCapsToggle: { sink.send(.changeAllCaps(isAllCaps: $0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
             didTapClose: didClose
