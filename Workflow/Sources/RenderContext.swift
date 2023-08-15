@@ -67,6 +67,16 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         fatalError()
     }
 
+    /// Creates a `Sink` that can be used to send `Action`s.
+    ///
+    /// Sinks are the primary mechanism for feeding State-changing events into the Workflow runtime.
+    /// Upon receipt of an action, the associated Workflow (node) in the tree will have its State
+    /// potentially transformed, and then any subsequent Output will be propagated to its parent node until
+    /// the root of the Workflow tree is reached. At this point the tree will be re-rendered to reflect any
+    /// State changes that occurred.
+    ///
+    /// - Parameter actionType: The type of Action this Sink may process
+    /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
     public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
         fatalError()
     }
@@ -114,6 +124,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         }
 
         override func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
+            assertStillValid()
             return implementation.makeSink(of: actionType)
         }
 
