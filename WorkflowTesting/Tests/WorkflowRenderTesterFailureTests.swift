@@ -346,8 +346,8 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .renderTester(initialState: .idle)
             .render { _ in }
 
-        expectingFailure("Initial state did not match new state") {
-            result.assertState { state in
+        expectingFailure("Expected state does not match") {
+            result.assertStateModifications { state in
                 state = .sideEffect(key: "nah")
             }
         }

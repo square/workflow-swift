@@ -43,22 +43,6 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         return self
     }
 
-    /// Exhaustive state testing against the initial state.
-    /// - Parameters:
-    ///   - changes: A function that receives the initial state
-    ///   and is expected to mutate it to match the new state.
-    @discardableResult
-    public func assertState(
-        file: StaticString = #file,
-        line: UInt = #line,
-        changes: (inout WorkflowType.State) throws -> Void
-    ) rethrows -> RenderTesterResult<WorkflowType> where WorkflowType.State: Equatable {
-        var initialState = self.initialState
-        try changes(&initialState)
-        XCTAssertEqual(initialState, state, "Initial state did not match new state", file: file, line: line)
-        return self
-    }
-
     /// Asserts that no actions were produced
     @discardableResult
     public func assertNoAction(
@@ -136,6 +120,22 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
         XCTAssertEqual(state, expectedState, file: file, line: line)
+        return self
+    }
+
+    /// Exhaustive state testing against the initial state.
+    /// - Parameters:
+    ///   - changes: A function that receives the initial state
+    ///   and is expected to mutate it to match the new state.
+    @discardableResult
+    public func assertStateModifications(
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ modifications: (inout WorkflowType.State) throws -> Void
+    ) rethrows -> RenderTesterResult<WorkflowType> {
+        var initialState = self.initialState
+        try modifications(&initialState)
+        XCTAssertEqual(state, initialState, "Expected state does not match", file: file, line: line)
         return self
     }
 }
