@@ -160,9 +160,11 @@ final class ConcurrencyTests: XCTestCase {
         let secondScreen = host.rendering.value
         XCTAssertEqual(1, secondScreen.count)
 
-        // MANUAL TEST CASE: Uncomment to validate this fatal errors.
-        // Calling `update` uses the original sink. This will fail with a fatalError as the sink was not redeclared.
-        // initialScreen.update()
+        // Calling `update` uses the original sink. Historically this would be expected
+        // to trigger a fatal error, but as of https://github.com/square/workflow-swift/pull/189
+        // the internal event handling infrastructure is expected to have been
+        // torn down by this point, so this should just no-op.
+        initialScreen.update()
 
         // If the sink *was* still valid, this would be correct. However, it should just fail and be `1` still.
         // XCTAssertEqual(2, secondScreen.count)
