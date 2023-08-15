@@ -185,6 +185,9 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .verifyState { state in
                 XCTAssertEqual("Failed", state.text)
             }
+            .assertStateModifications { state in
+                state.text = "Failed"
+            }
     }
 }
 
