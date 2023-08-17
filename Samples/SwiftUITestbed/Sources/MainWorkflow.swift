@@ -28,10 +28,15 @@ struct MainWorkflow: Workflow {
     struct State {
         var title: String
         var isAllCaps: Bool
+
+        init(title: String) {
+            self.title = title
+            self.isAllCaps = title.isAllCaps
+        }
     }
 
     func makeInitialState() -> State {
-        State(title: "New item", isAllCaps: false)
+        State(title: "New item")
     }
 
     enum Action: WorkflowAction {
@@ -39,8 +44,8 @@ struct MainWorkflow: Workflow {
 
         case pushScreen
         case presentScreen
-        case changeTitle(newValue: String)
-        case changeAllCaps(isAllCaps: Bool)
+        case changeTitle(String)
+        case changeAllCaps(Bool)
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -50,9 +55,7 @@ struct MainWorkflow: Workflow {
                 return .presentScreen
             case .changeTitle(let newValue):
                 state.title = newValue
-                state.isAllCaps = newValue.allSatisfy { character in
-                    character.isUppercase || !character.isCased
-                }
+                state.isAllCaps = newValue.isAllCaps
             case .changeAllCaps(let isAllCaps):
                 state.isAllCaps = isAllCaps
                 state.title = isAllCaps ? state.title.uppercased() : state.title.lowercased()
@@ -68,13 +71,21 @@ struct MainWorkflow: Workflow {
 
         return MainScreen(
             title: state.title,
-            didChangeTitle: { sink.send(.changeTitle(newValue: $0)) },
+            didChangeTitle: { sink.send(.changeTitle($0)) },
             allCapsToggleIsOn: state.isAllCaps,
             allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps(isAllCaps: $0)) },
+            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
             didTapClose: didClose
         )
+    }
+}
+
+private extension String {
+    var isAllCaps: Bool {
+        allSatisfy { character in
+            character.isUppercase || !character.isCased
+        }
     }
 }

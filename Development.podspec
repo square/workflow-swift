@@ -82,6 +82,14 @@ Pod::Spec.new do |s|
     app_spec.dependency 'MarketWorkflowUI', '69.0.1'
   end
 
+  s.test_spec 'SwiftUITestbedTests' do |test_spec|
+    test_spec.dependency 'Development/SwiftUITestbed'
+    test_spec.dependency 'WorkflowTesting'
+    test_spec.requires_app_host = true
+    test_spec.app_host_name = 'Development/SwiftUITestbed'
+    test_spec.source_files = 'Samples/SwiftUITestbed/Tests/**/*.swift'
+  end
+
   s.app_spec 'SampleSplitScreen' do |app_spec|
     app_spec.dependency 'SplitScreenContainer'
     app_spec.source_files = 'Samples/SplitScreenContainer/DemoApp/**/*.swift'
