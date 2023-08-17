@@ -101,6 +101,12 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 
     final func invalidate() {
         isValid = false
+        _onInvalidate()
+    }
+
+    /// Private method for subclasses to use to perform teardown upon invalidation
+    internal func _onInvalidate() {
+        fatalError("subclasses must implement")
     }
 
     // API to allow custom context implementations to power a render context
@@ -111,7 +117,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
     // that is ever instantiated.
     private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
-        let implementation: T
+        private var implementation: T!
 
         init(_ implementation: T) {
             self.implementation = implementation
@@ -131,6 +137,10 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
             assertStillValid()
             implementation.runSideEffect(key: key, action: action)
+        }
+
+        override func _onInvalidate() {
+            implementation = nil
         }
 
         private func assertStillValid() {
