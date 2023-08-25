@@ -33,7 +33,6 @@ struct RootWorkflow: Workflow {
         }
 
         enum Screen {
-            case placeholder
             case main(id: UUID = UUID())
         }
     }
@@ -80,9 +79,6 @@ struct RootWorkflow: Workflow {
                     .mapOutput(Action.main)
                     .mapRendering(AnyMarketBackStackContentScreen.init)
                     .rendered(in: context, key: id.uuidString)
-            case .placeholder:
-                return PlaceholderScreen()
-                    .asAnyMarketBackStackContentScreen()
             }
         }
 
