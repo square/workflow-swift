@@ -47,9 +47,14 @@ struct MainScreen: MarketScreen {
                 underflow: .justifyToStart,
                 minimumSpacing: styles.spacings.spacing200
             ) {
+                MarketInlineSectionHeader(
+                    style: styles.headers.inlineSection20,
+                    title: "Title"
+                )
+
                 MarketTextField(
                     style: styles.fields.textField,
-                    label: "Title",
+                    label: "Text",
                     text: title,
                     onChange: didChangeTitle,
                     onReturn: { _ in focusedField = nil }
@@ -62,7 +67,7 @@ struct MainScreen: MarketScreen {
                     minimumSpacing: styles.spacings.spacing200
                 ) {
                     MarketLabel(
-                        textStyle: styles.typography.semibold30,
+                        textStyle: styles.typography.semibold20,
                         color: styles.colors.text10,
                         text: "All Caps"
                     )
@@ -76,14 +81,21 @@ struct MainScreen: MarketScreen {
                     )
                 }
 
+                Spacer(styles.spacings.spacing50)
+
+                MarketInlineSectionHeader(
+                    style: styles.headers.inlineSection20,
+                    title: "Navigation"
+                )
+
                 MarketButton(
-                    style: styles.button(rank: .primary),
+                    style: styles.button(rank: .secondary),
                     text: "Push Screen",
                     onTap: didTapPushScreen
                 )
 
                 MarketButton(
-                    style: styles.button(rank: .primary),
+                    style: styles.button(rank: .secondary),
                     text: "Present Screen",
                     onTap: didTapPresentScreen
                 )
