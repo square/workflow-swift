@@ -401,11 +401,11 @@ public final class ViewEnvironmentUpdateObservationLifetime {
 }
 
 private enum ViewEnvironmentPropagatingNSObjectAssociatedKeys {
-    static var needsEnvironmentUpdate = NSObject()
-    static var needsUpdateObservers = NSObject()
-    static var ancestorOverride = NSObject()
-    static var descendantsOverride = NSObject()
-    static var customizations = NSObject()
+    static var needsEnvironmentUpdate: UInt8 = 0
+    static var needsUpdateObservers: UInt8 = 0
+    static var ancestorOverride: UInt8 = 0
+    static var descendantsOverride: UInt8 = 0
+    static var customizations: UInt8 = 0
 }
 
 extension ViewEnvironmentPropagating {
