@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import TutorialBase
+import Tutorial5
 import UIKit
 
 @UIApplicationMain

@@ -24,7 +24,7 @@ public protocol SwiftUIScreen: Screen {
     associatedtype Content: View
 
     @ViewBuilder
-    static func makeView(model: ObservableValue<Self>) -> Content
+    static func makeView(model: ObservableObjectValue<Self>) -> Content
 
     static var isDuplicate: ((Self, Self) -> Bool)? { get }
 }
@@ -43,8 +43,8 @@ public extension SwiftUIScreen {
             type: ModeledHostingController<Self, WithModel<Self, EnvironmentInjectingView<Content>>>.self,
             environment: environment,
             build: {
-                let (model, modelSink) = ObservableValue.makeObservableValue(self, isDuplicate: Self.isDuplicate)
-                let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(environment)
+                let (model, modelSink) = ObservableObjectValue.makeObservableValue(self, isDuplicate: Self.isDuplicate)
+                let (viewEnvironment, envSink) = ObservableObjectValue.makeObservableValue(environment)
                 return ModeledHostingController(
                     modelSink: modelSink,
                     viewEnvironmentSink: envSink,
@@ -65,7 +65,7 @@ public extension SwiftUIScreen {
 }
 
 private struct EnvironmentInjectingView<Content: View>: View {
-    @ObservedObject var viewEnvironment: ObservableValue<ViewEnvironment>
+    @ObservedObject var viewEnvironment: ObservableObjectValue<ViewEnvironment>
     let content: Content
 
     var body: some View {
@@ -74,7 +74,7 @@ private struct EnvironmentInjectingView<Content: View>: View {
     }
 }
 
-private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
+final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
     let modelSink: Sink<Model>
     let viewEnvironmentSink: Sink<ViewEnvironment>
 

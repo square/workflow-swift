@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.cocoapods_version = '>= 1.7.0'
 
   s.swift_versions = [WORKFLOW_SWIFT_VERSION]
-  s.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
+  s.ios.deployment_target = '17.0'
 
   s.source_files = 'Sources/**/*.swift'
   s.resource_bundle = { 'TutorialResources' => ['Resources/**/*'] }
@@ -19,6 +19,7 @@ Pod::Spec.new do |s|
   s.dependency 'TutorialViews'
   s.dependency 'Workflow'
   s.dependency 'WorkflowUI'
+  s.dependency 'WorkflowSwiftUI'
   s.dependency 'BackStackContainer'
   s.dependency 'WorkflowReactiveSwift'
 

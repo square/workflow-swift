@@ -17,12 +17,12 @@
 import SwiftUI
 
 struct WithModel<Model, Content: View>: View {
-    @ObservedObject private var model: ObservableValue<Model>
-    private let content: (ObservableValue<Model>) -> Content
+    @ObservedObject private var model: ObservableObjectValue<Model>
+    private let content: (ObservableObjectValue<Model>) -> Content
 
     init(
-        _ model: ObservableValue<Model>,
-        @ViewBuilder content: @escaping (ObservableValue<Model>) -> Content
+        _ model: ObservableObjectValue<Model>,
+        @ViewBuilder content: @escaping (ObservableObjectValue<Model>) -> Content
     ) {
         self.model = model
         self.content = content
