@@ -21,17 +21,19 @@ import XCTest
 @testable import WorkflowReactiveSwift
 
 extension RenderTester {
-    /// Expect a `SignalProducer`.
+    /// Expect a `SignalProducer` with an optional output.
     ///
     /// `SignalProducerWorkflow` is used to subscribe to `SignalProducer`s and `Signal`s.
     ///
     ///  ⚠️ N.B. If you are testing a case in which multiple `SignalProducerWorkflow`s are expected, **only one of them** may have a non-nil `producingOutput` parameter.
     ///
     /// - Parameters:
+    ///   - outputType: The `OutputType` of the expected `SignalProducerWorkflow`. Typically this will be correctly inferred by the type system, but may need to be explicitly specified if particular optionality is desired.
     ///   - producingOutput: An output that should be returned when this worker is requested, if any.
     ///   - key: Key to expect this `Workflow` to be rendered with.
     public func expectSignalProducer<OutputType>(
-        producingOutput output: OutputType? = nil,
+        outputType: OutputType.Type = OutputType.self,
+        producingOutput: OutputType? = nil,
         key: String = "",
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
@@ -39,25 +41,7 @@ extension RenderTester {
             type: SignalProducerWorkflow<OutputType>.self,
             key: key,
             producingRendering: (),
-            producingOutput: output,
-            assertions: { _ in }
-        )
-    }
-
-    /// Expect a `SignalProducer` with the specified `outputType` that produces no `Output`.
-    ///
-    /// - Parameters:
-    ///   - outputType: The `OutputType` of the expected `SignalProducerWorkflow`.
-    ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expectSignalProducer<OutputType>(
-        outputType: OutputType.Type,
-        key: String = "",
-        file: StaticString = #file, line: UInt = #line
-    ) -> RenderTester<WorkflowType> {
-        expectWorkflow(
-            type: SignalProducerWorkflow<OutputType>.self,
-            key: key,
-            producingRendering: (),
+            producingOutput: producingOutput,
             assertions: { _ in }
         )
     }

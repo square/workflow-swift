@@ -24,9 +24,11 @@ extension RenderTester {
     /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
 
     /// - Parameters:
-    ///   - worker: The worker to be expected
-    ///   - output: An output that should be returned when this worker is requested, if any.
+    ///   - outputType: The `OutputType` of the expected `ObservableWorkflow`.
+    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
+    ///   - key: Key to expect this `Workflow` to be rendered with.
     public func expectObservable<OutputType>(
+        outputType: OutputType.Type = OutputType.self,
         producingOutput output: OutputType? = nil,
         key: String = "",
         file: StaticString = #file, line: UInt = #line

@@ -50,6 +50,16 @@ class SignalProducerTests: XCTestCase {
             .render {}
     }
 
+    func test_signalProducerWorkflow_optionalOutput() {
+        OptionalOutputWorkflow()
+            .renderTester()
+            .expectSignalProducer(
+                outputType: Int?.self, // comment this out & test fails
+                producingOutput: nil as Int?
+            )
+            .render {}
+    }
+
     private struct TestWorkflow: Workflow {
         typealias State = Void
         typealias Rendering = Void
@@ -62,6 +72,18 @@ class SignalProducerTests: XCTestCase {
                     .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
                     .running(in: context, key: key)
             }
+        }
+    }
+
+    private struct OptionalOutputWorkflow: Workflow {
+        typealias State = Void
+        typealias Rendering = Void
+        typealias Output = Int?
+
+        func render(state: State, context: RenderContext<Self>) -> Rendering {
+            SignalProducer(value: Int?.some(1))
+                .mapOutput { _ in AnyWorkflowAction<Self>.noAction }
+                .rendered(in: context)
         }
     }
 }
