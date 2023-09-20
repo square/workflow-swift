@@ -92,7 +92,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.2.0"),
+        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.6.0"),
         .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.44.14"),
     ],
     targets: [
