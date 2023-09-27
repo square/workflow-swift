@@ -87,25 +87,20 @@ struct RootWorkflow: Workflow {
                 .asContent(onPop: { sink.send(.popScreen) })
         }
 
-        let backStack = MarketBackStack(
+        return MarketBackStack(
             root: backStackContent(state.backStack.root, isRoot: true),
             other: state.backStack.other.map { backStackContent($0, isRoot: false) }
         )
-
-        return Rendering(
-            base: backStack,
-            modals: {
-                guard state.isPresentingModal else { return [] }
-                let screen = RootWorkflow(close: { sink.send(.dismissScreen) })
+        .presentingModals {
+            if state.isPresentingModal {
+                RootWorkflow(close: { sink.send(.dismissScreen) })
                     .rendered(in: context)
                     .asAnyScreen()
-                let modal = Modal(
-                    key: "",
-                    style: .full(),
-                    content: screen
-                )
-                return [modal]
-            }()
-        )
+                    .modal(
+                        key: "modal",
+                        style: .full()
+                    )
+            }
+        }
     }
 }
