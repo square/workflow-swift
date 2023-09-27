@@ -26,8 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = WorkflowHostingController(
             workflow: RootWorkflow(close: nil)
-                .mapRendering(MarketRootScreen.init)
                 .mapRendering(ModalHostContainer.init)
+                .mapRendering(MarketRootScreen.init)
         )
         window?.makeKeyAndVisible()
         return true
