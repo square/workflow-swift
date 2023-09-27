@@ -99,6 +99,12 @@ struct MainScreen: MarketScreen {
                     text: "Present Screen",
                     onTap: didTapPresentScreen
                 )
+
+                MarketButton(
+                    style: styles.button(rank: .secondary),
+                    text: "Resign Focus",
+                    onTap: { focusedField = nil }
+                )
             }
         }
     }
