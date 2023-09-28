@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
 
   s.app_spec 'SwiftUITestbed' do |app_spec|
     app_spec.source_files = 'Samples/SwiftUITestbed/Sources/**/*.swift'
-    app_spec.dependency 'MarketWorkflowUI', '69.0.1'
+    app_spec.dependency 'MarketWorkflowUI', '80.0.0'
   end
 
   s.test_spec 'SwiftUITestbedTests' do |test_spec|

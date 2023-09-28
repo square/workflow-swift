@@ -13,4 +13,4 @@ podspec_paths:
 external_source_pods:
   - MarketWorkflowUI:
     - :git: 'https://github.com/squareup/market.git'
-      :tag: 'ios/MarketWorkflowUI/69.0.1'
+      :tag: 'ios/MarketWorkflowUI/80.0.0'
