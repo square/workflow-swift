@@ -43,71 +43,60 @@ struct MainScreen: MarketScreen {
         in context: MarketWorkflowUI.MarketScreenContext,
         with styles: MarketTheming.MarketStylesheet
     ) -> BlueprintUI.Element {
-        MarketScreenContent {
-            Column(
-                underflow: .justifyToStart,
-                minimumSpacing: styles.spacings.spacing200
-            ) {
-                MarketInlineSectionHeader(
-                    style: styles.headers.inlineSection20,
-                    title: "Title"
-                )
+        Column(
+            alignment: .fill,
+            underflow: .justifyToStart,
+            minimumSpacing: styles.spacings.spacing200
+        ) {
+            MarketInlineSectionHeader(
+                style: styles.headers.inlineSection20,
+                title: "Title"
+            )
 
-                MarketTextField(
-                    style: styles.fields.textField,
-                    label: "Text",
-                    text: title,
-                    onChange: didChangeTitle,
-                    onReturn: { _ in focusedField = nil }
-                )
-                .focused(when: $focusedField, equals: .title)
-                .onAppear { focusedField = .title }
+            MarketTextField(
+                style: styles.fields.textField,
+                label: "Text",
+                text: title,
+                onChange: didChangeTitle,
+                onReturn: { _ in focusedField = nil }
+            )
+            .focused(when: $focusedField, equals: .title)
+            .onAppear { focusedField = .title }
 
-                Row(
-                    alignment: .center,
-                    minimumSpacing: styles.spacings.spacing200
-                ) {
-                    MarketLabel(
-                        textStyle: styles.typography.semibold20,
-                        color: styles.colors.text10,
-                        text: "All Caps"
-                    )
+            ToggleRow(
+                style: context.stylesheets.testbed.toggleRow,
+                label: "All Caps",
+                isEnabled: allCapsToggleIsEnabled,
+                isOn: allCapsToggleIsOn,
+                onChange: didChangeAllCapsToggle
+            )
 
-                    MarketToggle(
-                        style: styles.toggle.normal,
-                        isOn: allCapsToggleIsOn,
-                        isEnabled: allCapsToggleIsEnabled,
-                        accessibilityLabel: "is all caps",
-                        onChange: didChangeAllCapsToggle
-                    )
-                }
+            Spacer(styles.spacings.spacing50)
 
-                Spacer(styles.spacings.spacing50)
+            MarketInlineSectionHeader(
+                style: styles.headers.inlineSection20,
+                title: "Navigation"
+            )
 
-                MarketInlineSectionHeader(
-                    style: styles.headers.inlineSection20,
-                    title: "Navigation"
-                )
+            MarketButton(
+                style: styles.button(rank: .secondary),
+                text: "Push Screen",
+                onTap: didTapPushScreen
+            )
 
-                MarketButton(
-                    style: styles.button(rank: .secondary),
-                    text: "Push Screen",
-                    onTap: didTapPushScreen
-                )
+            MarketButton(
+                style: styles.button(rank: .secondary),
+                text: "Present Screen",
+                onTap: didTapPresentScreen
+            )
 
-                MarketButton(
-                    style: styles.button(rank: .secondary),
-                    text: "Present Screen",
-                    onTap: didTapPresentScreen
-                )
-
-                MarketButton(
-                    style: styles.button(rank: .secondary),
-                    text: "Resign Focus",
-                    onTap: { focusedField = nil }
-                )
-            }
+            MarketButton(
+                style: styles.button(rank: .secondary),
+                text: "Resign Focus",
+                onTap: { focusedField = nil }
+            )
         }
+        .marketScreenContent()
     }
 }
 
