@@ -17,6 +17,7 @@
 import BlueprintUI
 import MarketUI
 import MarketWorkflowUI
+import SwiftUI
 import ViewEnvironment
 
 struct MainScreen: MarketScreen {
@@ -24,7 +25,7 @@ struct MainScreen: MarketScreen {
         case title
     }
 
-    @FocusState var focusedField: Field?
+    @BlueprintUI.FocusState var focusedField: Field?
 
     let title: String
     let didChangeTitle: (String) -> Void
@@ -119,4 +120,21 @@ extension MainScreen: MarketBackStackContentScreen {
     }
 
     var backStackIdentifier: AnyHashable? { nil }
+}
+
+struct MainScreen_Preview: PreviewProvider {
+    static var previews: some View {
+        MainScreen(
+            title: "New item",
+            didChangeTitle: { _ in },
+            allCapsToggleIsOn: true,
+            allCapsToggleIsEnabled: true,
+            didChangeAllCapsToggle: { _ in },
+            didTapPushScreen: {},
+            didTapPresentScreen: {},
+            didTapClose: {}
+        )
+        .asMarketBackStack()
+        .marketPreview()
+    }
 }
