@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import BlueprintUI
 import MarketUI
+import SwiftUI
 
-struct ToggleRow: ProxyElement {
+struct ToggleRow: View {
     var style: Style
 
     var label: String
@@ -28,24 +28,20 @@ struct ToggleRow: ProxyElement {
 
     var onChange: (Bool) -> Void
 
-    var elementRepresentation: Element {
-        Row(
+    var body: some View {
+        HStack(
             alignment: .center,
-            minimumSpacing: style.spacing
+            spacing: style.spacing
         ) {
-            MarketLabel(
-                style: style.label,
-                text: label
-            )
-            .blockAccessibility()
+            Text(label)
+                .font(Font(style.label.text.font))
+                .accessibilityHidden(true)
 
-            MarketToggle(
-                style: style.toggle,
-                isOn: isOn,
-                isEnabled: isEnabled,
-                accessibilityLabel: label,
-                onChange: onChange
+            Toggle(
+                isOn: .init(get: { isOn }, set: onChange),
+                label: EmptyView.init
             )
+            .accessibilityLabel(label)
         }
     }
 }
