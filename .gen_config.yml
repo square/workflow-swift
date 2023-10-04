@@ -9,3 +9,8 @@ platforms:
   - ios
 podspec_paths:
   - Development.podspec
+
+external_source_pods:
+  - WorkflowSwiftUIExperimental:
+    - :git: 'https://github.com/squareup/WorkflowSwiftUIExperimental.git'
+      :commit: '012491b'
