@@ -17,7 +17,6 @@
 import BlueprintUI
 import MarketUI
 import MarketWorkflowUI
-import SwiftUI
 import ViewEnvironment
 
 struct MainScreen: MarketScreen {
@@ -111,6 +110,10 @@ extension MainScreen: MarketBackStackContentScreen {
     var backStackIdentifier: AnyHashable? { nil }
 }
 
+#if DEBUG
+
+import SwiftUI
+
 struct MainScreen_Preview: PreviewProvider {
     static var previews: some View {
         MainScreen(
@@ -127,3 +130,5 @@ struct MainScreen_Preview: PreviewProvider {
         .marketPreview()
     }
 }
+
+#endif
