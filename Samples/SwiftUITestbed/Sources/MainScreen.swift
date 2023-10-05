@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-import BlueprintUI
 import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
 import WorkflowSwiftUIExperimental
 
-struct MainScreen: MarketScreen {
-    enum Field: Hashable {
-        case title
-    }
-
-    @BlueprintUI.FocusState var focusedField: Field?
-
+struct MainScreen: SwiftUIScreen {
     let title: String
     let didChangeTitle: (String) -> Void
 
@@ -39,64 +32,67 @@ struct MainScreen: MarketScreen {
 
     let didTapClose: (() -> Void)?
 
-    func element(
-        in context: MarketWorkflowUI.MarketScreenContext,
-        with styles: MarketTheming.MarketStylesheet
-    ) -> BlueprintUI.Element {
-        Column(
-            alignment: .fill,
-            underflow: .justifyToStart,
-            minimumSpacing: styles.spacings.spacing200
-        ) {
-            MarketInlineSectionHeader(
-                style: styles.headers.inlineSection20,
-                title: "Title"
-            )
+    static func makeView(model: ObservableValue<MainScreen>) -> some View {
+        MainScreenView(model: model)
+    }
+}
 
-            MarketTextField(
-                style: styles.fields.textField,
-                label: "Text",
-                text: title,
-                onChange: didChangeTitle,
-                onReturn: { _ in focusedField = nil }
+private struct MainScreenView: View {
+    @ObservedObject var model: ObservableValue<MainScreen>
+
+    @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
+    @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
+
+    enum Field: Hashable {
+        case title
+    }
+
+    @FocusState var focusedField: Field?
+
+    var body: some View {
+        ScrollView { VStack {
+            Text("Title")
+                .font(Font(styles.headers.inlineSection20.heading.text.font))
+
+            TextField(
+                "Text",
+                text: model.binding(
+                    get: \.title,
+                    set: \.didChangeTitle
+                )
             )
-            .focused(when: $focusedField, equals: .title)
+            .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
 
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: allCapsToggleIsEnabled,
-                isOn: allCapsToggleIsOn,
-                onChange: didChangeAllCapsToggle
+                isEnabled: model.allCapsToggleIsEnabled,
+                isOn: model.allCapsToggleIsOn,
+                onChange: model.didChangeAllCapsToggle
             )
 
-            Spacer(styles.spacings.spacing50)
+            Spacer(minLength: styles.spacings.spacing50)
 
-            MarketInlineSectionHeader(
-                style: styles.headers.inlineSection20,
-                title: "Navigation"
+            Text("Navigation")
+                .font(Font(styles.headers.inlineSection20.heading.text.font))
+
+            Button(
+                "Push Screen",
+                action: model.didTapPushScreen
             )
 
-            MarketButton(
-                style: styles.button(rank: .secondary),
-                text: "Push Screen",
-                onTap: didTapPushScreen
+            Button(
+                "Present Screen",
+                action: model.didTapPresentScreen
             )
 
-            MarketButton(
-                style: styles.button(rank: .secondary),
-                text: "Present Screen",
-                onTap: didTapPresentScreen
+            Button(
+                "Resign Focus",
+                action: { focusedField = nil }
             )
 
-            MarketButton(
-                style: styles.button(rank: .secondary),
-                text: "Resign Focus",
-                onTap: { focusedField = nil }
-            )
-        }
-        .marketScreenContent()
+        } }
     }
 }
 

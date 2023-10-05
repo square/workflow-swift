@@ -78,6 +78,7 @@ Pod::Spec.new do |s|
   end
 
   s.app_spec 'SwiftUITestbed' do |app_spec|
+    app_spec.ios.deployment_target = '15.0'
     app_spec.source_files = 'Samples/SwiftUITestbed/Sources/**/*.swift'
     app_spec.dependency 'MarketWorkflowUI', '80.0.0'
     app_spec.dependency 'WorkflowSwiftUIExperimental'
