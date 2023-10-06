@@ -373,9 +373,13 @@ extension WorkflowNode.SubtreeManager {
                 // If we're invalid and this is the first time `handle()` has
                 // been called, then it's likely we've somehow been inadvertently
                 // retained from the 'outside world'. Fail more loudly in this case.
-                assert(isReentrantCall, """
-                    [\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored.
-                """)
+                if !isReentrantCall {
+                    var message: String {
+                        "[\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored."
+                    }
+                    ExternalLogging.logError(message)
+                    assertionFailure(message)
+                }
             }
         }
 
