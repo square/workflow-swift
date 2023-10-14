@@ -27,30 +27,31 @@
     ///    if isLoading {
     ///        return LoadingScreen(with: ...)
     ///    } else if isEmpty {
-    ///        return ContentScreen(with ...)
-    ///    } else {
     ///        return EmptyStateScreen(with: ...)
+    ///    } else {
+    ///        return ContentScreen(with: ...)
     ///    }
     /// }
     /// ```
-    public struct AnyContentScreen: Screen {
+    public struct AnyContentScreen<Content: Screen>: Screen {
         /// The transition to use when the underlying screen changes. Defaults to `.fade`.
         public var transition: ViewTransition
 
         /// The content screen currently displayed.
-        public let content: AnyScreen
+        public let content: Content
 
         /// Creates a new screen with the given transition and content.
-        public init<ScreenType: Screen>(
+        public init(
             transition: ViewTransition = .fade(),
-            content: () -> ScreenType
+            content: () -> Content
         ) {
             let content = content()
 
             if let content = content as? Self {
                 self = content
+                self.transition = transition
             } else {
-                self.content = content.asAnyScreen()
+                self.content = content
             }
 
             self.transition = transition
