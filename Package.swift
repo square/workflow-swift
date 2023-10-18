@@ -12,83 +12,41 @@ let package = Package(
     products: [
         // MARK: Workflow
 
-        .library(
-            name: "Workflow",
-            targets: ["Workflow"]
-        ),
-        .library(
-            name: "WorkflowTesting",
-            targets: ["WorkflowTesting"]
-        ),
+        .singleTargetLibrary("Workflow"),
+        .singleTargetLibrary("WorkflowTesting"),
 
         // MARK: WorkflowUI
 
-        .library(
-            name: "WorkflowUI",
-            targets: ["WorkflowUI"]
-        ),
-        .library(
-            name: "WorkflowSwiftUI",
-            targets: ["WorkflowSwiftUI"]
-        ),
+        .singleTargetLibrary("WorkflowUI"),
+        .singleTargetLibrary("WorkflowSwiftUI"),
 
         // MARK: WorkflowReactiveSwift
 
-        .library(
-            name: "WorkflowReactiveSwift",
-            targets: ["WorkflowReactiveSwift"]
-        ),
-        .library(
-            name: "WorkflowReactiveSwiftTesting",
-            targets: ["WorkflowReactiveSwiftTesting"]
-        ),
+        .singleTargetLibrary("WorkflowReactiveSwift"),
+        .singleTargetLibrary("WorkflowReactiveSwiftTesting"),
 
         // MARK: WorkflowRxSwift
 
-        .library(
-            name: "WorkflowRxSwift",
-            targets: ["WorkflowRxSwift"]
-        ),
-        .library(
-            name: "WorkflowRxSwiftTesting",
-            targets: ["WorkflowRxSwiftTesting"]
-        ),
+        .singleTargetLibrary("WorkflowRxSwift"),
+        .singleTargetLibrary("WorkflowRxSwiftTesting"),
 
         // MARK: WorkflowCombine
 
-        .library(
-            name: "WorkflowCombine",
-            targets: ["WorkflowCombine"]
-        ),
-        .library(
-            name: "WorkflowCombineTesting",
-            targets: ["WorkflowCombineTesting"]
-        ),
+        .singleTargetLibrary("WorkflowCombine"),
+        .singleTargetLibrary("WorkflowCombineTesting"),
 
         // MARK: WorkflowConcurrency
 
-        .library(
-            name: "WorkflowConcurrency",
-            targets: ["WorkflowConcurrency"]
-        ),
-        .library(
-            name: "WorkflowConcurrencyTesting",
-            targets: ["WorkflowConcurrencyTesting"]
-        ),
+        .singleTargetLibrary("WorkflowConcurrency"),
+        .singleTargetLibrary("WorkflowConcurrencyTesting"),
 
         // MARK: ViewEnvironment
 
-        .library(
-            name: "ViewEnvironment",
-            targets: ["ViewEnvironment"]
-        ),
+        .singleTargetLibrary("ViewEnvironment"),
 
         // MARK: ViewEnvironmentUI
 
-        .library(
-            name: "ViewEnvironmentUI",
-            targets: ["ViewEnvironmentUI"]
-        ),
+        .singleTargetLibrary("ViewEnvironmentUI"),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
@@ -246,3 +204,13 @@ let package = Package(
     ],
     swiftLanguageVersions: [.v5]
 )
+
+// MARK: Helpers
+
+extension PackageDescription.Product {
+    static func singleTargetLibrary(
+        _ name: String
+    ) -> PackageDescription.Product {
+        .library(name: name, targets: [name])
+    }
+}
