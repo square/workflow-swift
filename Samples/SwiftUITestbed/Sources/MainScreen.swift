@@ -38,7 +38,7 @@ struct MainScreen: SwiftUIScreen {
 }
 
 private struct MainScreenView: View {
-    @ObservedObject var model: AnyStore<MainScreen>
+    @ObservedObject var model: ObservableValue<MainScreen>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext

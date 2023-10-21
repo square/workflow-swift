@@ -17,15 +17,15 @@
 import Combine
 import Workflow
 
-public final class ObservableValue<Value>: Store {
+@dynamicMemberLookup
+public final class ObservableValue<Value>: ObservableObject {
     private var internalValue: Value
     private let subject = PassthroughSubject<Value, Never>()
     private var cancellable: AnyCancellable?
     private var isDuplicate: ((Value, Value) -> Bool)?
-
     public private(set) var value: Value {
         get {
-            internalValue
+            return internalValue
         }
         set {
             subject.send(newValue)
@@ -75,6 +75,14 @@ public final class ObservableValue<Value>: Store {
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
         return scopeToLocalValue(toLocalValue, isDuplicate: { $0 == $1 })
+    }
+
+    /// Returns the value at the given keypath of ``Value``.
+    ///
+    /// In combination with `@dynamicMemberLookup`, this allows us to write `model.myProperty` instead of
+    /// `model.value.myProperty` where `model` has type `ObservableValue<T>`.
+    public subscript<T>(dynamicMember keyPath: KeyPath<Value, T>) -> T {
+        internalValue[keyPath: keyPath]
     }
 
     private func scopeToLocalValue<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
