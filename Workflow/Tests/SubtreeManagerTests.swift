@@ -308,6 +308,11 @@ private struct TestWorkflow: Workflow {
                 return .helloWorld
             }
         }
+
+        func apply(toState state: inout TestWorkflow.State, workflow: TestWorkflow) -> TestWorkflow.Output? {
+            print("got props!")
+            return apply(toState: &state)
+        }
     }
 
     enum Output {

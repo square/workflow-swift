@@ -84,6 +84,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
             /// allowing the underlying conformance to be applied to the Workflow's State
             let outputEvent = openAndApply(
                 action,
+                to: &state,
+                workflow: workflow,
                 isExternal: source == .external
             )
 
@@ -185,6 +187,8 @@ private extension WorkflowNode {
     /// - Returns: An optional `Output` produced by the action application
     func openAndApply<A: WorkflowAction>(
         _ action: A,
+        to state: inout WorkflowType.State,
+        workflow: WorkflowType,
         isExternal: Bool
     ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
         let output: WorkflowType.Output?
@@ -208,7 +212,8 @@ private extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+//        output = action.apply(toState: &state)
+        output = action.apply(toState:&state, workflow:workflow)
 
         return output
     }

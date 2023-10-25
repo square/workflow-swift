@@ -28,13 +28,28 @@ public protocol WorkflowAction<WorkflowType> {
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
     func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
+
+    // 'props-ful' apply variant
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output?
 }
+
+extension WorkflowAction {
+    public func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        self.apply(toState:&state)
+    }
+}
+
+//public protocol WorkflowAwareAction: WorkflowAction {
+//    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output?
+//}
 
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
+
+    private let _compatApply: (inout WorkflowType.State) -> WorkflowType.Output?
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -50,9 +65,13 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             self = anyEvent
             return
         }
-        self._apply = { return base.apply(toState: &$0) }
         self.base = base
         self.isClosureBased = false
+        self._apply = {
+            base.apply(toState:&$0, workflow:$1)
+//            return base.apply(toState: &$0)
+        }
+        self._compatApply = { base.apply(toState:&$0) }
     }
 
     /// Creates a type-erased workflow action with the given `apply` implementation.
@@ -64,7 +83,8 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         line: UInt = #line
     ) {
         let closureAction = ClosureAction<WorkflowType>(
-            _apply: apply,
+            _apply: { state, _ in apply(&state) },
+            _compatApply: { state in apply(&state) },
             fileID: fileID,
             line: line
         )
@@ -74,13 +94,28 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
-        self._apply = closureAction.apply(toState:)
         self.base = closureAction
         self.isClosureBased = true
+        self._apply = closureAction.apply(toState:workflow:)
+        self._compatApply = {
+            openAndApply(closureAction, state: &$0)
+        }
+
+        func openAndApply<T: Workflow>(
+            _ action: some WorkflowAction<T>,
+            state: inout T.State
+        ) -> T.Output? {
+            action.apply(toState: &state)
+        }
     }
 
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        return _apply(&state)
+        return _compatApply(&state)
+//        return _apply(&state)
+    }
+
+    public func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        _apply(&state, workflow)
     }
 }
 
@@ -109,22 +144,29 @@ extension AnyWorkflowAction {
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
+    private let _compatApply: (inout WorkflowType.State) -> WorkflowType.Output?
     let fileID: StaticString
     let line: UInt
 
     init(
-        _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _apply: @escaping (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?,
+        _compatApply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
         fileID: StaticString,
         line: UInt
     ) {
         self._apply = _apply
+        self._compatApply = _compatApply
         self.fileID = fileID
         self.line = line
     }
 
     func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+        _compatApply(&state)
+    }
+
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        _apply(&state, workflow)
     }
 }
 
