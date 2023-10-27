@@ -18,8 +18,8 @@ Pod::Spec.new do |s|
 
     s.source_files = 'WorkflowSwiftUIExperimental/Sources/*.swift'
 
-    s.dependency 'Workflow'
-    s.dependency 'WorkflowUI'
+    s.dependency 'Workflow', WORKFLOW_VERSION
+    s.dependency 'WorkflowUI', WORKFLOW_VERSION
 
     s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
   end
