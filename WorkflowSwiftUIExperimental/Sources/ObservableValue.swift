@@ -22,7 +22,8 @@ public final class ObservableValue<Value>: ObservableObject {
     private var internalValue: Value
     private let subject = PassthroughSubject<Value, Never>()
     private var cancellable: AnyCancellable?
-    private var isDuplicate: ((Value, Value) -> Bool)?
+    private let isEquivalent: ((Value, Value) -> Bool)?
+
     public private(set) var value: Value {
         get {
             return internalValue
@@ -37,9 +38,9 @@ public final class ObservableValue<Value>: ObservableObject {
 
     public static func makeObservableValue(
         _ value: Value,
-        isDuplicate: ((Value, Value) -> Bool)? = nil
+        isEquivalent: ((Value, Value) -> Bool)? = nil
     ) -> (ObservableValue, Sink<Value>) {
-        let observableValue = ObservableValue(value: value, isDuplicate: isDuplicate)
+        let observableValue = ObservableValue(value: value, isEquivalent: isEquivalent)
         let sink = Sink { newValue in
             observableValue.value = newValue
         }
@@ -47,9 +48,9 @@ public final class ObservableValue<Value>: ObservableObject {
         return (observableValue, sink)
     }
 
-    private init(value: Value, isDuplicate: ((Value, Value) -> Bool)?) {
+    private init(value: Value, isEquivalent: ((Value, Value) -> Bool)?) {
         self.internalValue = value
-        self.isDuplicate = isDuplicate
+        self.isEquivalent = isEquivalent
         self.cancellable = valuePublisher()
             .dropFirst()
             .sink { [weak self] newValue in
@@ -64,17 +65,17 @@ public final class ObservableValue<Value>: ObservableObject {
     //// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure while allowing to optionally remove duplicates.
     /// - Parameters:
     ///   - toLocalValue: A closure that takes a Value and returns a LocalValue.
-    ///   - isDuplicate: An optional closure that checks to see if a LocalValue is a duplicate.
+    ///   - isEquivalent: An optional closure that checks to see if a LocalValue is equivalent.
     /// - Returns: a scoped ObservableValue of LocalValue.
-    public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
-        return scopeToLocalValue(toLocalValue, isDuplicate: isDuplicate)
+    public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isEquivalent: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
+        return scopeToLocalValue(toLocalValue, isEquivalent: isEquivalent)
     }
 
     /// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure and removes duplicate values using Equatable.
     /// - Parameter toLocalValue: A closure that takes a Value and returns a LocalValue.
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
-        return scopeToLocalValue(toLocalValue, isDuplicate: { $0 == $1 })
+        return scopeToLocalValue(toLocalValue, isEquivalent: { $0 == $1 })
     }
 
     /// Returns the value at the given keypath of ``Value``.
@@ -85,10 +86,10 @@ public final class ObservableValue<Value>: ObservableObject {
         internalValue[keyPath: keyPath]
     }
 
-    private func scopeToLocalValue<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isDuplicate: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
+    private func scopeToLocalValue<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isEquivalent: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
         let localObservableValue = ObservableValue<LocalValue>(
             value: toLocalValue(internalValue),
-            isDuplicate: isDuplicate
+            isEquivalent: isEquivalent
         )
         localObservableValue.parentCancellable = valuePublisher().sink(receiveValue: { newValue in
             localObservableValue.value = toLocalValue(newValue)
@@ -97,10 +98,10 @@ public final class ObservableValue<Value>: ObservableObject {
     }
 
     private func valuePublisher() -> AnyPublisher<Value, Never> {
-        guard let isDuplicate = isDuplicate else {
+        guard let isEquivalent = isEquivalent else {
             return subject.eraseToAnyPublisher()
         }
 
-        return subject.removeDuplicates(by: isDuplicate).eraseToAnyPublisher()
+        return subject.removeDuplicates(by: isEquivalent).eraseToAnyPublisher()
     }
 }

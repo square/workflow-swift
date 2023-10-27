@@ -26,15 +26,15 @@ public protocol SwiftUIScreen: Screen {
     @ViewBuilder
     static func makeView(model: ObservableValue<Self>) -> Content
 
-    static var isDuplicate: ((Self, Self) -> Bool)? { get }
+    static var isEquivalent: ((Self, Self) -> Bool)? { get }
 }
 
 public extension SwiftUIScreen {
-    static var isDuplicate: ((Self, Self) -> Bool)? { return nil }
+    static var isEquivalent: ((Self, Self) -> Bool)? { return nil }
 }
 
 public extension SwiftUIScreen where Self: Equatable {
-    static var isDuplicate: ((Self, Self) -> Bool)? { { $0 == $1 } }
+    static var isEquivalent: ((Self, Self) -> Bool)? { { $0 == $1 } }
 }
 
 public extension SwiftUIScreen {
@@ -43,7 +43,7 @@ public extension SwiftUIScreen {
             type: ModeledHostingController<Self, WithModel<Self, EnvironmentInjectingView<Content>>>.self,
             environment: environment,
             build: {
-                let (model, modelSink) = ObservableValue.makeObservableValue(self, isDuplicate: Self.isDuplicate)
+                let (model, modelSink) = ObservableValue.makeObservableValue(self, isEquivalent: Self.isEquivalent)
                 let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(environment)
                 return ModeledHostingController(
                     modelSink: modelSink,
