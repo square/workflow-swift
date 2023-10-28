@@ -18,8 +18,9 @@ import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
 import WorkflowSwiftUIExperimental
+import WorkflowUI
 
-struct MainScreen: SwiftUIScreen {
+struct MainScreen: View, Screen {
     let title: String
     let didChangeTitle: (String) -> Void
 
@@ -31,14 +32,6 @@ struct MainScreen: SwiftUIScreen {
     let didTapPresentScreen: () -> Void
 
     let didTapClose: (() -> Void)?
-
-    static func makeView(model: ObservableValue<MainScreen>) -> some View {
-        MainScreenView(model: model)
-    }
-}
-
-private struct MainScreenView: View {
-    @ObservedObject var model: ObservableValue<MainScreen>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
@@ -56,9 +49,9 @@ private struct MainScreenView: View {
 
             TextField(
                 "Text",
-                text: model.binding(
-                    get: \.title,
-                    set: \.didChangeTitle
+                text: Binding(
+                    get: { title },
+                    set: didChangeTitle
                 )
             )
             .focused($focusedField, equals: .title)
@@ -67,10 +60,10 @@ private struct MainScreenView: View {
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: model.allCapsToggleIsEnabled,
-                isOn: model.binding(
-                    get: \.allCapsToggleIsOn,
-                    set: \.didChangeAllCapsToggle
+                isEnabled: allCapsToggleIsEnabled,
+                isOn: Binding(
+                    get: { allCapsToggleIsOn },
+                    set: didChangeAllCapsToggle
                 )
             )
 
@@ -81,12 +74,12 @@ private struct MainScreenView: View {
 
             Button(
                 "Push Screen",
-                action: model.didTapPushScreen
+                action: didTapPushScreen
             )
 
             Button(
                 "Present Screen",
-                action: model.didTapPresentScreen
+                action: didTapPresentScreen
             )
 
             Button(
