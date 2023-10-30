@@ -115,3 +115,13 @@ extension MainScreen: MarketBackStackContentScreen {
 
     var backStackIdentifier: AnyHashable? { nil }
 }
+
+extension MainScreen {
+    enum Action {
+        case pushScreen
+        case presentScreen
+        case changeTitle(String)
+        case changeAllCaps(Bool)
+        case close
+    }
+}
