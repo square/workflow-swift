@@ -49,14 +49,10 @@ struct MainWorkflow: Workflow {
 
         return MainScreen(
             title: state.title,
-            didChangeTitle: { sink.send(.changeTitle($0)) },
             canClose: canClose,
             allCapsToggleIsOn: state.isAllCaps,
             allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
-            didTapPushScreen: { sink.send(.pushScreen) },
-            didTapPresentScreen: { sink.send(.presentScreen) },
-            didTapClose: canClose ? { sink.send(.close) } : nil
+            sink: sink
         )
     }
 }
@@ -131,5 +127,10 @@ struct StableSink<Action>: Equatable {
 
     func send(_ action: Action) {
         trampoline.bounce(action: action)
+    }
+
+    // sugar instead of writing { sink.send($0) }
+    func closure(_ action: Action) -> () -> Void {
+        { send(action) }
     }
 }

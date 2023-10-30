@@ -19,7 +19,7 @@ import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
 
-struct MainScreen: MarketScreen {
+struct MainScreen: MarketScreen, Equatable {
     enum Field: Hashable {
         case title
     }
@@ -27,17 +27,11 @@ struct MainScreen: MarketScreen {
     @FocusState var focusedField: Field?
 
     let title: String
-    let didChangeTitle: (String) -> Void
     let canClose: Bool
-
     let allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
-    let didChangeAllCapsToggle: (Bool) -> Void
 
-    let didTapPushScreen: () -> Void
-    let didTapPresentScreen: () -> Void
-
-    let didTapClose: (() -> Void)?
+    let sink: StableSink<Action>
 
     func element(
         in context: MarketWorkflowUI.MarketScreenContext,
@@ -57,7 +51,7 @@ struct MainScreen: MarketScreen {
                     style: styles.fields.textField,
                     label: "Text",
                     text: title,
-                    onChange: didChangeTitle,
+                    onChange: { sink.send(.changeTitle($0)) },
                     onReturn: { _ in focusedField = nil }
                 )
                 .focused(when: $focusedField, equals: .title)
@@ -78,7 +72,7 @@ struct MainScreen: MarketScreen {
                         isOn: allCapsToggleIsOn,
                         isEnabled: allCapsToggleIsEnabled,
                         accessibilityLabel: "is all caps",
-                        onChange: didChangeAllCapsToggle
+                        onChange: { sink.send(.changeAllCaps($0)) }
                     )
                 }
 
@@ -92,13 +86,13 @@ struct MainScreen: MarketScreen {
                 MarketButton(
                     style: styles.button(rank: .secondary),
                     text: "Push Screen",
-                    onTap: didTapPushScreen
+                    onTap: sink.closure(.pushScreen)
                 )
 
                 MarketButton(
                     style: styles.button(rank: .secondary),
                     text: "Present Screen",
-                    onTap: didTapPresentScreen
+                    onTap: sink.closure(.presentScreen)
                 )
             }
         }
@@ -109,7 +103,7 @@ extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
             title: .text(.init(regular: title)),
-            backButton: canClose ? .close(onTap: { didTapClose?() }) : .automatic()
+            backButton: canClose ? .close(onTap: sink.closure(.close)) : .automatic()
         )
     }
 
@@ -123,5 +117,12 @@ extension MainScreen {
         case changeTitle(String)
         case changeAllCaps(Bool)
         case close
+    }
+}
+
+// I guess this could be upstreamed to Blueprint
+extension FocusState: Equatable where Value: Equatable {
+    public static func == (lhs: FocusState<Value>, rhs: FocusState<Value>) -> Bool {
+        lhs.wrappedValue == rhs.wrappedValue
     }
 }
