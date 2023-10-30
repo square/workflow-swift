@@ -19,9 +19,9 @@ import Workflow
 import WorkflowUI
 
 struct RootWorkflow: Workflow {
-    let close: (() -> Void)?
-
-    typealias Output = Never
+    enum Output {
+        case close
+    }
 
     struct State {
         var backStack: BackStack
@@ -57,6 +57,8 @@ struct RootWorkflow: Workflow {
                 state.backStack.other.append(.main())
             case .main(.presentScreen):
                 state.isPresentingModal = true
+            case .main(.close):
+                return .close
             case .popScreen:
                 state.backStack.other.removeLast()
             case .dismissScreen:
@@ -75,7 +77,7 @@ struct RootWorkflow: Workflow {
         func rendering(_ screen: State.Screen, isRoot: Bool) -> AnyMarketBackStackContentScreen {
             switch screen {
             case .main(let id):
-                return MainWorkflow(didClose: isRoot ? close : nil)
+                return MainWorkflow(canClose: isRoot)
                     .mapOutput(Action.main)
                     .mapRendering(AnyMarketBackStackContentScreen.init)
                     .rendered(in: context, key: id.uuidString)
@@ -96,7 +98,13 @@ struct RootWorkflow: Workflow {
             base: backStack,
             modals: {
                 guard state.isPresentingModal else { return [] }
-                let screen = RootWorkflow(close: { sink.send(.dismissScreen) })
+                let screen = RootWorkflow()
+                    .mapOutput { output in
+                        switch output {
+                        case .close:
+                            return Action.dismissScreen
+                        }
+                    }
                     .rendered(in: context)
                     .asAnyScreen()
                 let modal = Modal(

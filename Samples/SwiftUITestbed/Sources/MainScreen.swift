@@ -28,6 +28,7 @@ struct MainScreen: MarketScreen {
 
     let title: String
     let didChangeTitle: (String) -> Void
+    let canClose: Bool
 
     let allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
@@ -108,7 +109,7 @@ extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
             title: .text(.init(regular: title)),
-            backButton: didTapClose.map { .close(onTap: $0) } ?? .automatic()
+            backButton: canClose ? .close(onTap: { didTapClose?() }) : .automatic()
         )
     }
 

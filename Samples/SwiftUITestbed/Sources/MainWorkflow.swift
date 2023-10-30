@@ -18,11 +18,12 @@ import MarketWorkflowUI
 import Workflow
 
 struct MainWorkflow: Workflow {
-    let didClose: (() -> Void)?
+    let canClose: Bool
 
     enum Output {
         case pushScreen
         case presentScreen
+        case close
     }
 
     struct State {
@@ -72,12 +73,13 @@ struct MainWorkflow: Workflow {
         return MainScreen(
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle($0)) },
+            canClose: canClose,
             allCapsToggleIsOn: state.isAllCaps,
             allCapsToggleIsEnabled: !state.title.isEmpty,
             didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
-            didTapClose: didClose
+            didTapClose: canClose ? { sink.send(.close) } : nil
         )
     }
 }
