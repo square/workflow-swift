@@ -17,6 +17,7 @@ Pod::Spec.new do |s|
   s.dependency 'WorkflowRxSwift'
   s.dependency 'WorkflowCombine'
   s.dependency 'WorkflowConcurrency'
+  s.dependency 'WorkflowSwiftUIExperimental'
   s.dependency 'ViewEnvironment'
   s.dependency 'ViewEnvironmentUI'
   
