@@ -22,30 +22,44 @@ import WorkflowUI
 
 public extension Screen where Self: View {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        let rootView = EnvironmentInjectingView(
-            content: self,
-            environment: environment
-        )
         return ViewControllerDescription(
-            type: UIHostingController<EnvironmentInjectingView<Self>>.self,
+            type: UIHostingController<RootView<Self>>.self,
             environment: environment,
             build: {
-                UIHostingController(rootView: rootView)
+                UIHostingController(
+                    rootView: RootView(
+                        model: RootViewModel(
+                            content: self,
+                            environment: environment
+                        )
+                    )
+                )
             },
-            update: {
-                $0.rootView = rootView
+            update: { hostingController in
+                let object = hostingController.rootView.model
+                object.content = self
+                object.environment = environment
             }
         )
     }
 }
 
-private struct EnvironmentInjectingView<Content: View>: View {
-    var content: Content
-    var environment: ViewEnvironment
+private final class RootViewModel<Content: View>: ObservableObject {
+    @Published var content: Content
+    @Published var environment: ViewEnvironment
+
+    init(content: Content, environment: ViewEnvironment) {
+        self.content = content
+        self.environment = environment
+    }
+}
+
+private struct RootView<Content: View>: View {
+    @ObservedObject var model: RootViewModel<Content>
 
     var body: some View {
-        content
-            .environment(\.viewEnvironment, environment)
+        model.content
+            .environment(\.viewEnvironment, model.environment)
     }
 }
 
