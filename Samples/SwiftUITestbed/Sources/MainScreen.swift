@@ -62,7 +62,7 @@ struct MainScreen: View, Screen {
                 label: "All Caps",
                 isEnabled: allCapsToggleIsEnabled,
                 isOn: Binding(
-                    initialValue: allCapsToggleIsOn,
+                    get: { allCapsToggleIsOn },
                     set: didChangeAllCapsToggle
                 )
             )
