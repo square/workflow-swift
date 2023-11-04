@@ -21,7 +21,6 @@ Pod::Spec.new do |s|
     s.dependency 'Workflow', "#{s.version}"
     s.dependency 'WorkflowRxSwift', "#{s.version}"
     s.dependency 'WorkflowTesting', "#{s.version}"
-    s.dependency 'RxSwift'
 
     s.framework = 'XCTest'
 

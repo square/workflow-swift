@@ -35,6 +35,11 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         didSet { setNeedsEnvironmentUpdate() }
     }
 
+    /// The currently displayed screen - the most recent rendering from the hosted workflow
+    public var screen: ScreenType {
+        workflowHost.rendering.value
+    }
+
     private(set) var rootViewController: UIViewController
 
     private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>

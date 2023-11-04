@@ -28,7 +28,18 @@ class ObservableTests: XCTestCase {
             .render {}
     }
 
-    struct TestWorkflow: Workflow {
+    func test_observableWorkflow_optionalOutputType() {
+        OptionalOutputWorkflow()
+            .renderTester()
+            .expectObservable(
+                outputType: Int?.self, // comment this out & test fails
+                producingOutput: nil as Int?,
+                key: "123"
+            )
+            .render {}
+    }
+
+    private struct TestWorkflow: Workflow {
         typealias State = Void
         typealias Rendering = Void
 
@@ -36,6 +47,19 @@ class ObservableTests: XCTestCase {
             Observable.from([1])
                 .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
                 .running(in: context, key: "123")
+        }
+    }
+
+    private struct OptionalOutputWorkflow: Workflow {
+        typealias State = Void
+        typealias Rendering = Void
+        typealias Output = Int?
+
+        func render(state: State, context: RenderContext<Self>) -> Rendering {
+            Observable.from([1])
+                .map { Int?.some($0) }
+                .mapOutput { _ in AnyWorkflowAction<Self>.noAction }
+                .rendered(in: context, key: "123")
         }
     }
 }
