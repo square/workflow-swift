@@ -24,9 +24,7 @@ struct ToggleRow: View {
 
     var isEnabled: Bool
 
-    var isOn: Bool
-
-    var onChange: (Bool) -> Void
+    @Binding var isOn: Bool
 
     var body: some View {
         HStack(
@@ -38,7 +36,7 @@ struct ToggleRow: View {
                 .accessibilityHidden(true)
 
             Toggle(
-                isOn: .init(get: { isOn }, set: onChange),
+                isOn: $isOn,
                 label: EmptyView.init
             )
             .accessibilityLabel(label)
