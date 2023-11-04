@@ -68,8 +68,10 @@ private struct MainScreenView: View {
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
                 isEnabled: model.allCapsToggleIsEnabled,
-                isOn: model.allCapsToggleIsOn,
-                onChange: model.didChangeAllCapsToggle
+                isOn: model.binding(
+                    get: \.allCapsToggleIsOn,
+                    set: \.didChangeAllCapsToggle
+                )
             )
 
             Spacer(minLength: styles.spacings.spacing50)
