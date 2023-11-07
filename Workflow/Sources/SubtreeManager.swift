@@ -48,6 +48,7 @@ extension WorkflowNode {
 
         /// Performs an update pass using the given closure.
         func render<Rendering>(
+            getState: @escaping () -> WorkflowType.State,
             _ actions: (RenderContext<WorkflowType>) -> Rendering
         ) -> Rendering {
             /// Invalidate the previous action handlers.
@@ -61,7 +62,8 @@ extension WorkflowNode {
                 originalChildWorkflows: childWorkflows,
                 originalSideEffectLifetimes: sideEffectLifetimes,
                 session: session,
-                observer: observer
+                observer: observer,
+                getState: getState
             )
 
             let wrapped = RenderContext.make(implementation: context)
@@ -150,13 +152,15 @@ extension WorkflowNode.SubtreeManager {
 
         private let session: WorkflowSession
         private let observer: WorkflowObserver?
+        private let getState: () -> WorkflowType.State
 
         internal init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
             originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
             session: WorkflowSession,
-            observer: WorkflowObserver?
+            observer: WorkflowObserver?,
+            getState: @escaping () -> WorkflowType.State
         ) {
             self.eventPipes = []
 
@@ -170,6 +174,7 @@ extension WorkflowNode.SubtreeManager {
 
             self.session = session
             self.observer = observer
+            self.getState = getState
         }
 
         func render<Child, Action>(
@@ -248,6 +253,10 @@ extension WorkflowNode.SubtreeManager {
                 action(sideEffectLifetime.lifetime)
                 usedSideEffectLifetimes[key] = sideEffectLifetime
             }
+        }
+
+        var state: WorkflowType.State {
+            getState()
         }
     }
 }

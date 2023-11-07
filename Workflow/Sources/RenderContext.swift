@@ -99,6 +99,10 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         fatalError()
     }
 
+    public var state: WorkflowType.State {
+        fatalError()
+    }
+
     final func invalidate() {
         isValid = false
     }
@@ -133,6 +137,10 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             implementation.runSideEffect(key: key, action: action)
         }
 
+        override var state: WorkflowType.State {
+            implementation.state
+        }
+
         private func assertStillValid() {
             assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
         }
@@ -147,6 +155,8 @@ internal protocol RenderContextType: AnyObject {
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
+
+    var state: WorkflowType.State { get }
 }
 
 extension RenderContext {

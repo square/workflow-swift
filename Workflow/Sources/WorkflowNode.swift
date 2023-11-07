@@ -131,7 +131,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
         }
 
-        rendering = subtreeManager.render { context in
+        rendering = subtreeManager.render(getState: { self.state }) { context in
             workflow
                 .render(
                     state: state,

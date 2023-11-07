@@ -74,7 +74,7 @@ struct MainWorkflow: Workflow {
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle($0)) },
             allCapsToggleIsOn: Binding(
-                get: { state.isAllCaps },
+                get: { context.state.isAllCaps },
                 set: { sink.send(.changeAllCaps($0)) }
             ),
             allCapsToggleIsEnabled: !state.title.isEmpty,
