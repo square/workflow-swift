@@ -73,9 +73,9 @@ struct MainWorkflow: Workflow {
         return MainScreen(
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle($0)) },
-            allCapsToggleIsOn: Binding(
-                get: { context.state.isAllCaps },
-                set: { sink.send(.changeAllCaps($0)) }
+            allCapsToggleIsOn: context.makeBinding(
+                get: \.isAllCaps,
+                set: Action.changeAllCaps
             ),
             allCapsToggleIsEnabled: !state.title.isEmpty,
             didTapPushScreen: { sink.send(.pushScreen) },

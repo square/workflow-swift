@@ -15,6 +15,7 @@
  */
 
 import Foundation
+import SwiftUI
 
 /// `RenderContext` is the composition point for the workflow tree.
 ///
@@ -81,6 +82,11 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         fatalError()
     }
 
+    /// Creates a `Binding`.
+    public func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType {
+        fatalError()
+    }
+
     /// Execute a side-effect action.
     ///
     /// Note that it is a programmer error to run two side-effects with the same `key`
@@ -96,10 +102,6 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     ///   - key: represents the block of work that needs to be executed.
     ///   - action: a block of work that will be executed.
     public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
-        fatalError()
-    }
-
-    public var state: WorkflowType.State {
         fatalError()
     }
 
@@ -132,13 +134,14 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.makeSink(of: actionType)
         }
 
+        override func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType {
+            assertStillValid()
+            return implementation.makeBinding(get: get, set: set)
+        }
+
         override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
             assertStillValid()
             implementation.runSideEffect(key: key, action: action)
-        }
-
-        override var state: WorkflowType.State {
-            implementation.state
         }
 
         private func assertStillValid() {
@@ -154,9 +157,9 @@ internal protocol RenderContextType: AnyObject {
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
+    func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType
 
-    var state: WorkflowType.State { get }
+    func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
 
 extension RenderContext {
