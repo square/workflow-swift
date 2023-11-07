@@ -131,7 +131,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
         }
 
-        rendering = subtreeManager.render(getState: { self.state }) { context in
+        rendering = subtreeManager.render(
+            getState: WeakStateAccessor(node: self).state
+        ) { context in
             workflow
                 .render(
                     state: state,
@@ -211,5 +213,24 @@ private extension WorkflowNode {
         output = action.apply(toState: &state)
 
         return output
+    }
+
+    /// Provides access to the latest state of a  `WorkflowNode` without strongly referencing the node.
+    private final class WeakStateAccessor {
+        private weak var node: WorkflowNode?
+        private var lastState: WorkflowType.State
+
+        init(node: WorkflowNode) {
+            self.node = node
+            lastState = node.state
+        }
+
+        func state() -> WorkflowType.State {
+            guard let node else {
+                return lastState
+            }
+            lastState = node.state
+            return lastState
+        }
     }
 }
