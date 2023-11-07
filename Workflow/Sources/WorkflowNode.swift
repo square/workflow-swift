@@ -215,7 +215,7 @@ private extension WorkflowNode {
         return output
     }
 
-    /// Provides access to the latest state of a  `WorkflowNode` without strongly referencing the node.
+    /// Provides access to the latest state of a `WorkflowNode` without strongly referencing the node.
     private final class WeakStateAccessor {
         private weak var node: WorkflowNode?
         private var lastState: WorkflowType.State

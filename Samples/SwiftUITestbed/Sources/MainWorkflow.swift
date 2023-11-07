@@ -15,7 +15,6 @@
  */
 
 import MarketWorkflowUI
-import SwiftUI
 import Workflow
 
 struct MainWorkflow: Workflow {

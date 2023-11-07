@@ -246,11 +246,10 @@ extension WorkflowNode.SubtreeManager {
             return sink
         }
 
-        func makeBinding<Value, Action>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action : WorkflowAction, WorkflowType == Action.WorkflowType {
-            let sink = makeSink(of: Action.self)
-            return Binding(
-                get: { [getState] in get(getState()) },
-                set: { value in sink.send(set(value)) }
+        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> Binding<Value> where Action : WorkflowAction, WorkflowType == Action.WorkflowType {
+            Binding(
+                get: { [getState] in valueFromState(getState()) },
+                set: { [sink = makeSink(of: Action.self)] value in sink.send(action(value)) }
             )
         }
 
@@ -262,10 +261,6 @@ extension WorkflowNode.SubtreeManager {
                 action(sideEffectLifetime.lifetime)
                 usedSideEffectLifetimes[key] = sideEffectLifetime
             }
-        }
-
-        var state: WorkflowType.State {
-            getState()
         }
     }
 }
