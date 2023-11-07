@@ -15,6 +15,7 @@
  */
 
 import MarketWorkflowUI
+import SwiftUI
 import Workflow
 
 struct MainWorkflow: Workflow {
@@ -72,9 +73,11 @@ struct MainWorkflow: Workflow {
         return MainScreen(
             title: state.title,
             didChangeTitle: { sink.send(.changeTitle($0)) },
-            allCapsToggleIsOn: state.isAllCaps,
+            allCapsToggleIsOn: Binding(
+                get: { state.isAllCaps },
+                set: { sink.send(.changeAllCaps($0)) }
+            ),
             allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
             didTapClose: didClose

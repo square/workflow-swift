@@ -24,9 +24,8 @@ struct MainScreen: View, Screen {
     let title: String
     let didChangeTitle: (String) -> Void
 
-    let allCapsToggleIsOn: Bool
+    let allCapsToggleIsOn: Binding<Bool>
     let allCapsToggleIsEnabled: Bool
-    let didChangeAllCapsToggle: (Bool) -> Void
 
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
@@ -61,10 +60,7 @@ struct MainScreen: View, Screen {
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
                 isEnabled: allCapsToggleIsEnabled,
-                isOn: Binding(
-                    get: { allCapsToggleIsOn },
-                    set: didChangeAllCapsToggle
-                )
+                isOn: allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -107,13 +103,14 @@ extension MainScreen: MarketBackStackContentScreen {
 import SwiftUI
 
 struct MainScreen_Preview: PreviewProvider {
+    @State static var allCapsToggleIsOn = false
+
     static var previews: some View {
         MainScreen(
             title: "New item",
             didChangeTitle: { _ in },
-            allCapsToggleIsOn: true,
+            allCapsToggleIsOn: $allCapsToggleIsOn,
             allCapsToggleIsEnabled: true,
-            didChangeAllCapsToggle: { _ in },
             didTapPushScreen: {},
             didTapPresentScreen: {},
             didTapClose: {}
