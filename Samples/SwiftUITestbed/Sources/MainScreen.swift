@@ -17,13 +17,14 @@
 import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
+import Workflow
 import WorkflowSwiftUIExperimental
 import WorkflowUI
 
 struct MainScreen: View, Screen {
-    @Binding var title: String
+    @WorkflowBinding var title: String
 
-    @Binding var allCapsToggleIsOn: Bool
+    @WorkflowBinding var allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
 
     let didTapPushScreen: () -> Void
@@ -104,8 +105,8 @@ struct MainScreen_Preview: PreviewProvider {
 
     static var previews: some View {
         MainScreen(
-            title: $title,
-            allCapsToggleIsOn: $allCapsToggleIsOn,
+            title: WorkflowBinding($title),
+            allCapsToggleIsOn: WorkflowBinding($allCapsToggleIsOn),
             allCapsToggleIsEnabled: true,
             didTapPushScreen: {},
             didTapPresentScreen: {},

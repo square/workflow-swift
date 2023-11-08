@@ -15,7 +15,6 @@
  */
 
 import Dispatch
-import SwiftUI
 
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
@@ -246,8 +245,8 @@ extension WorkflowNode.SubtreeManager {
             return sink
         }
 
-        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> Binding<Value> where Action : WorkflowAction, WorkflowType == Action.WorkflowType {
-            Binding(
+        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action : WorkflowAction, WorkflowType == Action.WorkflowType {
+            WorkflowBinding(
                 get: { [getState] in valueFromState(getState()) },
                 set: { [sink = makeSink(of: Action.self)] value in sink.send(action(value)) }
             )

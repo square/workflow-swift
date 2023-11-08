@@ -15,7 +15,6 @@
  */
 
 import Foundation
-import SwiftUI
 
 /// `RenderContext` is the composition point for the workflow tree.
 ///
@@ -83,7 +82,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 
     /// Creates a `Binding`.
-    public func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType {
+    public func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
         fatalError()
     }
 
@@ -134,7 +133,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.makeSink(of: actionType)
         }
 
-        override func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType {
+        override func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
             assertStillValid()
             return implementation.makeBinding(get: get, set: set)
         }
@@ -157,7 +156,7 @@ internal protocol RenderContextType: AnyObject {
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType
+    func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType
 
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
@@ -179,7 +178,7 @@ extension RenderContext {
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }
 
-    public func makeBinding<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>) -> Binding<Value> {
+    public func makeBinding<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>) -> WorkflowBinding<Value> {
         makeBinding(
             get: { state in state[keyPath: keyPath] },
             set: { value in SetterAction.set(keyPath, to: value) }
