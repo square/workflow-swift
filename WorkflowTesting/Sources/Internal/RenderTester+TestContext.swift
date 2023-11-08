@@ -16,6 +16,7 @@
 
 #if DEBUG
 
+import SwiftUI
 import XCTest
 @testable import Workflow
 
@@ -94,6 +95,14 @@ extension RenderTester {
             return Sink<ActionType> { action in
                 self.apply(action: action)
             }
+        }
+
+        func makeBinding<Value, Action: WorkflowAction>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> Binding<Value> where Action.WorkflowType == WorkflowType {
+            Binding(
+                // TODO: hold state weakly
+                get: { valueFromState(self.state) },
+                set: { [sink = makeSink(of: Action.self)] value in sink.send(action(value)) }
+            )
         }
 
         func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
