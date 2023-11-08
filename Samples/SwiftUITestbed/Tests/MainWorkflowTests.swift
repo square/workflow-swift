@@ -22,48 +22,45 @@ import XCTest
 
 class MainWorkflowTests: XCTestCase {
     func test_change_title() {
-        MainWorkflow
-            .Action
+        SetterAction<MainWorkflow, String>
             .tester(withState: .init(title: ""))
             .verifyState {
                 XCTAssertEqual($0.title, "")
             }
-            .send(action: .changeTitle("A"))
+            .send(action: .set(\.title, to: "A"))
             .verifyState {
                 XCTAssertEqual($0.title, "A")
             }
     }
 
     func test_get_all_caps() {
-        MainWorkflow
-            .Action
+        SetterAction<MainWorkflow, String>
             .tester(withState: .init(title: ""))
             .verifyState {
                 XCTAssert($0.isAllCaps)
             }
-            .send(action: .changeTitle("A"))
+            .send(action: .set(\.title, to: "A"))
             .verifyState {
                 XCTAssert($0.isAllCaps)
             }
-            .send(action: .changeTitle("!"))
+            .send(action: .set(\.title, to: "!"))
             .verifyState {
                 XCTAssert($0.isAllCaps)
             }
-            .send(action: .changeTitle("Ab"))
+            .send(action: .set(\.title, to: "Ab"))
             .verifyState {
                 XCTAssertFalse($0.isAllCaps)
             }
     }
 
     func test_set_all_caps() {
-        MainWorkflow
-            .Action
+        SetterAction<MainWorkflow, Bool>
             .tester(withState: .init(title: "Abc!"))
-            .send(action: .changeAllCaps(true))
+            .send(action: .set(\.isAllCaps, to: true))
             .verifyState {
                 XCTAssertEqual($0.title, "ABC!")
             }
-            .send(action: .changeAllCaps(false))
+            .send(action: .set(\.isAllCaps, to: false))
             .verifyState {
                 XCTAssertEqual($0.title, "abc!")
             }
