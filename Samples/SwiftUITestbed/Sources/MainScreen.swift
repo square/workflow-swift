@@ -21,9 +21,9 @@ import WorkflowSwiftUIExperimental
 import WorkflowUI
 
 struct MainScreen: View, Screen {
-    let title: Binding<String>
+    @Binding var title: String
 
-    let allCapsToggleIsOn: Binding<Bool>
+    @Binding var allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
 
     let didTapPushScreen: () -> Void
@@ -47,7 +47,7 @@ struct MainScreen: View, Screen {
 
             TextField(
                 "Text",
-                text: title
+                text: $title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -56,7 +56,7 @@ struct MainScreen: View, Screen {
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
                 isEnabled: allCapsToggleIsEnabled,
-                isOn: allCapsToggleIsOn
+                isOn: $allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -86,7 +86,7 @@ struct MainScreen: View, Screen {
 extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: title.wrappedValue)),
+            title: .text(.init(regular: title)),
             backButton: didTapClose.map { .close(onTap: $0) } ?? .automatic()
         )
     }
