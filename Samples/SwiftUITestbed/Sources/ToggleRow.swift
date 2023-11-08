@@ -40,6 +40,8 @@ struct ToggleRow: View {
                 label: EmptyView.init
             )
             .accessibilityLabel(label)
+            // Required before iOS 16 to animate value changes not caused by interaction with toggle
+            .animation(.default, value: isOn)
         }
     }
 }
