@@ -70,8 +70,10 @@ struct MainWorkflow: Workflow {
         let sink = context.makeSink(of: Action.self)
 
         return MainScreen(
-            title: state.title,
-            didChangeTitle: { sink.send(.changeTitle($0)) },
+            title: context.makeBinding(
+                get: \.title,
+                set: Action.changeTitle
+            ),
             allCapsToggleIsOn: context.makeBinding(
                 get: \.isAllCaps,
                 set: Action.changeAllCaps
