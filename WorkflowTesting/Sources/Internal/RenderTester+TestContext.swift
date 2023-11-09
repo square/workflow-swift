@@ -96,6 +96,14 @@ extension RenderTester {
             }
         }
 
+        func makeBinding<Value, Action: WorkflowAction>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
+            WorkflowBinding(
+                // TODO: hold state weakly
+                get: { valueFromState(self.state) },
+                set: { [sink = makeSink(of: Action.self)] value in sink.send(action(value)) }
+            )
+        }
+
         func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
             guard let sideEffect = expectedSideEffects.removeValue(forKey: key) else {
                 XCTFail("Unexpected side-effect with key \"\(key)\"", file: file, line: line)

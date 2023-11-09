@@ -20,16 +20,23 @@ import SwiftUI
 import Workflow
 import WorkflowUI
 
-public extension Screen where Self: View {
+public protocol SwiftUIScreen: Screen {
+    associatedtype Content: View
+
+    @ViewBuilder
+    func makeView() -> Content
+}
+
+public extension SwiftUIScreen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         return ViewControllerDescription(
-            type: UIHostingController<RootView<Self>>.self,
+            type: UIHostingController<RootView<Content>>.self,
             environment: environment,
             build: {
                 UIHostingController(
                     rootView: RootView(
                         model: RootViewModel(
-                            content: self,
+                            content: makeView(),
                             environment: environment
                         )
                     )
@@ -37,7 +44,7 @@ public extension Screen where Self: View {
             },
             update: { hostingController in
                 let object = hostingController.rootView.model
-                object.content = self
+                object.content = makeView()
                 object.environment = environment
             }
         )

@@ -81,6 +81,11 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         fatalError()
     }
 
+    /// Creates a `Binding`.
+    public func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
+        fatalError()
+    }
+
     /// Execute a side-effect action.
     ///
     /// Note that it is a programmer error to run two side-effects with the same `key`
@@ -128,6 +133,11 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.makeSink(of: actionType)
         }
 
+        override func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
+            assertStillValid()
+            return implementation.makeBinding(get: get, set: set)
+        }
+
         override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
             assertStillValid()
             implementation.runSideEffect(key: key, action: action)
@@ -145,6 +155,8 @@ internal protocol RenderContextType: AnyObject {
     func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
+
+    func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType
 
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
@@ -164,5 +176,12 @@ extension RenderContext {
     public func makeOutputSink() -> Sink<WorkflowType.Output> {
         return makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
+    }
+
+    public func makeBinding<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>) -> WorkflowBinding<Value> {
+        makeBinding(
+            get: { state in state[keyPath: keyPath] },
+            set: { value in SetterAction.set(keyPath, to: value) }
+        )
     }
 }

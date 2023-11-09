@@ -26,8 +26,18 @@ struct MainWorkflow: Workflow {
     }
 
     struct State {
-        var title: String
-        var isAllCaps: Bool
+        var title: String {
+            didSet {
+                if title == oldValue { return }
+                isAllCaps = title.isAllCaps
+            }
+        }
+        var isAllCaps: Bool {
+            didSet {
+                if isAllCaps == oldValue { return }
+                title = isAllCaps ? title.uppercased() : title.lowercased()
+            }
+        }
 
         init(title: String) {
             self.title = title
@@ -44,8 +54,6 @@ struct MainWorkflow: Workflow {
 
         case pushScreen
         case presentScreen
-        case changeTitle(String)
-        case changeAllCaps(Bool)
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -53,28 +61,19 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
-            case .changeTitle(let newValue):
-                state.title = newValue
-                state.isAllCaps = newValue.isAllCaps
-            case .changeAllCaps(let isAllCaps):
-                state.isAllCaps = isAllCaps
-                state.title = isAllCaps ? state.title.uppercased() : state.title.lowercased()
             }
-            return nil
         }
     }
 
-    typealias Rendering = MainScreen
+    typealias Rendering = MainViewModel
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
-        return MainScreen(
-            title: state.title,
-            didChangeTitle: { sink.send(.changeTitle($0)) },
-            allCapsToggleIsOn: state.isAllCaps,
+        return MainViewModel(
+            title: context.makeBinding(\.title),
+            allCapsToggleIsOn: context.makeBinding(\.isAllCaps),
             allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
             didTapClose: didClose

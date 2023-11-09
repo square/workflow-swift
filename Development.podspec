@@ -86,6 +86,7 @@ Pod::Spec.new do |s|
   end
 
   s.test_spec 'SwiftUITestbedTests' do |test_spec|
+    test_spec.ios.deployment_target = '15.0'
     test_spec.dependency 'Development/SwiftUITestbed'
     test_spec.dependency 'WorkflowTesting'
     test_spec.requires_app_host = true

@@ -17,30 +17,39 @@
 import MarketUI
 import MarketWorkflowUI
 import ViewEnvironment
+import Workflow
 import WorkflowSwiftUIExperimental
 import WorkflowUI
 
-struct MainScreen: View, Screen {
-    let title: String
-    let didChangeTitle: (String) -> Void
+struct MainViewModel {
+    @WorkflowBinding var title: String
 
-    let allCapsToggleIsOn: Bool
+    @WorkflowBinding var allCapsToggleIsOn: Bool
     let allCapsToggleIsEnabled: Bool
-    let didChangeAllCapsToggle: (Bool) -> Void
 
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
 
     let didTapClose: (() -> Void)?
+}
 
-    @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
-    @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
+
+extension MainViewModel: SwiftUIScreen {
+    func makeView() -> some View {
+        MainView(model: self)
+    }
+}
+
+struct MainView: View {
+    let model: MainViewModel
 
     enum Field: Hashable {
         case title
     }
-
     @FocusState var focusedField: Field?
+
+    @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
+    @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
 
     var body: some View {
         ScrollView { VStack {
@@ -49,10 +58,7 @@ struct MainScreen: View, Screen {
 
             TextField(
                 "Text",
-                text: Binding(
-                    get: { title },
-                    set: didChangeTitle
-                )
+                text: model.$title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -60,11 +66,8 @@ struct MainScreen: View, Screen {
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: allCapsToggleIsEnabled,
-                isOn: Binding(
-                    get: { allCapsToggleIsOn },
-                    set: didChangeAllCapsToggle
-                )
+                isEnabled: model.allCapsToggleIsEnabled,
+                isOn: model.$allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -74,12 +77,12 @@ struct MainScreen: View, Screen {
 
             Button(
                 "Push Screen",
-                action: didTapPushScreen
+                action: model.didTapPushScreen
             )
 
             Button(
                 "Present Screen",
-                action: didTapPresentScreen
+                action: model.didTapPresentScreen
             )
 
             Button(
@@ -91,7 +94,7 @@ struct MainScreen: View, Screen {
     }
 }
 
-extension MainScreen: MarketBackStackContentScreen {
+extension MainViewModel: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
             title: .text(.init(regular: title)),
@@ -107,13 +110,14 @@ extension MainScreen: MarketBackStackContentScreen {
 import SwiftUI
 
 struct MainScreen_Preview: PreviewProvider {
+    @State static var title = "New item"
+    @State static var allCapsToggleIsOn = false
+
     static var previews: some View {
-        MainScreen(
-            title: "New item",
-            didChangeTitle: { _ in },
-            allCapsToggleIsOn: true,
+        MainViewModel(
+            title: WorkflowBinding($title),
+            allCapsToggleIsOn: WorkflowBinding($allCapsToggleIsOn),
             allCapsToggleIsEnabled: true,
-            didChangeAllCapsToggle: { _ in },
             didTapPushScreen: {},
             didTapPresentScreen: {},
             didTapClose: {}
