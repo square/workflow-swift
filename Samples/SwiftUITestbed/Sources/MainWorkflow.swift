@@ -65,12 +65,12 @@ struct MainWorkflow: Workflow {
         }
     }
 
-    typealias Rendering = MainScreen
+    typealias Rendering = MainViewModel
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
-        return MainScreen(
+        return MainViewModel(
             title: context.makeBinding(\.title),
             allCapsToggleIsOn: context.makeBinding(\.isAllCaps),
             allCapsToggleIsEnabled: !state.title.isEmpty,

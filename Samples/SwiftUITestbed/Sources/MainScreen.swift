@@ -21,7 +21,7 @@ import Workflow
 import WorkflowSwiftUIExperimental
 import WorkflowUI
 
-struct MainScreen: View, Screen {
+struct MainViewModel {
     @WorkflowBinding var title: String
 
     @WorkflowBinding var allCapsToggleIsOn: Bool
@@ -31,15 +31,25 @@ struct MainScreen: View, Screen {
     let didTapPresentScreen: () -> Void
 
     let didTapClose: (() -> Void)?
+}
 
-    @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
-    @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
+
+extension MainViewModel: SwiftUIScreen {
+    func makeView() -> some View {
+        MainView(model: self)
+    }
+}
+
+struct MainView: View {
+    let model: MainViewModel
 
     enum Field: Hashable {
         case title
     }
-
     @FocusState var focusedField: Field?
+
+    @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
+    @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
 
     var body: some View {
         ScrollView { VStack {
@@ -48,7 +58,7 @@ struct MainScreen: View, Screen {
 
             TextField(
                 "Text",
-                text: $title
+                text: model.$title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -56,8 +66,8 @@ struct MainScreen: View, Screen {
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: allCapsToggleIsEnabled,
-                isOn: $allCapsToggleIsOn
+                isEnabled: model.allCapsToggleIsEnabled,
+                isOn: model.$allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -67,12 +77,12 @@ struct MainScreen: View, Screen {
 
             Button(
                 "Push Screen",
-                action: didTapPushScreen
+                action: model.didTapPushScreen
             )
 
             Button(
                 "Present Screen",
-                action: didTapPresentScreen
+                action: model.didTapPresentScreen
             )
 
             Button(
@@ -84,7 +94,7 @@ struct MainScreen: View, Screen {
     }
 }
 
-extension MainScreen: MarketBackStackContentScreen {
+extension MainViewModel: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
             title: .text(.init(regular: title)),
@@ -104,7 +114,7 @@ struct MainScreen_Preview: PreviewProvider {
     @State static var allCapsToggleIsOn = false
 
     static var previews: some View {
-        MainScreen(
+        MainViewModel(
             title: WorkflowBinding($title),
             allCapsToggleIsOn: WorkflowBinding($allCapsToggleIsOn),
             allCapsToggleIsEnabled: true,
