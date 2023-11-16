@@ -54,7 +54,7 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
     /// A closure that maps the workflow's rendering type into a view of type `Content`.
     public var content: (T.Rendering) -> Content
 
-    public init(workflow: T, onOutput: @escaping (T.Output) -> Void, content: @escaping (T.Rendering) -> Content) {
+    public init(workflow: T, onOutput: @escaping (T.Output) -> Void, @ViewBuilder content: @escaping (T.Rendering) -> Content) {
         self.onOutput = onOutput
         self.content = content
         self.workflow = workflow
@@ -71,7 +71,7 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
 
 extension WorkflowView where T.Output == Never {
     /// Convenience initializer for workflows with no output.
-    public init(workflow: T, content: @escaping (T.Rendering) -> Content) {
+    public init(workflow: T, @ViewBuilder content: @escaping (T.Rendering) -> Content) {
         self.init(workflow: workflow, onOutput: { _ in }, content: content)
     }
 }
@@ -113,6 +113,13 @@ extension IntermediateView: UIViewControllerRepresentable {
         uiViewController.content = content
         uiViewController.onOutput = onOutput
         uiViewController.update(to: workflow)
+    }
+
+    @available(iOSApplicationExtension 16.0, *)
+    func sizeThatFits(_ proposal: ProposedViewSize, uiViewController: WorkflowHostingViewController<T, Content>, context: Context) -> CGSize? {
+        let size = proposal.replacingUnspecifiedDimensions()
+        uiViewController.view.frame.size = size
+        return uiViewController.view.sizeThatFits(size)
     }
 }
 

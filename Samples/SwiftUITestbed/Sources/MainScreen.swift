@@ -43,11 +43,6 @@ extension MainViewModel: SwiftUIScreen {
 struct MainView: View {
     let model: MainViewModel
 
-    enum Field: Hashable {
-        case title
-    }
-    @FocusState var focusedField: Field?
-
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
 
@@ -56,19 +51,7 @@ struct MainView: View {
             Text("Title")
                 .font(Font(styles.headers.inlineSection20.heading.text.font))
 
-            TextField(
-                "Text",
-                text: model.$title
-            )
-            .focused($focusedField, equals: .title)
-            .onAppear { focusedField = .title }
-
-            ToggleRow(
-                style: context.stylesheets.testbed.toggleRow,
-                label: "All Caps",
-                isEnabled: model.allCapsToggleIsEnabled,
-                isOn: model.$allCapsToggleIsOn
-            )
+            TitleView(title: model.$title)
 
             Spacer(minLength: styles.spacings.spacing50)
 
@@ -83,11 +66,6 @@ struct MainView: View {
             Button(
                 "Present Screen",
                 action: model.didTapPresentScreen
-            )
-
-            Button(
-                "Resign Focus",
-                action: { focusedField = nil }
             )
 
         } }
