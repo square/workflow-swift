@@ -24,6 +24,9 @@ import WorkflowUI
 struct MainViewModel {
     @WorkflowBinding var title: String
 
+    @WorkflowBinding var allCapsToggleIsOn: Bool
+    let allCapsToggleIsEnabled: Bool
+
     let didTapPushScreen: () -> Void
     let didTapPresentScreen: () -> Void
 
@@ -37,97 +40,6 @@ extension MainViewModel: SwiftUIScreen {
     }
 }
 
-struct RootView: View {
-    @StateObject
-    var rootObject: RootObject
-
-    var body: some View {
-        ChildView(title: $rootObject.title)
-    }
-}
-
-struct ChildView: View {
-
-    init(object, each keyPath)
-
-    @Binding
-    var title: String
-
-    @StateObject var childObject: ChildObject
-
-    init(title: Binding<String>) {
-        _childObject = ObservedObject(initialValue: ChildObject(title: title))
-        childObject.title = title
-    }
-
-    var body: some View {
-        Group {
-            TextField("blah", text: $title)
-        }
-//        .onChange(of: title, initial: true) {
-//            childObject.title = title
-//        }
-        .onChange(of: childObject.title) {
-            title = childObject.title
-        }
-    }
-
-//    init(rootObject: RootObject) {
-//        _childObject = ObservedObject(initialValue: ChildObject(title: ))
-//    }
-}
-
-extension ObservableObject {
-
-    func binding<Value>(_ keyPath: WritableKeyPath<Self, Value>) -> ObservableBinding<Value> {
-        fatalError()
-    }
-}
-
-private final class WorkflowHostObservedObject: ObservableObject {
-
-    @Published
-    var isAllCaps: Bool = false {
-        didSet {
-            guard isAllCaps != oldValue else { return }
-            title = isAllCaps ? title.uppercased() : title.lowercased()
-        }
-    }
-
-    @Published
-    var isAllCapsModificationEnabled: Bool = false
-
-    @Published
-    var title: String {
-        didSet {
-            guard title != oldValue else { return }
-            isAllCaps = title.isAllCaps
-
-            titleBinding.wrappedValue = title
-        }
-    }
-
-    var titleBinding: Binding<String>
-
-
-    init(title: Binding<String>) {
-        Task {
-            for await value in title {
-                self.title = value
-            }
-        }
-//        self.title = title
-    }
-}
-
-private extension String {
-    var isAllCaps: Bool {
-        allSatisfy { character in
-            character.isUppercase || !character.isCased
-        }
-    }
-}
-
 struct MainView: View {
     let model: MainViewModel
 
@@ -136,16 +48,8 @@ struct MainView: View {
     }
     @FocusState var focusedField: Field?
 
-    @StateObject
-    private var host: WorkflowHostObservedObject
-
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
-
-    init(model: MainViewModel ) {
-        self.model = model
-        _host = StateObject(wrappedValue: WorkflowHostObservedObject(title: model.title))
-    }
 
     var body: some View {
         ScrollView { VStack {

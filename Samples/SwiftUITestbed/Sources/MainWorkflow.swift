@@ -26,10 +26,22 @@ struct MainWorkflow: Workflow {
     }
 
     struct State {
-        var title: String
+        var title: String {
+            didSet {
+                if title == oldValue { return }
+                isAllCaps = title.isAllCaps
+            }
+        }
+        var isAllCaps: Bool {
+            didSet {
+                if isAllCaps == oldValue { return }
+                title = isAllCaps ? title.uppercased() : title.lowercased()
+            }
+        }
 
         init(title: String) {
             self.title = title
+            self.isAllCaps = title.isAllCaps
         }
     }
 
@@ -60,6 +72,8 @@ struct MainWorkflow: Workflow {
 
         return MainViewModel(
             title: context.makeBinding(\.title),
+            allCapsToggleIsOn: context.makeBinding(\.isAllCaps),
+            allCapsToggleIsEnabled: !state.title.isEmpty,
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },
             didTapClose: didClose
