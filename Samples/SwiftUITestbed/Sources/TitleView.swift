@@ -5,13 +5,11 @@
 //  Created by Tom Brow on 11/16/23.
 //
 
+import SwiftUI
 import Workflow
 import WorkflowSwiftUI
-import SwiftUI
-
 
 struct TitleWorkflow: Workflow {
-
     @WorkflowBinding
     var title: String
 
@@ -97,23 +95,22 @@ private extension String {
     }
 }
 
-
 struct TitleView: View {
-
     @Binding
     var title: String
 
     enum Field: Hashable {
         case title
     }
-    @FocusState var focusedField: Field?
 
+    @FocusState var focusedField: Field?
 
     @Environment(\.viewEnvironment.stylesheets.testbed)
     private var styles: TestbedStylesheet
 
     var body: some View {
-        WorkflowView(workflow: TitleWorkflow(title: .init($title))) { model in
+        _ = Self._printChanges()
+        WorkflowView(workflow: TitleWorkflow(title: WorkflowBinding($title))) { model in
             VStack {
                 TextField(
                     "Text",
