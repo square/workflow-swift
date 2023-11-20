@@ -33,7 +33,6 @@ struct MainViewModel {
     let didTapClose: (() -> Void)?
 }
 
-
 extension MainViewModel: SwiftUIScreen {
     func makeView() -> some View {
         MainView(model: self)
@@ -46,12 +45,16 @@ struct MainView: View {
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
 
+    @State var title: String = "Test"
+
+    @State var uuid = UUID()
+
     var body: some View {
         ScrollView { VStack {
             Text("Title")
                 .font(Font(styles.headers.inlineSection20.heading.text.font))
 
-            TitleView(title: model.$title)
+            TitleView(title: $title)
 
             Spacer(minLength: styles.spacings.spacing50)
 
@@ -67,6 +70,10 @@ struct MainView: View {
                 "Present Screen",
                 action: model.didTapPresentScreen
             )
+
+            Button("Invalidate: \(uuid)") {
+                uuid = UUID()
+            }
 
         } }
     }

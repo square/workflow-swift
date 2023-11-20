@@ -54,18 +54,77 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
     /// A closure that maps the workflow's rendering type into a view of type `Content`.
     public var content: (T.Rendering) -> Content
 
+    @StateObject
+    private var host: WorkflowHostingObject<T>
+
     public init(workflow: T, onOutput: @escaping (T.Output) -> Void, @ViewBuilder content: @escaping (T.Rendering) -> Content) {
+        self.workflow = workflow
         self.onOutput = onOutput
         self.content = content
-        self.workflow = workflow
+        _host = StateObject(wrappedValue: WorkflowHostingObject(workflow: workflow, onOutput: onOutput))
     }
 
     public var body: some View {
-        IntermediateView(
-            workflow: workflow,
-            onOutput: onOutput,
-            content: content
-        )
+        host.update(workflow: workflow, onOutput: onOutput)
+        let rendering = host.rendering
+        return content(rendering)
+    }
+}
+
+private final class WorkflowHostingObject<WorkflowType: Workflow>: ObservableObject {
+    private let host: WorkflowHost<WorkflowType>
+
+    private var disposables: [Disposable] = []
+
+    var rendering: WorkflowType.Rendering
+
+    private var onOutput: (WorkflowType.Output) -> Void
+
+    private var shouldPublishUpdates = false
+
+    init(
+        workflow: WorkflowType,
+        onOutput: @escaping (WorkflowType.Output) -> Void
+    ) {
+        print("WorkflowHostingObject.init")
+        self.onOutput = onOutput
+        let workflowHost = WorkflowHost(workflow: workflow)
+        host = workflowHost
+        self.rendering = workflowHost.rendering.value
+
+        if let disposable = host.output.observeValues({ [weak self] output in
+            self?.onOutput(output)
+        }) {
+            disposables.append(disposable)
+        }
+
+        disposables.append(host.rendering.producer.startWithValues { [weak self] rendering in
+            guard let self else { return }
+            if self.shouldPublishUpdates == true {
+                self.objectWillChange.send()
+                print("objectWillChange")
+            }
+            self.rendering = rendering
+        })
+
+        self.shouldPublishUpdates = true
+    }
+
+    func update(
+        workflow: WorkflowType,
+        onOutput: @escaping (WorkflowType.Output) -> Void
+    ) {
+        print("host.update()")
+        shouldPublishUpdates = false
+        self.onOutput = onOutput
+        host.update(workflow: workflow)
+        shouldPublishUpdates = true
+    }
+}
+
+extension WorkflowHostingObject where WorkflowType.Output == Never {
+    convenience init(workflow: WorkflowType) {
+        self.init(workflow: workflow, onOutput: { _ in fatalError() })
     }
 }
 

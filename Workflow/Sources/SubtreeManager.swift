@@ -245,10 +245,13 @@ extension WorkflowNode.SubtreeManager {
             return sink
         }
 
-        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action : WorkflowAction, WorkflowType == Action.WorkflowType {
+        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
             WorkflowBinding(
                 get: { [getState] in valueFromState(getState()) },
-                set: { [sink = makeSink(of: Action.self)] value in sink.send(action(value)) }
+                set: { [sink = makeSink(of: Action.self)] value in
+                    print("sink.send", value)
+                    sink.send(action(value))
+                }
             )
         }
 
