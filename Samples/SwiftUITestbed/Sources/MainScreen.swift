@@ -54,7 +54,7 @@ struct MainView: View {
             Text("Title")
                 .font(Font(styles.headers.inlineSection20.heading.text.font))
 
-            TitleView(title: $title)
+            TitleView(title: model.$title)
 
             Spacer(minLength: styles.spacings.spacing50)
 
