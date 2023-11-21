@@ -82,7 +82,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 
     /// Creates a `Binding`.
-    public func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
+    public func makeBinding<Value, Action: WorkflowAction>(get: KeyPath<WorkflowType.State, Value>, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
         fatalError()
     }
 
@@ -133,7 +133,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.makeSink(of: actionType)
         }
 
-        override func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
+        override func makeBinding<Value, Action: WorkflowAction>(get: KeyPath<WorkflowType.State, Value>, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType {
             assertStillValid()
             return implementation.makeBinding(get: get, set: set)
         }
@@ -156,7 +156,7 @@ internal protocol RenderContextType: AnyObject {
 
     func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func makeBinding<Value, Action: WorkflowAction>(get: @escaping (WorkflowType.State) -> Value, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType
+    func makeBinding<Value, Action: WorkflowAction>(get: KeyPath<WorkflowType.State, Value>, set: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action.WorkflowType == WorkflowType
 
     func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }

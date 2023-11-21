@@ -245,15 +245,49 @@ extension WorkflowNode.SubtreeManager {
             return sink
         }
 
-        func makeBinding<Value, Action>(get valueFromState: @escaping (WorkflowType.State) -> Value, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
-            WorkflowBinding(
-                get: { [getState] in valueFromState(getState()) },
-                set: { [sink = makeSink(of: Action.self)] value in
+        func makeBinding<Value, Action>(get valueFromState: KeyPath<WorkflowType.State, Value>, set action: @escaping (Value) -> Action) -> WorkflowBinding<Value> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+            findOrCreate(keyPath: valueFromState, set: action)
+        }
+
+//        struct BindingStore {
+        private var bindings: [Key: Any] = [:]
+
+        func findOrCreate<Value, Action>(
+            keyPath: KeyPath<WorkflowType.State, Value>,
+            set action: @escaping (Value) -> Action
+        ) -> WorkflowBinding<Value>
+            where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+            let key = Key(keyPath: keyPath, actionType: ObjectIdentifier(Action.self))
+
+            if let binding = bindings[key] {
+                print("reusing binding of \(Value.self) with \(Action.self)")
+                return binding as! WorkflowBinding<Value>
+            }
+
+            print("creating a new binding")
+
+            let sink = sinkStore.findOrCreate(actionType: Action.self)
+
+            let binding = WorkflowBinding(
+                get: { [getState] in getState()[keyPath: keyPath] },
+                set: { value in
                     print("sink.send", value)
-                    sink.send(action(value))
+                    sink.handle(action: action(value))
+//                        sink.send(action(value))
                 }
             )
+
+            bindings[key] = binding
+
+            return binding
         }
+
+        struct Key: Hashable {
+            var keyPath: AnyHashable
+            var actionType: ObjectIdentifier
+        }
+
+//        }
 
         func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
             if let existingSideEffect = originalSideEffectLifetimes[key] {
@@ -317,7 +351,12 @@ extension WorkflowNode.SubtreeManager {
         }
     }
 
-    fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+    fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink, Equatable
+        where Action.WorkflowType == WorkflowType {
+        static func == (lhs: WorkflowNode<WorkflowType>.SubtreeManager.ReusableSink<Action>, rhs: WorkflowNode<WorkflowType>.SubtreeManager.ReusableSink<Action>) -> Bool {
+            lhs === rhs
+        }
+
         func handle(action: Action) {
             let output = Output.update(action, source: .external)
 

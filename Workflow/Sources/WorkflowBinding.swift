@@ -17,36 +17,22 @@
 import SwiftUI
 
 @propertyWrapper public struct WorkflowBinding<Value> {
-    public let get: () -> Value
-    public let set: (Value) -> Void
+    private let binding: Binding<Value>
 
     public init(get: @escaping () -> Value, set: @escaping (Value) -> Void) {
-        self.get = get
-        self.set = set
+        self.binding = Binding(get: get, set: set)
+    }
+
+    public init(_ binding: Binding<Value>) {
+        self.binding = binding
     }
 
     public var wrappedValue: Value {
-        get { self.get() }
-        set { self.set(newValue) }
+        get { binding.wrappedValue }
+        set { binding.wrappedValue = newValue }
     }
 
     public var projectedValue: Binding<Value> {
-        Binding(get: get, set: set)
-    }
-}
-
-public extension WorkflowBinding {
-    init(_ binding: Binding<Value>) {
-        self.init(
-            get: { binding.wrappedValue },
-            set: { binding.wrappedValue = $0 }
-        )
-    }
-}
-
-extension WorkflowBinding: Equatable where Value: Equatable {
-    public static func == (lhs: WorkflowBinding<Value>, rhs: WorkflowBinding<Value>) -> Bool {
-        // TODO: Don't assume setters are equivalent. Use some kind of binding identity?
-        lhs.wrappedValue == rhs.wrappedValue
+        binding
     }
 }

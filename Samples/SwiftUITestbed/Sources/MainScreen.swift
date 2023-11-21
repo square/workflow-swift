@@ -71,6 +71,13 @@ struct MainView: View {
                 action: model.didTapPresentScreen
             )
 
+            // future notes:
+            // we are seeing an invalidation on TitleView when clicking this button. Presumbly SwiftUI thinks the binding is changing. We are debugging to figure out how to make SwiftUI see the bindings as the same across updates. Reusing the Binding inside WorkflowBinding removes the invalidation of "@self" in TitleView but still shows _title.
+            // Ideas:
+            // - get the binding reuse to actually work
+            // - Remove contents of get/set and replace with dummy closures to see if it's the closures.
+            //
+
             Button("Invalidate: \(uuid)") {
                 uuid = UUID()
             }
