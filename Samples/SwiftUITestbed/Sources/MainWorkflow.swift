@@ -32,6 +32,7 @@ struct MainWorkflow: Workflow {
                 isAllCaps = title.isAllCaps
             }
         }
+
         var isAllCaps: Bool {
             didSet {
                 if isAllCaps == oldValue { return }
@@ -71,8 +72,18 @@ struct MainWorkflow: Workflow {
         let sink = context.makeSink(of: Action.self)
 
         return MainViewModel(
-            title: context.makeBinding(\.title),
-            allCapsToggleIsOn: context.makeBinding(\.isAllCaps),
+            title: context.makeBinding(get: \.title, set: { newValue in
+                AnyWorkflowAction { state in
+                    state.title = newValue
+                    return nil
+                }
+            }),
+            allCapsToggleIsOn: context.makeBinding(get: \.isAllCaps, set: { newValue in
+                AnyWorkflowAction { state in
+                    state.isAllCaps = newValue
+                    return nil
+                }
+            }),
             allCapsToggleIsEnabled: !state.title.isEmpty,
             didTapPushScreen: { sink.send(.pushScreen) },
             didTapPresentScreen: { sink.send(.presentScreen) },

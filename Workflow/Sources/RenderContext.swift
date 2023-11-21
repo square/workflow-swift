@@ -177,11 +177,4 @@ extension RenderContext {
         return makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }
-
-    public func makeBinding<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>) -> WorkflowBinding<Value> {
-        makeBinding(
-            get: { state in state[keyPath: keyPath] },
-            set: { value in SetterAction.set(keyPath, to: value) }
-        )
-    }
 }
