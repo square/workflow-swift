@@ -88,4 +88,12 @@ extension ScreenViewController {
     }
 }
 
+// MARK: ScreenContaining
+
+extension ScreenViewController: ScreenContaining {
+    public var containedScreen: any Screen {
+        screen
+    }
+}
+
 #endif

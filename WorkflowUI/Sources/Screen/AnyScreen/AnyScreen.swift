@@ -42,4 +42,12 @@ extension Screen {
     }
 }
 
+// MARK: ScreenContaining
+
+extension AnyScreen: ScreenContaining {
+    public var containedScreen: any Screen {
+        wrappedScreen
+    }
+}
+
 #endif
