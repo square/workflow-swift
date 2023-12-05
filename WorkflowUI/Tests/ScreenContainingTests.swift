@@ -1,3 +1,5 @@
+#if canImport(UIKit)
+import UIKit
 import XCTest
 
 import WorkflowUI
@@ -39,3 +41,4 @@ extension NoopScreen {
         fatalError()
     }
 }
+#endif
