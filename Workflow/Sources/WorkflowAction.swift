@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-/// Conforming types represent an action that advances a workflow. When applied, an action emits the next
-/// state and / or output for the workflow.
-public protocol WorkflowAction<WorkflowType> {
+// TODO: document this
+public protocol WorkflowActionCore<WorkflowType> {
     /// The type of workflow that this action can be applied to.
     associatedtype WorkflowType: Workflow
 
+    // TODO: document this
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output?
+}
+
+/// Conforming types represent an action that advances a workflow. When applied, an action emits the next
+/// state and / or output for the workflow.
+public protocol WorkflowAction: WorkflowActionCore {
     /// Applies this action to a given state of the workflow, optionally returning an output event.
     ///
     /// - Parameter state: The current state of the workflow. The state is passed as an `inout` param, allowing actions
@@ -30,11 +36,17 @@ public protocol WorkflowAction<WorkflowType> {
     func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
 }
 
+public extension WorkflowActionCore where Self: WorkflowAction {
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        apply(toState: &state)
+    }
+}
+
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
-public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowActionCore {
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -50,7 +62,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             self = anyEvent
             return
         }
-        self._apply = { return base.apply(toState: &$0) }
+        self._apply = base.apply
         self.base = base
         self.isClosureBased = false
     }
@@ -60,6 +72,21 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// - Parameter apply: the apply function for the resulting action.
     public init(
         _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) {
+        self.init(
+            { state, _ in apply(&state) },
+            fileID: fileID,
+            line: line
+        )
+    }
+
+    /// Creates a type-erased workflow action with the given `apply` implementation.
+    ///
+    /// - Parameter apply: the apply function for the resulting action.
+    public init(
+        _ apply: @escaping (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -74,13 +101,13 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
-        self._apply = closureAction.apply(toState:)
+        self._apply = closureAction.apply(toState:workflow:)
         self.base = closureAction
         self.isClosureBased = true
     }
 
-    public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        return _apply(&state)
+    public func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        return _apply(&state, workflow)
     }
 }
 
@@ -108,13 +135,13 @@ extension AnyWorkflowAction {
 /// A `WorkflowAction` that wraps an `apply(...)` implementation defined by a closure.
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
-struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+struct ClosureAction<WorkflowType: Workflow>: WorkflowActionCore {
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
     let fileID: StaticString
     let line: UInt
 
     init(
-        _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _apply: @escaping (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?,
         fileID: StaticString,
         line: UInt
     ) {
@@ -123,8 +150,8 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
         self.line = line
     }
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        _apply(&state, workflow)
     }
 }
 

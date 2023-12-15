@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/// Sink is a type that receives incoming values (commonly events or `WorkflowAction`)
+/// Sink is a type that receives incoming values (commonly events or `WorkflowActionCore`)
 ///
 /// Use `RenderContext.makeSink` to create instances.
 public struct Sink<Value> {

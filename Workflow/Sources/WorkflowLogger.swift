@@ -113,7 +113,7 @@ final class WorkflowLogger {
         os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
     }
 
-    static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
+    static func logSinkEvent<Action: WorkflowActionCore>(ref: AnyObject, action: Action) {
         guard WorkflowLogging.config.logActions else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)

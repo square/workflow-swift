@@ -80,7 +80,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         switch subtreeOutput {
         case .update(let action, let source):
-            /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
+            /// 'Opens' the existential `any WorkflowActionCore<WorkflowType>` value
             /// allowing the underlying conformance to be applied to the Workflow's State
             let outputEvent = openAndApply(
                 action,
@@ -178,12 +178,12 @@ extension WorkflowNode {
 }
 
 private extension WorkflowNode {
-    /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
+    /// Applies an appropriate `WorkflowActionCore` to advance the underlying Workflow `State`
     /// - Parameters:
-    ///   - action: The `WorkflowAction` to apply
+    ///   - action: The `WorkflowActionCore` to apply
     ///   - isExternal: Whether the handled action came from the 'outside world' vs being bubbled up from a child node
     /// - Returns: An optional `Output` produced by the action application
-    func openAndApply<A: WorkflowAction>(
+    func openAndApply<A: WorkflowActionCore>(
         _ action: A,
         isExternal: Bool
     ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
@@ -208,7 +208,7 @@ private extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        output = action.apply(toState: &state, workflow: workflow)
 
         return output
     }

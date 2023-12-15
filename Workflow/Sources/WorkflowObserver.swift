@@ -69,24 +69,24 @@ public protocol WorkflowObserver {
         session: WorkflowSession
     )
 
-    /// Called after a `WorkflowAction` is received, but **before** it has been handled and propagated up the tree.
+    /// Called after a `WorkflowActionCore` is received, but **before** it has been handled and propagated up the tree.
     /// - Parameters:
     ///   - action: The action that was received.
     ///   - session: The `WorkflowSession` corresponding to the backing `WorkflowNode`.
-    func workflowDidReceiveAction<Action: WorkflowAction>(
+    func workflowDidReceiveAction<Action: WorkflowActionCore>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
     )
 
-    /// Called when a `WorkflowAction` will be applied to its corresponding Workflow's State
+    /// Called when a `WorkflowActionCore` will be applied to its corresponding Workflow's State
     /// - Parameters:
     ///   - action: The action that will be applied.
     ///   - workflow: The action's corresponding `Workflow`.
     ///   - state: The state to which the action will be applied.
     ///   - session: The `WorkflowSession` corresponding to the backing `WorkflowNode`.
     /// - Returns: An optional closure to be called immediately after the action is applied to the `State`, and an optional `Output` has been produced. The closure takes the updated state and optional output as its arguments.
-    func workflowWillApplyAction<Action: WorkflowAction>(
+    func workflowWillApplyAction<Action: WorkflowActionCore>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
@@ -193,13 +193,13 @@ public extension WorkflowObserver {
         session: WorkflowSession
     ) {}
 
-    func workflowDidReceiveAction<Action: WorkflowAction>(
+    func workflowDidReceiveAction<Action: WorkflowActionCore>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
     ) {}
 
-    func workflowWillApplyAction<Action: WorkflowAction>(
+    func workflowWillApplyAction<Action: WorkflowActionCore>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
@@ -280,7 +280,7 @@ final class ChainedWorkflowObserver: WorkflowObserver {
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
-    ) where Action: WorkflowAction {
+    ) where Action: WorkflowActionCore {
         for observer in observers {
             observer.workflowDidReceiveAction(
                 action,
@@ -295,7 +295,7 @@ final class ChainedWorkflowObserver: WorkflowObserver {
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
         session: WorkflowSession
-    ) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? where Action: WorkflowAction {
+    ) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? where Action: WorkflowActionCore {
         let callbacks = observers.compactMap {
             $0.workflowWillApplyAction(
                 action,
