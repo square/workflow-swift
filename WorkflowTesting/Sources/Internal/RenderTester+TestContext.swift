@@ -29,15 +29,18 @@ extension RenderTester {
         let file: StaticString
         let line: UInt
 
+        private let workflow: WorkflowType
         private var usedWorkflowKeys: Set<WorkflowKey> = []
 
         internal init(
+            workflow: WorkflowType,
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>],
             file: StaticString,
             line: UInt
         ) {
+            self.workflow = workflow
             self.state = state
             self.expectedWorkflows = expectedWorkflows
             self.expectedSideEffects = expectedSideEffects
@@ -45,7 +48,7 @@ extension RenderTester {
             self.line = line
         }
 
-        func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+        func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowActionCore, Action.WorkflowType == WorkflowType {
             let matchingTypes = expectedWorkflows.compactMap { $0 as? ExpectedWorkflow<Child> }
             guard let expectedWorkflow = matchingTypes.first(where: { $0.key == key }) else {
                 let sameTypeDifferentKeys = matchingTypes.map { $0.key }
@@ -90,7 +93,7 @@ extension RenderTester {
             return expectedWorkflow.rendering
         }
 
-        func makeSink<ActionType>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
+        func makeSink<ActionType>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType: WorkflowActionCore, ActionType.WorkflowType == WorkflowType {
             return Sink<ActionType> { action in
                 self.apply(action: action)
             }
@@ -116,10 +119,10 @@ extension RenderTester {
             }
         }
 
-        private func apply<ActionType>(action: ActionType) where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
+        private func apply<ActionType>(action: ActionType) where ActionType: WorkflowActionCore, ActionType.WorkflowType == WorkflowType {
             XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
             appliedAction = AppliedAction(action)
-            let output = action.apply(toState: &state)
+            let output = action.apply(toState: &state, workflow: workflow)
 
             if let output = output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)

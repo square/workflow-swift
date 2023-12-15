@@ -20,7 +20,7 @@ import XCTest
 struct AppliedAction<WorkflowType: Workflow> {
     let erasedAction: Any
 
-    init<ActionType: WorkflowAction>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
+    init<ActionType: WorkflowActionCore>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
         self.erasedAction = action
     }
 
