@@ -78,7 +78,8 @@ struct MainWorkflow: Workflow {
 
 extension MainWorkflow.State {
     var allCapsToggleIsOn: Bool {
-        isAllCaps
+        get { isAllCaps }
+        set { fatalError("TODO") }
     }
 
     var allCapsToggleIsEnabled: Bool {

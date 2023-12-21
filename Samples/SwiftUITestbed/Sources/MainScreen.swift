@@ -31,7 +31,7 @@ extension MainWorkflow.Rendering: SwiftUIScreen, Screen {
 }
 
 private struct MainScreenView: View {
-    var model: Store<MainWorkflow.State>
+    @BindableStore var model: Store<MainWorkflow.State>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
@@ -49,10 +49,7 @@ private struct MainScreenView: View {
 
             TextField(
                 "Text",
-                text: Binding(
-                    get: { model.title },
-                    set: { _ in fatalError("TODO") }
-                )
+                text: $model.title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -61,10 +58,7 @@ private struct MainScreenView: View {
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
                 isEnabled: model.allCapsToggleIsEnabled,
-                isOn: Binding(
-                    get: { model.allCapsToggleIsOn },
-                    set: { _ in fatalError("TODO") }
-                )
+                isOn: $model.allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
