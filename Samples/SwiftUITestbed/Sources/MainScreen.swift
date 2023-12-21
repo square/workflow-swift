@@ -16,29 +16,26 @@
 
 import MarketUI
 import MarketWorkflowUI
+import Perception // for WithPerceptionTracking
 import ViewEnvironment
 import WorkflowSwiftUIExperimental
+import WorkflowUI
 
-struct MainScreen: SwiftUIScreen {
-    let title: String
-    let didChangeTitle: (String) -> Void
+// Compiler requires explicit conformance to `Screen`, or else: "Conditional
+// conformance of type 'ViewModel<State, Action>' to protocol 'SwiftUIScreen'
+// does not imply conformance to inherited protocol 'Screen'"
+extension MainWorkflow.Rendering: SwiftUIScreen, Screen {
+    var model: Model {
+        self
+    }
 
-    let allCapsToggleIsOn: Bool
-    let allCapsToggleIsEnabled: Bool
-    let didChangeAllCapsToggle: (Bool) -> Void
-
-    let didTapPushScreen: () -> Void
-    let didTapPresentScreen: () -> Void
-
-    let didTapClose: (() -> Void)?
-
-    static func makeView(model: ObservableValue<MainScreen>) -> some View {
-        MainScreenView(model: model)
+    public static func makeView(store: Store<MainWorkflow.State, MainWorkflow.Action>) -> some View {
+        MainView(store: store)
     }
 }
 
-private struct MainScreenView: View {
-    @ObservedObject var model: ObservableValue<MainScreen>
+private struct MainView: View {
+    @BindableStore var store: Store<MainWorkflow.State, MainWorkflow.Action>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
@@ -50,16 +47,13 @@ private struct MainScreenView: View {
     @FocusState var focusedField: Field?
 
     var body: some View {
-        ScrollView { VStack {
+        WithPerceptionTracking { ScrollView { VStack {
             Text("Title")
                 .font(Font(styles.headers.inlineSection20.heading.text.font))
 
             TextField(
                 "Text",
-                text: model.binding(
-                    get: \.title,
-                    set: \.didChangeTitle
-                )
+                text: $store.title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -67,11 +61,8 @@ private struct MainScreenView: View {
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: model.allCapsToggleIsEnabled,
-                isOn: model.binding(
-                    get: \.allCapsToggleIsOn,
-                    set: \.didChangeAllCapsToggle
-                )
+                isEnabled: store.allCapsToggleIsEnabled,
+                isOn: $store.allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -81,12 +72,12 @@ private struct MainScreenView: View {
 
             Button(
                 "Push Screen",
-                action: model.didTapPushScreen
+                action: store.action(.pushScreen)
             )
 
             Button(
                 "Present Screen",
-                action: model.didTapPresentScreen
+                action: store.action(.presentScreen)
             )
 
             Button(
@@ -94,15 +85,15 @@ private struct MainScreenView: View {
                 action: { focusedField = nil }
             )
 
-        } }
+        } } }
     }
 }
 
-extension MainScreen: MarketBackStackContentScreen {
+extension MainWorkflow.Rendering: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: title)),
-            backButton: didTapClose.map { .close(onTap: $0) } ?? .automatic()
+            title: .text(.init(regular: state.title)),
+            backButton: .close(onTap: { fatalError("TODO") }) // didTapClose.map { .close(onTap: $0) } ?? .automatic()
         )
     }
 
@@ -115,15 +106,9 @@ import SwiftUI
 
 struct MainScreen_Preview: PreviewProvider {
     static var previews: some View {
-        MainScreen(
-            title: "New item",
-            didChangeTitle: { _ in },
-            allCapsToggleIsOn: true,
-            allCapsToggleIsEnabled: true,
-            didChangeAllCapsToggle: { _ in },
-            didTapPushScreen: {},
-            didTapPresentScreen: {},
-            didTapClose: {}
+        MainWorkflow.Rendering(
+            state: .init(title: "Test"),
+            sendAction: { _ in }
         )
         .asMarketBackStack()
         .marketPreview()
