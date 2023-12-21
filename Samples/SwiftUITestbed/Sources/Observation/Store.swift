@@ -1,4 +1,4 @@
-import ComposableArchitecture
+import ComposableArchitecture // for ObservableState and Perception
 
 @dynamicMemberLookup
 public final class Store<State: ObservableState>: Perceptible {
@@ -29,8 +29,8 @@ public final class Store<State: ObservableState>: Perceptible {
 public extension Store {
     static func make(initialState: State) -> (Store, (State) -> Void) {
         let store = Store(state: initialState)
-        let sink = { store.state = $0 }
-        return (store, sink)
+        let setState = { store.state = $0 }
+        return (store, setState)
     }
 
     subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {

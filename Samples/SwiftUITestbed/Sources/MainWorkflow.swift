@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import ComposableArchitecture // for ObservableState
 import MarketWorkflowUI
 import Workflow
 
@@ -25,6 +26,7 @@ struct MainWorkflow: Workflow {
         case presentScreen
     }
 
+    @ObservableState
     struct State {
         var title: String
         var isAllCaps: Bool
@@ -64,21 +66,23 @@ struct MainWorkflow: Workflow {
         }
     }
 
-    typealias Rendering = MainScreen
+    typealias Rendering = ViewModel<State, Action>
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
-        let sink = context.makeSink(of: Action.self)
-
-        return MainScreen(
-            title: state.title,
-            didChangeTitle: { sink.send(.changeTitle($0)) },
-            allCapsToggleIsOn: state.isAllCaps,
-            allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
-            didTapPushScreen: { sink.send(.pushScreen) },
-            didTapPresentScreen: { sink.send(.presentScreen) },
-            didTapClose: didClose
+        ViewModel(
+            state: state,
+            sendAction: context.makeSink(of: Action.self).send
         )
+    }
+}
+
+extension MainWorkflow.State {
+    var allCapsToggleIsOn: Bool {
+        isAllCaps
+    }
+
+    var allCapsToggleIsEnabled: Bool {
+        !title.isEmpty
     }
 }
 
