@@ -25,13 +25,17 @@ import WorkflowUI
 // conformance of type 'ViewModel<State, Action>' to protocol 'SwiftUIScreen'
 // does not imply conformance to inherited protocol 'Screen'"
 extension MainWorkflow.Rendering: SwiftUIScreen, Screen {
-    static func makeView(store: Store<State>, sendAction: @escaping (Action) -> Void) -> some View {
-        MainScreenView(model: store)
+    var model: Model {
+        self
+    }
+
+    public static func makeView(store: Store<MainWorkflow.State, MainWorkflow.Action>) -> some View {
+        MainView(store: store)
     }
 }
 
-private struct MainScreenView: View {
-    @BindableStore var model: Store<MainWorkflow.State>
+private struct MainView: View {
+    @BindableStore var store: Store<MainWorkflow.State, MainWorkflow.Action>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
@@ -49,7 +53,7 @@ private struct MainScreenView: View {
 
             TextField(
                 "Text",
-                text: $model.title
+                text: $store.title
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -57,8 +61,8 @@ private struct MainScreenView: View {
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
-                isEnabled: model.allCapsToggleIsEnabled,
-                isOn: $model.allCapsToggleIsOn
+                isEnabled: store.allCapsToggleIsEnabled,
+                isOn: $store.allCapsToggleIsOn
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -68,12 +72,12 @@ private struct MainScreenView: View {
 
             Button(
                 "Push Screen",
-                action: { fatalError("TODO") }
+                action: store.action(.pushScreen)
             )
 
             Button(
                 "Present Screen",
-                action: { fatalError("TODO") }
+                action: store.action(.presentScreen)
             )
 
             Button(

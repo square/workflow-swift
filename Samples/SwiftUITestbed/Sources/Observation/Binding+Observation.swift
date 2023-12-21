@@ -6,10 +6,14 @@ import SwiftUI
 // NB: These overloads ensure runtime warnings aren't emitted for errant SwiftUI bindings.
 #if DEBUG
 extension Binding {
-    public subscript<State: ObservableState, Member: Equatable>(
+    subscript<
+        State: ObservableState,
+        Action,
+        Member: Equatable
+    >(
         dynamicMember keyPath: WritableKeyPath<State, Member>
     ) -> Binding<Member>
-        where Value == Store<State> {
+        where Value == Store<State, Action> {
         Binding<Member>(
             get: { self.wrappedValue.state[keyPath: keyPath] },
             set: { _ in fatalError("TODO") }
@@ -19,10 +23,10 @@ extension Binding {
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 extension Bindable {
-    public subscript<State: ObservableState, Member: Equatable>(
+    subscript<State: ObservableState, Action, Member: Equatable>(
         dynamicMember keyPath: WritableKeyPath<State, Member>
     ) -> Binding<Member>
-        where Value == Store<State> {
+        where Value == Store<State, Action> {
         Binding<Member>(
             get: { self.wrappedValue.state[keyPath: keyPath] },
             set: { _ in fatalError("TODO") }

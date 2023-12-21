@@ -1,40 +1,48 @@
 import ComposableArchitecture // for ObservableState and Perception
 
 @dynamicMemberLookup
-public final class Store<State: ObservableState>: Perceptible {
-    private var _state: State
-    let _$observationRegistrar = PerceptionRegistrar()
+final class Store<State: ObservableState, Action>: Perceptible {
+    typealias Model = ViewModel<State, Action>
 
-    fileprivate(set) var state: State {
-        get {
-            _$observationRegistrar.access(self, keyPath: \.state)
-            return _state
-        }
-        set {
-            if !_$isIdentityEqual(state, newValue) {
-                _$observationRegistrar.withMutation(of: self, keyPath: \.state) {
-                    _state = newValue
-                }
-            } else {
-                _state = newValue
-            }
-        }
+    private var model: Model
+    private let _$observationRegistrar = PerceptionRegistrar()
+
+    var state: State {
+        _$observationRegistrar.access(self, keyPath: \.state)
+        return model.state
     }
 
-    private init(state: State) {
-        self._state = state
+    func send(_ action: Action) {
+        model.sendAction(action)
+    }
+
+    fileprivate init(_ model: Model) {
+        self.model = model
+    }
+
+    fileprivate func setModel(_ newValue: Model) {
+        if !_$isIdentityEqual(model.state, newValue.state) {
+            _$observationRegistrar.withMutation(of: self, keyPath: \.state) {
+                model = newValue
+            }
+        } else {
+            model = newValue
+        }
     }
 }
 
-public extension Store {
-    static func make(initialState: State) -> (Store, (State) -> Void) {
-        let store = Store(state: initialState)
-        let setState = { store.state = $0 }
-        return (store, setState)
+extension Store {
+    static func make(model: Model) -> (Store, (Model) -> Void) {
+        let store = Store(model)
+        return (store, store.setModel)
     }
 
     subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
         state[keyPath: keyPath]
+    }
+
+    func action(_ action: Action) -> () -> Void {
+        { self.send(action) }
     }
 }
 

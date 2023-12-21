@@ -17,18 +17,18 @@ import SwiftUI
 @available(watchOS, deprecated: 10, renamed: "Bindable")
 @propertyWrapper
 @dynamicMemberLookup
-public struct BindableStore<State: ObservableState> {
-    public var wrappedValue: Store<State>
-    public init(wrappedValue: Store<State>) {
+struct BindableStore<State: ObservableState, Action> {
+    var wrappedValue: Store<State, Action>
+    init(wrappedValue: Store<State, Action>) {
         self.wrappedValue = wrappedValue
     }
 
-    public var projectedValue: BindableStore<State> {
+    var projectedValue: BindableStore<State, Action> {
         self
     }
 
-    public subscript<Subject>(
-        dynamicMember keyPath: ReferenceWritableKeyPath<Store<State>, Subject>
+    subscript<Subject>(
+        dynamicMember keyPath: ReferenceWritableKeyPath<Store<State, Action>, Subject>
     ) -> Binding<Subject> {
         Binding(
             get: { self.wrappedValue[keyPath: keyPath] },

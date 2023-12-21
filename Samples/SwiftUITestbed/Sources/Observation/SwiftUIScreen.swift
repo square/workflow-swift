@@ -5,45 +5,36 @@ import SwiftUI
 import Workflow
 import WorkflowUI
 
-struct ViewModel<State: ObservableState, Action> {
-    let state: State
-    let sendAction: (Action) -> Void
-}
-
 protocol SwiftUIScreen: Screen {
     associatedtype State: ObservableState
     associatedtype Action
     associatedtype Content: View
 
-    var state: State { get }
-    var sendAction: (Action) -> Void { get }
+    typealias Model = ViewModel<State, Action>
+
+    var model: Model { get }
 
     @ViewBuilder
-    static func makeView(store: Store<State>, sendAction: @escaping (Action) -> Void) -> Content
+    static func makeView(store: Store<State, Action>) -> Content
 }
 
 extension SwiftUIScreen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         ViewControllerDescription(
-            type: ModeledHostingController<Self.State, EnvironmentInjectingView<Content>>.self,
+            type: ModeledHostingController<Model, EnvironmentInjectingView<Content>>.self,
             environment: environment,
             build: {
-                let (store, setState) = Store.make(initialState: state)
+                let (store, setModel) = Store.make(model: model)
                 return ModeledHostingController(
-                    setState: setState,
+                    setModel: setModel,
                     rootView: EnvironmentInjectingView(
                         environment: environment,
-                        content: Self.makeView(
-                            store: store,
-                            sendAction: { _ in
-                                fatalError("TODO")
-                            }
-                        )
+                        content: Self.makeView(store: store)
                     )
                 )
             },
             update: { hostingController in
-                hostingController.setState(state)
+                hostingController.setModel(model)
                 // TODO: update viewEnvironment
             }
         )
@@ -60,11 +51,11 @@ private struct EnvironmentInjectingView<Content: View>: View {
     }
 }
 
-private final class ModeledHostingController<State, Content: View>: UIHostingController<Content> {
-    let setState: (State) -> Void
+private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
+    let setModel: (Model) -> Void
 
-    init(setState: @escaping (State) -> Void, rootView: Content) {
-        self.setState = setState
+    init(setModel: @escaping (Model) -> Void, rootView: Content) {
+        self.setModel = setModel
         super.init(rootView: rootView)
     }
 
