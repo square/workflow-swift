@@ -1,5 +1,7 @@
 #!/bin/bash
-git diff --diff-filter=d --staged --name-only | grep -e '\.swift$' | while read line; do
-  swift run swiftformat "${line}" --quiet;
-  git add "$line";
-done
+
+swift_files=$(git diff --diff-filter=d --staged --name-only -- '*.swift')
+
+echo $swift_files | xargs swift run swiftformat --quiet
+
+echo $swift_files | xargs git add
