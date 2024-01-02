@@ -1,6 +1,11 @@
---indent 4
+# file config
 
+--swiftversion 5.7
 --exclude Pods,Tooling,**Dummy.swift
+
+# format config
+
+--indent 4
 
 --wraparguments before-first
 --importgrouping testable-bottom
