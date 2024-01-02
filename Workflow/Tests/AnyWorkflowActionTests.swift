@@ -27,7 +27,7 @@ final class AnyWorkflowActionTests: XCTestCase {
 
     func testRetainsClosureActionTypeInfo() throws {
         do {
-            let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+            let erased = AnyWorkflowAction<ExampleWorkflow> { _, _ in
                 nil
             }
 
@@ -37,7 +37,7 @@ final class AnyWorkflowActionTests: XCTestCase {
         do {
             let fileID: StaticString = #fileID
             // must match line # the initializer is on
-            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _, _ in
                 nil
             }
 
@@ -62,7 +62,7 @@ final class AnyWorkflowActionTests: XCTestCase {
 
         // closure init
         do {
-            let action = AnyWorkflowAction<ExampleWorkflow> { _ in nil }
+            let action = AnyWorkflowAction<ExampleWorkflow> { _, _ in nil }
             let erasedAgain = AnyWorkflowAction(action)
 
             XCTAssertEqual(
@@ -92,7 +92,7 @@ final class AnyWorkflowActionTests: XCTestCase {
         let nonClosureBased = AnyWorkflowAction(ExampleAction())
         XCTAssertFalse(nonClosureBased.isClosureBased)
 
-        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _ in .none }
+        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _, _ in .none }
         XCTAssertTrue(closureBased.isClosureBased)
     }
 }
