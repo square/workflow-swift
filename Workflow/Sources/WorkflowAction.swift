@@ -27,14 +27,14 @@ public protocol WorkflowAction<WorkflowType> {
     ///
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output?
 }
 
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -50,7 +50,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             self = anyEvent
             return
         }
-        self._apply = { base.apply(toState: &$0) }
+        self._apply = base.apply
         self.base = base
         self.isClosureBased = false
     }
@@ -59,7 +59,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     ///
     /// - Parameter apply: the apply function for the resulting action.
     public init(
-        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _ apply: @escaping (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -74,13 +74,13 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
-        self._apply = closureAction.apply(toState:)
+        self._apply = closureAction.apply
         self.base = closureAction
         self.isClosureBased = true
     }
 
-    public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+    public func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        _apply(&state, workflow)
     }
 }
 
@@ -89,7 +89,7 @@ extension AnyWorkflowAction {
     ///
     /// - Parameter output: The output event to send when this action is applied.
     public init(sendingOutput output: WorkflowType.Output) {
-        self = AnyWorkflowAction { state in
+        self = AnyWorkflowAction { state, _ in
             output
         }
     }
@@ -97,7 +97,7 @@ extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
     /// event).
     public static var noAction: AnyWorkflowAction<WorkflowType> {
-        AnyWorkflowAction { state in
+        AnyWorkflowAction { state, _ in
             nil
         }
     }
@@ -109,12 +109,12 @@ extension AnyWorkflowAction {
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    private let _apply: (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?
     let fileID: StaticString
     let line: UInt
 
     init(
-        _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _apply: @escaping (inout WorkflowType.State, WorkflowType) -> WorkflowType.Output?,
         fileID: StaticString,
         line: UInt
     ) {
@@ -123,8 +123,8 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
         self.line = line
     }
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
+        _apply(&state, workflow)
     }
 }
 

@@ -153,7 +153,7 @@ extension RenderContext {
     public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
-                AnyWorkflowAction<WorkflowType> { state in
+                AnyWorkflowAction<WorkflowType> { state, _ in
                     onEvent(event, &state)
                 }
             }
