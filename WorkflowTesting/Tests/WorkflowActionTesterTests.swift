@@ -21,14 +21,14 @@ import XCTest
 final class WorkflowActionTesterTests: XCTestCase {
     func test_stateTransitions() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .toggleTapped)
             .verifyState { XCTAssertTrue($0) }
     }
 
     func test_stateTransitions_throw() throws {
         try TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .toggleTapped)
             .verifyState {
                 try throwingNoop()
@@ -38,21 +38,21 @@ final class WorkflowActionTesterTests: XCTestCase {
 
     func test_stateTransitions_equatable() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .toggleTapped)
             .assert(state: true)
     }
 
     func test_noOutputs() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .toggleTapped)
             .assertNoOutput()
     }
 
     func test_outputs() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .exitTapped)
             .verifyOutput { output in
                 XCTAssertEqual(output, .finished)
@@ -61,7 +61,7 @@ final class WorkflowActionTesterTests: XCTestCase {
 
     func test_outputs_throw() throws {
         try TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .exitTapped)
             .verifyOutput { output in
                 try throwingNoop()
@@ -71,14 +71,14 @@ final class WorkflowActionTesterTests: XCTestCase {
 
     func test_outputs_equatable() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .exitTapped)
             .assert(output: .finished)
     }
 
     func test_deprecated_methods() {
         TestAction
-            .tester(withState: false)
+            .tester(workflow: TestWorkflow(), state: false)
             .send(action: .exitTapped)
             .assert(output: .finished)
             .verifyState { state in
@@ -89,7 +89,7 @@ final class WorkflowActionTesterTests: XCTestCase {
     func test_testerExtension() {
         let state = true
         let tester = TestAction
-            .tester(withState: true)
+            .tester(workflow: TestWorkflow(), state: true)
         XCTAssertEqual(state, tester.state)
         XCTAssertNil(tester.output)
     }

@@ -21,7 +21,7 @@ import XCTest
 class WelcomeWorkflowTests: XCTestCase {
     func testNameUpdates() throws {
         WelcomeWorkflow.Action
-            .tester(withState: WelcomeWorkflow.State(name: ""))
+            .tester(workflow: WelcomeWorkflow())
             .send(action: .nameChanged(name: "myName"))
             // No output is expected when the name changes.
             .assertNoOutput()
@@ -33,7 +33,7 @@ class WelcomeWorkflowTests: XCTestCase {
 
     func testLogIn() throws {
         WelcomeWorkflow.Action
-            .tester(withState: WelcomeWorkflow.State(name: ""))
+            .tester(workflow: WelcomeWorkflow())
             .send(action: .didLogIn)
             // Since the name is empty, `.didLogIn` will not emit an output.
             .assertNoOutput()

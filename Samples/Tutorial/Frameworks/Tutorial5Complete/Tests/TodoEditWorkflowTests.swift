@@ -22,7 +22,7 @@ class TodoEditWorkflowTests: XCTestCase {
     func testAction() throws {
         TodoEditWorkflow.Action
             // Start with a todo of "Title" "Note"
-            .tester(withState: TodoEditWorkflow.State(todo: TodoModel(title: "Title", note: "Note")))
+            .tester(workflow: TodoEditWorkflow(initialTodo: TodoModel(title: "Title", note: "Note")))
             .verifyState { state in
                 XCTAssertEqual("Title", state.todo.title)
                 XCTAssertEqual("Note", state.todo.note)
