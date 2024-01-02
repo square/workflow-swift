@@ -45,7 +45,7 @@ extension RootWorkflow {
 
         case login(name: String)
 
-        func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
+        func apply(toState state: inout RootWorkflow.State, workflow: WorkflowType) -> RootWorkflow.Output? {
             switch self {
             case .login(name: let name):
                 state = .demo(name: name)

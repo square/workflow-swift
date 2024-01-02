@@ -34,7 +34,7 @@ extension AsyncWorkerWorkflow {
 
         typealias WorkflowType = AsyncWorkerWorkflow
 
-        func apply(toState state: inout AsyncWorkerWorkflow.State) -> AsyncWorkerWorkflow.Output? {
+        func apply(toState state: inout AsyncWorkerWorkflow.State, workflow: WorkflowType) -> AsyncWorkerWorkflow.Output? {
             switch self {
             // Update state and produce an optional output based on which action was received.
             case .fakeNetworkRequestLoaded(let result):

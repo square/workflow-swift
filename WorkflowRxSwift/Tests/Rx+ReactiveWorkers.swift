@@ -103,7 +103,7 @@ struct CombinedWorkflow: Workflow {
         case rxSwift
         case reactiveSwift
 
-        func apply(toState state: inout CombinedWorkflow.State) -> CombinedWorkflow.State? {
+        func apply(toState state: inout CombinedWorkflow.State, workflow: WorkflowType) -> CombinedWorkflow.State? {
             switch self {
             case .rxSwift:
                 state.rxOutputReceived = true
