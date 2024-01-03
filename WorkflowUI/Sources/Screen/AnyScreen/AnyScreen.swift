@@ -42,10 +42,10 @@ extension Screen {
     }
 }
 
-// MARK: ScreenContaining
+// MARK: SingleScreenContaining
 
-extension AnyScreen: ScreenContaining {
-    public var containedScreen: any Screen {
+extension AnyScreen: SingleScreenContaining {
+    public var primaryScreen: any Screen {
         wrappedScreen
     }
 }

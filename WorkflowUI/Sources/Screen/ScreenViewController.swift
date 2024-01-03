@@ -88,10 +88,10 @@ extension ScreenViewController {
     }
 }
 
-// MARK: ScreenContaining
+// MARK: SingleScreenContaining
 
-extension ScreenViewController: ScreenContaining {
-    public var containedScreen: any Screen {
+extension ScreenViewController: SingleScreenContaining {
+    public var primaryScreen: any Screen {
         screen
     }
 }
