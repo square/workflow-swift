@@ -101,7 +101,7 @@ extension Screen {
     }
 
     /// Wraps this screen in an `AdaptedEnvironmentScreen` with the given keypath and value.
-    func adaptedEnvironment<Value>(
+    public func adaptedEnvironment<Value>(
         keyPath: WritableKeyPath<ViewEnvironment, Value>,
         value: Value
     ) -> AdaptedEnvironmentScreen<Self> {
@@ -109,7 +109,7 @@ extension Screen {
     }
 
     /// Wraps this screen in an `AdaptedEnvironmentScreen` with the given configuration block.
-    func adaptedEnvironment(
+    public func adaptedEnvironment(
         adapting: @escaping (inout ViewEnvironment) -> Void
     ) -> AdaptedEnvironmentScreen<Self> {
         AdaptedEnvironmentScreen(wrapping: self, adapting: adapting)
