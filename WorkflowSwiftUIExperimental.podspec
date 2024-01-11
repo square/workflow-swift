@@ -2,7 +2,7 @@ require_relative('version')
 
 Pod::Spec.new do |s|
     s.name         = 'WorkflowSwiftUIExperimental'
-    s.version      = '0.1'
+    s.version      = '0.2'
     s.summary      = 'Infrastructure for Workflow-powered SwiftUI'
     s.homepage     = 'https://www.github.com/square/workflow-swift'
     s.license      = 'Apache License, Version 2.0'
@@ -18,8 +18,8 @@ Pod::Spec.new do |s|
 
     s.source_files = 'WorkflowSwiftUIExperimental/Sources/*.swift'
 
-    s.dependency 'Workflow', WORKFLOW_VERSION
-    s.dependency 'WorkflowUI', WORKFLOW_VERSION
+    s.dependency 'Workflow', "~> #{WORKFLOW_MAJOR_VERSION}.0"
+    s.dependency 'WorkflowUI', "~> #{WORKFLOW_MAJOR_VERSION}.0"
 
     s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
   end
