@@ -208,4 +208,12 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
     }
 }
 
+// MARK: SingleScreenContaining
+
+extension WorkflowHostingController: SingleScreenContaining {
+    public var primaryScreen: any Screen {
+        workflowHost.rendering.value
+    }
+}
+
 #endif

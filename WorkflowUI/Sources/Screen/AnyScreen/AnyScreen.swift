@@ -42,4 +42,12 @@ extension Screen {
     }
 }
 
+// MARK: SingleScreenContaining
+
+extension AnyScreen: SingleScreenContaining {
+    public var primaryScreen: any Screen {
+        wrappedScreen
+    }
+}
+
 #endif
