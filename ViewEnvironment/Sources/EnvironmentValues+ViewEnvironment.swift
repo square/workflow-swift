@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
+#if canImport(SwiftUI)
+
 import SwiftUI
-import WorkflowUI
 
-private struct ViewEnvironmentKey: EnvironmentKey {
-    static let defaultValue: ViewEnvironment = .empty
-}
-
-public extension EnvironmentValues {
-    var viewEnvironment: ViewEnvironment {
+extension EnvironmentValues {
+    public var viewEnvironment: ViewEnvironment {
         get { self[ViewEnvironmentKey.self] }
         set { self[ViewEnvironmentKey.self] = newValue }
     }
+
+    private struct ViewEnvironmentKey: EnvironmentKey {
+        static let defaultValue: ViewEnvironment = .empty
+    }
 }
+
+#endif
