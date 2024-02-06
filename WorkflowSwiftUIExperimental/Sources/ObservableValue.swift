@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 import Combine
@@ -27,7 +26,7 @@ public final class ObservableValue<Value>: ObservableObject {
 
     public private(set) var value: Value {
         get {
-            internalValue
+            return internalValue
         }
         set {
             subject.send(newValue)
@@ -69,14 +68,14 @@ public final class ObservableValue<Value>: ObservableObject {
     ///   - isEquivalent: An optional closure that checks to see if a LocalValue is equivalent.
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isEquivalent: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
-        scopeToLocalValue(toLocalValue, isEquivalent: isEquivalent)
+        return scopeToLocalValue(toLocalValue, isEquivalent: isEquivalent)
     }
 
     /// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure and removes duplicate values using Equatable.
     /// - Parameter toLocalValue: A closure that takes a Value and returns a LocalValue.
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
-        scopeToLocalValue(toLocalValue, isEquivalent: { $0 == $1 })
+        return scopeToLocalValue(toLocalValue, isEquivalent: { $0 == $1 })
     }
 
     /// Returns the value at the given keypath of ``Value``.
