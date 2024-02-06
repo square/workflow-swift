@@ -2,4 +2,8 @@
 
 * @square/foundation-ios
 
-/WorkflowUI/ @square/foundation-ios @square/ui-systems-ios
+# WorkflowUI, WorkflowSwiftUI, WorkflowSwiftUIExperimental
+/Workflow*UI*/ @square/foundation-ios @square/ui-systems-ios
+
+# ViewEnvironment, ViewEnvironmentUI
+/ViewEnvironment*/ @square/foundation-ios @square/ui-systems-ios
