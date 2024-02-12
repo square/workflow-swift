@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2023 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-import Tutorial5
-import UIKit
+import SwiftUI
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
+struct WithModel<Model, Content: View>: View {
+    @ObservedObject private var model: ObservableObjectValue<Model>
+    private let content: (ObservableObjectValue<Model>) -> Content
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        window = UIWindow(frame: UIScreen.main.bounds)
+    init(
+        _ model: ObservableObjectValue<Model>,
+        @ViewBuilder content: @escaping (ObservableObjectValue<Model>) -> Content
+    ) {
+        self.model = model
+        self.content = content
+    }
 
-        let viewController = TutorialHostingViewController()
-
-        window?.rootViewController = viewController
-
-        window?.makeKeyAndVisible()
-
-        return true
+    var body: Content {
+        content(model)
     }
 }

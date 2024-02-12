@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
+ * Copyright 2023 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-import Tutorial5
-import UIKit
+import SwiftUI
+import WorkflowUI
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
+private struct ViewEnvironmentKey: EnvironmentKey {
+    static let defaultValue: ViewEnvironment = .empty
+}
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        window = UIWindow(frame: UIScreen.main.bounds)
-
-        let viewController = TutorialHostingViewController()
-
-        window?.rootViewController = viewController
-
-        window?.makeKeyAndVisible()
-
-        return true
+public extension EnvironmentValues {
+    var viewEnvironment: ViewEnvironment {
+        get { self[ViewEnvironmentKey.self] }
+        set { self[ViewEnvironmentKey.self] = newValue }
     }
 }

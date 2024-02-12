@@ -91,7 +91,7 @@ let package = Package(
         ),
         .target(
             name: "WorkflowSwiftUI",
-            dependencies: ["Workflow"],
+            dependencies: ["Workflow", "WorkflowUI"],
             path: "WorkflowSwiftUI/Sources"
         ),
 
