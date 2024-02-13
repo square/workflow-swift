@@ -127,13 +127,13 @@ public struct RenderTester<WorkflowType: Workflow> {
     let state: WorkflowType.State
 
     private let expectedWorkflows: [AnyExpectedWorkflow]
-    private let expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
+    private let expectedSideEffects: [AnyHashable: ExpectedSideEffect]
 
     init(
         workflow: WorkflowType,
         state: WorkflowType.State,
         expectedWorkflows: [AnyExpectedWorkflow] = [],
-        expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>] = [:]
+        expectedSideEffects: [AnyHashable: ExpectedSideEffect] = [:]
     ) {
         self.workflow = workflow
         self.state = state

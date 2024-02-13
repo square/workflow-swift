@@ -23,7 +23,7 @@ extension RenderTester {
     internal final class TestContext: RenderContextType {
         var state: WorkflowType.State
         var expectedWorkflows: [AnyExpectedWorkflow]
-        var expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>]
+        var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
         var appliedAction: AppliedAction<WorkflowType>?
         var producedOutput: WorkflowType.Output?
         let file: StaticString
@@ -34,7 +34,7 @@ extension RenderTester {
         internal init(
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
-            expectedSideEffects: [AnyHashable: ExpectedSideEffect<WorkflowType>],
+            expectedSideEffects: [AnyHashable: ExpectedSideEffect],
             file: StaticString,
             line: UInt
         ) {
