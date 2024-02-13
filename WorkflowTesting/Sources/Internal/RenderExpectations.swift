@@ -48,7 +48,7 @@ extension RenderTester {
 }
 
 extension RenderTester {
-    internal class ExpectedSideEffect<WorkflowType: Workflow> {
+    internal class ExpectedSideEffect {
         let key: AnyHashable
         let file: StaticString
         let line: UInt
@@ -62,7 +62,7 @@ extension RenderTester {
         func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {}
     }
 
-    internal final class ExpectedSideEffectWithAction<WorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<WorkflowType> where ActionType.WorkflowType == WorkflowType {
+    internal final class ExpectedSideEffectWithAction<ActionType: WorkflowAction>: ExpectedSideEffect where ActionType.WorkflowType == WorkflowType {
         let action: ActionType
 
         internal init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {
