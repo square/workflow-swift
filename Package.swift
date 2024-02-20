@@ -6,9 +6,11 @@ import PackageDescription
 let package = Package(
     name: "Workflow",
     platforms: [
-        .iOS("15.0"),
-        .macOS("10.15"),
-        .watchOS("8.0"),
+        .iOS(.v15),
+        .macOS(.v12),
+        .watchOS(.v8),
+        .macCatalyst(.v15),
+        .tvOS(.v12),
     ],
     products: [
         // MARK: Workflow
