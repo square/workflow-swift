@@ -48,7 +48,7 @@ struct CounterWorkflow: Workflow {
         case increment
         case decrement
 
-        func apply(toState state: inout Int) -> Never? {
+        func apply(toState state: inout Int, workflow: WorkflowType) -> Never? {
             switch self {
             case .increment:
                 state += 1

@@ -101,7 +101,7 @@ private enum TestAction: WorkflowAction {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout Bool) -> TestWorkflow.Output? {
+    func apply(toState state: inout Bool, workflow: WorkflowType) -> TestWorkflow.Output? {
         switch self {
         case .toggleTapped:
             state = !state

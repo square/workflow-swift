@@ -78,7 +78,7 @@ public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowA
     @discardableResult
     public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action> {
         var newState = state
-        let output = action.apply(toState: &newState)
+        let output = action.apply(toState: &newState, workflow: workflow)
         return WorkflowActionTester(state: newState, output: output)
     }
 
