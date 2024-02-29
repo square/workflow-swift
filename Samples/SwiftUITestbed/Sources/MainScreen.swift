@@ -48,6 +48,12 @@ private struct MainView: View {
 
     var body: some View {
         WithPerceptionTracking { ScrollView { VStack {
+            let _ = Self._printChanges()
+
+            // TODO:
+            // - why does ToggleRow think _isOn changed?
+            // - suppress double render from textfield binding?
+
             Text("Title")
                 .font(Font(styles.headers.inlineSection20.heading.text.font))
 
@@ -58,11 +64,13 @@ private struct MainView: View {
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
 
+            Text("What you typed: \(store.title)")
+
             ToggleRow(
                 style: context.stylesheets.testbed.toggleRow,
                 label: "All Caps",
                 isEnabled: store.allCapsToggleIsEnabled,
-                isOn: $store.allCapsToggleIsOn
+                isOn: $store.isAllCaps
             )
 
             Spacer(minLength: styles.spacings.spacing50)
@@ -108,7 +116,8 @@ struct MainScreen_Preview: PreviewProvider {
     static var previews: some View {
         MainWorkflow.Rendering(
             state: .init(title: "Test"),
-            sendAction: { _ in }
+            sendAction: { _ in },
+            sendValue: { _ in }
         )
         .asMarketBackStack()
         .marketPreview()

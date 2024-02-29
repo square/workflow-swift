@@ -5,6 +5,7 @@ import SwiftUI
 
 // NB: These overloads ensure runtime warnings aren't emitted for errant SwiftUI bindings.
 #if DEBUG
+/*
 extension Binding {
     subscript<
         State: ObservableState,
@@ -15,8 +16,15 @@ extension Binding {
     ) -> Binding<Member>
         where Value == Store<State, Action> {
         Binding<Member>(
-            get: { self.wrappedValue.state[keyPath: keyPath] },
-            set: { _ in fatalError("TODO") }
+            get: {
+                self.wrappedValue.state[keyPath: keyPath]
+            },
+            set: { newValue in
+                self.wrappedValue.send(
+                    keyPath: keyPath,
+                    value: newValue
+                )
+            }
         )
     }
 }
@@ -28,8 +36,15 @@ extension Bindable {
     ) -> Binding<Member>
         where Value == Store<State, Action> {
         Binding<Member>(
-            get: { self.wrappedValue.state[keyPath: keyPath] },
-            set: { _ in fatalError("TODO") }
+            get: {
+                self.wrappedValue.state[keyPath: keyPath]
+            },
+            set: { newValue in
+                self.wrappedValue.send(
+                    keyPath: keyPath,
+                    value: newValue
+                )
+            }
         )
     }
 }
@@ -39,9 +54,17 @@ extension BindableStore {
         dynamicMember keyPath: WritableKeyPath<State, Member>
     ) -> Binding<Member> {
         Binding<Member>(
-            get: { self.wrappedValue.state[keyPath: keyPath] },
-            set: { _ in fatalError("TODO") }
+            get: {
+                self.wrappedValue.state[keyPath: keyPath]
+            },
+            set: { newValue in
+                self.wrappedValue.send(
+                    keyPath: keyPath,
+                    value: newValue
+                )
+            }
         )
     }
 }
+ */
 #endif

@@ -29,7 +29,11 @@ struct MainWorkflow: Workflow {
     @ObservableState
     struct State {
         var title: String
-        var isAllCaps: Bool
+        var isAllCaps: Bool {
+            didSet {
+                title = isAllCaps ? title.uppercased() : title.lowercased()
+            }
+        }
 
         init(title: String) {
             self.title = title
@@ -46,8 +50,6 @@ struct MainWorkflow: Workflow {
 
         case pushScreen
         case presentScreen
-        case changeTitle(String)
-        case changeAllCaps(Bool)
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -55,32 +57,23 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
-            case .changeTitle(let newValue):
-                state.title = newValue
-                state.isAllCaps = newValue.isAllCaps
-            case .changeAllCaps(let isAllCaps):
-                state.isAllCaps = isAllCaps
-                state.title = isAllCaps ? state.title.uppercased() : state.title.lowercased()
             }
-            return nil
         }
     }
 
     typealias Rendering = ViewModel<State, Action>
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
-        ViewModel(
+        print("MainWorkflow.render")
+        return ViewModel(
             state: state,
-            sendAction: context.makeSink(of: Action.self).send
+            sendAction: context.makeSink(of: Action.self).send,
+            sendValue: context.makeStateMutationSink().send
         )
     }
 }
 
 extension MainWorkflow.State {
-    var allCapsToggleIsOn: Bool {
-        get { isAllCaps }
-        set { fatalError("TODO") }
-    }
 
     var allCapsToggleIsEnabled: Bool {
         !title.isEmpty

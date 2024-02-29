@@ -16,6 +16,13 @@ final class Store<State: ObservableState, Action>: Perceptible {
         model.sendAction(action)
     }
 
+    private func send<Value>(keyPath: WritableKeyPath<State, Value>, value: Value) {
+        print("Store.send(\(keyPath), \(value))")
+        model.sendValue { state in
+            state[keyPath: keyPath] = value
+        }
+    }
+
     fileprivate init(_ model: Model) {
         self.model = model
     }
@@ -39,6 +46,15 @@ extension Store {
 
     subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
         state[keyPath: keyPath]
+    }
+
+    subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
+        get {
+            state[keyPath: keyPath]
+        }
+        set {
+            send(keyPath: keyPath, value: newValue)
+        }
     }
 
     func action(_ action: Action) -> () -> Void {
