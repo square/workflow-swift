@@ -13,7 +13,7 @@ struct CounterScreen: SwiftUIScreen, Screen {
     typealias Action = CounterWorkflow.Action
 
     static func makeView(store: Store<State, CounterWorkflow.Action>) -> some View {
-        CounterView(store: store)
+        CounterScreenView(store: store)
     }
 }
 
@@ -28,28 +28,48 @@ extension CounterScreen: MarketBackStackContentScreen {
     var backStackIdentifier: AnyHashable? { nil }
 }
 
-struct CounterView: View {
+struct CounterScreenView: View {
     let store: Store<CounterWorkflow.State, CounterWorkflow.Action>
 
     var body: some View {
+        WithPerceptionTracking {
+            let _ = Self._printChanges()
+            VStack {
+                CounterView(store: store, index: 0)
+                
+                CounterView(store: store, index: 1)
+            }
+        }
+    }
+}
+
+struct CounterView: View {
+    let store: Store<CounterWorkflow.State, CounterWorkflow.Action>
+    let index: Int
+
+    var body: some View {
+        let _ = print("Evaluating CounterView[\(index)].body")
         let _ = Self._printChanges()
         WithPerceptionTracking {
+            let _ = print("Evaluating CounterView[\(index)].WithPerceptionTracking.body")
+            let _ = Self._printChanges()
             HStack {
                 Button {
-                    store.send(.decrement)
+                    store.send(.decrement(index: index))
                 } label: {
                     Image(systemName: "minus")
                 }
 
-                Text("\(store.count)")
+                Text("\(index == 0 ? store.count1 : store.count2)")
                     .monospacedDigit()
 
                 Button {
-                    store.send(.increment)
+                    store.send(.increment(index: index))
                 } label: {
                     Image(systemName: "plus")
                 }
             }
+            .padding()
         }
     }
 }
