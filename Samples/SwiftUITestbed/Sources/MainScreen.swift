@@ -93,6 +93,8 @@ private struct MainView: View {
                 action: { focusedField = nil }
             )
 
+            Button("Counters", action: store.action(.counters))
+
         } } }
     }
 }

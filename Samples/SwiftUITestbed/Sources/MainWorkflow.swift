@@ -24,6 +24,7 @@ struct MainWorkflow: Workflow {
     enum Output {
         case pushScreen
         case presentScreen
+        case counters
     }
 
     @ObservableState
@@ -50,6 +51,7 @@ struct MainWorkflow: Workflow {
 
         case pushScreen
         case presentScreen
+        case counters
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -57,6 +59,8 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
+            case .counters:
+                return .counters
             }
         }
     }
