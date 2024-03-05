@@ -51,7 +51,6 @@ private struct MainView: View {
             let _ = Self._printChanges()
 
             // TODO:
-            // - why does ToggleRow think _isOn changed?
             // - suppress double render from textfield binding?
 
             Text("Title")
@@ -60,6 +59,8 @@ private struct MainView: View {
             TextField(
                 "Text",
                 text: $store.title
+                // alternatively:
+                // text: store.binding(for: \.title, action: \.titleChanged)
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
@@ -72,6 +73,8 @@ private struct MainView: View {
                 isEnabled: store.allCapsToggleIsEnabled,
                 isOn: $store.isAllCaps
             )
+
+            Button("Append *", action: store.action(.appendStar))
 
             Spacer(minLength: styles.spacings.spacing50)
 
@@ -92,8 +95,6 @@ private struct MainView: View {
                 "Resign Focus",
                 action: { focusedField = nil }
             )
-
-            Button("Counters", action: store.action(.counters))
 
         } } }
     }
@@ -116,13 +117,13 @@ import SwiftUI
 
 struct MainScreen_Preview: PreviewProvider {
     static var previews: some View {
-        MainWorkflow.Rendering(
-            state: .init(title: "Test"),
-            sendAction: { _ in },
-            sendValue: { _ in }
+        MainWorkflow(
+            didClose: nil
         )
-        .asMarketBackStack()
-        .marketPreview()
+        .mapRendering { $0.asMarketBackStack() }
+        .marketPreview { output in
+
+        }
     }
 }
 

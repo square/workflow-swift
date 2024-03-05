@@ -34,7 +34,6 @@ struct RootWorkflow: Workflow {
 
         enum Screen {
             case main(id: UUID = UUID())
-            case counters(id: UUID = UUID())
         }
     }
 
@@ -58,8 +57,6 @@ struct RootWorkflow: Workflow {
                 state.backStack.other.append(.main())
             case .main(.presentScreen):
                 state.isPresentingModal = true
-            case .main(.counters):
-                state.backStack.other.append(.counters())
             case .popScreen:
                 state.backStack.other.removeLast()
             case .dismissScreen:
@@ -77,20 +74,20 @@ struct RootWorkflow: Workflow {
 
         func rendering(_ screen: State.Screen, isRoot: Bool) -> AnyMarketBackStackContentScreen {
             switch screen {
-            case .main(let id),
-//                return MainWorkflow(didClose: isRoot ? close : nil)
-//                    .mapOutput(Action.main)
-//                    .mapRendering(AnyMarketBackStackContentScreen.init)
-//                    .rendered(in: context, key: id.uuidString)
-            .counters(let id):
+            case .main(let id):
+                return MainWorkflow(didClose: isRoot ? close : nil)
+                    .mapOutput(Action.main)
+                    .mapRendering(AnyMarketBackStackContentScreen.init)
+                    .rendered(in: context, key: id.uuidString)
+
                 // explicit annotations on every single line or else compiler can't handle it
-                let w1: CounterWorkflow = CounterWorkflow()
-                let aw: AnyWorkflow<CounterScreen, Never> = w1.asAnyWorkflow()
-                let w2: AnyWorkflow<AnyMarketBackStackContentScreen, Never> = aw.mapRendering {
-                    return AnyMarketBackStackContentScreen($0)
-                }
-                let w3 = w2.rendered(in: context, key: id.uuidString)
-                return w3
+//                let w1: CounterWorkflow = CounterWorkflow()
+//                let aw: AnyWorkflow<CounterScreen, Never> = w1.asAnyWorkflow()
+//                let w2: AnyWorkflow<AnyMarketBackStackContentScreen, Never> = aw.mapRendering {
+//                    return AnyMarketBackStackContentScreen($0)
+//                }
+//                let w3 = w2.rendered(in: context, key: id.uuidString)
+//                return w3
             }
         }
 

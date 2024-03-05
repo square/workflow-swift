@@ -27,12 +27,9 @@ struct BindableStore<State: ObservableState, Action> {
         self
     }
 
-    subscript<Subject>(
-        dynamicMember keyPath: ReferenceWritableKeyPath<Store<State, Action>, Subject>
-    ) -> Binding<Subject> {
-        Binding(
-            get: { self.wrappedValue[keyPath: keyPath] },
-            set: { self.wrappedValue[keyPath: keyPath] = $0 }
-        )
+    subscript<Value>(
+        dynamicMember keyPath: ReferenceWritableKeyPath<Store<State, Action>, Value>
+    ) -> Binding<Value> {
+        wrappedValue.binding(for: keyPath)
     }
 }

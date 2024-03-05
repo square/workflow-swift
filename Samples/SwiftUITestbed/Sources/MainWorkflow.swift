@@ -17,6 +17,7 @@
 import ComposableArchitecture // for ObservableState
 import MarketWorkflowUI
 import Workflow
+import CasePaths
 
 struct MainWorkflow: Workflow {
     let didClose: (() -> Void)?
@@ -24,7 +25,6 @@ struct MainWorkflow: Workflow {
     enum Output {
         case pushScreen
         case presentScreen
-        case counters
     }
 
     @ObservableState
@@ -46,12 +46,15 @@ struct MainWorkflow: Workflow {
         State(title: "New item")
     }
 
-    enum Action: WorkflowAction {
+    @CasePathable
+    enum Action: WorkflowAction, Equatable {
         typealias WorkflowType = MainWorkflow
 
         case pushScreen
         case presentScreen
-        case counters
+        case titleChanged(String)
+        case allCapsChanged(Bool)
+        case appendStar
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -59,8 +62,15 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
-            case .counters:
-                return .counters
+            case .allCapsChanged(let allCaps):
+                state.isAllCaps = allCaps
+                return nil
+            case .titleChanged(let newTitle):
+                state.title = newTitle
+                return nil
+            case .appendStar:
+                state.title += "*"
+                return nil
             }
         }
     }
@@ -69,6 +79,7 @@ struct MainWorkflow: Workflow {
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         print("MainWorkflow.render")
+
         return ViewModel(
             state: state,
             sendAction: context.makeSink(of: Action.self).send,

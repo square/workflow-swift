@@ -1,4 +1,5 @@
 import ComposableArchitecture // for ObservableState and Perception
+import SwiftUI
 
 @dynamicMemberLookup
 final class Store<State: ObservableState, Action>: Perceptible {
@@ -6,6 +7,8 @@ final class Store<State: ObservableState, Action>: Perceptible {
 
     private var model: Model
     private let _$observationRegistrar = PerceptionRegistrar()
+
+    private var bindings: [BindingKey: Any] = [:]
 
     var state: State {
         _$observationRegistrar.access(self, keyPath: \.state)
@@ -59,6 +62,55 @@ extension Store {
 
     func action(_ action: Action) -> () -> Void {
         { self.send(action) }
+    }
+
+    func binding<Value>(
+        for keyPath: ReferenceWritableKeyPath<Store<State, Action>, Value>
+    ) -> Binding<Value> {
+        let key = BindingKey(keyPath: keyPath, action: nil)
+
+        if let binding = bindings[key] as? Binding<Value> {
+            print("cached binding for \(keyPath)")
+            return binding
+        }
+
+        print("new binding for \(keyPath)")
+        let binding = Binding(
+            get: { self[keyPath: keyPath] },
+            set: { self[keyPath: keyPath] = $0 }
+        )
+
+        bindings[key] = binding
+
+        return binding
+
+    }
+
+    func binding<Value>(
+        for keyPath: KeyPath<State, Value>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        let key = BindingKey(keyPath: keyPath, action: action)
+
+        if let binding = bindings[key] as? Binding<Value> {
+            print("cached binding for \(keyPath)")
+            return binding
+        }
+
+        print("new binding for \(keyPath)")
+        let binding = Binding(
+            get: { self.state[keyPath: keyPath] },
+            set: { self.send(action($0)) }
+        )
+
+        bindings[key] = binding
+
+        return binding
+    }
+
+    struct BindingKey: Hashable {
+        let keyPath: AnyKeyPath
+        let action: AnyKeyPath?
     }
 }
 
