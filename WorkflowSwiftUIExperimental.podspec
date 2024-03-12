@@ -21,5 +21,11 @@ Pod::Spec.new do |s|
     s.dependency 'Workflow', WORKFLOW_VERSION
     s.dependency 'WorkflowUI', WORKFLOW_VERSION
 
+    s.spm_dependency(
+     :url => 'https://github.com/pointfreeco/swift-composable-architecture',
+     :requirement => {:kind => 'upToNextMajorVersion',  :minimumVersion => '1.9.0'},
+     :products => ['ComposableArchitecture']
+    )
+
     s.pod_target_xcconfig = { 'APPLICATION_EXTENSION_API_ONLY' => 'YES' }
   end

@@ -83,6 +83,14 @@ Pod::Spec.new do |s|
     app_spec.source_files = 'Samples/SwiftUITestbed/Sources/**/*.swift'
     app_spec.dependency 'MarketWorkflowUI', '80.0.0'
     app_spec.dependency 'WorkflowSwiftUIExperimental'
+
+    # app spec SPM dependencies not supported yet
+    # app_spec.spm_dependency(
+    #  :url => 'https://github.com/pointfreeco/swift-composable-architecture',
+    #  :requirement => {:kind => 'upToNextMajorVersion',  :minimumVersion => '1.9.0'},
+    #  :products => ['ComposableArchitecture']
+    # )
+
   end
 
   s.test_spec 'SwiftUITestbedTests' do |test_spec|
