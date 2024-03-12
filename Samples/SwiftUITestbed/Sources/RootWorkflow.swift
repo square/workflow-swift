@@ -75,10 +75,18 @@ struct RootWorkflow: Workflow {
         func rendering(_ screen: State.Screen, isRoot: Bool) -> AnyMarketBackStackContentScreen {
             switch screen {
             case .main(let id):
-                return MainWorkflow(didClose: isRoot ? close : nil)
-                    .mapOutput(Action.main)
-                    .mapRendering(AnyMarketBackStackContentScreen.init)
+                let w: AnyWorkflow<TwoCounterModel, Never> = TwoCounterWorkflow()
+                    .asAnyWorkflow()
+
+                    return w.mapRendering { (rendering: TwoCounterModel) in
+                        TwoCounterScreen(model: rendering).asAnyMarketBackStackContentScreen()
+                    }
                     .rendered(in: context, key: id.uuidString)
+
+//                return MainWorkflow(didClose: isRoot ? close : nil)
+//                    .mapOutput(Action.main)
+//                    .mapRendering { MainScreen(model: $0).asAnyMarketBackStackContentScreen() }
+//                    .rendered(in: context, key: id.uuidString)
 
                 // explicit annotations on every single line or else compiler can't handle it
 //                let w1: CounterWorkflow = CounterWorkflow()

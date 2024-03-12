@@ -40,16 +40,15 @@ struct CounterWorkflow: Workflow {
         State()
     }
 
-    typealias Rendering = CounterScreen
+    typealias Rendering = StoreModel<State, Action>
+    typealias Model = StoreModel<State, Action>
 
-    func render(state: State, context: RenderContext<CounterWorkflow>) -> CounterScreen {
+    func render(state: State, context: RenderContext<CounterWorkflow>) -> StoreModel<State, Action> {
         print("CounterWorkflow.render")
-        return CounterScreen(
-            model: ViewModel(
-                state: state,
-                sendAction: context.makeSink(of: Action.self).send,
-                sendValue: context.makeStateMutationSink().send
-            )
+        return StoreModel(
+            state: state,
+            sendAction: context.makeSink(of: Action.self).send,
+            sendValue: context.makeStateMutationSink().send
         )
     }
 }

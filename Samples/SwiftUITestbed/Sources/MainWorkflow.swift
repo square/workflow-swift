@@ -75,12 +75,12 @@ struct MainWorkflow: Workflow {
         }
     }
 
-    typealias Rendering = ViewModel<State, Action>
+    typealias Rendering = StoreModel<State, Action>
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         print("MainWorkflow.render")
 
-        return ViewModel(
+        return StoreModel(
             state: state,
             sendAction: context.makeSink(of: Action.self).send,
             sendValue: context.makeStateMutationSink().send

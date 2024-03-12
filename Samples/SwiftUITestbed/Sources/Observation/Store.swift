@@ -2,26 +2,28 @@ import ComposableArchitecture // for ObservableState and Perception
 import SwiftUI
 
 @dynamicMemberLookup
-final class Store<State: ObservableState, Action>: Perceptible {
-    typealias Model = ViewModel<State, Action>
+final class Store<Model: ObservableModel>: Perceptible {
+    typealias State = Model.State
+    typealias Action = Model.Action
 
     private var model: Model
     private let _$observationRegistrar = PerceptionRegistrar()
 
     private var bindings: [BindingKey: Any] = [:]
+    private var childStores: [AnyKeyPath: ChildStore] = [:]
 
     var state: State {
         _$observationRegistrar.access(self, keyPath: \.state)
-        return model.state
+        return model.model.state
     }
 
     func send(_ action: Action) {
-        model.sendAction(action)
+        model.model.sendAction(action)
     }
 
     private func send<Value>(keyPath: WritableKeyPath<State, Value>, value: Value) {
         print("Store.send(\(keyPath), \(value))")
-        model.sendValue { state in
+        model.model.sendValue { state in
             state[keyPath: keyPath] = value
         }
     }
@@ -31,12 +33,16 @@ final class Store<State: ObservableState, Action>: Perceptible {
     }
 
     fileprivate func setModel(_ newValue: Model) {
-        if !_$isIdentityEqual(model.state, newValue.state) {
+        if !_$isIdentityEqual(model.model.state, newValue.model.state) {
             _$observationRegistrar.withMutation(of: self, keyPath: \.state) {
                 model = newValue
             }
         } else {
             model = newValue
+        }
+
+        for childStore in childStores.values {
+            childStore.setModel(newValue)
         }
     }
 }
@@ -60,12 +66,38 @@ extension Store {
         }
     }
 
+    func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
+        if let childStore = childStores[keyPath]?.store as? Store<ChildModel> {
+            return childStore
+        }
+
+        let childModel = model[keyPath: keyPath]
+        let childStore = Store<ChildModel>(childModel)
+
+        childStores[keyPath] = ChildStore(store: childStore, setModel: { model in
+            childStore.setModel(model[keyPath: keyPath])
+        })
+
+        return childStore
+    }
+
+    // TODO: child stores for optionals, collections, etc
+
+    subscript<ChildModel: ObservableModel>(dynamicMember keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
+        scope(keyPath: keyPath)
+    }
+
+    struct ChildStore {
+        var store: Any
+        var setModel: (Model) -> Void
+    }
+
     func action(_ action: Action) -> () -> Void {
         { self.send(action) }
     }
 
     func binding<Value>(
-        for keyPath: ReferenceWritableKeyPath<Store<State, Action>, Value>
+        for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
     ) -> Binding<Value> {
         let key = BindingKey(keyPath: keyPath, action: nil)
 

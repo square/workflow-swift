@@ -21,21 +21,18 @@ import ViewEnvironment
 import WorkflowSwiftUIExperimental
 import WorkflowUI
 
-// Compiler requires explicit conformance to `Screen`, or else: "Conditional
-// conformance of type 'ViewModel<State, Action>' to protocol 'SwiftUIScreen'
-// does not imply conformance to inherited protocol 'Screen'"
-extension MainWorkflow.Rendering: SwiftUIScreen, Screen {
-    var model: Model {
-        self
-    }
+struct MainScreen: SwiftUIScreen {
+    typealias Model = StoreModel<MainWorkflow.State, MainWorkflow.Action>
+    var model: Model
 
-    public static func makeView(store: Store<MainWorkflow.State, MainWorkflow.Action>) -> some View {
+    public static func makeView(store: Store<Model>) -> some View {
         MainView(store: store)
     }
 }
 
 private struct MainView: View {
-    @BindableStore var store: Store<MainWorkflow.State, MainWorkflow.Action>
+    typealias Model = StoreModel<MainWorkflow.State, MainWorkflow.Action>
+    @BindableStore var store: Store<Model>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext
@@ -100,10 +97,10 @@ private struct MainView: View {
     }
 }
 
-extension MainWorkflow.Rendering: MarketBackStackContentScreen {
+extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: state.title)),
+            title: .text(.init(regular: model.state.title)),
             backButton: .close(onTap: { fatalError("TODO") }) // didTapClose.map { .close(onTap: $0) } ?? .automatic()
         )
     }
@@ -120,7 +117,7 @@ struct MainScreen_Preview: PreviewProvider {
         MainWorkflow(
             didClose: nil
         )
-        .mapRendering { $0.asMarketBackStack() }
+        .mapRendering { MainScreen(model: $0).asMarketBackStack() }
         .marketPreview { output in
 
         }

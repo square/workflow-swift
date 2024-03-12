@@ -6,16 +6,15 @@ import Workflow
 import WorkflowUI
 
 protocol SwiftUIScreen: Screen {
-    associatedtype State: ObservableState
-    associatedtype Action
+//    associatedtype State: ObservableState
+//    associatedtype Action
     associatedtype Content: View
-
-    typealias Model = ViewModel<State, Action>
+    associatedtype Model: ObservableModel
 
     var model: Model { get }
 
     @ViewBuilder
-    static func makeView(store: Store<State, Action>) -> Content
+    static func makeView(store: Store<Model>) -> Content
 }
 
 extension SwiftUIScreen {

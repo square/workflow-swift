@@ -9,10 +9,10 @@ struct CounterScreen: SwiftUIScreen, Screen {
     var model: Model
     
     typealias State = CounterWorkflow.State
-
     typealias Action = CounterWorkflow.Action
+    typealias Model = StoreModel<State, Action>
 
-    static func makeView(store: Store<State, CounterWorkflow.Action>) -> some View {
+    static func makeView(store: Store<Model>) -> some View {
         CounterScreenView(store: store)
     }
 }
@@ -29,7 +29,9 @@ extension CounterScreen: MarketBackStackContentScreen {
 }
 
 struct CounterScreenView: View {
-    let store: Store<CounterWorkflow.State, CounterWorkflow.Action>
+    typealias Model = StoreModel<CounterWorkflow.State, CounterWorkflow.Action>
+
+    let store: Store<Model>
 
     var body: some View {
         WithPerceptionTracking {
@@ -44,7 +46,8 @@ struct CounterScreenView: View {
 }
 
 struct CounterView: View {
-    let store: Store<CounterWorkflow.State, CounterWorkflow.Action>
+    typealias Model = StoreModel<CounterWorkflow.State, CounterWorkflow.Action>
+    let store: Store<Model>
     let index: Int
 
     var body: some View {
