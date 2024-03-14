@@ -11,10 +11,10 @@ import ComposableArchitecture
 
 extension RenderContext where WorkflowType.State: ObservableState {
 
-    func makeStateLens(
+    func makeStateAccessor(
         state: WorkflowType.State
-    ) -> StateLens<WorkflowType.State> {
-        StateLens(state: state, sendValue: makeStateMutationSink().send)
+    ) -> StateAccessor<WorkflowType.State> {
+        StateAccessor(state: state, sendValue: makeStateMutationSink().send)
     }
 
     func makeStoreModel<Action: WorkflowAction>(
@@ -23,7 +23,7 @@ extension RenderContext where WorkflowType.State: ObservableState {
     where Action.WorkflowType == WorkflowType
     {
         StoreModel(
-            lens: makeStateLens(state: state),
+            accessor: makeStateAccessor(state: state),
             sendAction: makeSink(of: Action.self).send
         )
     }

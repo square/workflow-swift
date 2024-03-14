@@ -47,11 +47,11 @@ struct CounterView: View {
     let index: Int
 
     var body: some View {
-        let _ = print("Evaluating CounterView[\(index)].body")
-        let _ = Self._printChanges()
+//        let _ = print("Evaluating CounterView[\(index)].body")
+//        let _ = Self._printChanges()
         WithPerceptionTracking {
-            let _ = print("Evaluating CounterView[\(index)].WithPerceptionTracking.body")
-            let _ = Self._printChanges()
+//            let _ = print("Evaluating CounterView[\(index)].WithPerceptionTracking.body")
+//            let _ = Self._printChanges()
             HStack {
                 Button {
                     store.send(.decrement)

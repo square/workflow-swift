@@ -35,7 +35,7 @@ struct CounterWorkflow: Workflow {
     typealias Model = StoreModel<State, Action>
 
     func render(state: State, context: RenderContext<CounterWorkflow>) -> StoreModel<State, Action> {
-        print("CounterWorkflow.render")
+//        print("CounterWorkflow.render")
         return context.makeStoreModel(state: state)
     }
 }

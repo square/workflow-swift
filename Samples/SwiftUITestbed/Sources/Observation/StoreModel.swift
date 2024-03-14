@@ -5,16 +5,17 @@ import Workflow
 protocol ObservableModel<State> {
     associatedtype State: ObservableState
 
-    var lens: StateLens<State> { get }
+    var accessor: StateAccessor<State> { get }
 }
 
 extension ObservableModel {
     subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
         get {
-            lens.state[keyPath: keyPath]
+            accessor.state[keyPath: keyPath]
         }
+        // If desirable, we could further divide this into a read-only and a writable version.
         set {
-            lens.sendValue { $0[keyPath: keyPath] = newValue }
+            accessor.sendValue { $0[keyPath: keyPath] = newValue }
         }
     }
 }
@@ -26,17 +27,17 @@ protocol ActionModel {
 }
 
 // Simplest form of model, with no actions
-struct StateLens<State: ObservableState> {
+struct StateAccessor<State: ObservableState> {
     let state: State
     let sendValue: (@escaping (inout State) -> Void) -> Void
 }
 
-extension StateLens: ObservableModel {
-    var lens: StateLens<State> { self }
+extension StateAccessor: ObservableModel {
+    var accessor: StateAccessor<State> { self }
 }
 
 // A common model with 1 action
 struct StoreModel<State: ObservableState, Action>: ObservableModel, ActionModel {
-    let lens: StateLens<State>
+    let accessor: StateAccessor<State>
     let sendAction: (Action) -> Void
 }

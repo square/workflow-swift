@@ -1,5 +1,6 @@
 import ComposableArchitecture // for ObservableState and Perception
 import SwiftUI
+import Workflow
 
 @dynamicMemberLookup
 final class Store<Model: ObservableModel>: Perceptible {
@@ -13,12 +14,12 @@ final class Store<Model: ObservableModel>: Perceptible {
 
     var state: State {
         _$observationRegistrar.access(self, keyPath: \.state)
-        return model.lens.state
+        return model.accessor.state
     }
 
     private func send<Value>(keyPath: WritableKeyPath<State, Value>, value: Value) {
         print("Store.send(\(keyPath), \(value))")
-        model.lens.sendValue { state in
+        model.accessor.sendValue { state in
             state[keyPath: keyPath] = value
         }
     }
@@ -28,7 +29,7 @@ final class Store<Model: ObservableModel>: Perceptible {
     }
 
     fileprivate func setModel(_ newValue: Model) {
-        if !_$isIdentityEqual(model.lens.state, newValue.lens.state) {
+        if !_$isIdentityEqual(model.accessor.state, newValue.accessor.state) {
             _$observationRegistrar.withMutation(of: self, keyPath: \.state) {
                 model = newValue
             }
@@ -57,22 +58,13 @@ extension Store where Model: ActionModel {
         for keyPath: KeyPath<State, Value>,
         action: CaseKeyPath<Action, Value>
     ) -> Binding<Value> {
-        let key = BindingKey(keyPath: keyPath, action: action)
-
-        if let binding = bindings[key] as? Binding<Value> {
-            print("cached binding for \(keyPath)")
-            return binding
+        // \Model.sendAction is not ideal for "sink path" but unique for prototyping
+        binding(key: .keyPathSinkAction(keyPath: keyPath, sinkPath: \Model.sendAction, actionPath: action)) {
+            Binding(
+                get: { self.state[keyPath: keyPath] },
+                set: { self.send(action($0)) }
+            )
         }
-
-        print("new binding for \(keyPath)")
-        let binding = Binding(
-            get: { self.state[keyPath: keyPath] },
-            set: { self.send(action($0)) }
-        )
-
-        bindings[key] = binding
-
-        return binding
     }
 }
 
@@ -93,6 +85,10 @@ extension Store {
         set {
             send(keyPath: keyPath, value: newValue)
         }
+    }
+
+    subscript<Action>(dynamicMember keyPath: KeyPath<Model, Sink<Action>>) -> Sink<Action> {
+        model[keyPath: keyPath]
     }
 
     func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
@@ -124,28 +120,64 @@ extension Store {
     func binding<Value>(
         for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
     ) -> Binding<Value> {
-        let key = BindingKey(keyPath: keyPath, action: nil)
+        binding(key: .writableKeyPath(keyPath)) {
+            Binding(
+                get: { self[keyPath: keyPath] },
+                set: { self[keyPath: keyPath] = $0 }
+            )
+        }
+    }
 
+    func binding<Value>(
+        for keyPath: KeyPath<State, Value>,
+        send: KeyPath<Model, (Value) -> Void>
+    ) -> Binding<Value> {
+        binding(key: .keyPathSend(keyPath: keyPath, sendPath: send)) {
+            Binding(
+                get: {
+                    let val = self.state[keyPath: keyPath]
+                    print("get \(keyPath) -> \(val)")
+                    return val
+                },
+                set: {
+                    print("set \(keyPath) <- \($0)")
+                    self.model[keyPath: send]($0)
+                }
+            )
+        }
+    }
+
+    func binding<Value, Action>(
+        for keyPath: KeyPath<State, Value>,
+        sink: KeyPath<Model, Sink<Action>>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        binding(key: .keyPathSinkAction(keyPath: keyPath, sinkPath: sink, actionPath: action)) {
+            Binding(
+                get: { self.state[keyPath: keyPath] },
+                set: { self.model[keyPath: sink].send(action($0)) }
+            )
+        }
+    }
+
+    private func binding<Value>(key: BindingKey, create: () -> Binding<Value>) -> Binding<Value> {
         if let binding = bindings[key] as? Binding<Value> {
-            print("cached binding for \(keyPath)")
+            print("cached binding for \(key)")
+            _ = binding.wrappedValue
             return binding
         }
 
-        print("new binding for \(keyPath)")
-        let binding = Binding(
-            get: { self[keyPath: keyPath] },
-            set: { self[keyPath: keyPath] = $0 }
-        )
-
+        print("new binding for \(key)")
+        let binding = create()
         bindings[key] = binding
 
         return binding
-
     }
 
-    struct BindingKey: Hashable {
-        let keyPath: AnyKeyPath
-        let action: AnyKeyPath?
+    enum BindingKey: Hashable {
+        case writableKeyPath(AnyKeyPath)
+        case keyPathSend(keyPath: AnyKeyPath, sendPath: AnyKeyPath)
+        case keyPathSinkAction(keyPath: AnyKeyPath, sinkPath: AnyKeyPath, actionPath: AnyKeyPath)
     }
 }
 
