@@ -36,11 +36,7 @@ struct CounterScreenView: View {
     var body: some View {
         WithPerceptionTracking {
             let _ = Self._printChanges()
-            VStack {
-                CounterView(store: store, index: 0)
-                
-                CounterView(store: store, index: 1)
-            }
+            CounterView(store: store, index: 0)
         }
     }
 }
@@ -58,16 +54,16 @@ struct CounterView: View {
             let _ = Self._printChanges()
             HStack {
                 Button {
-                    store.send(.decrement(index: index))
+                    store.send(.decrement)
                 } label: {
                     Image(systemName: "minus")
                 }
 
-                Text("\(index == 0 ? store.count1 : store.count2)")
+                Text("\(store.count)")
                     .monospacedDigit()
 
                 Button {
-                    store.send(.increment(index: index))
+                    store.send(.increment)
                 } label: {
                     Image(systemName: "plus")
                 }

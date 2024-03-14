@@ -5,30 +5,21 @@ struct CounterWorkflow: Workflow {
 
     @ObservableState
     struct State {
-        var count1 = 0
-        var count2 = 0
+        var count = 0
     }
 
     enum Action: WorkflowAction {
         typealias WorkflowType = CounterWorkflow
 
-        case increment(index: Int)
-        case decrement(index: Int)
+        case increment
+        case decrement
 
         func apply(toState state: inout CounterWorkflow.State) -> CounterWorkflow.Output? {
             switch self {
-            case .increment(let index):
-                if index == 0 {
-                    state.count1 += 1
-                } else {
-                    state.count2 += 1
-                }
-            case .decrement(let index):
-                if index == 0 {
-                    state.count1 -= 1
-                } else {
-                    state.count2 -= 1
-                }
+            case .increment:
+                state.count += 1
+            case .decrement:
+                state.count -= 1
             }
             return nil
         }
@@ -45,10 +36,6 @@ struct CounterWorkflow: Workflow {
 
     func render(state: State, context: RenderContext<CounterWorkflow>) -> StoreModel<State, Action> {
         print("CounterWorkflow.render")
-        return StoreModel(
-            state: state,
-            sendAction: context.makeSink(of: Action.self).send,
-            sendValue: context.makeStateMutationSink().send
-        )
+        return context.makeStoreModel(state: state)
     }
 }

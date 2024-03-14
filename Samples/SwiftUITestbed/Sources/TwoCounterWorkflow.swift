@@ -19,6 +19,8 @@ struct TwoCounterWorkflow: Workflow {
         State()
     }
 
+    // TODO: 2 kinds of actions
+
     enum Action: WorkflowAction {
         typealias WorkflowType = TwoCounterWorkflow
 
@@ -31,15 +33,13 @@ struct TwoCounterWorkflow: Workflow {
     typealias Rendering = TwoCounterModel
 
     func render(state: State, context: RenderContext<TwoCounterWorkflow>) -> TwoCounterModel {
-        let model: StoreModel<State, Action> = context.makeStoreModel(state: state)
         let counter1: CounterWorkflow.Model = CounterWorkflow().rendered(in: context, key: "1")
         let counter2: CounterWorkflow.Model = CounterWorkflow().rendered(in: context, key: "2")
 
         return TwoCounterModel(
-            model: model,
+            lens: context.makeStateLens(state: state),
             counter1: counter1,
             counter2: counter2
         )
     }
 }
-

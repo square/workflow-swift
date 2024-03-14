@@ -80,11 +80,7 @@ struct MainWorkflow: Workflow {
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         print("MainWorkflow.render")
 
-        return StoreModel(
-            state: state,
-            sendAction: context.makeSink(of: Action.self).send,
-            sendValue: context.makeStateMutationSink().send
-        )
+        return context.makeStoreModel(state: state)
     }
 }
 

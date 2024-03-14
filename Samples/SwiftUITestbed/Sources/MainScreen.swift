@@ -100,7 +100,7 @@ private struct MainView: View {
 extension MainScreen: MarketBackStackContentScreen {
     func backStackItem(in environment: ViewEnvironment) -> MarketUI.MarketNavigationItem {
         MarketNavigationItem(
-            title: .text(.init(regular: model.state.title)),
+            title: .text(.init(regular: model.title)),
             backButton: .close(onTap: { fatalError("TODO") }) // didTapClose.map { .close(onTap: $0) } ?? .automatic()
         )
     }

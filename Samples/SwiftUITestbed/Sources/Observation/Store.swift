@@ -4,7 +4,6 @@ import SwiftUI
 @dynamicMemberLookup
 final class Store<Model: ObservableModel>: Perceptible {
     typealias State = Model.State
-    typealias Action = Model.Action
 
     private var model: Model
     private let _$observationRegistrar = PerceptionRegistrar()
@@ -14,16 +13,12 @@ final class Store<Model: ObservableModel>: Perceptible {
 
     var state: State {
         _$observationRegistrar.access(self, keyPath: \.state)
-        return model.model.state
-    }
-
-    func send(_ action: Action) {
-        model.model.sendAction(action)
+        return model.lens.state
     }
 
     private func send<Value>(keyPath: WritableKeyPath<State, Value>, value: Value) {
         print("Store.send(\(keyPath), \(value))")
-        model.model.sendValue { state in
+        model.lens.sendValue { state in
             state[keyPath: keyPath] = value
         }
     }
@@ -33,7 +28,7 @@ final class Store<Model: ObservableModel>: Perceptible {
     }
 
     fileprivate func setModel(_ newValue: Model) {
-        if !_$isIdentityEqual(model.model.state, newValue.model.state) {
+        if !_$isIdentityEqual(model.lens.state, newValue.lens.state) {
             _$observationRegistrar.withMutation(of: self, keyPath: \.state) {
                 model = newValue
             }
@@ -44,6 +39,40 @@ final class Store<Model: ObservableModel>: Perceptible {
         for childStore in childStores.values {
             childStore.setModel(newValue)
         }
+    }
+}
+
+extension Store where Model: ActionModel {
+    typealias Action = Model.Action
+
+    func action(_ action: Action) -> () -> Void {
+        { self.send(action) }
+    }
+
+    func send(_ action: Action) {
+        model.sendAction(action)
+    }
+
+    func binding<Value>(
+        for keyPath: KeyPath<State, Value>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        let key = BindingKey(keyPath: keyPath, action: action)
+
+        if let binding = bindings[key] as? Binding<Value> {
+            print("cached binding for \(keyPath)")
+            return binding
+        }
+
+        print("new binding for \(keyPath)")
+        let binding = Binding(
+            get: { self.state[keyPath: keyPath] },
+            set: { self.send(action($0)) }
+        )
+
+        bindings[key] = binding
+
+        return binding
     }
 }
 
@@ -92,10 +121,6 @@ extension Store {
         var setModel: (Model) -> Void
     }
 
-    func action(_ action: Action) -> () -> Void {
-        { self.send(action) }
-    }
-
     func binding<Value>(
         for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
     ) -> Binding<Value> {
@@ -116,28 +141,6 @@ extension Store {
 
         return binding
 
-    }
-
-    func binding<Value>(
-        for keyPath: KeyPath<State, Value>,
-        action: CaseKeyPath<Action, Value>
-    ) -> Binding<Value> {
-        let key = BindingKey(keyPath: keyPath, action: action)
-
-        if let binding = bindings[key] as? Binding<Value> {
-            print("cached binding for \(keyPath)")
-            return binding
-        }
-
-        print("new binding for \(keyPath)")
-        let binding = Binding(
-            get: { self.state[keyPath: keyPath] },
-            set: { self.send(action($0)) }
-        )
-
-        bindings[key] = binding
-
-        return binding
     }
 
     struct BindingKey: Hashable {

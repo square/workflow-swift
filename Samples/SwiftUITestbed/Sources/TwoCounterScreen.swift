@@ -44,10 +44,9 @@ struct TwoCounterView: View {
 
 struct TwoCounterModel: ObservableModel {
     typealias State = TwoCounterWorkflow.State
-    typealias Action = TwoCounterWorkflow.Action
-    typealias Model = StoreModel<State, Action>
 
-    let model: Model
+    let lens: StateLens<State>
+
     let counter1: CounterWorkflow.Model
     let counter2: CounterWorkflow.Model
 }

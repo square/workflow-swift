@@ -1,19 +1,42 @@
 import ComposableArchitecture
 import Workflow
 
-struct StoreModel<State: ObservableState, Action>: ObservableModel {
-    let state: State
-    let sendAction: (Action) -> Void
-    let sendValue: (@escaping (inout State) -> Void) -> Void
+@dynamicMemberLookup
+protocol ObservableModel<State> {
+    associatedtype State: ObservableState
 
-    var model: StoreModel<State, Action> {
-        self
+    var lens: StateLens<State> { get }
+}
+
+extension ObservableModel {
+    subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
+        get {
+            lens.state[keyPath: keyPath]
+        }
+        set {
+            lens.sendValue { $0[keyPath: keyPath] = newValue }
+        }
     }
 }
 
-protocol ObservableModel<State, Action> {
-    associatedtype State: ObservableState
+protocol ActionModel {
     associatedtype Action
 
-    var model: StoreModel<State, Action> { get }
+    var sendAction: (Action) -> Void { get }
+}
+
+// Simplest form of model, with no actions
+struct StateLens<State: ObservableState> {
+    let state: State
+    let sendValue: (@escaping (inout State) -> Void) -> Void
+}
+
+extension StateLens: ObservableModel {
+    var lens: StateLens<State> { self }
+}
+
+// A common model with 1 action
+struct StoreModel<State: ObservableState, Action>: ObservableModel, ActionModel {
+    let lens: StateLens<State>
+    let sendAction: (Action) -> Void
 }

@@ -7,17 +7,24 @@
 
 import Foundation
 import Workflow
+import ComposableArchitecture
 
-extension RenderContext {
+extension RenderContext where WorkflowType.State: ObservableState {
+
+    func makeStateLens(
+        state: WorkflowType.State
+    ) -> StateLens<WorkflowType.State> {
+        StateLens(state: state, sendValue: makeStateMutationSink().send)
+    }
+
     func makeStoreModel<Action: WorkflowAction>(
         state: WorkflowType.State
     ) -> StoreModel<WorkflowType.State, Action>
     where Action.WorkflowType == WorkflowType
     {
         StoreModel(
-            state: state,
-            sendAction: makeSink(of: Action.self).send,
-            sendValue: makeStateMutationSink().send
+            lens: makeStateLens(state: state),
+            sendAction: makeSink(of: Action.self).send
         )
     }
 }
