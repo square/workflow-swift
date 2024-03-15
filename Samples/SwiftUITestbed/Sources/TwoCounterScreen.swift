@@ -33,17 +33,22 @@ extension TwoCounterScreen: MarketBackStackContentScreen {
 }
 
 struct TwoCounterView: View {
-    @Perception.Bindable var store: Store<TwoCounterModel>
+//    @Perception.Bindable var store: Store<TwoCounterModel>
+    @BindableStore var store: Store<TwoCounterModel>
 
     var body: some View {
         WithPerceptionTracking {
-            let _ = Self._printChanges()
+            let _ = print("Evaluated TwoCounterView body")
             VStack {
 //                Toggle(
 //                    "Show Sum",
 //                    isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum)
 //                )
 //                ToggleWrapper(isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum))
+                Toggle(
+                    "Show Sum (top)",
+                    isOn: $store.showSum
+                )
                 ToggleWrapper(isOn: $store.showSum)
 
                 Button("Add Counter") {
@@ -66,11 +71,11 @@ struct TwoCounterView: View {
 struct ToggleWrapper: View {
     @Binding var isOn: Bool
     var body: some View {
-//        WithPerceptionTracking {
-            let _ = Self._printChanges()
+        WithPerceptionTracking {
+            let _ = print("Evaluated ToggleWrapper body")
 
-            Toggle("Show Sum", isOn: $isOn)
-//        }
+            Toggle("Show Sum (nested)", isOn: $isOn)
+        }
     }
 }
 

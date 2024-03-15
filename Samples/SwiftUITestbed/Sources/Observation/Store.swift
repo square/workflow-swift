@@ -145,6 +145,43 @@ extension Store {
         case keyPathSend(keyPath: AnyKeyPath, sendPath: AnyKeyPath)
         case keyPathSinkAction(keyPath: AnyKeyPath, sinkPath: AnyKeyPath, actionPath: AnyKeyPath)
     }
+
+    func binding<Value>(for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>) -> Binding<Value> {
+        let key = BindingKey.writableKeyPath(keyPath)
+        if let binding = bindings[key] as? Binding<Value> {
+//            print("Reusing binding")// for \(keyPath)")
+            _ = binding.wrappedValue
+            return binding
+        }
+
+        // TODO: better to just do this in the setter?
+        withPerceptionTracking {
+            _ = self[keyPath: keyPath]
+        } onChange: {
+            print("invalidating binding")
+            self.bindings[key] = nil
+        }
+
+        print("Creating binding")
+        let binding = Binding<Value>(
+            get: {
+                let val = self[keyPath: keyPath]
+                print("get -> \(val)")
+                return val
+            },
+            set: {
+                print("set <- \($0)")
+                self[keyPath: keyPath] = $0
+            }
+        )
+        bindings[key] = binding
+        return binding
+    }
+
+    func clearBindings() {
+        print("clearBindings")
+        bindings.removeAll()
+    }
 }
 
 extension Binding {
