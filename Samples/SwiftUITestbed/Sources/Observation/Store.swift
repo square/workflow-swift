@@ -54,17 +54,12 @@ extension Store where Model: ActionModel {
         model.sendAction(action)
     }
 
-    func binding<Value>(
-        for keyPath: KeyPath<State, Value>,
+    subscript<Value>(
+        state keyPath: KeyPath<State, Value>,
         action: CaseKeyPath<Action, Value>
-    ) -> Binding<Value> {
-        // \Model.sendAction is not ideal for "sink path" but unique for prototyping
-        binding(key: .keyPathSinkAction(keyPath: keyPath, sinkPath: \Model.sendAction, actionPath: action)) {
-            Binding(
-                get: { self.state[keyPath: keyPath] },
-                set: { self.send(action($0)) }
-            )
-        }
+    ) -> Value {
+        get { self.state[keyPath: keyPath] }
+        set { self.send(action(newValue)) }
     }
 }
 
@@ -117,67 +112,122 @@ extension Store {
         var setModel: (Model) -> Void
     }
 
-    func binding<Value>(
-        for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
-    ) -> Binding<Value> {
-        binding(key: .writableKeyPath(keyPath)) {
-            Binding(
-                get: { self[keyPath: keyPath] },
-                set: { self[keyPath: keyPath] = $0 }
-            )
+    subscript<Value>(
+        state state: KeyPath<State, Value>,
+        send send: KeyPath<Model, (Value) -> Void>
+    ) -> Value {
+        get {
+            let val = self.state[keyPath: state]
+            print("get \(state) -> \(val)")
+            return val
+        }
+        set {
+            print("set \(state) <- \(newValue)")
+            self.model[keyPath: send](newValue)
         }
     }
 
-    func binding<Value>(
-        for keyPath: KeyPath<State, Value>,
-        send: KeyPath<Model, (Value) -> Void>
-    ) -> Binding<Value> {
-        binding(key: .keyPathSend(keyPath: keyPath, sendPath: send)) {
-            Binding(
-                get: {
-                    let val = self.state[keyPath: keyPath]
-                    print("get \(keyPath) -> \(val)")
-                    return val
-                },
-                set: {
-                    print("set \(keyPath) <- \($0)")
-                    self.model[keyPath: send]($0)
-                }
-            )
+    subscript<Value, Action>(
+        state state: KeyPath<State, Value>,
+        sink sink: KeyPath<Model, Sink<Action>>,
+        action action: CaseKeyPath<Action, Value>
+    ) -> Value {
+        get {
+            self.state[keyPath: state]
         }
-    }
-
-    func binding<Value, Action>(
-        for keyPath: KeyPath<State, Value>,
-        sink: KeyPath<Model, Sink<Action>>,
-        action: CaseKeyPath<Action, Value>
-    ) -> Binding<Value> {
-        binding(key: .keyPathSinkAction(keyPath: keyPath, sinkPath: sink, actionPath: action)) {
-            Binding(
-                get: { self.state[keyPath: keyPath] },
-                set: { self.model[keyPath: sink].send(action($0)) }
-            )
+        set {
+            self.model[keyPath: sink].send(action(newValue))
         }
-    }
-
-    private func binding<Value>(key: BindingKey, create: () -> Binding<Value>) -> Binding<Value> {
-        if let binding = bindings[key] as? Binding<Value> {
-            print("cached binding for \(key)")
-            _ = binding.wrappedValue
-            return binding
-        }
-
-        print("new binding for \(key)")
-        let binding = create()
-        bindings[key] = binding
-
-        return binding
     }
 
     enum BindingKey: Hashable {
         case writableKeyPath(AnyKeyPath)
         case keyPathSend(keyPath: AnyKeyPath, sendPath: AnyKeyPath)
         case keyPathSinkAction(keyPath: AnyKeyPath, sinkPath: AnyKeyPath, actionPath: AnyKeyPath)
+    }
+}
+
+extension Binding {
+    @_disfavoredOverload
+    subscript<Model: ObservableModel, Member>(
+        dynamicMember keyPath: KeyPath<Model.State, Member>
+    ) -> _StoreBinding<Model, Member>
+    where Value == Store<Model>
+    {
+        print("Creating _StoreBindable for \(keyPath)")
+        return _StoreBinding(binding: self, keyPath: keyPath)
+    }
+}
+
+extension Perception.Bindable {
+    @_disfavoredOverload
+    subscript<Model: ObservableModel, Member>(
+        dynamicMember keyPath: KeyPath<Model.State, Member>
+    ) -> _StoreBindable<Model, Member>
+    where Value == Store<Model>
+    {
+        print("Creating _StoreBindable for \(keyPath)")
+        return _StoreBindable(bindable: self, keyPath: keyPath)
+    }
+}
+
+@dynamicMemberLookup
+struct _StoreBinding<Model: ObservableModel, Value> {
+    fileprivate let binding: Binding<Store<Model>>
+    fileprivate let keyPath: KeyPath<Model.State, Value>
+
+    subscript<Member>(
+        dynamicMember keyPath: KeyPath<Value, Member>
+    ) -> _StoreBinding<Model, Member> {
+        _StoreBinding<Model, Member>(
+            binding: self.binding,
+            keyPath: self.keyPath.appending(path: keyPath)
+        )
+    }
+
+    /// Creates a binding to the value by sending new values through the given action.
+    ///
+    /// - Parameter action: An action for the binding to send values through.
+    /// - Returns: A binding.
+    public func sending<Action>(
+        sink: KeyPath<Model, Sink<Action>>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        self.binding[state: keyPath, sink: sink, action: action]
+    }
+}
+
+@dynamicMemberLookup
+struct _StoreBindable<Model: ObservableModel, Value> {
+    fileprivate let bindable: Perception.Bindable<Store<Model>>
+    fileprivate let keyPath: KeyPath<Model.State, Value>
+
+    subscript<Member>(
+        dynamicMember keyPath: KeyPath<Value, Member>
+    ) -> _StoreBindable<Model, Member> {
+        _StoreBindable<Model, Member>(
+            bindable: self.bindable,
+            keyPath: self.keyPath.appending(path: keyPath)
+        )
+    }
+
+    /// Creates a binding to the value by sending new values through the given action.
+    ///
+    /// - Parameter action: An action for the binding to send values through.
+    /// - Returns: A binding.
+    public func sending<Action>(
+        sink: KeyPath<Model, Sink<Action>>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        print("Subscripting _StoreBindable for \(keyPath) sink + action")
+        return self.bindable[state: keyPath, sink: sink, action: action]
+    }
+
+    public func sending(
+        action: KeyPath<Model, (Value) -> Void>
+    ) -> Binding<Value> {
+        print("Subscripting _StoreBindable for closure action")
+        return self.bindable[state: keyPath, send: action]
     }
 }
 

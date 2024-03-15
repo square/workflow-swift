@@ -32,7 +32,7 @@ struct MainScreen: SwiftUIScreen {
 
 private struct MainView: View {
     typealias Model = StoreModel<MainWorkflow.State, MainWorkflow.Action>
-    @BindableStore var store: Store<Model>
+    @Perception.Bindable var store: Store<Model>
 
     @Environment(\.viewEnvironment.marketStylesheet) private var styles: MarketStylesheet
     @Environment(\.viewEnvironment.marketContext) private var context: MarketContext

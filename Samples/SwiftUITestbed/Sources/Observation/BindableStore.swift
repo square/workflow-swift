@@ -11,25 +11,28 @@ import SwiftUI
 ///
 /// If you are targeting iOS 17, macOS 14, tvOS 17, watchOS 9, or later, then you can replace
 /// ``BindableStore`` with SwiftUI's `@Bindable`.
-@available(iOS, deprecated: 17, renamed: "Bindable")
-@available(macOS, deprecated: 14, renamed: "Bindable")
-@available(tvOS, deprecated: 17, renamed: "Bindable")
-@available(watchOS, deprecated: 10, renamed: "Bindable")
-@propertyWrapper
-@dynamicMemberLookup
-struct BindableStore<Model: ObservableModel> {
-    var wrappedValue: Store<Model>
-    init(wrappedValue: Store<Model>) {
-        self.wrappedValue = wrappedValue
-    }
+//@available(iOS, deprecated: 17, renamed: "Bindable")
+//@available(macOS, deprecated: 14, renamed: "Bindable")
+//@available(tvOS, deprecated: 17, renamed: "Bindable")
+//@available(watchOS, deprecated: 10, renamed: "Bindable")
+//@propertyWrapper
+//@dynamicMemberLookup
+//struct BindableStore<Model: ObservableModel> {
+//    var wrappedValue: Store<Model>
+//    init(wrappedValue: Store<Model>) {
+//        self.wrappedValue = wrappedValue
+//    }
+//
+//    var projectedValue: Self {
+//        self
+//    }
+//
+//    subscript<Value>(
+//        dynamicMember keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
+//    ) -> Binding<Value> {
+//        wrappedValue.binding(for: keyPath)
+//    }
+//}
 
-    var projectedValue: Self {
-        self
-    }
+// TODO: can we use this instead of Perception.Bindable to re-introduce a cache on the root Binding?
 
-    subscript<Value>(
-        dynamicMember keyPath: ReferenceWritableKeyPath<Store<Model>, Value>
-    ) -> Binding<Value> {
-        wrappedValue.binding(for: keyPath)
-    }
-}

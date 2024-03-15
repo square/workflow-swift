@@ -39,14 +39,11 @@ struct TwoCounterView: View {
         WithPerceptionTracking {
             let _ = Self._printChanges()
             VStack {
-                $store.
-                @Binding var showSum = store.binding(for: \.showSum, send: \.onShowSumToggle)
-//                @Perception.Bindable var showSum = store.showSum
-                Toggle(
-                    "Show Sum",
-//                    isOn: store.binding(for: \.showSum, send: \.onShowSumToggle)
-                    isOn: $store.showSum
-                )
+//                Toggle(
+//                    "Show Sum",
+//                    isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum)
+//                )
+//                ToggleWrapper(isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum))
                 ToggleWrapper(isOn: $store.showSum)
 
                 Button("Add Counter") {
@@ -69,11 +66,11 @@ struct TwoCounterView: View {
 struct ToggleWrapper: View {
     @Binding var isOn: Bool
     var body: some View {
-        WithPerceptionTracking {
+//        WithPerceptionTracking {
             let _ = Self._printChanges()
 
             Toggle("Show Sum", isOn: $isOn)
-        }
+//        }
     }
 }
 
@@ -85,7 +82,8 @@ struct TwoCounterModel: ObservableModel {
     let counter1: CounterWorkflow.Model
     let counter2: CounterWorkflow.Model
 
-    let onShowSumToggle: (Bool) -> Void
+//    let onShowSumToggle: (Bool) -> Void
+    let sumAction: Sink<TwoCounterWorkflow.SumAction>
     let counterAction: Sink<TwoCounterWorkflow.CounterAction>
 }
 

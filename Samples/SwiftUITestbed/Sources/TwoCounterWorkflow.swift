@@ -14,6 +14,7 @@ struct TwoCounterWorkflow: Workflow {
 
     @ObservableState
     struct State {
+//        fileprivate(set) 
         var showSum = false
         var counterCount = 2
     }
@@ -22,15 +23,30 @@ struct TwoCounterWorkflow: Workflow {
         State()
     }
 
-    struct ShowSumAction: WorkflowAction {
+//    struct ShowSumAction: WorkflowAction {
+//        typealias WorkflowType = TwoCounterWorkflow
+//
+//        var showSum: Bool
+//
+//        func apply(toState state: inout TwoCounterWorkflow.State) -> Never? {
+//            print("ShowSumAction: \(showSum)")
+//            state.showSum = showSum
+//            return nil
+//        }
+//    }
+
+    @CasePathable
+    enum SumAction: WorkflowAction {
         typealias WorkflowType = TwoCounterWorkflow
 
-        var showSum: Bool
+        case showSum(Bool)
 
         func apply(toState state: inout TwoCounterWorkflow.State) -> Never? {
-            print("ShowSumAction: \(showSum)")
-            state.showSum = showSum
-            return nil
+            switch self {
+            case .showSum(let showSum):
+                state.showSum = showSum
+                return nil
+            }
         }
     }
 
@@ -56,14 +72,15 @@ struct TwoCounterWorkflow: Workflow {
         let counter1: CounterWorkflow.Model = CounterWorkflow().rendered(in: context, key: "1")
         let counter2: CounterWorkflow.Model = CounterWorkflow().rendered(in: context, key: "2")
         print("TwoCounterWorkflow render showSum: \(state.showSum)")
-        let showSum = context.makeSink(of: ShowSumAction.self)
+        let sumAction = context.makeSink(of: SumAction.self)
         let counterAction = context.makeSink(of: CounterAction.self)
 
         return TwoCounterModel(
             accessor: context.makeStateAccessor(state: state),
             counter1: counter1,
             counter2: counter2,
-            onShowSumToggle: { showSum.send(ShowSumAction(showSum: $0)) },
+//            onShowSumToggle: { showSum.send(ShowSumAction(showSum: $0)) },
+            sumAction: sumAction,
             counterAction: counterAction
         )
     }
