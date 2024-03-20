@@ -3,6 +3,8 @@ import ComposableArchitecture
 
 struct CounterWorkflow: Workflow {
 
+    var resetToken: ResetToken
+
     @ObservableState
     struct State {
         var count = 0
@@ -28,7 +30,14 @@ struct CounterWorkflow: Workflow {
     typealias Output = Never
 
     func makeInitialState() -> State {
-        State()
+        State(count: resetToken.initialValue)
+    }
+
+    func workflowDidChange(from previousWorkflow: CounterWorkflow, state: inout State) {
+        if resetToken != previousWorkflow.resetToken {
+            // this state reset will totally invalidate the body even if `count` doesn't change
+            state = State(count: resetToken.initialValue)
+        }
     }
 
     typealias Rendering = StoreModel<State, Action>
@@ -37,5 +46,12 @@ struct CounterWorkflow: Workflow {
     func render(state: State, context: RenderContext<CounterWorkflow>) -> StoreModel<State, Action> {
 //        print("CounterWorkflow.render")
         return context.makeStoreModel(state: state)
+    }
+}
+
+extension CounterWorkflow {
+    struct ResetToken: Equatable {
+        let id = UUID()
+        var initialValue = 0
     }
 }

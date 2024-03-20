@@ -55,6 +55,11 @@ struct TwoCounterView: View {
                     store.counterAction.send(.addCounter)
                 }
 
+                Button("Reset Counters") {
+                    // struct action
+                    store.resetAction.send(.init(value: 0))
+                }
+
                 CounterView(store: store.counter1, index: 0)
 
                 CounterView(store: store.counter2, index: 1)
@@ -74,7 +79,7 @@ struct ToggleWrapper: View {
         WithPerceptionTracking {
             let _ = print("Evaluated ToggleWrapper body")
 
-            Toggle("Show Sum (nested)", isOn: $isOn)
+            Toggle("Show Sum", isOn: $isOn)
         }
     }
 }
@@ -87,9 +92,9 @@ struct TwoCounterModel: ObservableModel {
     let counter1: CounterWorkflow.Model
     let counter2: CounterWorkflow.Model
 
-//    let onShowSumToggle: (Bool) -> Void
     let sumAction: Sink<TwoCounterWorkflow.SumAction>
     let counterAction: Sink<TwoCounterWorkflow.CounterAction>
+    let resetAction: Sink<TwoCounterWorkflow.ResetAction>
 }
 
 #if DEBUG
