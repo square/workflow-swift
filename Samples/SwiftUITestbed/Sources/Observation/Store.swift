@@ -118,11 +118,11 @@ extension Store {
     ) -> Value {
         get {
             let val = self.state[keyPath: state]
-            print("get \(state) -> \(val)")
+            //print("get \(state) -> \(val)")
             return val
         }
         set {
-            print("set \(state) <- \(newValue)")
+            //print("set \(state) <- \(newValue)")
             self.model[keyPath: send](newValue)
         }
     }
@@ -149,12 +149,11 @@ extension Store {
     func binding<Value>(for keyPath: ReferenceWritableKeyPath<Store<Model>, Value>) -> Binding<Value> {
         let key = BindingKey.writableKeyPath(keyPath)
         if let binding = bindings[key] as? Binding<Value> {
-//            print("Reusing binding")// for \(keyPath)")
+            // print("Reusing binding")// for \(keyPath)")
             _ = binding.wrappedValue
             return binding
         }
 
-        // TODO: better to just do this in the setter?
         withPerceptionTracking {
             _ = self[keyPath: keyPath]
         } onChange: {
@@ -164,15 +163,8 @@ extension Store {
 
         print("Creating binding")
         let binding = Binding<Value>(
-            get: {
-                let val = self[keyPath: keyPath]
-                print("get -> \(val)")
-                return val
-            },
-            set: {
-                print("set <- \($0)")
-                self[keyPath: keyPath] = $0
-            }
+            get: { self[keyPath: keyPath] },
+            set: { self[keyPath: keyPath] = $0 }
         )
         bindings[key] = binding
         return binding
@@ -196,15 +188,25 @@ extension Binding {
     }
 }
 
-extension Perception.Bindable {
+// Moved onto BindableStore
+//extension Perception.Bindable {
+//    @_disfavoredOverload
+//    subscript<Model: ObservableModel, Member>(
+//        dynamicMember keyPath: KeyPath<Model.State, Member>
+//    ) -> _StoreBindable<Model, Member>
+//    where Value == Store<Model>
+//    {
+//        print("Creating _StoreBindable for \(keyPath)")
+//        return _StoreBindable(bindable: self, keyPath: keyPath)
+//    }
+//}
+
+extension BindableStore {
     @_disfavoredOverload
-    subscript<Model: ObservableModel, Member>(
+    subscript<Member>(
         dynamicMember keyPath: KeyPath<Model.State, Member>
-    ) -> _StoreBindable<Model, Member>
-    where Value == Store<Model>
-    {
-        print("Creating _StoreBindable for \(keyPath)")
-        return _StoreBindable(bindable: self, keyPath: keyPath)
+    ) -> _StoreBindable<Model, Member> {
+        _StoreBindable(bindable: self, keyPath: keyPath)
     }
 }
 
@@ -236,7 +238,7 @@ struct _StoreBinding<Model: ObservableModel, Value> {
 
 @dynamicMemberLookup
 struct _StoreBindable<Model: ObservableModel, Value> {
-    fileprivate let bindable: Perception.Bindable<Store<Model>>
+    fileprivate let bindable: BindableStore<Model>
     fileprivate let keyPath: KeyPath<Model.State, Value>
 
     subscript<Member>(

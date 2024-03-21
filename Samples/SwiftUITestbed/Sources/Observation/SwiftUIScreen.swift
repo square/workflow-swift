@@ -6,8 +6,6 @@ import Workflow
 import WorkflowUI
 
 protocol SwiftUIScreen: Screen {
-//    associatedtype State: ObservableState
-//    associatedtype Action
     associatedtype Content: View
     associatedtype Model: ObservableModel
 

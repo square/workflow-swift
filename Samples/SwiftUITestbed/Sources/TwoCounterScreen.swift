@@ -33,23 +33,21 @@ extension TwoCounterScreen: MarketBackStackContentScreen {
 }
 
 struct TwoCounterView: View {
-//    @Perception.Bindable var store: Store<TwoCounterModel>
+    // @BindableStore instead of @Perception.Bindable gives us a chance to cache the binding
     @BindableStore var store: Store<TwoCounterModel>
 
     var body: some View {
         WithPerceptionTracking {
             let _ = print("Evaluated TwoCounterView body")
             VStack {
-//                Toggle(
-//                    "Show Sum",
-//                    isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum)
-//                )
-//                ToggleWrapper(isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum))
+
+                // Toggle vs wrapped Toggle
                 Toggle(
-                    "Show Sum (top)",
+                    "Show Sum",
                     isOn: $store.showSum
                 )
-                ToggleWrapper(isOn: $store.showSum)
+                // Binding with a custom setter action
+                ToggleWrapper(isOn: $store.showSum.sending(sink: \.sumAction, action: \.showSum))
 
                 Button("Add Counter") {
                     store.counterAction.send(.addCounter)
@@ -64,6 +62,7 @@ struct TwoCounterView: View {
 
                 CounterView(store: store.counter2, index: 1)
 
+                // When showSum is false, changes to counters do not invalidate this body
                 if store.showSum {
                     Text("Sum: \(store.counter1.count + store.counter2.count)")
                 }

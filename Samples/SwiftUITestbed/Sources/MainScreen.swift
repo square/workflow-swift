@@ -56,8 +56,6 @@ private struct MainView: View {
             TextField(
                 "Text",
                 text: $store.title
-                // alternatively:
-                // text: store.binding(for: \.title, action: \.titleChanged)
             )
             .focused($focusedField, equals: .title)
             .onAppear { focusedField = .title }
