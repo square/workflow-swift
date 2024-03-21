@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import ComposableArchitecture // for ObservableState
 import MarketWorkflowUI
 import Workflow
+import CasePaths
 
 struct MainWorkflow: Workflow {
     let didClose: (() -> Void)?
@@ -25,9 +27,14 @@ struct MainWorkflow: Workflow {
         case presentScreen
     }
 
+    @ObservableState
     struct State {
         var title: String
-        var isAllCaps: Bool
+        var isAllCaps: Bool {
+            didSet {
+                title = isAllCaps ? title.uppercased() : title.lowercased()
+            }
+        }
 
         init(title: String) {
             self.title = title
@@ -39,13 +46,15 @@ struct MainWorkflow: Workflow {
         State(title: "New item")
     }
 
-    enum Action: WorkflowAction {
+    @CasePathable
+    enum Action: WorkflowAction, Equatable {
         typealias WorkflowType = MainWorkflow
 
         case pushScreen
         case presentScreen
-        case changeTitle(String)
-        case changeAllCaps(Bool)
+        case titleChanged(String)
+        case allCapsChanged(Bool)
+        case appendStar
 
         func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
             switch self {
@@ -53,32 +62,32 @@ struct MainWorkflow: Workflow {
                 return .pushScreen
             case .presentScreen:
                 return .presentScreen
-            case .changeTitle(let newValue):
-                state.title = newValue
-                state.isAllCaps = newValue.isAllCaps
-            case .changeAllCaps(let isAllCaps):
-                state.isAllCaps = isAllCaps
-                state.title = isAllCaps ? state.title.uppercased() : state.title.lowercased()
+            case .allCapsChanged(let allCaps):
+                state.isAllCaps = allCaps
+                return nil
+            case .titleChanged(let newTitle):
+                state.title = newTitle
+                return nil
+            case .appendStar:
+                state.title += "*"
+                return nil
             }
-            return nil
         }
     }
 
-    typealias Rendering = MainScreen
+    typealias Rendering = StoreModel<State, Action>
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
-        let sink = context.makeSink(of: Action.self)
+        print("MainWorkflow.render")
 
-        return MainScreen(
-            title: state.title,
-            didChangeTitle: { sink.send(.changeTitle($0)) },
-            allCapsToggleIsOn: state.isAllCaps,
-            allCapsToggleIsEnabled: !state.title.isEmpty,
-            didChangeAllCapsToggle: { sink.send(.changeAllCaps($0)) },
-            didTapPushScreen: { sink.send(.pushScreen) },
-            didTapPresentScreen: { sink.send(.presentScreen) },
-            didTapClose: didClose
-        )
+        return context.makeStoreModel(state: state)
+    }
+}
+
+extension MainWorkflow.State {
+
+    var allCapsToggleIsEnabled: Bool {
+        !title.isEmpty
     }
 }
 

@@ -27,6 +27,7 @@ struct ToggleRow: View {
     @Binding var isOn: Bool
 
     var body: some View {
+        let _ = Self._printChanges()
         HStack(
             alignment: .center,
             spacing: style.spacing
