@@ -19,6 +19,7 @@
 // `@testable import Workflow` will fail compilation in Release mode.
 #if DEBUG
 
+import CustomDump
 import XCTest
 @testable import Workflow
 
@@ -60,7 +61,7 @@ extension Workflow {
 ///         producingOutput: nil
 ///     )
 ///     .render { rendering in
-///         XCTAssertEqual("expected text on rendering", rendering.text)
+///         XCTAssertNoDifference("expected text on rendering", rendering.text)
 ///     }
 ///     .assert(state: TestWorkflow.State())
 ///     .assert(output: TestWorkflow.Output.finished)
@@ -71,7 +72,7 @@ extension Workflow {
 /// workflow
 ///     .renderTester()
 ///     .render { rendering in
-///         XCTAssertEqual("expected text on rendering", rendering.text)
+///         XCTAssertNoDifference("expected text on rendering", rendering.text)
 ///     }
 /// ```
 ///
@@ -80,7 +81,7 @@ extension Workflow {
 /// workflow
 ///     .renderTester()
 ///     .render { rendering in
-///         XCTAssertEqual("expected text on rendering", rendering.text)
+///         XCTAssertNoDifference("expected text on rendering", rendering.text)
 ///         rendering.updateText("updated")
 ///     }
 ///     .assert(
