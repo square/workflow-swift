@@ -30,7 +30,7 @@ public protocol SwiftUIScreen: Screen {
 }
 
 public extension SwiftUIScreen {
-    static var isEquivalent: ((Self, Self) -> Bool)? { return nil }
+    static var isEquivalent: ((Self, Self) -> Bool)? { nil }
 }
 
 public extension SwiftUIScreen where Self: Equatable {
@@ -87,6 +87,16 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("not implemented")
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        let size = view.sizeThatFits(view.frame.size)
+
+        if preferredContentSize != size {
+            preferredContentSize = size
+        }
     }
 }
 
