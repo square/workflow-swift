@@ -89,6 +89,12 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         fatalError("not implemented")
     }
 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.backgroundColor = .clear
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
