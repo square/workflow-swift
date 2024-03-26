@@ -26,7 +26,13 @@ public protocol SwiftUIScreen: Screen {
     @ViewBuilder
     static func makeView(model: ObservableValue<Self>) -> Content
 
+    static var sizingOptions: SwiftUIScreenSizingOptions { get }
+
     static var isEquivalent: ((Self, Self) -> Bool)? { get }
+}
+
+public extension SwiftUIScreen {
+    static var sizingOptions: SwiftUIScreenSizingOptions { [] }
 }
 
 public extension SwiftUIScreen {
@@ -46,6 +52,7 @@ public extension SwiftUIScreen {
                 let (model, modelSink) = ObservableValue.makeObservableValue(self, isEquivalent: Self.isEquivalent)
                 let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(environment)
                 return ModeledHostingController(
+                    swiftUIScreenSizingOptions: Self.sizingOptions,
                     modelSink: modelSink,
                     viewEnvironmentSink: envSink,
                     rootView: WithModel(model, content: { model in
@@ -64,6 +71,17 @@ public extension SwiftUIScreen {
     }
 }
 
+public struct SwiftUIScreenSizingOptions: OptionSet {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let intrinsicContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 0)
+    public static let preferredContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 1)
+}
+
 private struct EnvironmentInjectingView<Content: View>: View {
     @ObservedObject var viewEnvironment: ObservableValue<ViewEnvironment>
     let content: Content
@@ -75,14 +93,26 @@ private struct EnvironmentInjectingView<Content: View>: View {
 }
 
 private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
+    let swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions
     let modelSink: Sink<Model>
     let viewEnvironmentSink: Sink<ViewEnvironment>
 
-    init(modelSink: Sink<Model>, viewEnvironmentSink: Sink<ViewEnvironment>, rootView: Content) {
+    init(
+        swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions,
+        modelSink: Sink<Model>,
+        viewEnvironmentSink: Sink<ViewEnvironment>,
+        rootView: Content
+    ) {
+        self.swiftUIScreenSizingOptions = swiftUIScreenSizingOptions
         self.modelSink = modelSink
         self.viewEnvironmentSink = viewEnvironmentSink
 
         super.init(rootView: rootView)
+
+        // TODO: This solution seems to cause Market's Modals framework to animate presentation incorrectly.
+        if #available(iOS 16.0, *) {
+            self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
+        }
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -98,11 +128,43 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        let size = view.sizeThatFits(view.frame.size)
+        if #available(iOS 16.0, *) {
+            // Handled in initializer
+        } else if !swiftUIScreenSizingOptions.isEmpty {
+            // Note that these will not update when the content's size updates within the SwiftUI
+            // View.
+            // We'll likely need to inject a trigger folks can manually call to force an update
+            // (e.g. https://github.com/airbnb/epoxy-ios/blob/e25f2915a004f64c27ebff7ed9ad41ec594a4cef/Sources/EpoxyCore/SwiftUI/EpoxySwiftUIIntrinsicContentSizeInvalidator.swift)
 
-        if preferredContentSize != size {
-            preferredContentSize = size
+            if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+                let size = view.sizeThatFits(view.frame.size)
+
+                if preferredContentSize != size {
+                    preferredContentSize = size
+                }
+            }
+
+            if swiftUIScreenSizingOptions.contains(.intrinsicContentSize) {
+                view.invalidateIntrinsicContentSize()
+            }
         }
+    }
+}
+
+extension SwiftUIScreenSizingOptions {
+    @available(iOS 16.0, *)
+    fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
+        var options = UIHostingControllerSizingOptions()
+
+        if contains(.intrinsicContentSize) {
+            options.insert(.intrinsicContentSize)
+        }
+
+        if contains(.preferredContentSize) {
+            options.insert(.preferredContentSize)
+        }
+
+        return options
     }
 }
 
