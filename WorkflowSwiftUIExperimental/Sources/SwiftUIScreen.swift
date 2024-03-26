@@ -125,17 +125,24 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         view.backgroundColor = .clear
     }
 
+    private var hasLaidOutOnce = false
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        if #available(iOS 16.0, *) {
-            // Handled in initializer
-        } else if !swiftUIScreenSizingOptions.isEmpty {
-            // Note that these will not update when the content's size updates within the SwiftUI
-            // View.
-            // We'll likely need to inject a trigger folks can manually call to force an update
-            // (e.g. https://github.com/airbnb/epoxy-ios/blob/e25f2915a004f64c27ebff7ed9ad41ec594a4cef/Sources/EpoxyCore/SwiftUI/EpoxySwiftUIIntrinsicContentSizeInvalidator.swift)
+        defer { hasLaidOutOnce = true }
 
+        if #available(iOS 16.0, *) {
+            // Handled in initializer, but set it on first layout to resolve a bug where the PCS is
+            // not updated appropriately after the first layout.
+            if !hasLaidOutOnce,
+                swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+                let size = view.sizeThatFits(view.frame.size)
+
+                if preferredContentSize != size {
+                    preferredContentSize = size
+                }
+            }
+        } else if !swiftUIScreenSizingOptions.isEmpty {
             if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
                 let size = view.sizeThatFits(view.frame.size)
 
