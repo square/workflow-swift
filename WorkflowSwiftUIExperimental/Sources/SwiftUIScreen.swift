@@ -78,8 +78,7 @@ public struct SwiftUIScreenSizingOptions: OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let intrinsicContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 0)
-    public static let preferredContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 1)
+    public static let preferredContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 0)
 }
 
 private struct EnvironmentInjectingView<Content: View>: View {
@@ -159,10 +158,6 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
                     preferredContentSize = size
                 }
             }
-
-            if swiftUIScreenSizingOptions.contains(.intrinsicContentSize) {
-                view.invalidateIntrinsicContentSize()
-            }
         }
     }
 }
@@ -171,10 +166,6 @@ extension SwiftUIScreenSizingOptions {
     @available(iOS 16.0, *)
     fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
         var options = UIHostingControllerSizingOptions()
-
-        if contains(.intrinsicContentSize) {
-            options.insert(.intrinsicContentSize)
-        }
 
         if contains(.preferredContentSize) {
             options.insert(.preferredContentSize)
