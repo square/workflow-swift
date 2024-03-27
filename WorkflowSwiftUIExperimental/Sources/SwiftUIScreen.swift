@@ -142,6 +142,7 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         if #available(iOS 16.0, *) {
             // Handled in initializer, but set it on first layout to resolve a bug where the PCS is
             // not updated appropriately after the first layout.
+            // UI-5797
             if !hasLaidOutOnce,
                 swiftUIScreenSizingOptions.contains(.preferredContentSize) {
                 let size = view.sizeThatFits(view.frame.size)
@@ -175,6 +176,7 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
             // Without manually calling setNeedsLayout here it was observed that a call to
             // layoutIfNeeded() immediately after loading the view would not perform a layout, and
             // therefore would not update the preferredContentSize in viewDidLayoutSubviews().
+            // UI-5797
             view.setNeedsLayout()
         }
     }
