@@ -123,6 +123,15 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         super.viewDidLoad()
 
         view.backgroundColor = .clear
+
+        if #available(iOS 16.0, *),
+            swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+            // Without manually calling setNeedsLayout here it was observed that a call to
+            // layoutIfNeeded() immediately after loading the view would not perform a layout, and
+            // therefore would not update the preferredContentSize on the first layout in
+            // viewDidLayoutSubviews() below.
+            view.setNeedsLayout()
+        }
     }
 
     private var hasLaidOutOnce = false
