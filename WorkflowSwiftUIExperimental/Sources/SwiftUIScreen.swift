@@ -150,13 +150,11 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
                     preferredContentSize = size
                 }
             }
-        } else if !swiftUIScreenSizingOptions.isEmpty {
-            if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
-                let size = view.sizeThatFits(view.frame.size)
+        } else if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+            let size = view.sizeThatFits(view.frame.size)
 
-                if preferredContentSize != size {
-                    preferredContentSize = size
-                }
+            if preferredContentSize != size {
+                preferredContentSize = size
             }
         }
     }
@@ -173,12 +171,10 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     }
 
     private func setNeedsLayoutBeforeFirstLayoutIfNeeded() {
-        if #available(iOS 16.0, *),
-            swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+        if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
             // Without manually calling setNeedsLayout here it was observed that a call to
             // layoutIfNeeded() immediately after loading the view would not perform a layout, and
-            // therefore would not update the preferredContentSize on the first layout in
-            // viewDidLayoutSubviews() below.
+            // therefore would not update the preferredContentSize in viewDidLayoutSubviews().
             view.setNeedsLayout()
         }
     }
