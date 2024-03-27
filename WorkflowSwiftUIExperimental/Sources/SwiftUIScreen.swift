@@ -23,16 +23,16 @@ import WorkflowUI
 public protocol SwiftUIScreen: Screen {
     associatedtype Content: View
 
+    var sizingOptions: SwiftUIScreenSizingOptions { get }
+
     @ViewBuilder
     static func makeView(model: ObservableValue<Self>) -> Content
-
-    static var sizingOptions: SwiftUIScreenSizingOptions { get }
 
     static var isEquivalent: ((Self, Self) -> Bool)? { get }
 }
 
 public extension SwiftUIScreen {
-    static var sizingOptions: SwiftUIScreenSizingOptions { [] }
+    var sizingOptions: SwiftUIScreenSizingOptions { [] }
 }
 
 public extension SwiftUIScreen {
@@ -52,7 +52,6 @@ public extension SwiftUIScreen {
                 let (model, modelSink) = ObservableValue.makeObservableValue(self, isEquivalent: Self.isEquivalent)
                 let (viewEnvironment, envSink) = ObservableValue.makeObservableValue(environment)
                 return ModeledHostingController(
-                    swiftUIScreenSizingOptions: Self.sizingOptions,
                     modelSink: modelSink,
                     viewEnvironmentSink: envSink,
                     rootView: WithModel(model, content: { model in
@@ -60,12 +59,14 @@ public extension SwiftUIScreen {
                             viewEnvironment: viewEnvironment,
                             content: Self.makeView(model: model)
                         )
-                    })
+                    }),
+                    swiftUIScreenSizingOptions: sizingOptions
                 )
             },
             update: {
                 $0.modelSink.send(self)
                 $0.viewEnvironmentSink.send(environment)
+                $0.swiftUIScreenSizingOptions = sizingOptions
             }
         )
     }
@@ -92,26 +93,33 @@ private struct EnvironmentInjectingView<Content: View>: View {
 }
 
 private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
-    let swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions
     let modelSink: Sink<Model>
     let viewEnvironmentSink: Sink<ViewEnvironment>
+    var swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions {
+        didSet {
+            updateSizingOptionsIfNeeded()
+
+            if !hasLaidOutOnce {
+                setNeedsLayoutBeforeFirstLayoutIfNeeded()
+            }
+        }
+    }
+
+    private var hasLaidOutOnce = false
 
     init(
-        swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions,
         modelSink: Sink<Model>,
         viewEnvironmentSink: Sink<ViewEnvironment>,
-        rootView: Content
+        rootView: Content,
+        swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions
     ) {
-        self.swiftUIScreenSizingOptions = swiftUIScreenSizingOptions
         self.modelSink = modelSink
         self.viewEnvironmentSink = viewEnvironmentSink
+        self.swiftUIScreenSizingOptions = swiftUIScreenSizingOptions
 
         super.init(rootView: rootView)
 
-        // TODO: This solution seems to cause Market's Modals framework to animate presentation incorrectly.
-        if #available(iOS 16.0, *) {
-            self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
-        }
+        updateSizingOptionsIfNeeded()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -123,17 +131,9 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
 
         view.backgroundColor = .clear
 
-        if #available(iOS 16.0, *),
-            swiftUIScreenSizingOptions.contains(.preferredContentSize) {
-            // Without manually calling setNeedsLayout here it was observed that a call to
-            // layoutIfNeeded() immediately after loading the view would not perform a layout, and
-            // therefore would not update the preferredContentSize on the first layout in
-            // viewDidLayoutSubviews() below.
-            view.setNeedsLayout()
-        }
+        setNeedsLayoutBeforeFirstLayoutIfNeeded()
     }
 
-    private var hasLaidOutOnce = false
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
@@ -158,6 +158,28 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
                     preferredContentSize = size
                 }
             }
+        }
+    }
+
+    private func updateSizingOptionsIfNeeded() {
+        if #available(iOS 16.0, *) {
+            self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
+        }
+
+        if !swiftUIScreenSizingOptions.contains(.preferredContentSize),
+            preferredContentSize != .zero {
+            preferredContentSize = .zero
+        }
+    }
+
+    private func setNeedsLayoutBeforeFirstLayoutIfNeeded() {
+        if #available(iOS 16.0, *),
+            swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+            // Without manually calling setNeedsLayout here it was observed that a call to
+            // layoutIfNeeded() immediately after loading the view would not perform a layout, and
+            // therefore would not update the preferredContentSize on the first layout in
+            // viewDidLayoutSubviews() below.
+            view.setNeedsLayout()
         }
     }
 }
