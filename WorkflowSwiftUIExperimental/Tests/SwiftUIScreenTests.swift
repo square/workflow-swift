@@ -1,3 +1,5 @@
+#if canImport(UIKit)
+
 import SwiftUI
 import UIKit
 import WorkflowSwiftUIExperimental
@@ -62,3 +64,5 @@ private struct ContentScreen: SwiftUIScreen {
             .frame(width: 42, height: 42)
     }
 }
+
+#endif
