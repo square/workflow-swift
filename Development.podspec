@@ -109,6 +109,12 @@ Pod::Spec.new do |s|
     test_spec.framework = 'XCTest'
   end
 
+  s.test_spec 'WorkflowSwiftUIExperimentalTests' do |test_spec|
+    test_spec.requires_app_host = true
+    test_spec.source_files = 'WorkflowSwiftUIExperimental/Tests/**/*.swift'
+    test_spec.framework = 'XCTest'
+  end
+
   s.test_spec 'WorkflowTests' do |test_spec|
     test_spec.requires_app_host = true
     test_spec.source_files = 'Workflow/Tests/**/*.swift'
