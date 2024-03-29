@@ -129,6 +129,10 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // `UIHostingController`'s provides a system background color by default. In order to
+        // support `SwiftUIScreen`s being composed in contexts where it is composed within another
+        // view controller where a transparent background is more desirable, we set the background
+        // to clear to allow this kind of flexibility.
         view.backgroundColor = .clear
 
         setNeedsLayoutBeforeFirstLayoutIfNeeded()
