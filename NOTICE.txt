@@ -1,0 +1,9 @@
+Part of the distributed code is also derived in part from
+https://github.com/pointfreeco/swift-composable-architecture, licensed under MIT
+(https://github.com/pointfreeco/swift-composable-architecture/blob/main/LICENSE).
+Copyright (c) 2020 Point-Free, Inc.
+
+Part of the distributed code is also derived in part from
+https://github.com/apple/swift licensed under Apache
+(https://github.com/apple/swift/blob/main/LICENSE.txt). Copyright 2024 Apple,
+Inc.

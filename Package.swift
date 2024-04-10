@@ -1,6 +1,7 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
@@ -58,7 +59,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.6.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.44.14"),
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.54.0"),
+        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.1.0"),
+        .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
+        .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.1.4"),
     ],
     targets: [
         // MARK: Workflow
@@ -96,10 +102,41 @@ let package = Package(
             dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
             path: "WorkflowUI/Tests"
         ),
+
+        // MARK: WorkflowSwiftUI
+
         .target(
             name: "WorkflowSwiftUI",
-            dependencies: ["Workflow"],
+            dependencies: [
+                "Workflow",
+                "WorkflowUI",
+                "WorkflowSwiftUIMacros",
+                .product(name: "CasePaths", package: "swift-case-paths"),
+                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
+                .product(name: "Perception", package: "swift-perception"),
+            ],
             path: "WorkflowSwiftUI/Sources"
+        ),
+        .testTarget(
+            name: "WorkflowSwiftUITests",
+            dependencies: ["WorkflowSwiftUI"],
+            path: "WorkflowSwiftUI/Tests"
+        ),
+        .macro(
+            name: "WorkflowSwiftUIMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ],
+            path: "WorkflowSwiftUIMacros/Sources"
+        ),
+        .testTarget(
+            name: "WorkflowSwiftUIMacrosTests",
+            dependencies: [
+                "WorkflowSwiftUIMacros",
+                .product(name: "MacroTesting", package: "swift-macro-testing"),
+            ],
+            path: "WorkflowSwiftUIMacros/Tests"
         ),
 
         // MARK: WorkflowReactiveSwift
