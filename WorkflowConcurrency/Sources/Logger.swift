@@ -15,6 +15,7 @@
  */
 
 import os.signpost
+@_spi(Logging) import Workflow
 
 private extension OSLog {
     static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
@@ -29,6 +30,8 @@ final class WorkerLogger<WorkerType: Worker> {
     // MARK: - Workers
 
     func logStarted() {
+        guard WorkflowLogging.isOSLoggingAllowed else { return }
+
         os_signpost(
             .begin,
             log: .worker,
@@ -40,6 +43,8 @@ final class WorkerLogger<WorkerType: Worker> {
     }
 
     func logFinished(status: StaticString) {
+        guard WorkflowLogging.isOSLoggingAllowed else { return }
+
         os_signpost(
             .end,
             log: .worker,
@@ -50,6 +55,8 @@ final class WorkerLogger<WorkerType: Worker> {
     }
 
     func logOutput() {
+        guard WorkflowLogging.isOSLoggingAllowed else { return }
+
         os_signpost(
             .event,
             log: .worker,
