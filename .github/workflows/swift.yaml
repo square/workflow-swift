@@ -26,6 +26,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Read env
+      run: cat .github/workflows/env.properties >> $GITHUB_ENV
+
     - name: Cache gems
       uses: actions/cache@v3
       with:
@@ -40,35 +43,64 @@ jobs:
       run: |
         bundle exec pod gen Development.podspec
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+    - name: Switch to Xcode ${{ env.xcode_version }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.xcode_version }}.app
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=17.2,name\=iPad\ Mini\ \(6th\ generation\) build test | xcpretty
 
   spm:
     runs-on: macos-latest
 
+    matrix:
+      include:
+        - sdk: "15.4"
+          destination: platform=iOS Simulator,OS=15.4,name=iPhone SE (3rd generation)
+          installation_required: true
+
+        - sdk: "16.2"
+          destination: platform=iOS Simulator,OS=16.2,name=iPhone SE (3rd generation)
+          installation_required: true
+
+        - sdk: "17.2"
+          destination: platform=iOS Simulator,OS=17.2,name=iPhone SE (3rd generation)
+          # The iOS 17.2 SDK is pre-installed on the macOS 13 image.
+          # Attempting to install it will fail with an error.
+          installation_required: false
+
     steps:
     - uses: actions/checkout@v3
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+    - name: Read env
+      run: cat .github/workflows/env.properties >> $GITHUB_ENV
 
-    - name: Swift Package Manager - iOS
-      run: |
-        xcodebuild -scheme "Workflow-Package" test -destination "name=iPhone 11"
+    - name: Switch to Xcode ${{ env.xcode_version }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.xcode_version }}.app
 
-    - name: Swift Package Manager - macOS
+    - name: Install xcodes
+      run: brew install aria2 xcodesorg/made/xcodes
+
+    - name: Install iOS ${{ matrix.sdk }}
+      if: ${{ matrix.installation_required }}
+      run: sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+
+    - name: Swift Package Manager - Build & Test - iOS
       run: |
-        xcodebuild -scheme "Workflow-Package" test -destination "platform=macOS"
+        xcodebuild -scheme "Workflow-Package" -destination "${{ matrix.destination }}" build test
+
+    - name: Swift Package Manager - Build & Test - macOS
+      run: |
+        xcodebuild -scheme "Workflow-Package" -destination "platform=macOS" build test
 
   tutorial:
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Read env
+      run: cat .github/workflows/env.properties >> $GITHUB_ENV
 
     - name: Cache gems
       uses: actions/cache@v3
@@ -80,20 +112,23 @@ jobs:
       run: |
         bundle check || bundle install --path .bundle
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+    - name: Switch to Xcode ${{ env.xcode_version }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.xcode_version }}.app
 
     - name: Tutorial App
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=17.2,name\=iPhone\ SE\ \(3rd\ generation\) build test | xcpretty
 
   documentation-lint:
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Read env
+      run: cat .github/workflows/env.properties >> $GITHUB_ENV
 
     - name: Cache gems
       uses: actions/cache@v3
@@ -106,8 +141,8 @@ jobs:
         bundle check || bundle install --path .bundle
         brew install sourcedocs
 
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+    - name: Switch to Xcode ${{ env.xcode_version }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.xcode_version }}.app
 
     - name: Swiftdocs
       run: |
