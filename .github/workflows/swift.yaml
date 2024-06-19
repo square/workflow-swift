@@ -6,6 +6,10 @@ on:
       - main
   pull_request:
 
+env:
+  XCODE_VERSION: 15.1
+  IOS_DESTINATION: platform=iOS Simulator,OS=17.2,name=iPad (10th generation)
+
 jobs:
   development-apps:
     runs-on: macos-latest
@@ -24,90 +28,96 @@ jobs:
         - Development-Unit-WorkflowRxSwiftTestingTests
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Cache gems
-      uses: actions/cache@v3
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
       with:
-          path: .bundle
-          key: gems-${{ hashFiles('Gemfile.lock') }}
-
-    - name: Bundle Install
-      run: |
-        bundle check || bundle install --path .bundle
+        # Uses version specified in .ruby_version
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
     - name: Pod Install
       run: |
         bundle exec pod gen Development.podspec
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
     - name: Build & Test
       run: |
-        set -o pipefail && xcodebuild -workspace gen/Development/Development.xcworkspace -scheme ${{ matrix.scheme }} -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail
+        xcodebuild \
+          -workspace gen/Development/Development.xcworkspace \
+          -scheme ${{ matrix.scheme }} \
+          -destination "$IOS_DESTINATION" \
+          build test | bundle exec xcpretty
 
   spm:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
     - name: Swift Package Manager - iOS
       run: |
-        xcodebuild -scheme "Workflow-Package" test -destination "name=iPhone 11"
+        xcodebuild \
+          -scheme "Workflow-Package" \
+          -destination "$IOS_DESTINATION" \
+          test
 
     - name: Swift Package Manager - macOS
       run: |
-        xcodebuild -scheme "Workflow-Package" test -destination "platform=macOS"
+        xcodebuild \
+          -scheme "Workflow-Package" \
+          -destination "platform=macOS" \
+          test
 
   tutorial:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Cache gems
-      uses: actions/cache@v3
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
       with:
-          path: .bundle
-          key: gems-${{ hashFiles('Gemfile.lock') }}
-
-    - name: Bundle Install
-      run: |
-        bundle check || bundle install --path .bundle
+        # Uses version specified in .ruby_version
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
     - name: Tutorial App
       run: |
         cd Samples/Tutorial
         bundle exec pod install
-        set -o pipefail && xcodebuild -workspace Tutorial.xcworkspace -scheme Tutorial -destination platform\=iOS\ Simulator,OS\=16.2,name\=iPad\ Pro\ \(9.7-inch\) build test | xcpretty
+        set -o pipefail
+        xcodebuild \
+          -workspace Tutorial.xcworkspace \
+          -scheme Tutorial \
+          -destination "$IOS_DESTINATION" \
+          build test | bundle exec xcpretty
 
   documentation-lint:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Cache gems
-      uses: actions/cache@v3
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
       with:
-          path: .bundle
-          key: gems-${{ hashFiles('Gemfile.lock') }}
-
-    - name: Bundle Install
-      run: |
-        bundle check || bundle install --path .bundle
-        brew install sourcedocs
+        # Uses version specified in .ruby_version
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_14.2.0.app
+      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+
+    - name: Install sourcedocs
+      run: brew install sourcedocs
 
     - name: Swiftdocs
       run: |
