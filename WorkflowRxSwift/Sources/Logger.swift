@@ -15,6 +15,7 @@
  */
 
 import os.signpost
+@_spi(Logging) import Workflow
 
 // Namespace for Worker logging
 public enum WorkerLogging {}
@@ -22,14 +23,19 @@ public enum WorkerLogging {}
 extension WorkerLogging {
     public static var enabled: Bool {
         get { OSLog.active === OSLog.worker }
-        set { OSLog.active = newValue ? .worker : .disabled }
+        set {
+            guard WorkflowLogging.isOSLoggingAllowed else { return }
+            OSLog.active = newValue ? .worker : .disabled
+        }
     }
 }
 
 private extension OSLog {
     static let worker = OSLog(subsystem: "com.squareup.WorkflowRxSwift", category: "Worker")
 
-    static var active: OSLog = .disabled
+    static var active: OSLog = {
+        WorkflowLogging.isOSLoggingAllowed ? .worker : .disabled
+    }()
 }
 
 // MARK: -
@@ -43,6 +49,8 @@ final class WorkerLogger<WorkerType: Worker> {
     // MARK: - Workers
 
     func logStarted() {
+        guard WorkerLogging.enabled else { return }
+
         os_signpost(
             .begin,
             log: .active,
@@ -54,10 +62,14 @@ final class WorkerLogger<WorkerType: Worker> {
     }
 
     func logFinished(status: StaticString) {
+        guard WorkerLogging.enabled else { return }
+
         os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
     }
 
     func logOutput() {
+        guard WorkerLogging.enabled else { return }
+
         os_signpost(
             .event,
             log: .active,

@@ -14,20 +14,39 @@
  * limitations under the License.
  */
 
+import Foundation
 import os.signpost
 
 private extension OSLog {
     /// Logging will use this log handle when enabled
     static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
 
-    /// The active log handle to use when logging. Defaults to the shared `.disabled` handle.
-    static var active: OSLog = .disabled
+    /// The active log handle to use when logging. If `WorkflowLogging.osLoggingSupported` is
+    /// `true`, defaults to the `workflow` handle, otherwise defaults to the shared `.disabled`
+    /// handle.
+    static var active: OSLog = {
+        WorkflowLogging.isOSLoggingAllowed ? .workflow : .disabled
+    }()
 }
 
 // MARK: -
 
 /// Namespace for specifying logging configuration data.
 public enum WorkflowLogging {}
+
+extension WorkflowLogging {
+    /// Flag indicating whether `OSLog` logs may be recorded. Note, actual emission of
+    /// log statements in specific cases may depend on additional configuration options, so
+    /// this being `true` does not necessarily imply logging will occur.
+    @_spi(Logging)
+    public static let isOSLoggingAllowed: Bool = {
+        let env = ProcessInfo.processInfo.environment
+        guard let value = env["com.squareup.workflow.allowOSLogging"] else {
+            return false
+        }
+        return (value as NSString).boolValue
+    }()
+}
 
 extension WorkflowLogging {
     public struct Config {
@@ -60,11 +79,16 @@ extension WorkflowLogging {
     /// To enable logging, at a minimum you must set:
     /// `WorkflowLogging.enabled = true`
     ///
+    /// Additionally, ``isOSLoggingAllowed`` must also be configured to be `true`.
+    ///
     /// If you wish for more control over what the runtime will log, you may additionally specify
     /// a custom value for `WorkflowLogging.config`.
     public static var enabled: Bool {
         get { OSLog.active === OSLog.workflow }
-        set { OSLog.active = newValue ? .workflow : .disabled }
+        set {
+            guard isOSLoggingAllowed else { return }
+            OSLog.active = newValue ? .workflow : .disabled
+        }
     }
 
     /// Configuration options used to determine which activities are logged.
@@ -93,7 +117,10 @@ final class WorkflowLogger {
     // MARK: Workflows
 
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
-        guard WorkflowLogging.config.logLifetimes else { return }
+        guard
+            WorkflowLogging.isOSLoggingAllowed,
+            WorkflowLogging.config.logLifetimes
+        else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
         os_signpost(
@@ -107,14 +134,20 @@ final class WorkflowLogger {
     }
 
     static func logWorkflowFinished<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
-        guard WorkflowLogging.config.logLifetimes else { return }
+        guard
+            WorkflowLogging.isOSLoggingAllowed,
+            WorkflowLogging.config.logLifetimes
+        else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
         os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
     }
 
     static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
-        guard WorkflowLogging.config.logActions else { return }
+        guard
+            WorkflowLogging.isOSLoggingAllowed,
+            WorkflowLogging.config.logActions
+        else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
         os_signpost(
@@ -165,6 +198,9 @@ final class WorkflowLogger {
     private static func shouldLogRenderTimings(
         isRootNode: Bool
     ) -> Bool {
+        guard WorkflowLogging.isOSLoggingAllowed else {
+            return false
+        }
         switch WorkflowLogging.config.renderLoggingMode {
         case .none:
             return false
