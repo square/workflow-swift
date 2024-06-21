@@ -183,12 +183,10 @@ class AuthenticationWorkflowTests: XCTestCase {
             .expectWorkflow(
                 type: LoginWorkflow.self,
                 producingRendering: LoginScreen(
+                    actionSink: .noop(),
                     title: "",
                     email: "",
-                    onEmailChanged: { _ in },
-                    password: "",
-                    onPasswordChanged: { _ in },
-                    onLoginTapped: {}
+                    password: ""
                 )
             )
             .render { screen in
@@ -210,12 +208,10 @@ class AuthenticationWorkflowTests: XCTestCase {
             .expectWorkflow(
                 type: LoginWorkflow.self,
                 producingRendering: LoginScreen(
+                    actionSink: .noop(),
                     title: "",
                     email: "",
-                    onEmailChanged: { _ in },
-                    password: "",
-                    onPasswordChanged: { _ in },
-                    onLoginTapped: {}
+                    password: ""
                 )
             )
             .expect(
@@ -244,12 +240,10 @@ class AuthenticationWorkflowTests: XCTestCase {
             .expectWorkflow(
                 type: LoginWorkflow.self,
                 producingRendering: LoginScreen(
+                    actionSink: .noop(),
                     title: "",
                     email: "",
-                    onEmailChanged: { _ in },
-                    password: "",
-                    onPasswordChanged: { _ in },
-                    onLoginTapped: {}
+                    password: ""
                 )
             )
             .expect(
@@ -275,12 +269,10 @@ class AuthenticationWorkflowTests: XCTestCase {
             .expectWorkflow(
                 type: LoginWorkflow.self,
                 producingRendering: LoginScreen(
+                    actionSink: .noop(),
                     title: "",
                     email: "",
-                    onEmailChanged: { _ in },
-                    password: "",
-                    onPasswordChanged: { _ in },
-                    onLoginTapped: {}
+                    password: ""
                 )
             )
             .render { screen in
