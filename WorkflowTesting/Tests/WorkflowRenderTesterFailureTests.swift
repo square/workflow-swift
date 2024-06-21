@@ -227,7 +227,16 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doNoopAction(10)
             }
 
-        expectingFailure(#"("noop(10)") is not equal to ("noop(70)")"#) {
+        expectingFailure(
+            """
+            XCTAssertNoDifference failed: …
+
+              − TestAction.noop(10)
+              + TestAction.noop(70)
+
+            (First: −, Second: +)
+            """
+        ) {
             result.assert(action: TestAction.noop(70))
         }
 
@@ -272,7 +281,16 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
 
-        expectingFailure(#"("sendOutput("second")") is not equal to ("noop(0)")"#) {
+        expectingFailure(
+            """
+            XCTAssertNoDifference failed: …
+
+              − TestAction.sendOutput("second")
+              + TestAction.noop(0)
+
+            (First: −, Second: +)
+            """
+        ) {
             result.assert(action: TestAction.noop(0))
         }
 
@@ -296,7 +314,16 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doOutput("hello")
             }
 
-        expectingFailure(#"("string("hello")") is not equal to ("string("nope")")"#) {
+        expectingFailure(
+            """
+            XCTAssertNoDifference failed: …
+
+              − TestWorkflow.Output.string("hello")
+              + TestWorkflow.Output.string("nope")
+
+            (First: −, Second: +)
+            """
+        ) {
             result.assert(output: .string("nope"))
         }
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import CustomDump
 import Workflow
 import XCTest
 
@@ -79,7 +80,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType, ActionType: Equatable {
         return verifyAction(file: file, line: line) { appliedAction in
-            XCTAssertEqual(appliedAction, action, file: file, line: line)
+            XCTAssertNoDifference(appliedAction, action, file: file, line: line)
         }
     }
 
@@ -119,7 +120,7 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
-        XCTAssertEqual(state, expectedState, file: file, line: line)
+        XCTAssertNoDifference(state, expectedState, file: file, line: line)
         return self
     }
 
@@ -149,7 +150,7 @@ extension RenderTesterResult where WorkflowType.Output: Equatable {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
         return verifyOutput(file: file, line: line) { output in
-            XCTAssertEqual(output, expectedOutput, file: file, line: line)
+            XCTAssertNoDifference(output, expectedOutput, file: file, line: line)
         }
     }
 }
