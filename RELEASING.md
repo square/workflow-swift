@@ -17,7 +17,7 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
 
 > ⚠️ [Optional] To avoid possible headaches when publishing podspecs, validation can be performed before updating the Workflow version number(s). To do this, run the following in the root directory of this repo:
 > ```bash
-> bundle exec pod lib lint Workflow.podspec ViewEnvironment.podspec ViewEnvironmentUI.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUI.podspec WorkflowSwiftUIExperimental.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec
+> bundle exec pod lib lint Workflow.podspec ViewEnvironment.podspec ViewEnvironmentUI.podspec WorkflowTesting.podspec WorkflowReactiveSwift.podspec WorkflowUI.podspec WorkflowRxSwift.podspec WorkflowReactiveSwiftTesting.podspec WorkflowRxSwiftTesting.podspec WorkflowSwiftUIExperimental.podspec WorkflowCombine.podspec WorkflowCombineTesting.podspec WorkflowConcurrency.podspec WorkflowConcurrencyTesting.podspec
 > ```
 > You may need to `--include-podspecs` for pods that have changed and are depended on by other of the pods.
 
@@ -43,7 +43,6 @@ For Squares, membership is managed through the `Workflow Swift Owners` registry 
     bundle exec pod trunk push WorkflowRxSwift.podspec --synchronous
     bundle exec pod trunk push WorkflowReactiveSwiftTesting.podspec --synchronous
     bundle exec pod trunk push WorkflowRxSwiftTesting.podspec --synchronous
-    bundle exec pod trunk push WorkflowSwiftUI.podspec --synchronous
     bundle exec pod trunk push WorkflowSwiftUIExperimental.podspec --synchronous
     bundle exec pod trunk push WorkflowCombine.podspec --synchronous
     bundle exec pod trunk push WorkflowCombineTesting.podspec --synchronous

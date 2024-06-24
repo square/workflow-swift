@@ -44,6 +44,7 @@ import Workflow
 ///     }
 /// }
 /// ```
+@available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
 public struct WorkflowView<T: Workflow, Content: View>: View {
     /// The workflow implementation to use
     public var workflow: T
@@ -69,23 +70,26 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
     }
 }
 
-extension WorkflowView where T.Output == Never {
+@available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
+public extension WorkflowView where T.Output == Never {
     /// Convenience initializer for workflows with no output.
-    public init(workflow: T, content: @escaping (T.Rendering) -> Content) {
+    init(workflow: T, content: @escaping (T.Rendering) -> Content) {
         self.init(workflow: workflow, onOutput: { _ in }, content: content)
     }
 }
 
-extension WorkflowView where T.Rendering == Content {
+@available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
+public extension WorkflowView where T.Rendering == Content {
     /// Convenience initializer for workflows whose rendering type conforms to `View`.
-    public init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
+    init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
         self.init(workflow: workflow, onOutput: onOutput, content: { $0 })
     }
 }
 
-extension WorkflowView where T.Output == Never, T.Rendering == Content {
+@available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
+public extension WorkflowView where T.Output == Never, T.Rendering == Content {
     /// Convenience initializer for workflows with no output whose rendering type conforms to `View`.
-    public init(workflow: T) {
+    init(workflow: T) {
         self.init(workflow: workflow, onOutput: { _ in }, content: { $0 })
     }
 }
@@ -156,6 +160,7 @@ fileprivate final class WorkflowHostingViewController<T: Workflow, Content: View
             }
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -234,6 +239,7 @@ fileprivate final class WorkflowHostingViewController<T: Workflow, Content: View
             }
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
