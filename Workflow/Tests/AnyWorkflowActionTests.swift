@@ -27,7 +27,7 @@ final class AnyWorkflowActionTests: XCTestCase {
 
     func testRetainsClosureActionTypeInfo() throws {
         do {
-            let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+            let erased = AnyWorkflowAction<ExampleWorkflow> { _, _ in
                 nil
             }
 
@@ -37,7 +37,7 @@ final class AnyWorkflowActionTests: XCTestCase {
         do {
             let fileID: StaticString = #fileID
             // must match line # the initializer is on
-            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _, _ in
                 nil
             }
 
@@ -62,7 +62,7 @@ final class AnyWorkflowActionTests: XCTestCase {
 
         // closure init
         do {
-            let action = AnyWorkflowAction<ExampleWorkflow> { _ in nil }
+            let action = AnyWorkflowAction<ExampleWorkflow> { _, _ in nil }
             let erasedAgain = AnyWorkflowAction(action)
 
             XCTAssertEqual(
@@ -83,7 +83,7 @@ final class AnyWorkflowActionTests: XCTestCase {
         XCTAssertEqual(log, [])
 
         var state: Void = ()
-        _ = erased.apply(toState: &state)
+        _ = erased.apply(toState: &state, workflow: ExampleWorkflow())
 
         XCTAssertEqual(log, ["action invoked"])
     }
@@ -92,7 +92,7 @@ final class AnyWorkflowActionTests: XCTestCase {
         let nonClosureBased = AnyWorkflowAction(ExampleAction())
         XCTAssertFalse(nonClosureBased.isClosureBased)
 
-        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _ in .none }
+        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _, _ in .none }
         XCTAssertTrue(closureBased.isClosureBased)
     }
 }
@@ -108,7 +108,7 @@ private struct ExampleWorkflow: Workflow {
 private struct ExampleAction: WorkflowAction, Equatable {
     typealias WorkflowType = ExampleWorkflow
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
         return nil
     }
 }
@@ -118,7 +118,7 @@ private struct ObservableExampleAction: WorkflowAction {
 
     var block: () -> Void = {}
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, workflow: WorkflowType) -> WorkflowType.Output? {
         block()
         return nil
     }

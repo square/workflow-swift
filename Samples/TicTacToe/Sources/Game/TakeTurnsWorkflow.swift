@@ -47,7 +47,7 @@ extension TakeTurnsWorkflow {
 
         case selected(row: Int, col: Int)
 
-        func apply(toState state: inout TakeTurnsWorkflow.State) -> TakeTurnsWorkflow.Output? {
+        func apply(toState state: inout TakeTurnsWorkflow.State, workflow: WorkflowType) -> TakeTurnsWorkflow.Output? {
             switch state.gameState {
             case .ongoing(turn: let turn):
                 switch self {
