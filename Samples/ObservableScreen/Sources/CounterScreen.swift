@@ -3,7 +3,7 @@ import ViewEnvironment
 import WorkflowSwiftUI
 import WorkflowUI
 
-struct CounterScreen: ObservableScreen, Screen {
+struct CounterScreen: ObservableScreen {
     var model: Model
 
     typealias State = CounterWorkflow.State

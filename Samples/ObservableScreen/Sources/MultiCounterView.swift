@@ -72,7 +72,7 @@ struct MultiCounterView: View {
 
             Button("Reset Counters") {
                 // struct action
-                store.resetAction.send(.init(value: 0))
+                store.resetAction.send(.init())
             }
         }
         .buttonStyle(.bordered)
@@ -89,11 +89,9 @@ struct ToggleWrapper: View {
     }
 
     var body: some View {
-        WithPerceptionTracking {
-            let _ = print("Evaluated ToggleWrapper body")
+        let _ = print("Evaluated ToggleWrapper body")
 
-            Toggle("Show Sum", isOn: $isOn)
-        }
+        Toggle("Show Sum", isOn: $isOn)
     }
 }
 

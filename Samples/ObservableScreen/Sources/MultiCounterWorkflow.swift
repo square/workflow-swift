@@ -30,8 +30,6 @@ struct MultiCounterWorkflow: Workflow {
     struct ResetAction: WorkflowAction {
         typealias WorkflowType = MultiCounterWorkflow
 
-        var value: Int
-
         func apply(toState state: inout MultiCounterWorkflow.State) -> Never? {
             state.resetToken = .init()
             return nil
@@ -58,7 +56,6 @@ struct MultiCounterWorkflow: Workflow {
 
         case addCounter
         case removeCounter(UUID)
-        case reset
 
         func apply(toState state: inout MultiCounterWorkflow.State) -> Never? {
             switch self {
@@ -67,9 +64,6 @@ struct MultiCounterWorkflow: Workflow {
                 return nil
             case .removeCounter(let id):
                 state.counters.removeAll { $0.id == id }
-                return nil
-            case .reset:
-                state.resetToken = CounterWorkflow.ResetToken()
                 return nil
             }
         }

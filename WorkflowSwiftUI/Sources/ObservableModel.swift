@@ -9,8 +9,6 @@ import Workflow
 /// To render an ``ObservableModel``, your Workflow state must first conform to ``ObservableState``,
 /// using the `@ObservableState` macro.
 ///
-/// Depending on the complexity of your needs, you can use of these options:
-///
 /// # Examples
 ///
 /// For trivial workflows with no actions, you can generate a model directly from your state:
