@@ -10,6 +10,7 @@ struct MultiCounterWorkflow: Workflow {
         var showSum = false
         var showMax = false
         var counters: [CounterInfo] = []
+        var max: CounterInfo = .init(name: "Max")
         var nextCounter = 1
 
         var resetToken = CounterWorkflow.ResetToken()
@@ -77,7 +78,7 @@ struct MultiCounterWorkflow: Workflow {
 
         let maxCounter: CounterWorkflow.Model? = if state.showMax {
             CounterWorkflow(
-                info: CounterInfo(name: "Max"),
+                info: state.max,
                 resetToken: state.resetToken,
                 initialValue: 5
             )
