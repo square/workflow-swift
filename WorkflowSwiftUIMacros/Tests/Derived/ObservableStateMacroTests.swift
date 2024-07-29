@@ -1,3 +1,6 @@
+// Derived from
+// https://github.com/pointfreeco/swift-composable-architecture/blob/1.12.1/Tests/ComposableArchitectureMacrosTests/ObservableStateMacroTests.swift
+
 // If running this test in Xcode, set the run destination to "My Mac", or you'll get:
 // > No such module 'WorkflowSwiftUIMacros'
 // See https://forums.swift.org/t/xcode-15-beta-no-such-module-error-with-swiftpm-and-macro/65486

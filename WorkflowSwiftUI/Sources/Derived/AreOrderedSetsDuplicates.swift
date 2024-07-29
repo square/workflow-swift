@@ -1,3 +1,6 @@
+// Derived from
+// https://github.com/pointfreeco/swift-composable-architecture/blob/1.12.1/Sources/ComposableArchitecture/Internal/AreOrderedSetsDuplicates.swift
+
 import Foundation
 import OrderedCollections
 
