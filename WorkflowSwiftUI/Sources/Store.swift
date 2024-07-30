@@ -60,7 +60,7 @@ public final class Store<Model: ObservableModel>: Perceptible {
     fileprivate func setModel(_ newModel: Model) {
         // Make a list of any child store accesses that are mutated as a result of this set. We'll
         // use this list to wrap the update with appriate willSet/didSet calls.
-        let changedChildAccess = childModelAccesses.values.filter { $0.changed(model, newModel) }
+        let changedChildAccess = childModelAccesses.values.filter { $0.isChanged(model, newModel) }
 
         /// Update the model, wrapped in willSet and didSet observations for mutations to child
         /// store wrappers.
@@ -194,12 +194,12 @@ public extension Store {
     internal struct ChildModelAccess {
         var willSet: (Store<Model>) -> Void
         var didSet: (Store<Model>) -> Void
-        var changed: (Model, Model) -> Bool
+        var isChanged: (Model, Model) -> Bool
         var isInvalid: (Model) -> Bool
 
         init(
             keyPath: KeyPath<Model, some Any>,
-            changed: @escaping (Model, Model) -> Bool,
+            isChanged: @escaping (Model, Model) -> Bool,
             isInvalid: @escaping (Model) -> Bool
         ) {
             self.willSet = { store in
@@ -208,7 +208,7 @@ public extension Store {
             self.didSet = { store in
                 store._$observationRegistrar.didSet(store, keyPath: (\Store.model).appending(path: keyPath))
             }
-            self.changed = changed
+            self.isChanged = isChanged
             self.isInvalid = isInvalid
         }
     }
@@ -216,14 +216,14 @@ public extension Store {
     /// Track access to a child store wrapper.
     internal func access(
         keyPath key: KeyPath<Model, some Any>,
-        changed: @escaping (Model, Model) -> Bool,
+        isChanged: @escaping (Model, Model) -> Bool,
         isInvalid: @escaping (Model) -> Bool = { _ in false }
     ) {
         _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
         if childModelAccesses[key] == nil {
             childModelAccesses[key] = ChildModelAccess(
                 keyPath: key,
-                changed: changed,
+                isChanged: isChanged,
                 isInvalid: isInvalid
             )
         }
