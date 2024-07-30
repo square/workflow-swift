@@ -16,10 +16,8 @@ public extension ObservableScreen {
     /// - Parameter makeModel: A closure to create the screen's model. The provided `context` param
     ///   is a convenience to generate dummy sinks and state accessors.
     /// - Returns: A View for previews.
-    static func observableScreenPreview(makeModel: (StaticScreenPreviewContext) -> Model) -> some View {
-        let context = StaticScreenPreviewContext()
-        let model = makeModel(context)
-        let (store, _) = Store.make(model: model)
+    static func observableScreenPreview(makeModel: (StaticStorePreviewContext) -> Model) -> some View {
+        let store = Store<Model>.preview(makeModel: makeModel)
         return Self.makeView(store: store)
     }
 
@@ -49,31 +47,6 @@ public extension ObservableScreen {
         observableScreenPreview { context in
             context.makeStateAccessor(state: state)
         }
-    }
-}
-
-/// Dummy context for creating no-op sinks and models for static previews of observable screens.
-public struct StaticScreenPreviewContext {
-    fileprivate init() {}
-
-    public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> {
-        Sink { _ in }
-    }
-
-    public func makeStateAccessor<State>(state: State) -> StateAccessor<State> {
-        StateAccessor(
-            state: state,
-            sendValue: { _ in }
-        )
-    }
-
-    public func makeActionModel<State, Action>(
-        state: State
-    ) -> ActionModel<State, Action> {
-        ActionModel(
-            accessor: makeStateAccessor(state: state),
-            sendAction: makeSink(of: Action.self).send
-        )
     }
 }
 

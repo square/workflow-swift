@@ -42,7 +42,7 @@ struct MultiCounterView: View {
                     HStack {
                         Text("Sum")
                         Spacer()
-                        Text("\(store.counters.map(\.boundedCount).reduce(0, +))")
+                        Text("\(store.counters.map(\.count).reduce(0, +))")
                     }
                 }
 

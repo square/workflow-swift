@@ -3,7 +3,7 @@ import ViewEnvironment
 import WorkflowSwiftUI
 
 struct CounterView: View {
-    typealias Model = ActionModel<CounterWorkflow.State, CounterWorkflow.Action>
+    typealias Model = CounterModel
 
     let store: Store<Model>
     let key: String
@@ -23,7 +23,7 @@ struct CounterView: View {
                     Image(systemName: "minus")
                 }
 
-                Text("\(store.boundedCount)")
+                Text("\(store.count)")
                     .monospacedDigit()
 
                 Button {
@@ -43,14 +43,17 @@ struct CounterView: View {
 #if DEBUG
 
 #Preview {
-    CounterScreen.observableScreenPreview(
-        state: .init(
-            count: 0,
-            info: .init(
-                name: "Preview counter",
-                stepSize: 1
+    CounterView(
+        store: .preview(
+            state: .init(
+                count: 0,
+                info: .init(
+                    name: "Preview counter",
+                    stepSize: 1
+                )
             )
-        )
+        ),
+        key: "preview"
     )
     .padding()
 }

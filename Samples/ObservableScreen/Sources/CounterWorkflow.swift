@@ -12,17 +12,34 @@ struct CounterWorkflow: Workflow {
 
     @ObservableState
     struct State {
-        var count: Int
-        var maxValue: Int?
+        private var _count: Int
+        
+        var count: Int {
+            get { _count }
+            set {
+                if let maxValue, newValue > maxValue {
+                    _count = maxValue
+                } else {
+                    _count = newValue
+                }
+            }
+        }
+
+        var maxValue: Int? {
+            didSet {
+                guard let maxValue else { return }
+                if count > maxValue {
+                    count = maxValue
+                }
+            }
+        }
 
         var info: CounterInfo
-
-        var boundedCount: Int {
-            if let maxValue {
-                min(count, maxValue)
-            } else {
-                count
-            }
+        
+        init(count: Int, maxValue: Int? = nil, info: CounterInfo) {
+            self._count = count
+            self.maxValue = maxValue
+            self.info = info
         }
     }
 
@@ -33,8 +50,6 @@ struct CounterWorkflow: Workflow {
         case decrement
 
         func apply(toState state: inout CounterWorkflow.State) -> CounterWorkflow.Output? {
-            // the max value is applied in the view, not here, so it's possible to increment
-            // above the max
             switch self {
             case .increment:
                 state.count += state.info.stepSize
@@ -87,6 +102,8 @@ struct CounterWorkflow: Workflow {
         return context.makeActionModel(state: state)
     }
 }
+
+typealias CounterModel = CounterWorkflow.Model
 
 @ObservableState
 struct CounterInfo {
