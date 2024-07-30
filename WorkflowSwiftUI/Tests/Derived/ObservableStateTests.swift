@@ -121,18 +121,53 @@ final class ObservableStateTests: XCTestCase {
     }
 
     func testOptional() async {
-        var state = ParentState()
-        let optionalDidChange = expectation(description: "optional.didChange")
-
-        withPerceptionTracking {
-            _ = state.optional
-        } onChange: {
-            optionalDidChange.fulfill()
+        // nil -> value
+        do {
+            var state = ParentState(optional: nil)
+            let optionalDidChange = expectation(description: "optional.didChange")
+            
+            withPerceptionTracking {
+                _ = state.optional
+            } onChange: {
+                optionalDidChange.fulfill()
+            }
+            
+            state.optional = ChildState(count: 42)
+            await fulfillment(of: [optionalDidChange], timeout: 0)
+            XCTAssertEqual(state.optional?.count, 42)
         }
 
-        state.optional = ChildState(count: 42)
-        await fulfillment(of: [optionalDidChange], timeout: 0)
-        XCTAssertEqual(state.optional?.count, 42)
+        // nil -> nil
+        do {
+            var state = ParentState(optional: nil)
+            let optionalDidChange = expectation(description: "optional.didChange")
+            
+            withPerceptionTracking {
+                _ = state.optional
+            } onChange: {
+                optionalDidChange.fulfill()
+            }
+            
+            state.optional = nil
+            await fulfillment(of: [optionalDidChange], timeout: 0)
+            XCTAssertNil(state.optional)
+        }
+
+        // value -> nil
+        do {
+            var state = ParentState(optional: ChildState())
+            let optionalDidChange = expectation(description: "optional.didChange")
+            
+            withPerceptionTracking {
+                _ = state.optional
+            } onChange: {
+                optionalDidChange.fulfill()
+            }
+            
+            state.optional = nil
+            await fulfillment(of: [optionalDidChange], timeout: 0)
+            XCTAssertNil(state.optional)
+        }
     }
 
     func testMutateOptional() async {
