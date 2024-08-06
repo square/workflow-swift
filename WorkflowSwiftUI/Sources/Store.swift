@@ -59,7 +59,7 @@ public final class Store<Model: ObservableModel>: Perceptible {
 
     fileprivate func setModel(_ newModel: Model) {
         // Make a list of any child store accesses that are mutated as a result of this set. We'll
-        // use this list to wrap the update with appriate willSet/didSet calls.
+        // use this list to wrap the update with appropriate willSet/didSet calls.
         let changedChildAccess = childModelAccesses.values.filter { $0.isChanged(model, newModel) }
 
         /// Update the model, wrapped in willSet and didSet observations for mutations to child

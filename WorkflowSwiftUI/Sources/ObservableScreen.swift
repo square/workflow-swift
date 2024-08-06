@@ -16,7 +16,7 @@ import WorkflowUI
 /// rendering cycle.
 ///
 /// To use this protocol with a workflow, your workflow should render a type that conforms to
-/// ``ObservableModel``, and then mapped to a screen implementation that uses that concrete model
+/// ``ObservableModel``, and then map to a screen implementation that uses that concrete model
 /// type. See ``ObservableModel`` for options on how to render one easily.
 public protocol ObservableScreen: Screen {
     /// The type of the root view rendered by this screen.
