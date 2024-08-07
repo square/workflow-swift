@@ -20,7 +20,7 @@ import class Workflow.Lifetime
 
 extension Observable: AnyWorkflowConvertible {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Element> {
-        return ObservableWorkflow(observable: self).asAnyWorkflow()
+        ObservableWorkflow(observable: self).asAnyWorkflow()
     }
 }
 
@@ -41,6 +41,7 @@ struct ObservableWorkflow<Value>: Workflow {
             let disposable = observable
                 .map { AnyWorkflowAction(sendingOutput: $0) }
                 .subscribe(on: MainScheduler.asyncInstance)
+                .observe(on: MainScheduler.asyncInstance)
                 .subscribe(onNext: { value in
                     sink.send(value)
                 })

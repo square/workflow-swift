@@ -38,6 +38,54 @@ class Rx_ReactiveWorkersTests: XCTestCase {
 
         disposable?.dispose()
     }
+
+    func test_observes_on_main_queue() {
+        struct TestWorkflow: Workflow {
+            enum Action: WorkflowAction {
+                typealias WorkflowType = TestWorkflow
+                case complete
+
+                func apply(toState state: inout State) -> Output? {
+                    switch self {
+                    case .complete:
+                        return .finished
+                    }
+                }
+            }
+
+            enum Output {
+                case finished
+            }
+
+            func render(state: Void, context: RenderContext<Self>) {
+                Single<Void>.create { observer in
+                    DispatchQueue.global().async {
+                        observer(.success(()))
+                    }
+                    return Disposables.create()
+                }
+                .asObservable()
+                .running(in: context) { _ in
+                    XCTAssert(Thread.isMainThread)
+                    return Action.complete
+                }
+            }
+        }
+
+        let host = WorkflowHost(
+            workflow: TestWorkflow()
+        )
+
+        let expectation = XCTestExpectation()
+        let disposable = host.output.signal.observeValues { output in
+            if output == .finished {
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 1.0)
+        disposable?.dispose()
+    }
 }
 
 struct CombinedWorkflow: Workflow {
