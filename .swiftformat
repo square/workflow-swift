@@ -1,6 +1,6 @@
 # file config
 
---swiftversion 5.7
+--swiftversion 5.9
 --exclude Pods,Tooling,**Dummy.swift
 
 # format config
@@ -24,6 +24,7 @@
 --enable spaceInsideBraces
 --enable specifiers
 --enable trailingSpace # https://google.github.io/swift/#horizontal-whitespace
+--enable wrapMultilineStatementBraces
 
 --allman false
 --binarygrouping none

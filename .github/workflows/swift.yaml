@@ -52,7 +52,7 @@ jobs:
           -destination "$IOS_DESTINATION" \
           build test | bundle exec xcpretty
 
-  spm:
+  xcodegen-apps:
     runs-on: macos-latest
 
     steps:
@@ -61,18 +61,55 @@ jobs:
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
-    - name: Swift Package Manager - iOS
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode project
+      run: xcodegen generate
+
+    - name: ObservableScreen
       run: |
         xcodebuild \
-          -scheme "Workflow-Package" \
+          -project Workflow.xcodeproj \
+          -scheme "ObservableScreen" \
           -destination "$IOS_DESTINATION" \
+          -skipMacroValidation \
+          build
+
+  package-tests:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Switch Xcode
+      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode project
+      run: xcodegen generate
+
+    # Macros are only built for the compiler platform, so we cannot run macro tests on iOS. Instead
+    # we target a scheme from project.yml which selectively includes all the other tests.
+    - name: Tests - iOS
+      run: |
+        xcodebuild \
+          -project Workflow.xcodeproj \
+          -scheme "Tests-iOS" \
+          -destination "$IOS_DESTINATION" \
+          -skipMacroValidation \
           test
 
-    - name: Swift Package Manager - macOS
+    # On macOS we can run all tests, including macro tests.
+    - name: Tests - macOS
       run: |
         xcodebuild \
-          -scheme "Workflow-Package" \
+          -project Workflow.xcodeproj \
+          -scheme "Tests-All" \
           -destination "platform=macOS" \
+          -skipMacroValidation \
           test
 
   tutorial:

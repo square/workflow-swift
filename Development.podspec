@@ -49,15 +49,6 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'WorkflowTesting/Tests/**/*.swift'
   end
 
-  s.app_spec 'SampleSwiftUIApp' do |app_spec|
-    app_spec.ios.deployment_target = WORKFLOW_IOS_DEPLOYMENT_TARGET
-    app_spec.dependency 'WorkflowSwiftUI'
-    app_spec.pod_target_xcconfig = {
-      'IFNFOPLIST_FILE' => '${PODS_ROOT}/../Samples/SampleSwiftUIApp/SampleSwiftUIApp/Configuration/Info.plist'
-    }
-    app_spec.source_files = 'Samples/SampleSwiftUIApp/SampleSwiftUIApp/**/*.swift'
-  end
-
   s.app_spec 'SampleTicTacToe' do |app_spec|
     app_spec.source_files = 'Samples/TicTacToe/Sources/**/*.swift'
     app_spec.resources = 'Samples/TicTacToe/Resources/**/*'
