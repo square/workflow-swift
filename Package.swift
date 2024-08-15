@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -233,4 +233,10 @@ extension PackageDescription.Product {
     ) -> PackageDescription.Product {
         .library(name: name, targets: [name])
     }
+}
+
+for target in package.targets {
+  var settings = target.swiftSettings ?? []
+  settings.append(.enableExperimentalFeature("StrictConcurrency=targeted"))
+  target.swiftSettings = settings
 }
