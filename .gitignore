@@ -22,6 +22,10 @@ xcuserdata/
 # Sample workspace
 SampleApp.xcworkspace
 
+# XcodeGen
+Workflow.xcodeproj/
+/TestingSupport/AppHost/App/Info.plist
+
 # ios-snapshot-test-case Failure Diffs
 FailureDiffs/
 

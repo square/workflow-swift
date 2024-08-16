@@ -1,0 +1,102 @@
+name: Workflow
+options:
+  bundleIdPrefix: com.squareup.workflow
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: 15.0
+packages:
+  Workflow:
+    path: "."
+targets:
+  ObservableScreen:
+    platform: iOS
+    type: application
+    sources:
+      - Samples/ObservableScreen/Sources
+    dependencies:
+      - package: Workflow
+        products: [WorkflowSwiftUI]
+    info:
+      path: Samples/ObservableScreen/App/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: ""
+
+  # This is a scheme for all tests except for macros.
+  Tests-iOS:
+    platform: iOS
+    type: bundle.unit-test
+    info:
+      path: TestingSupport/AppHost/App/Info.plist
+    settings:
+      CODE_SIGN_IDENTITY: ""
+    scheme:
+      testTargets:
+        - package: Workflow/WorkflowCombineTestingTests
+        - package: Workflow/WorkflowCombineTests
+        - package: Workflow/WorkflowConcurrencyTestingTests
+        - package: Workflow/WorkflowConcurrencyTests
+        - package: Workflow/WorkflowReactiveSwiftTestingTests
+        - package: Workflow/WorkflowReactiveSwiftTests
+        - package: Workflow/WorkflowRxSwiftTestingTests
+        - package: Workflow/WorkflowRxSwiftTests
+        - package: Workflow/WorkflowSwiftUIExperimentalTests
+        - package: Workflow/WorkflowSwiftUITests
+        - package: Workflow/WorkflowTestingTests
+        - package: Workflow/WorkflowTests
+        - package: Workflow/WorkflowUITests
+
+  Tests-All:
+    platform: iOS
+    type: bundle.unit-test
+    info:
+      path: TestingSupport/AppHost/App/Info.plist
+    settings:
+      CODE_SIGN_IDENTITY: ""
+    scheme:
+      testTargets:
+        - package: Workflow/WorkflowCombineTestingTests
+        - package: Workflow/WorkflowCombineTests
+        - package: Workflow/WorkflowConcurrencyTestingTests
+        - package: Workflow/WorkflowConcurrencyTests
+        - package: Workflow/WorkflowReactiveSwiftTestingTests
+        - package: Workflow/WorkflowReactiveSwiftTests
+        - package: Workflow/WorkflowRxSwiftTestingTests
+        - package: Workflow/WorkflowRxSwiftTests
+        - package: Workflow/WorkflowSwiftUIExperimentalTests
+        - package: Workflow/WorkflowSwiftUIMacrosTests
+        - package: Workflow/WorkflowSwiftUITests
+        - package: Workflow/WorkflowTestingTests
+        - package: Workflow/WorkflowTests
+        - package: Workflow/WorkflowUITests
+
+  # to add app-hosted test targets:
+  
+  # ViewEnvironmentUI-Tests:
+  #   type: bundle.unit-test
+  #   platform: iOS
+  #   sources: ViewEnvironmentUI/Tests
+  #   settings:
+  #     GENERATE_INFOPLIST_FILE: true
+  #     TEST_HOST: $(BUILT_PRODUCTS_DIR)/ViewEnvironmentUI-TestAppHost.app/ViewEnvironmentUI-TestAppHost
+  #     BUNDLE_LOADER: $(BUILT_PRODUCTS_DIR)/ViewEnvironmentUI-TestAppHost.app/ViewEnvironmentUI-TestAppHost
+  #   dependencies:
+  #     - package: Workflow
+  #       products: [ViewEnvironmentUI]
+  #     - target: ViewEnvironmentUI-TestAppHost
+  #   scheme:
+  #     testTargets:
+  #       - ViewEnvironmentUI-Tests
+
+  # ViewEnvironmentUI-TestAppHost:
+  #   platform: iOS
+  #   type: application
+  #   sources: TestingSupport/AppHost/Sources
+  #   dependencies:
+  #     - package: Workflow
+  #       products: [ViewEnvironmentUI]
+  #   info:
+  #     path: TestingSupport/AppHost/App/Info.plist
+  #     properties:
+  #       UILaunchScreen:
+  #         UIColorName: ""
