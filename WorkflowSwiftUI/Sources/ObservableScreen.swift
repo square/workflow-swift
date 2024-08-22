@@ -56,7 +56,7 @@ public extension ObservableScreen {
             },
             update: { hostingController in
                 hostingController.setModel(model)
-                hostingController.setViewEnvironment(environment)
+                // ViewEnvironment updates are handled by the ModeledHostingController internally
             }
         )
     }
@@ -89,9 +89,10 @@ private final class ViewEnvironmentHolder: ObservableObject {
     }
 }
 
-private final class ModeledHostingController<Model, Content: View>: UIHostingController<ModifiedContent<Content, ViewEnvironmentModifier>> {
+private final class ModeledHostingController<Model, Content: View>: UIHostingController<ModifiedContent<Content, ViewEnvironmentModifier>>, ViewEnvironmentObserving {
     let setModel: (Model) -> Void
-    let setViewEnvironment: (ViewEnvironment) -> Void
+
+    private let viewEnvironmentHolder: ViewEnvironmentHolder
 
     var swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions {
         didSet {
@@ -111,10 +112,8 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         rootView: Content,
         sizingOptions swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions
     ) {
-        let viewEnvironmentHolder = ViewEnvironmentHolder(viewEnvironment: viewEnvironment)
-
         self.setModel = setModel
-        self.setViewEnvironment = { viewEnvironmentHolder.viewEnvironment = $0 }
+        self.viewEnvironmentHolder = ViewEnvironmentHolder(viewEnvironment: viewEnvironment)
         self.swiftUIScreenSizingOptions = swiftUIScreenSizingOptions
 
         super.init(
@@ -169,6 +168,12 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         }
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+
+        applyEnvironmentIfNeeded()
+    }
+
     private func updateSizingOptionsIfNeeded() {
         if #available(iOS 16.0, *) {
             self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
@@ -189,6 +194,12 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
             // UI-5797
             view.setNeedsLayout()
         }
+    }
+
+    // MARK: ViewEnvironmentObserving
+
+    func apply(environment: ViewEnvironment) {
+        viewEnvironmentHolder.viewEnvironment = environment
     }
 }
 

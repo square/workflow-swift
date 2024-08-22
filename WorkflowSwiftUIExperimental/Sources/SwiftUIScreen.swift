@@ -65,8 +65,8 @@ public extension SwiftUIScreen {
             },
             update: {
                 $0.modelSink.send(self)
-                $0.viewEnvironmentSink.send(environment)
                 $0.swiftUIScreenSizingOptions = sizingOptions
+                // ViewEnvironment updates are handled by the ModeledHostingController internally
             }
         )
     }
@@ -92,7 +92,7 @@ private struct EnvironmentInjectingView<Content: View>: View {
     }
 }
 
-private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content> {
+private final class ModeledHostingController<Model, Content: View>: UIHostingController<Content>, ViewEnvironmentObserving {
     let modelSink: Sink<Model>
     let viewEnvironmentSink: Sink<ViewEnvironment>
     var swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions {
@@ -122,6 +122,7 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         updateSizingOptionsIfNeeded()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("not implemented")
     }
@@ -148,7 +149,8 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
             // not updated appropriately after the first layout.
             // UI-5797
             if !hasLaidOutOnce,
-                swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+               swiftUIScreenSizingOptions.contains(.preferredContentSize)
+            {
                 let size = view.sizeThatFits(view.frame.size)
 
                 if preferredContentSize != size {
@@ -164,13 +166,20 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
         }
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+
+        applyEnvironmentIfNeeded()
+    }
+
     private func updateSizingOptionsIfNeeded() {
         if #available(iOS 16.0, *) {
             self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
         }
 
         if !swiftUIScreenSizingOptions.contains(.preferredContentSize),
-            preferredContentSize != .zero {
+           preferredContentSize != .zero
+        {
             preferredContentSize = .zero
         }
     }
@@ -184,11 +193,17 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
             view.setNeedsLayout()
         }
     }
+
+    // MARK: ViewEnvironmentObserving
+
+    func apply(environment: ViewEnvironment) {
+        viewEnvironmentSink.send(environment)
+    }
 }
 
-extension SwiftUIScreenSizingOptions {
+fileprivate extension SwiftUIScreenSizingOptions {
     @available(iOS 16.0, *)
-    fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
+    var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
         var options = UIHostingControllerSizingOptions()
 
         if contains(.preferredContentSize) {
