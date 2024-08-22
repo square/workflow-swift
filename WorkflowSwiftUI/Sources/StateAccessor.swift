@@ -12,6 +12,14 @@
 public struct StateAccessor<State: ObservableState> {
     let state: State
     let sendValue: (@escaping (inout State) -> Void) -> Void
+
+    public init(
+        state: State,
+        sendValue: @escaping (@escaping (inout State) -> Void) -> Void
+    ) {
+        self.state = state
+        self.sendValue = sendValue
+    }
 }
 
 extension StateAccessor: ObservableModel {

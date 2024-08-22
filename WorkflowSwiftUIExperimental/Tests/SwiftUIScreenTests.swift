@@ -2,6 +2,8 @@
 
 import SwiftUI
 import UIKit
+import ViewEnvironment
+@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 import WorkflowSwiftUIExperimental
 import XCTest
 
@@ -54,6 +56,32 @@ final class SwiftUIScreenTests: XCTestCase {
 
         XCTAssertEqual(viewController.preferredContentSize, .zero)
     }
+
+    func test_viewEnvironmentObservation() {
+        // Ensure that environment customizations made on the view controller
+        // are propagated to the SwiftUI view environment.
+
+        var emittedValue: Int?
+
+        let viewController = TestKeyEmittingScreen(onTestKeyEmission: { value in
+            emittedValue = value
+        })
+        .buildViewController(in: .empty)
+
+        let lifetime = viewController.addEnvironmentCustomization { environment in
+            environment[TestKey.self] = 1
+        }
+
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertEqual(emittedValue, 1)
+
+        withExtendedLifetime(lifetime) {}
+    }
+}
+
+private struct TestKey: ViewEnvironmentKey {
+    static var defaultValue: Int = 0
 }
 
 private struct ContentScreen: SwiftUIScreen {
@@ -62,6 +90,29 @@ private struct ContentScreen: SwiftUIScreen {
     static func makeView(model: ObservableValue<ContentScreen>) -> some View {
         Color.clear
             .frame(width: 42, height: 42)
+    }
+}
+
+private struct TestKeyEmittingScreen: SwiftUIScreen {
+    var onTestKeyEmission: (TestKey.Value) -> Void
+
+    let sizingOptions: SwiftUIScreenSizingOptions = [.preferredContentSize]
+
+    static func makeView(model: ObservableValue<Self>) -> some View {
+        ContentView(onTestKeyEmission: model.onTestKeyEmission)
+    }
+
+    struct ContentView: View {
+        @Environment(\.viewEnvironment)
+        var viewEnvironment: ViewEnvironment
+
+        var onTestKeyEmission: (TestKey.Value) -> Void
+
+        var body: some View {
+            let _ = onTestKeyEmission(viewEnvironment[TestKey.self])
+            Color.clear
+                .frame(width: 1, height: 1)
+        }
     }
 }
 
