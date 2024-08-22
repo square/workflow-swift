@@ -3,8 +3,8 @@
 import SwiftUI
 import ViewEnvironment
 @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
+import WorkflowSwiftUI
 import XCTest
-@testable import WorkflowSwiftUI
 
 final class ObservableScreenTests: XCTestCase {
     func test_viewEnvironmentObservation() {
