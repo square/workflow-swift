@@ -171,7 +171,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowRxSwiftTests",
-            dependencies: ["WorkflowRxSwiftTesting", "WorkflowReactiveSwift"],
+            dependencies: ["WorkflowRxSwiftTesting"],
             path: "WorkflowRxSwift/Tests"
         ),
         .target(
