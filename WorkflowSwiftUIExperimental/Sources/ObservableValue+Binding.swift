@@ -38,8 +38,8 @@ public extension ObservableValue {
         set { set.rawValue(value)(newValue) }
     }
 
-    private struct HashableWrapper<Value>: Hashable {
-        let rawValue: Value
+    private struct HashableWrapper<WrappedValue>: Hashable {
+        let rawValue: WrappedValue
         static func == (lhs: Self, rhs: Self) -> Bool { false }
         func hash(into hasher: inout Hasher) {}
     }
