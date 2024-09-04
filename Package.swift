@@ -82,7 +82,8 @@ let package = Package(
         .target(
             name: "WorkflowTesting",
             dependencies: ["Workflow"],
-            path: "WorkflowTesting/Sources"
+            path: "WorkflowTesting/Sources",
+            linkerSettings: [.linkedFramework("XCTest")]
         ),
         .testTarget(
             name: "WorkflowTestingTests",
@@ -154,7 +155,8 @@ let package = Package(
         .target(
             name: "WorkflowReactiveSwiftTesting",
             dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
-            path: "WorkflowReactiveSwift/Testing"
+            path: "WorkflowReactiveSwift/Testing",
+            linkerSettings: [.linkedFramework("XCTest")]
         ),
         .testTarget(
             name: "WorkflowReactiveSwiftTestingTests",
@@ -177,7 +179,8 @@ let package = Package(
         .target(
             name: "WorkflowRxSwiftTesting",
             dependencies: ["WorkflowRxSwift", "WorkflowTesting"],
-            path: "WorkflowRxSwift/Testing"
+            path: "WorkflowRxSwift/Testing",
+            linkerSettings: [.linkedFramework("XCTest")]
         ),
         .testTarget(
             name: "WorkflowRxSwiftTestingTests",
@@ -200,7 +203,8 @@ let package = Package(
         .target(
             name: "WorkflowCombineTesting",
             dependencies: ["WorkflowCombine", "WorkflowTesting"],
-            path: "WorkflowCombine/Testing"
+            path: "WorkflowCombine/Testing",
+            linkerSettings: [.linkedFramework("XCTest")]
         ),
         .testTarget(
             name: "WorkflowCombineTestingTests",
@@ -223,7 +227,8 @@ let package = Package(
         .target(
             name: "WorkflowConcurrencyTesting",
             dependencies: ["WorkflowConcurrency", "WorkflowTesting"],
-            path: "WorkflowConcurrency/Testing"
+            path: "WorkflowConcurrency/Testing",
+            linkerSettings: [.linkedFramework("XCTest")]
         ),
         .testTarget(
             name: "WorkflowConcurrencyTestingTests",
