@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 public final class BackStackContainer<Content: Screen>: ScreenViewController<BackStackScreen<Content>>, UINavigationControllerDelegate {
     private let navController = UINavigationController()

@@ -16,6 +16,7 @@
 
 import Workflow
 import WorkflowUI
+import UIKit
 
 struct WelcomeScreen: Screen {
     var name: String

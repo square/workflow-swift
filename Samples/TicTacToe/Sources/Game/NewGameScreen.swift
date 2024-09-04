@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 struct NewGameScreen: Screen {
     var playerX: String

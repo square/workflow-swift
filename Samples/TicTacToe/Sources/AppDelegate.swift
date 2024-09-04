@@ -18,7 +18,7 @@ import BackStackContainer
 import UIKit
 import WorkflowUI
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 

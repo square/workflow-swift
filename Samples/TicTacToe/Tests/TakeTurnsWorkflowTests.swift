@@ -18,7 +18,7 @@ import Workflow
 import WorkflowTesting
 import XCTest
 
-@testable import Development_SampleTicTacToe
+@testable import TicTacToe
 
 class TakeTurnsWorkflowTests: XCTestCase {
     // MARK: Action Tests

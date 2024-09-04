@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 struct LoadingScreen: Screen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {

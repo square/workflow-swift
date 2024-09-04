@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import FBSnapshotTestCase
+import iOSSnapshotTestCase
 import Workflow
 import WorkflowUI
 import XCTest
