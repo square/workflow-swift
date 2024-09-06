@@ -9,72 +9,32 @@ on:
 env:
   XCODE_VERSION: 15.1
   IOS_DESTINATION: platform=iOS Simulator,OS=17.2,name=iPad (10th generation)
+  TUIST_TEST_DEVICE: iPad (10th generation)
+  TUIST_TEST_PLATFORM: iOS
+  TUIST_TEST_OS: 17.2
 
 jobs:
-  development-apps:
+  development-tests:
     runs-on: macos-latest
 
     strategy:
       matrix:
         scheme:
-        - Development-Unit-WorkflowTesting
-        - Development-Unit-WorkflowTests
-        - Development-Unit-WorkflowUITests
-        - Development-Unit-SplitScreenTests
-        - Development-Unit-TicTacToeTests
-        - Development-Unit-WorkflowReactiveSwiftTests
-        - Development-Unit-WorkflowRxSwiftTests
-        - Development-Unit-WorkflowReactiveSwiftTestingTests
-        - Development-Unit-WorkflowRxSwiftTestingTests
+        - UnitTests
+        - SnapshotTests
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        # Uses version specified in .ruby_version
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-
-    - name: Pod Install
-      run: |
-        bundle exec pod gen Development.podspec
+    - uses: jdx/mise-action@v2
 
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
-    - name: Build & Test
-      run: |
-        set -o pipefail
-        xcodebuild \
-          -workspace gen/Development/Development.xcworkspace \
-          -scheme ${{ matrix.scheme }} \
-          -destination "$IOS_DESTINATION" \
-          build test | bundle exec xcpretty
+    - name: Install dependencies
+      run: tuist install --path Samples
 
-  xcodegen-apps:
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
-
-    - name: Install XcodeGen
-      run: brew install xcodegen
-
-    - name: Generate Xcode project
-      run: xcodegen generate
-
-    - name: ObservableScreen
-      run: |
-        xcodebuild \
-          -project Workflow.xcodeproj \
-          -scheme "ObservableScreen" \
-          -destination "$IOS_DESTINATION" \
-          -skipMacroValidation \
-          build
+    - name: Test iOS
+      run: tuist test --path Samples ${{ matrix.scheme }}
 
   package-tests:
     runs-on: macos-latest
@@ -85,32 +45,10 @@ jobs:
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
-    - name: Install XcodeGen
-      run: brew install xcodegen
-
-    - name: Generate Xcode project
-      run: xcodegen generate
-
-    # Macros are only built for the compiler platform, so we cannot run macro tests on iOS. Instead
-    # we target a scheme from project.yml which selectively includes all the other tests.
-    - name: Tests - iOS
-      run: |
-        xcodebuild \
-          -project Workflow.xcodeproj \
-          -scheme "Tests-iOS" \
-          -destination "$IOS_DESTINATION" \
-          -skipMacroValidation \
-          test
-
+    # Command line swift runs on the host platform.
     # On macOS we can run all tests, including macro tests.
-    - name: Tests - macOS
-      run: |
-        xcodebuild \
-          -project Workflow.xcodeproj \
-          -scheme "Tests-All" \
-          -destination "platform=macOS" \
-          -skipMacroValidation \
-          test
+    - name: Test macOS
+      run: swift test
 
   tutorial:
     runs-on: macos-latest
@@ -133,12 +71,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        # Uses version specified in .ruby_version
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - uses: jdx/mise-action@v2
 
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
