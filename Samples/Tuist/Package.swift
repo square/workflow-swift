@@ -5,6 +5,11 @@ import PackageDescription
 #if TUIST
 import ProjectDescription
 
+let unsuppressedWarningsSettings: SettingsDictionary = [
+    "GCC_WARN_INHIBIT_ALL_WARNINGS": "$(inherited)",
+    "SWIFT_SUPPRESS_WARNINGS": "$(inherited)",
+]
+
 let packageSettings = PackageSettings(
     productTypes: [
         "ViewEnvironmentUI": .framework,
@@ -15,7 +20,21 @@ let packageSettings = PackageSettings(
         "iOSSnapshotTestCase": .framework
     ],
     targetSettings: [
-        "iOSSnapshotTestCase": ["ENABLE_TESTING_SEARCH_PATHS": "YES"]
+        "iOSSnapshotTestCase": ["ENABLE_TESTING_SEARCH_PATHS": "YES"],
+        "ViewEnvironment": unsuppressedWarningsSettings,
+        "ViewEnvironmentUI": unsuppressedWarningsSettings,
+        "Workflow": unsuppressedWarningsSettings,
+        "WorkflowCombine": unsuppressedWarningsSettings,
+        "WorkflowCombineTesting": unsuppressedWarningsSettings,
+        "WorkflowConcurrency": unsuppressedWarningsSettings,
+        "WorkflowConcurrencyTesting": unsuppressedWarningsSettings,
+        "WorkflowReactiveSwift": unsuppressedWarningsSettings,
+        "WorkflowReactiveSwiftTesting": unsuppressedWarningsSettings,
+        "WorkflowRxSwift": unsuppressedWarningsSettings,
+        "WorkflowRxSwiftTesting": unsuppressedWarningsSettings,
+        "WorkflowSwiftUIExperimental": unsuppressedWarningsSettings,
+        "WorkflowTesting": unsuppressedWarningsSettings,
+        "WorkflowUI": unsuppressedWarningsSettings,
     ]
 )
 
