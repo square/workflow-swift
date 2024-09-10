@@ -47,8 +47,15 @@ let project = Project(
             name: "AlertContainer",
             dependencies: [.external(name: "WorkflowUI")]
         ),
-        
-        // TODO: AsyncWorker has a dedicated xcodeproj
+
+        .app(
+            name: "AsyncWorker",
+            sources: "AsyncWorker/Sources/**",
+            dependencies: [
+                .external(name: "WorkflowConcurrency"),
+                .external(name: "WorkflowUI"),
+            ]
+        ),
 
         .target(
             name: "BackStackContainer",
