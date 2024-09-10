@@ -18,22 +18,36 @@ To help with the setup, we have created a few helpers:
 
 ## Getting started
 
-The tutorial uses [CocoaPods](https://guides.cocoapods.org/using/index.html) for dependency management. To get set up, run the following:
+The tutorial uses [Tuist](https://tuist.io/) for project configuration. Follow the main README instructions for getting set up with Tuist first, and then run:
 
-```sh
+```
 $ cd Samples/Tutorial
-$ bundle install
+$ tuist install
+Resolving and fetching plugins.
+Plugins resolved and fetched successfully.
+Resolving and fetching dependencies.
 ...
-Bundle complete!
-$ bundle exec pod install
-Analyzing dependencies
-Downloading dependencies
-Generating Pods project
-Integrating client project
-Pod installation complete!
+$ tuist generate
+Loading and constructing the graph
+It might take a while if the cache is empty
+Using cache binaries for the following targets: 
+Generating workspace Tutorial.xcworkspace
+Generating project Workflow
+Generating project Tutorial
+Generating project swift-case-paths
+Generating project Development
+Generating project xctest-dynamic-overlay
+Generating project swift-identified-collections
+Generating project ReactiveSwift
+Generating project swift-collections
+Generating project swift-perception
+Generating project iOSSnapshotTestCase
+Generating project RxSwift
+Generating project swift-syntax
+Project generated.
 ```
 
-Then open `Tutorial.xcworkspace` in Xcode.
+The `Tutorial.xcworkspace` workspace will open in Xcode automatically.
 
 # Tutorial Steps
 

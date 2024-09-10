@@ -12,12 +12,13 @@ let unsuppressedWarningsSettings: SettingsDictionary = [
 
 let packageSettings = PackageSettings(
     productTypes: [
-        "ViewEnvironmentUI": .framework,
-        "ViewEnvironment": .framework,
-        "Workflow": .framework,
-        "WorkflowUI": .framework,
+        "iOSSnapshotTestCase": .framework,
         "ReactiveSwift": .framework,
-        "iOSSnapshotTestCase": .framework
+        "ViewEnvironment": .framework,
+        "ViewEnvironmentUI": .framework,
+        "Workflow": .framework,
+        "WorkflowReactiveSwift": .framework,
+        "WorkflowUI": .framework,
     ],
     targetSettings: [
         "iOSSnapshotTestCase": ["ENABLE_TESTING_SEARCH_PATHS": "YES"],

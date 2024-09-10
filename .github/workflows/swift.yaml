@@ -117,26 +117,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        # Uses version specified in .ruby_version
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - uses: jdx/mise-action@v2
 
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
+    - name: Install dependencies
+      run: tuist install --path Samples/Tutorial
+
     - name: Tutorial App
-      run: |
-        cd Samples/Tutorial
-        bundle exec pod install
-        set -o pipefail
-        xcodebuild \
-          -workspace Tutorial.xcworkspace \
-          -scheme Tutorial \
-          -destination "$IOS_DESTINATION" \
-          build test | bundle exec xcpretty
+      run: tuist test --path Samples/Tutorial TutorialTests
 
   documentation-lint:
     runs-on: macos-latest

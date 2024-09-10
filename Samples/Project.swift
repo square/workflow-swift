@@ -1,74 +1,8 @@
 import Foundation
 import ProjectDescription
-
-let workflowBundleIdPrefix = "com.squareup.workflow"
-let workflowDestinations: ProjectDescription.Destinations = .iOS
-let workflowDeploymentTargets: DeploymentTargets = .iOS("15.0")
+import ProjectDescriptionHelpers
 
 extension Target {
-    
-    static func app(
-        name: String,
-        sources: ProjectDescription.SourceFilesList,
-        resources: ProjectDescription.ResourceFileElements? = nil,
-        dependencies: [TargetDependency] = []
-    ) -> Self {
-        .target(
-            name: name,
-            destinations: workflowDestinations,
-            product: .app,
-            bundleId: "\(workflowBundleIdPrefix).\(name)",
-            deploymentTargets: workflowDeploymentTargets,
-            infoPlist: .extendingDefault(
-                with: [
-                    "UILaunchScreen": ["UIColorName": ""],
-                ]
-            ),
-            sources: sources,
-            resources: resources,
-            dependencies: dependencies
-        )
-    }
-    
-    static func target(
-        name: String,
-        sources: ProjectDescription.SourceFilesList? = nil,
-        resources: ProjectDescription.ResourceFileElements? = nil,
-        dependencies: [TargetDependency] = []
-    ) -> Self {
-        .target(
-            name: name,
-            destinations: workflowDestinations,
-            product: .framework,
-            bundleId: "\(workflowBundleIdPrefix).\(name)",
-            deploymentTargets: workflowDeploymentTargets,
-            sources: sources ?? "\(name)/Sources/**",
-            resources: resources,
-            dependencies: dependencies
-        )
-    }
-    
-    static func unitTest(
-        for moduleUnderTest: String,
-        testName: String = "Tests",
-        sources: ProjectDescription.SourceFilesList? = nil,
-        dependencies: [TargetDependency] = [],
-        environmentVariables: [String : EnvironmentVariable] = [:]
-    ) -> Self {
-        let name = "\(moduleUnderTest)-\(testName)"
-        return .target(
-            name: name,
-            destinations: workflowDestinations,
-            product: .unitTests,
-            bundleId: "\(workflowBundleIdPrefix).\(name)",
-            deploymentTargets: workflowDeploymentTargets,
-            sources: sources ?? "\(moduleUnderTest)/\(testName)/**",
-            dependencies: dependencies,
-            environmentVariables: environmentVariables
-            
-        )
-    }
-    
     static func snapshotTest(
         for moduleUnderTest: String,
         testName: String = "SnapshotTests",
@@ -172,8 +106,6 @@ let project = Project(
                 .external(name: "WorkflowTesting"),
             ]
         ),
-
-        // TODO: Tutorial has a dedicated xcodeproj
 
         .app(
             name: "WorkflowCombineSampleApp",

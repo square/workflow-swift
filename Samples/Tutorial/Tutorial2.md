@@ -5,8 +5,8 @@ _Multiple Screens and Navigation_
 ## Setup
 
 To follow this tutorial:
-- Open your terminal and run `bundle exec pod install` in the `Samples/Tutorial` directory.
-- Open `Tutorial.xcworkspace` and build the `Tutorial` Scheme.
+- Open your terminal and run `tuist generate` in the `Samples/Tutorial` directory.
+- After the project opens, build the `Tutorial-Workspace` Scheme.
 
 Start from the implementation of `Tutorial1` if you're skipping ahead. You can do this by updating the `AppDelegate` to import `Tutorial1` instead of `TutorialBase`.
 
