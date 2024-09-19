@@ -22,16 +22,16 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowCombine
 
-extension RenderTester {
+public extension RenderTester {
     /// Expect a `Publisher`-based Workflow.
     ///
     /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
     ///
     /// - Parameters:
     ///   - publisher: Type of the Publisher-based Workflow to expect
-    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
+    ///   - producingOutput: An output that will be returned when this worker is requested, if any.
     ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expect<PublisherType: Publisher>(
+    func expect<PublisherType: Publisher>(
         publisher: PublisherType.Type,
         producingOutput output: PublisherType.Output? = nil,
         key: String = ""
@@ -46,7 +46,7 @@ extension RenderTester {
     }
 
     @available(*, deprecated, renamed: "expect(publisher:producingOutput:key:)")
-    public func expect<PublisherType: Publisher>(
+    func expect<PublisherType: Publisher>(
         publisher: PublisherType.Type,
         output: PublisherType.Output,
         key: String = ""

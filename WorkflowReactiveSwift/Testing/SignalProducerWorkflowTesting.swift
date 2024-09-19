@@ -20,7 +20,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowReactiveSwift
 
-extension RenderTester {
+public extension RenderTester {
     /// Expect a `SignalProducer` with an optional output.
     ///
     /// `SignalProducerWorkflow` is used to subscribe to `SignalProducer`s and `Signal`s.
@@ -29,9 +29,9 @@ extension RenderTester {
     ///
     /// - Parameters:
     ///   - outputType: The `OutputType` of the expected `SignalProducerWorkflow`. Typically this will be correctly inferred by the type system, but may need to be explicitly specified if particular optionality is desired.
-    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
+    ///   - producingOutput: An output that will be returned when this worker is requested, if any.
     ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expectSignalProducer<OutputType>(
+    func expectSignalProducer<OutputType>(
         outputType: OutputType.Type = OutputType.self,
         producingOutput: OutputType? = nil,
         key: String = "",

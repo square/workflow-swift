@@ -22,15 +22,15 @@
 import XCTest
 @testable import Workflow
 
-extension Workflow {
+public extension Workflow {
     /// Returns a `RenderTester` with a specified initial state.
-    public func renderTester(initialState: Self.State) -> RenderTester<Self> {
-        return RenderTester(workflow: self, state: initialState)
+    func renderTester(initialState: Self.State) -> RenderTester<Self> {
+        RenderTester(workflow: self, state: initialState)
     }
 
     /// Returns a `RenderTester` with an initial state provided by `self.makeInitialState()`
-    public func renderTester() -> RenderTester<Self> {
-        return renderTester(initialState: makeInitialState())
+    func renderTester() -> RenderTester<Self> {
+        renderTester(initialState: makeInitialState())
     }
 }
 
@@ -146,8 +146,8 @@ public struct RenderTester<WorkflowType: Workflow> {
     /// - Parameters:
     ///   - type: The type of the expected workflow.
     ///   - key: The key of the expected workflow (if specified).
-    ///   - rendering: The rendering result that should be returned when the workflow of this type is rendered.
-    ///   - output: An output that should be returned after the workflow of this type is rendered, if any.
+    ///   - rendering: The rendering result that will be returned when the workflow of this type is rendered.
+    ///   - output: An output that will be returned after the workflow of this type is rendered, if any.
     ///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
     public func expectWorkflow<ExpectedWorkflowType: Workflow>(
         type: ExpectedWorkflowType.Type,
@@ -157,7 +157,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         file: StaticString = #file, line: UInt = #line,
         assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }
     ) -> RenderTester<WorkflowType> {
-        return RenderTester(
+        RenderTester(
             workflow: workflow,
             state: state,
             expectedWorkflows: expectedWorkflows.appending(
@@ -179,7 +179,7 @@ public struct RenderTester<WorkflowType: Workflow> {
     /// - Parameters:
     ///   - type: The type of the expected workflow.
     ///   - key: The key of the expected workflow (if specified).
-    ///   - rendering: The rendering result that should be returned when the workflow of this type is rendered.
+    ///   - rendering: The rendering result that will be returned when the workflow of this type is rendered.
     ///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
     public func expectWorkflowIgnoringOutput<ExpectedWorkflowType: Workflow>(
         type: ExpectedWorkflowType.Type,
@@ -189,7 +189,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         line: UInt = #line,
         assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }
     ) -> RenderTester<WorkflowType> {
-        return expectWorkflow(
+        expectWorkflow(
             type: OutputBlockingWorkflow<ExpectedWorkflowType>.self,
             key: key,
             producingRendering: rendering,
@@ -206,7 +206,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         key: AnyHashable,
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
-        return RenderTester(
+        RenderTester(
             workflow: workflow,
             state: state,
             expectedWorkflows: expectedWorkflows,
@@ -231,7 +231,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         producingAction action: ActionType,
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
-        return RenderTester(
+        RenderTester(
             workflow: workflow,
             state: state,
             expectedWorkflows: expectedWorkflows,
@@ -283,14 +283,14 @@ public struct RenderTester<WorkflowType: Workflow> {
     }
 }
 
-extension Collection {
-    fileprivate func appending(_ element: Element) -> [Element] {
-        return self + [element]
+fileprivate extension Collection {
+    func appending(_ element: Element) -> [Element] {
+        self + [element]
     }
 }
 
-extension Dictionary {
-    fileprivate func setting(key: Key, value: Value) -> [Key: Value] {
+fileprivate extension Dictionary {
+    func setting(key: Key, value: Value) -> [Key: Value] {
         var newDictionary = self
         newDictionary[key] = value
         return newDictionary
