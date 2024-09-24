@@ -86,33 +86,40 @@ For simple workflows with a single action, you can generate a model from your st
 
 ```swift
 struct SingleActionWorkflow: Workflow {
-    typealias Output = Never
+  typealias Output = Never
 
-    @ObservableState
-    struct State {
-        var counter = 0
+  @ObservableState
+  struct State {
+    var counter = 0
+  }
+
+  enum Action: WorkflowAction {
+    typealias WorkflowType = SingleActionWorkflow
+
+    case increment
+    case decrement
+
+    func apply(toState state: inout State) -> Never? {
+      switch self {
+      case .increment
+        state.counter += 1
+      case .decrement:
+        state.counter -= 1
+      }
+      return nil
     }
+  }
 
-    enum Action: WorkflowAction {
-        typealias WorkflowType = SingleActionWorkflow
-        case increment
+  func makeInitialState() -> State {
+    .init()
+  }
 
-        func apply(toState state: inout State) -> Never? {
-            state.counter += 1
-            return nil
-        }
-    }
-
-    func makeInitialState() -> State {
-        .init()
-    }
-
-    func render(
-        state: State,
-        context: RenderContext<Self>
-    ) -> ActionModel<State, Action> {
-        context.makeActionModel(state: state)
-    }
+  func render(
+    state: State,
+    context: RenderContext<Self>
+  ) -> ActionModel<State, Action> {
+    context.makeActionModel(state: state)
+  }
 }
 
 ```
