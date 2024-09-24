@@ -380,7 +380,7 @@ struct ContentView: View {
 
 ## Parent dependencies
 
-Because `WorkflowSwiftUI` relies on observation to function, most properties on your model cannot be safely accessed directly through the `Store` — only the state, child models, and action sinks are accessible. So, when a workflow has dependencies provided by a parent (inputs), they must be added to your workflow’s own state in order to be visible by your view. They must also be updated in the `workflowDidChange` function of your workflow in order to receive updates from your parent.
+Because `WorkflowSwiftUI` relies on observation to function, most properties on your model cannot be safely accessed directly through the `Store` — only the state, child models, and action sinks are accessible. So, when a workflow has dependencies provided by a parent (inputs, a.k.a. "props" in Kotlin), they must be added to your workflow’s own state in order to be visible by your view. They must also be updated in the `workflowDidChange` function of your workflow in order to receive updates from your parent.
 
 When updating dependencies, remember that any value being set is considered a mutation by the observation framework. To avoid invalidating your view on every render, check if dependencies have actually changed before copying them.
 
