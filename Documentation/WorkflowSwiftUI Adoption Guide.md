@@ -259,6 +259,38 @@ struct PersonScreen: ObservableScreen {
 
 To use this screen, render your workflow and then use the `mapRendering()` function to wrap your workflow’s model rendering in a screen.
 
+```swift
+// Mapping the rendering type of a workflow:
+let workflow = PersonWorkflow().mapRendering(PersonScreen.init)
+// => AnyWorkflow<PersonScreen, PersonWorkflow.Output>
+```
+
+You can use this anywhere a screen-rendering workflow is required.
+
+```swift
+// Creating a root screen
+let root = WorkflowHostingController(workflow: workflow)
+```
+
+```swift
+// Inside a parent workflow that deals in screens
+struct ParentWorkflow {
+  // <snip>
+
+  func render(state: State, context: RenderContext<ParentWorkflow>) -> Rendering {
+    let personScreen = PersonWorkflow()
+      .mapRendering(PersonScreen.init)
+      .rendered(in: context)
+    // Equivalent to:
+    // PersonScreen(model: PersonWorkflow().rendered(in: context))
+
+    return SomeContainerScreen(
+      contained: personScreen
+    )
+  }
+}
+```
+
 ## Composition
 
 You can render child workflows, and pass their models through to child views.
