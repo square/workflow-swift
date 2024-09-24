@@ -47,11 +47,11 @@ Your workflow should render a type conforming to `ObservableModel`. This provide
 
 ```swift
 public protocol ObservableModel<State> {
-    /// The associated state type that this model observes.
-    associatedtype State: ObservableState
+  /// The associated state type that this model observes.
+  associatedtype State: ObservableState
 
-    /// The accessor that can be used to read and write state.
-    var accessor: StateAccessor<State> { get }
+  /// The accessor that can be used to read and write state.
+  var accessor: StateAccessor<State> { get }
 }
 ```
 
@@ -61,23 +61,23 @@ For trivial workflows with no actions, you can generate a model directly from yo
 
 ```swift
 struct TrivialWorkflow: Workflow {
-    typealias Output = Never
+  typealias Output = Never
 
-    @ObservableState
-    struct State {
-        var counter = 0
-    }
+  @ObservableState
+  struct State {
+    var counter = 0
+  }
 
-    func makeInitialState() -> State {
-        .init()
-    }
+  func makeInitialState() -> State {
+    .init()
+  }
 
-    func render(
-        state: State,
-        context: RenderContext<Self>
-    ) -> StateAccessor<State> {
-        context.makeStateAccessor(state: state)
-    }
+  func render(
+    state: State,
+    context: RenderContext<Self>
+  ) -> StateAccessor<State> {
+    context.makeStateAccessor(state: state)
+  }
 }
 
 ```
@@ -129,57 +129,57 @@ workflows, you can create a custom model that conforms to `ObservableModel`:
 
 ```swift
 struct ComplexWorkflow: Workflow {
-    typealias Output = Never
+  typealias Output = Never
 
-    @ObservableState
-    struct State {
-        var counter = 0
+  @ObservableState
+  struct State {
+    var counter = 0
+  }
+
+  enum UpAction: WorkflowAction {
+    typealias WorkflowType = ComplexWorkflow
+    case increment
+
+    func apply(toState state: inout State) -> Never? {
+      state.counter += 1
+      return nil
     }
+  }
 
-    enum UpAction: WorkflowAction {
-        typealias WorkflowType = ComplexWorkflow
-        case increment
+  enum DownAction: WorkflowAction {
+    typealias WorkflowType = ComplexWorkflow
+    case decrement
 
-        func apply(toState state: inout State) -> Never? {
-            state.counter += 1
-            return nil
-        }
+    func apply(toState state: inout State) -> Never? {
+      state.counter -= 1
+      return nil
     }
+  }
 
-    enum DownAction: WorkflowAction {
-        typealias WorkflowType = ComplexWorkflow
-        case decrement
+  func makeInitialState() -> State {
+    .init()
+  }
 
-        func apply(toState state: inout State) -> Never? {
-            state.counter -= 1
-            return nil
-        }
-    }
-
-    func makeInitialState() -> State {
-        .init()
-    }
-
-    func render(
-        state: State,
-        context: RenderContext<Self>
-    ) -> CustomModel {
-        CustomModel(
-            accessor: context.makeStateAccessor(state: state),
-            child: TrivialWorkflow().rendered(in: context),
-            up: context.makeSink(of: UpAction.self),
-            down: context.makeSink(of: DownAction.self)
-        )
-    }
+  func render(
+    state: State,
+    context: RenderContext<Self>
+  ) -> CustomModel {
+    CustomModel(
+      accessor: context.makeStateAccessor(state: state),
+      child: TrivialWorkflow().rendered(in: context),
+      up: context.makeSink(of: UpAction.self),
+      down: context.makeSink(of: DownAction.self)
+    )
+  }
 }
 
 struct CustomModel: ObservableModel {
-    var accessor: StateAccessor<ComplexWorkflow.State>
+  var accessor: StateAccessor<ComplexWorkflow.State>
 
-    var child: TrivialWorkflow.Rendering
+  var child: TrivialWorkflow.Rendering
 
-    var up: Sink<ComplexWorkflow.UpAction>
-    var down: Sink<ComplexWorkflow.DownAction>
+  var up: Sink<ComplexWorkflow.UpAction>
+  var down: Sink<ComplexWorkflow.DownAction>
 }
 ```
 
@@ -229,19 +229,19 @@ When you are ready to put a view in a screen, create a screen that implements `O
 
 ```swift
 public protocol ObservableScreen: Screen {
-    /// The type of the root view rendered by this screen.
-    associatedtype Content: View
-    /// The type of the model that this screen observes.
-    associatedtype Model: ObservableModel
+  /// The type of the root view rendered by this screen.
+  associatedtype Content: View
+  /// The type of the model that this screen observes.
+  associatedtype Model: ObservableModel
 
-    /// The model that this screen observes.
-    var model: Model { get }
+  /// The model that this screen observes.
+  var model: Model { get }
 
-    /// Constructs the root view for this screen. This is only called once to initialize the view.
-    /// After the initial construction, the view will be updated by injecting new values into the
-    /// store.
-    @ViewBuilder
-    static func makeView(store: Store<Model>) -> Content
+  /// Constructs the root view for this screen. This is only called once to initialize the view.
+  /// After the initial construction, the view will be updated by injecting new values into the
+  /// store.
+  @ViewBuilder
+  static func makeView(store: Store<Model>) -> Content
 }
 ```
 
@@ -319,10 +319,10 @@ struct CoupleWorkflow: Workflow {
 }
 
 struct CoupleModel: ObservableModel {
-    var accessor: StateAccessor<CoupleState>
+  var accessor: StateAccessor<CoupleState>
 
-    var person1: PersonModel
-    var person2: PersonModel
+  var person1: PersonModel
+  var person2: PersonModel
 }
 
 struct CoupleView: View {
@@ -384,8 +384,8 @@ All properties can be turned into bindings by appending the `sending()` function
 ```swift
 @ObservableState
 struct State {
-   var isX: Bool
-   private(set) var isY: Bool
+  var isX: Bool
+  private(set) var isY: Bool
 }
 
 @CasePathable
