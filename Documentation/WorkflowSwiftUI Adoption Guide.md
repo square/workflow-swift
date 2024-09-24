@@ -30,12 +30,12 @@ If your state has nested types, you can annotate them with `@ObservableState` as
 @ObservableState
 public struct State {
   var detail: Detail
-}
 
-@ObservableState
-public struct Detail {
-  var name: String
-  var age: Int
+  @ObservableState
+  public struct Detail {
+    var name: String
+    var age: Int
+  }
 }
 ```
 
