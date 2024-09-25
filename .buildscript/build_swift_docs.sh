@@ -23,7 +23,7 @@
 # Usage: ./build_swift_docs.sh OUTPUT_DIR
 
 SOURCEDOCS_OUTPUT_DIR="$1"
-WORKFLOW_SCHEMES="Workflow WorkflowUI WorkflowTesting"
+WORKFLOW_SCHEMES="ViewEnvironment ViewEnvironmentUI Workflow WorkflowUI WorkflowSwiftUI WorkflowTesting"
 
 if [[ -z "$SOURCEDOCS_OUTPUT_DIR" ]]; then
 	echo "No output dir specified. Usage: \`build_swift_docs.sh [OUTPUT_DIR]\`"
@@ -32,9 +32,8 @@ fi
 
 set -ex
 
-# Prepare the Xcode project.
-bundle exec pod gen Development.podspec
-cd gen/Development
+tuist install --path Samples
+tuist generate  --path Samples --no-open
 
 # Generate the API docs.
 for scheme in $WORKFLOW_SCHEMES; do
@@ -42,5 +41,5 @@ for scheme in $WORKFLOW_SCHEMES; do
         --output-folder "$SOURCEDOCS_OUTPUT_DIR/$scheme" \
         -- \
         -scheme $scheme \
-        -workspace Development.xcworkspace
+        -workspace Samples/Development.xcworkspace
 done

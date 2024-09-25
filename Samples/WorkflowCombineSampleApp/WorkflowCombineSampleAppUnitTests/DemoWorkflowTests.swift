@@ -9,7 +9,7 @@ import Combine
 import Workflow
 import WorkflowTesting
 import XCTest
-@testable import Development_WorkflowCombineSampleApp
+@testable import WorkflowCombineSampleApp
 
 class DemoWorkflowTests: XCTestCase {
     func test_demoWorkflow_publishesNewDate() {

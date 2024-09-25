@@ -19,17 +19,13 @@ gen/
 # Xcode
 xcuserdata/
 
-# Sample workspace
-SampleApp.xcworkspace
-
-# XcodeGen
-Workflow.xcodeproj/
-/TestingSupport/AppHost/App/Info.plist
+# Tuist
+/Derived
+/Samples/Derived
+/Samples/Tutorial/Derived
+/Samples/*.xcodeproj
+/Samples/*.xcworkspace
+/*.xcodeproj
 
 # ios-snapshot-test-case Failure Diffs
 FailureDiffs/
-
-Samples/**/*Info.plist
-!Samples/Tutorial/AppHost/Configuration/Info.plist
-!Samples/Tutorial/AppHost/TutorialTests/Info.plist
-!Samples/AsyncWorker/AsyncWorker/Info.plist

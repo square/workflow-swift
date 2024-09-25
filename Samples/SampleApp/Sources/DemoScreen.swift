@@ -16,6 +16,7 @@
 
 import Workflow
 import WorkflowUI
+import UIKit
 
 struct DemoScreen: Screen {
     let title: String

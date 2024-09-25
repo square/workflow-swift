@@ -18,7 +18,7 @@ import Workflow
 import WorkflowTesting
 import XCTest
 
-@testable import Development_SampleTicTacToe
+@testable import TicTacToe
 
 class ConfirmQuitWorkflowTests: XCTestCase {
     // MARK: Action Tests

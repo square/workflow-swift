@@ -16,6 +16,7 @@
 
 import Workflow
 import WorkflowUI
+import UIKit
 
 internal final class SplitScreenContainerViewController<LeadingScreenType: Screen, TrailingScreenType: Screen>: ScreenViewController<SplitScreenContainerViewController.ContainerScreen> {
     internal typealias ContainerScreen = SplitScreenContainerScreen<LeadingScreenType, TrailingScreenType>

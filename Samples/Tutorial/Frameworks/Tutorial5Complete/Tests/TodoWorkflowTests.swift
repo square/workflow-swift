@@ -19,7 +19,7 @@ import Workflow
 import WorkflowTesting
 import WorkflowUI
 import XCTest
-@testable import Tutorial5
+@testable import Tutorial5Complete
 
 class TodoWorkflowTests: XCTestCase {
     func testSelectingTodo() throws {

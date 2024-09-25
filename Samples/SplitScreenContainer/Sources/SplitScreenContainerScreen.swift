@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 /// A `SplitScreenContainerScreen` displays two screens side by side with a separator in between.
 public struct SplitScreenContainerScreen<LeadingScreenType: Screen, TrailingScreenType: Screen>: Screen {

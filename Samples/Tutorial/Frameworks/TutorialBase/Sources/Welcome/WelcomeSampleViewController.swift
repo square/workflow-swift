@@ -15,6 +15,7 @@
  */
 
 import TutorialViews
+import UIKit
 
 final class WelcomeSampleViewController: UIViewController {
     let welcomeView: WelcomeView

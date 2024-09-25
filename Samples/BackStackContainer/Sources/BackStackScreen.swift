@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 public struct BackStackScreen<ScreenType: Screen>: Screen {
     var items: [Item]

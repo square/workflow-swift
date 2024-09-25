@@ -19,7 +19,7 @@ import WorkflowTesting
 import XCTest
 // Import `BackStackContainer` as testable so that the items in the `BackStackScreen` can be inspected.
 @testable import BackStackContainer
-@testable import Tutorial5
+@testable import Tutorial5Complete
 // Import `WorkflowUI` as testable so that the wrappedScreen in `AnyScreen` can be accessed.
 @testable import WorkflowUI
 

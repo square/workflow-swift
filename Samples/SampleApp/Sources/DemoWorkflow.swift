@@ -18,6 +18,7 @@ import ReactiveSwift
 import Workflow
 import WorkflowReactiveSwift
 import WorkflowUI
+import UIKit
 
 // MARK: Input and Output
 

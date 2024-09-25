@@ -15,6 +15,7 @@
  */
 
 import WorkflowUI
+import UIKit
 
 /**
  Wrapper view controller for being hosted in a backstack. Handles updating the bar button items.

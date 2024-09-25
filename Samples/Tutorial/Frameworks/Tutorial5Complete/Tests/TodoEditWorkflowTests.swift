@@ -16,7 +16,7 @@
 
 import WorkflowTesting
 import XCTest
-@testable import Tutorial5
+@testable import Tutorial5Complete
 
 class TodoEditWorkflowTests: XCTestCase {
     func testAction() throws {

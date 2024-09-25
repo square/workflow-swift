@@ -5,6 +5,7 @@
 //  Created by Soo Rin Park on 10/28/21.
 //
 
+import Foundation
 import Workflow
 import WorkflowUI
 

@@ -51,6 +51,26 @@ pod 'WorkflowUI'
 
 * [Documentation](https://square.github.io/workflow/)
 
+## Local Development
+
+This project uses [Mise](https://mise.jdx.dev/) and [Tuist](https://tuist.io/) to generate a project for local development. Follow the steps below for the recommended setup for zsh.
+
+```sh
+# install mise
+brew install mise
+# add mise activation line to your zshrc
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+# load mise into your shell
+source ~/.zshrc
+# install dependencies
+mise install
+
+# only necessary for first setup or after changing dependencies
+tuist install --path Samples
+# generates and opens the Xcode project
+tuist generate --path Samples
+```
+
 ## Releasing and Deploying
 
 See [RELEASING.md](RELEASING.md).

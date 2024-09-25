@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Foundation
 import Workflow
 import WorkflowCombine
 

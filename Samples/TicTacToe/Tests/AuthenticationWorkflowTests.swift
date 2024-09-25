@@ -19,7 +19,7 @@ import WorkflowReactiveSwiftTesting
 import WorkflowTesting
 import XCTest
 
-@testable import Development_SampleTicTacToe
+@testable import TicTacToe
 
 class AuthenticationWorkflowTests: XCTestCase {
     // MARK: Action Tests
