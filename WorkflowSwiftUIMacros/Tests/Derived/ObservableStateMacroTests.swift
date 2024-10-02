@@ -36,7 +36,7 @@ final class ObservableStateMacroTests: XCTestCase {
             #"""
             @available(iOS 18, *)
             struct State {
-                var count = 0 {
+                var count {
                     @storageRestrictions(initializes: _count)
                     init(initialValue) {
                         _count = initialValue
@@ -82,7 +82,7 @@ final class ObservableStateMacroTests: XCTestCase {
         } expansion: {
             #"""
             struct State {
-                var count = 0 {
+                var count {
                     @storageRestrictions(initializes: _count)
                     init(initialValue) {
                         _count = initialValue
@@ -128,7 +128,7 @@ final class ObservableStateMacroTests: XCTestCase {
         } expansion: {
             #"""
             public struct State {
-                var count = 0 {
+                var count {
                     @storageRestrictions(initializes: _count)
                     init(initialValue) {
                         _count = initialValue
@@ -171,7 +171,7 @@ final class ObservableStateMacroTests: XCTestCase {
         } expansion: {
             #"""
             package struct State {
-                var count = 0 {
+                var count {
                     @storageRestrictions(initializes: _count)
                     init(initialValue) {
                         _count = initialValue
