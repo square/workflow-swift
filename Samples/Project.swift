@@ -179,7 +179,10 @@ let project = Project(
         .unitTest(
             for: "WorkflowConcurrency",
             sources: "../WorkflowConcurrency/Tests/**",
-            dependencies: [.external(name: "WorkflowConcurrency")]
+            dependencies: [
+                .external(name: "WorkflowConcurrency"),
+                .external(name: "WorkflowTesting"),
+            ]
         ),
         .unitTest(
             for: "WorkflowConcurrencyTesting",
@@ -201,7 +204,10 @@ let project = Project(
         .unitTest(
             for: "WorkflowRxSwift",
             sources: "../WorkflowRxSwift/Tests/**",
-            dependencies: [.external(name: "WorkflowRxSwift")]
+            dependencies: [
+                .external(name: "WorkflowRxSwift"),
+                .external(name: "WorkflowReactiveSwift"),
+            ]
         ),
         .unitTest(
             for: "WorkflowRxSwiftTesting",
