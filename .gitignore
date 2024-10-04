@@ -9,7 +9,6 @@ gen/
 
 # Swift Package Manager
 .build/
-Package.resolved
 .swiftpm/
 
 # CocoaPods
