@@ -30,6 +30,7 @@ public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
     associatedtype Output
 
     /// Execute the work represented by this worker asynchronously and return the result.
+    /// This function will be run in a Task set to high priority.
     func run() async -> Output
     /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
     /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
@@ -63,7 +64,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         let sink = context.makeOutputSink()
         context.runSideEffect(key: state) { lifetime in
             let send: @MainActor(Output) -> Void = sink.send
-            let task = Task {
+            let task = Task(priority: .high) {
                 logger.logStarted()
                 let output = await worker.run()
                 if Task.isCancelled {
