@@ -52,122 +52,122 @@ public extension ObservableScreen {
 
 // MARK: - Preview previews
 
-@ObservableState
-private struct PreviewDemoState {
-    var name = "Test"
-    var count = 0
-}
-
-private struct PreviewDemoTrivialScreen: ObservableScreen {
-    typealias Model = StateAccessor<PreviewDemoState>
-
-    var model: Model
-
-    static func makeView(store: Store<Model>) -> some View {
-        PreviewDemoView(store: store)
-    }
-
-    struct PreviewDemoView: View {
-        let store: Store<Model>
-
-        var body: some View {
-            VStack {
-                Text("\(store.name)")
-                Button("Add", systemImage: "add") {
-                    store.count += 1
-                }
-                Button("Reset") {
-                    store.count = 0
-                }
-            }
-        }
-    }
-}
-
-private enum PreviewDemoAction {}
-
-private struct PreviewDemoActionScreen: ObservableScreen {
-    typealias Model = ActionModel<PreviewDemoState, PreviewDemoAction>
-
-    var model: Model
-
-    static func makeView(store: Store<Model>) -> some View {
-        PreviewDemoView(store: store)
-    }
-
-    struct PreviewDemoView: View {
-        let store: Store<Model>
-
-        var body: some View {
-            VStack {
-                Text("\(store.name)")
-                Button("Add", systemImage: "add") {
-                    store.count += 1
-                }
-                Button("Reset") {
-                    store.count = 0
-                }
-            }
-        }
-    }
-}
-
-private enum PreviewDemoAction2 {}
-
-private struct PreviewDemoComplexModel: ObservableModel {
-    var accessor: StateAccessor<PreviewDemoState>
-
-    var sink: Sink<PreviewDemoAction>
-    var sink2: Sink<PreviewDemoAction2>
-}
-
-private struct PreviewDemoComplexScreen: ObservableScreen {
-    typealias Model = PreviewDemoComplexModel
-
-    var model: Model
-
-    static func makeView(store: Store<Model>) -> some View {
-        PreviewDemoView(store: store)
-    }
-
-    struct PreviewDemoView: View {
-        let store: Store<Model>
-
-        var body: some View {
-            VStack {
-                Text("\(store.name)")
-                Button("Add", systemImage: "add") {
-                    store.count += 1
-                }
-                Button("Reset") {
-                    store.count = 0
-                }
-            }
-        }
-    }
-}
-
-struct PreviewDemoScreen_Preview: PreviewProvider {
-    static var previews: some View {
-        PreviewDemoTrivialScreen
-            .observableScreenPreview(state: .init())
-            .previewDisplayName("Trivial Screen")
-
-        PreviewDemoActionScreen
-            .observableScreenPreview(state: .init())
-            .previewDisplayName("Single Action Screen")
-
-        PreviewDemoComplexScreen
-            .observableScreenPreview { context in
-                PreviewDemoComplexModel(
-                    accessor: context.makeStateAccessor(state: .init()),
-                    sink: context.makeSink(of: PreviewDemoAction.self),
-                    sink2: context.makeSink(of: PreviewDemoAction2.self)
-                )
-            }
-            .previewDisplayName("Custom Model Screen")
-    }
-}
+//@ObservableState
+//private struct PreviewDemoState {
+//    var name = "Test"
+//    var count = 0
+//}
+//
+//private struct PreviewDemoTrivialScreen: ObservableScreen {
+//    typealias Model = StateAccessor<PreviewDemoState>
+//
+//    var model: Model
+//
+//    static func makeView(store: Store<Model>) -> some View {
+//        PreviewDemoView(store: store)
+//    }
+//
+//    struct PreviewDemoView: View {
+//        let store: Store<Model>
+//
+//        var body: some View {
+//            VStack {
+//                Text("\(store.name)")
+//                Button("Add", systemImage: "add") {
+//                    store.count += 1
+//                }
+//                Button("Reset") {
+//                    store.count = 0
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//private enum PreviewDemoAction {}
+//
+//private struct PreviewDemoActionScreen: ObservableScreen {
+//    typealias Model = ActionModel<PreviewDemoState, PreviewDemoAction>
+//
+//    var model: Model
+//
+//    static func makeView(store: Store<Model>) -> some View {
+//        PreviewDemoView(store: store)
+//    }
+//
+//    struct PreviewDemoView: View {
+//        let store: Store<Model>
+//
+//        var body: some View {
+//            VStack {
+//                Text("\(store.name)")
+//                Button("Add", systemImage: "add") {
+//                    store.count += 1
+//                }
+//                Button("Reset") {
+//                    store.count = 0
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//private enum PreviewDemoAction2 {}
+//
+//private struct PreviewDemoComplexModel: ObservableModel {
+//    var accessor: StateAccessor<PreviewDemoState>
+//
+//    var sink: Sink<PreviewDemoAction>
+//    var sink2: Sink<PreviewDemoAction2>
+//}
+//
+//private struct PreviewDemoComplexScreen: ObservableScreen {
+//    typealias Model = PreviewDemoComplexModel
+//
+//    var model: Model
+//
+//    static func makeView(store: Store<Model>) -> some View {
+//        PreviewDemoView(store: store)
+//    }
+//
+//    struct PreviewDemoView: View {
+//        let store: Store<Model>
+//
+//        var body: some View {
+//            VStack {
+//                Text("\(store.name)")
+//                Button("Add", systemImage: "add") {
+//                    store.count += 1
+//                }
+//                Button("Reset") {
+//                    store.count = 0
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//struct PreviewDemoScreen_Preview: PreviewProvider {
+//    static var previews: some View {
+//        PreviewDemoTrivialScreen
+//            .observableScreenPreview(state: .init())
+//            .previewDisplayName("Trivial Screen")
+//
+//        PreviewDemoActionScreen
+//            .observableScreenPreview(state: .init())
+//            .previewDisplayName("Single Action Screen")
+//
+//        PreviewDemoComplexScreen
+//            .observableScreenPreview { context in
+//                PreviewDemoComplexModel(
+//                    accessor: context.makeStateAccessor(state: .init()),
+//                    sink: context.makeSink(of: PreviewDemoAction.self),
+//                    sink2: context.makeSink(of: PreviewDemoAction2.self)
+//                )
+//            }
+//            .previewDisplayName("Custom Model Screen")
+//    }
+//}
 
 #endif
 #endif

@@ -79,73 +79,73 @@ private struct PreviewView<WorkflowType: Workflow>: UIViewControllerRepresentabl
     }
 }
 
-private struct PreviewDemoWorkflow: Workflow {
-    typealias Output = Never
-    typealias Rendering = StateAccessor<State>
-
-    @ObservableState
-    struct State {
-        var value: Int
-    }
-
-    func makeInitialState() -> State { .init(value: 0) }
-
-    func render(state: State, context: RenderContext<Self>) -> Rendering {
-        context.makeStateAccessor(state: state)
-    }
-}
-
-private struct PreviewDemoOutputtingWorkflow: Workflow {
-    typealias Output = Int
-    typealias Rendering = StateAccessor<State>
-    typealias State = PreviewDemoWorkflow.State
-
-    func makeInitialState() -> State { .init(value: 0) }
-
-    func render(state: State, context: RenderContext<Self>) -> Rendering {
-        context.makeStateAccessor(state: state)
-    }
-}
-
-private struct PreviewDemoScreen: ObservableScreen {
-    typealias Model = StateAccessor<PreviewDemoWorkflow.State>
-
-    var model: Model
-
-    static func makeView(store: Store<Model>) -> some View {
-        PreviewDemoView(store: store)
-    }
-
-    struct PreviewDemoView: View {
-        let store: Store<Model>
-
-        var body: some View {
-            VStack {
-                Text("\(store.value)")
-                Button("Add", systemImage: "add") {
-                    store.value += 1
-                }
-                Button("Reset") {
-                    store.value = 0
-                }
-            }
-        }
-    }
-}
-
-struct PreviewDemoWorkflow_Preview: PreviewProvider {
-    static var previews: some View {
-        PreviewDemoOutputtingWorkflow()
-            .mapRendering(PreviewDemoScreen.init)
-            .workflowPreview(
-                onOutput: { print($0) }
-            )
-
-        PreviewDemoWorkflow()
-            .mapRendering(PreviewDemoScreen.init)
-            .workflowPreview()
-    }
-}
+//private struct PreviewDemoWorkflow: Workflow {
+//    typealias Output = Never
+//    typealias Rendering = StateAccessor<State>
+//
+//    @ObservableState
+//    struct State {
+//        var value: Int
+//    }
+//
+//    func makeInitialState() -> State { .init(value: 0) }
+//
+//    func render(state: State, context: RenderContext<Self>) -> Rendering {
+//        context.makeStateAccessor(state: state)
+//    }
+//}
+//
+//private struct PreviewDemoOutputtingWorkflow: Workflow {
+//    typealias Output = Int
+//    typealias Rendering = StateAccessor<State>
+//    typealias State = PreviewDemoWorkflow.State
+//
+//    func makeInitialState() -> State { .init(value: 0) }
+//
+//    func render(state: State, context: RenderContext<Self>) -> Rendering {
+//        context.makeStateAccessor(state: state)
+//    }
+//}
+//
+//private struct PreviewDemoScreen: ObservableScreen {
+//    typealias Model = StateAccessor<PreviewDemoWorkflow.State>
+//
+//    var model: Model
+//
+//    static func makeView(store: Store<Model>) -> some View {
+//        PreviewDemoView(store: store)
+//    }
+//
+//    struct PreviewDemoView: View {
+//        let store: Store<Model>
+//
+//        var body: some View {
+//            VStack {
+//                Text("\(store.value)")
+//                Button("Add", systemImage: "add") {
+//                    store.value += 1
+//                }
+//                Button("Reset") {
+//                    store.value = 0
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//struct PreviewDemoWorkflow_Preview: PreviewProvider {
+//    static var previews: some View {
+//        PreviewDemoOutputtingWorkflow()
+//            .mapRendering(PreviewDemoScreen.init)
+//            .workflowPreview(
+//                onOutput: { print($0) }
+//            )
+//
+//        PreviewDemoWorkflow()
+//            .mapRendering(PreviewDemoScreen.init)
+//            .workflowPreview()
+//    }
+//}
 
 #endif
 #endif
