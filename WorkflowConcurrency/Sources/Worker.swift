@@ -25,7 +25,7 @@ import Workflow
 /// If there is, and if the workers are 'equivalent', the context leaves the existing worker running.
 ///
 /// If there is not an existing worker of this type, the context will kick off the new worker (via `run`).
-public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
+public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void, Output: Sendable {
     /// The type of output events returned by this worker.
     associatedtype Output
 
@@ -63,7 +63,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         let logger = WorkerLogger<WorkerType>()
         let sink = context.makeOutputSink()
         context.runSideEffect(key: state) { lifetime in
-            let send: @MainActor(Output) -> Void = sink.send
+            let send: @MainActor (Output) -> Void = sink.send
             let task = Task(priority: .high) {
                 logger.logStarted()
                 let output = await worker.run()
