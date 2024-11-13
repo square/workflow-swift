@@ -12,23 +12,17 @@ public struct StaticStorePreviewContext {
     }
 
     public func makeStateAccessor<State>(state: State) -> StateAccessor<State> {
-        StateAccessor(
-            state: state,
-            sendValue: { _ in }
-        )
+        .constant(state: state)
     }
 
     public func makeActionModel<State, Action>(
         state: State
     ) -> ActionModel<State, Action> {
-        ActionModel(
-            accessor: makeStateAccessor(state: state),
-            sendAction: makeSink(of: Action.self).send
-        )
+        .constant(state: state)
     }
 }
 
-extension Store {
+public extension Store {
     /// Generates a static store for previews.
     ///
     /// Previews generated with this method are static and do not update state. To generate a
@@ -38,7 +32,7 @@ extension Store {
     /// - Parameter makeModel: A closure to create the store's model. The provided `context` param
     ///  is a convenience to generate dummy sinks and state accessors.
     /// - Returns: A store for previews.
-    public static func preview(
+    static func preview(
         makeModel: (StaticStorePreviewContext) -> Model
     ) -> Store {
         let context = StaticStorePreviewContext()
@@ -46,7 +40,7 @@ extension Store {
         let (store, _) = make(model: model)
         return store
     }
-    
+
     /// Generates a static store for previews.
     ///
     /// Previews generated with this method are static and do not update state. To generate a
@@ -55,14 +49,14 @@ extension Store {
     ///
     /// - Parameter state: The state of the view.
     /// - Returns: A store for previews.
-    public static func preview<State, Action>(
+    static func preview<State, Action>(
         state: State
     ) -> Store<ActionModel<State, Action>> where Model == ActionModel<State, Action> {
         preview { context in
             context.makeActionModel(state: state)
         }
     }
-    
+
     /// Generates a static store for previews.
     ///
     /// Previews generated with this method are static and do not update state. To generate a
@@ -71,7 +65,7 @@ extension Store {
     ///
     /// - Parameter state: The state of the view.
     /// - Returns: A store for previews.
-    public static func preview<State>(
+    static func preview<State>(
         state: State
     ) -> Store<StateAccessor<State>> where Model == StateAccessor<State> {
         preview { context in

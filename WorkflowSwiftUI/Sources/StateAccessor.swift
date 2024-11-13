@@ -13,6 +13,12 @@ public struct StateAccessor<State: ObservableState> {
     let state: State
     let sendValue: (@escaping (inout State) -> Void) -> Void
 
+    /// Creates a new state accessor.
+    ///
+    /// Rather than creating this model directly, you should usually use the
+    /// ``Workflow/RenderContext/makeStateAccessor(state:)`` method. If you need
+    /// a static model for testing or previews, you can use the
+    /// ``constant(state:)`` method.
     public init(
         state: State,
         sendValue: @escaping (@escaping (inout State) -> Void) -> Void
@@ -31,3 +37,15 @@ extension StateAccessor: Identifiable where State: Identifiable {
         state.id
     }
 }
+
+#if DEBUG
+
+public extension StateAccessor {
+    /// Creates a static state accessor which ignores all sent values, suitable for static previews
+    /// or testing.
+    static func constant(state: State) -> StateAccessor<State> {
+        StateAccessor(state: state, sendValue: { _ in })
+    }
+}
+
+#endif
