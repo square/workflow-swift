@@ -36,6 +36,7 @@
 --empty void
 --exponentcase lowercase
 --exponentgrouping disabled
+--extensionacl on-declarations
 --fractiongrouping disabled
 --fragment false
 --hexgrouping none
