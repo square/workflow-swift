@@ -140,8 +140,6 @@ private struct TestWorkflow: Workflow {
         .init(mode: .idle, output: "")
     }
 
-    func workflowDidChange(from previousWorkflow: TestWorkflow, state: inout State) {}
-
     func render(state: State, context: RenderContext<TestWorkflow>) {
         switch state.mode {
         case .idle:
