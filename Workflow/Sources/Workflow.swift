@@ -54,7 +54,7 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     associatedtype State
 
     /// `Output` defines the type that can be emitted as output events.
-    associatedtype Output = Never
+    associatedtype Output: Sendable = Never
 
     /// `Rendering` is the type that is produced by the `render` method: it
     /// is commonly a view / screen model.
