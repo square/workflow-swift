@@ -1,8 +1,7 @@
-# workflow
+# Workflow for Swift
 
 ![Swift CI](https://github.com/square/workflow-swift/workflows/Swift%20CI/badge.svg)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
-[![CocoaPods compatible](https://img.shields.io/cocoapods/v/Workflow.svg)](https://cocoapods.org/pods/Workflow)
 
 A unidirectional data flow library for Swift and [Kotlin](https://github.com/square/workflow-kotlin), emphasizing:
 
@@ -28,24 +27,12 @@ in `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "git@github.com:square/workflow-swift.git", from: "1.0.0-rc.1")
+    .package(url: "https://github.com/square/workflow-swift", from: "3.11.0")
 ]
 ```
 
 In Xcode 11+, add Workflow directly as a dependency to your project with
 `File` > `Swift Packages` > `Add Package Dependency...`. Provide the git URL when prompted: `git@github.com:square/workflow-swift.git`.
-
-### CocoaPods
-
-[![CocoaPods compatible](https://img.shields.io/cocoapods/v/Workflow.svg)](https://cocoapods.org/pods/Workflow)
-
-If you use CocoaPods to manage your dependencies, simply add Workflow and WorkflowUI to your
-Podfile:
-
-```ruby
-pod 'Workflow'
-pod 'WorkflowUI'
-```
 
 ## Resources
 

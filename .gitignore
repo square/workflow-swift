@@ -1,19 +1,14 @@
 # macOS
 .DS_Store
 
-# Ruby Bundler
+# Ruby and CocoaPods cruft
 .bundle/
-
-# cocoapods-generate
 gen/
+Pods/
 
 # Swift Package Manager
 .build/
 .swiftpm/
-
-# CocoaPods
-Pods/
-gen/
 
 # Xcode
 xcuserdata/
