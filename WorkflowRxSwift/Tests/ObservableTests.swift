@@ -74,7 +74,7 @@ class ObservableTests: XCTestCase {
         let observable = Observable.from([1, 2, 3])
             .do(onDispose: {
                 expectation.fulfill()
-        })
+            })
 
         let host = WorkflowHost(
             workflow: ObservableWorkflow(observable: observable)

@@ -61,7 +61,7 @@ class WorkerTests: XCTestCase {
         XCTAssertEqual(1, host.rendering.value)
 
         disposable?.dispose()
-        
+
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called after the workflow is updated.
@@ -78,7 +78,7 @@ class WorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering matches the initial state.
         XCTAssertEqual(7, host.rendering.value)
-        
+
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called when the worker runs.
@@ -92,7 +92,7 @@ class WorkerTests: XCTestCase {
         // Check to make sure the rendering is correct.
         XCTAssertEqual(8, host.rendering.value)
     }
-    
+
     func testWorkflowKeyChange() {
         // Create the workflow which causes the TaskTestWorker to run.
         let host = WorkflowHost(
@@ -116,7 +116,7 @@ class WorkerTests: XCTestCase {
         XCTAssertEqual(1, host.rendering.value)
 
         disposable?.dispose()
-        
+
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called after the workflow is updated.
@@ -134,7 +134,7 @@ class WorkerTests: XCTestCase {
         // Test to make sure the rendering matches the existing state
         // since the inititalState didn't change.
         XCTAssertEqual(1, host.rendering.value)
-        
+
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called when the worker runs.
@@ -149,7 +149,7 @@ class WorkerTests: XCTestCase {
         // The worker adds one to the initialState so this should be 1.
         XCTAssertEqual(1, host.rendering.value)
     }
-    
+
     func testExpectedWorker() {
         TaskTestWorkerWorkflow(key: "123", initialState: 0)
             .renderTester()
@@ -199,7 +199,7 @@ class WorkerTests: XCTestCase {
                 let startExpectation: XCTestExpectation
                 let endExpectation: XCTestExpectation
 
-                func run() async -> Void {
+                func run() async {
                     startExpectation.fulfill()
                     for _ in 1 ... 200 {
                         if Task.isCancelled {
@@ -253,7 +253,7 @@ private struct TaskTestWorkerWorkflow: Workflow {
             .running(in: context, key: key)
         return state
     }
-    
+
     func workflowDidChange(from previousWorkflow: TaskTestWorkerWorkflow, state: inout Int) {
         if previousWorkflow.initialState != initialState {
             state = initialState
@@ -264,7 +264,7 @@ private struct TaskTestWorkerWorkflow: Workflow {
 private struct TaskTestWorker: Worker {
     typealias Output = Int
     let initialState: Int
-    
+
     func run() async -> Int {
         do {
             try await Task.sleep(nanoseconds: 10000000)
@@ -274,6 +274,6 @@ private struct TaskTestWorker: Worker {
     }
 
     func isEquivalent(to otherWorker: TaskTestWorker) -> Bool {
-        return otherWorker.initialState == initialState
+        otherWorker.initialState == initialState
     }
 }

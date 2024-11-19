@@ -29,7 +29,7 @@ struct StateTransitioningWorkflow: Workflow {
     }
 
     func makeInitialState() -> Bool {
-        return false
+        false
     }
 
     func render(state: State, context: RenderContext<StateTransitioningWorkflow>) -> Rendering {

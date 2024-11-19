@@ -20,7 +20,7 @@ import XCTest
 @testable import Workflow
 
 extension RenderTester {
-    internal final class TestContext: RenderContextType {
+    final class TestContext: RenderContextType {
         var state: WorkflowType.State
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
@@ -31,7 +31,7 @@ extension RenderTester {
 
         private var usedWorkflowKeys: Set<WorkflowKey> = []
 
-        internal init(
+        init(
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect],
@@ -48,21 +48,19 @@ extension RenderTester {
         func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType {
             let matchingTypes = expectedWorkflows.compactMap { $0 as? ExpectedWorkflow<Child> }
             guard let expectedWorkflow = matchingTypes.first(where: { $0.key == key }) else {
-                let sameTypeDifferentKeys = matchingTypes.map { $0.key }
-                let sameKeyDifferentTypes = expectedWorkflows.filter { $0.key == key }.map { $0.workflowType }
+                let sameTypeDifferentKeys = matchingTypes.map(\.key)
+                let sameKeyDifferentTypes = expectedWorkflows.filter { $0.key == key }.map(\.workflowType)
 
-                let diagnosticMessage: String
-
-                if sameTypeDifferentKeys.count == 1 {
-                    diagnosticMessage = "Expecting key \"\(sameTypeDifferentKeys[0])\"."
+                let diagnosticMessage = if sameTypeDifferentKeys.count == 1 {
+                    "Expecting key \"\(sameTypeDifferentKeys[0])\"."
                 } else if sameTypeDifferentKeys.count > 1 {
-                    diagnosticMessage = "Expecting key in \"\(sameTypeDifferentKeys)\"."
+                    "Expecting key in \"\(sameTypeDifferentKeys)\"."
                 } else if sameKeyDifferentTypes.count == 1 {
-                    diagnosticMessage = "Found expectation of type \(sameKeyDifferentTypes[0]) for key \"\(key)\"."
+                    "Found expectation of type \(sameKeyDifferentTypes[0]) for key \"\(key)\"."
                 } else if sameKeyDifferentTypes.count > 1 {
-                    diagnosticMessage = "Found expectations for types \(sameKeyDifferentTypes) with key \"\(key)\"."
+                    "Found expectations for types \(sameKeyDifferentTypes) with key \"\(key)\"."
                 } else {
-                    diagnosticMessage = """
+                    """
                     If this child Workflow is expected, please add a call to `expectWorkflow(...)` with the appropriate parameters before invoking `render()`.
                     """
                 }
@@ -91,7 +89,7 @@ extension RenderTester {
         }
 
         func makeSink<ActionType>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
-            return Sink<ActionType> { action in
+            Sink<ActionType> { action in
                 self.apply(action: action)
             }
         }
@@ -121,7 +119,7 @@ extension RenderTester {
             appliedAction = AppliedAction(action)
             let output = action.apply(toState: &state)
 
-            if let output = output {
+            if let output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)
                 producedOutput = output
             }

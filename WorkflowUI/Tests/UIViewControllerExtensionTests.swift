@@ -128,6 +128,7 @@ private final class RootVC: UIViewController {
         content.didMove(toParent: self)
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
     override func loadView() {

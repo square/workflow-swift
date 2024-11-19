@@ -40,10 +40,10 @@ extension StateAccessor: Identifiable where State: Identifiable {
 
 #if DEBUG
 
-public extension StateAccessor {
+extension StateAccessor {
     /// Creates a static state accessor which ignores all sent values, suitable for static previews
     /// or testing.
-    static func constant(state: State) -> StateAccessor<State> {
+    public static func constant(state: State) -> StateAccessor<State> {
         StateAccessor(state: state, sendValue: { _ in })
     }
 }

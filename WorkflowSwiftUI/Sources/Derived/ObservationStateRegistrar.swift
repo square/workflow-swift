@@ -25,14 +25,14 @@ extension ObservationStateRegistrar: Equatable, Hashable, Codable {
 
 #if canImport(Observation)
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-public extension ObservationStateRegistrar {
+extension ObservationStateRegistrar {
     /// Registers access to a specific property for observation.
     ///
     /// - Parameters:
     ///   - subject: An instance of an observable type.
     ///   - keyPath: The key path of an observed property.
     @inlinable
-    func access<Subject: Observable>(
+    public func access<Subject: Observable>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, some Any>
     ) {
@@ -50,7 +50,7 @@ public extension ObservationStateRegistrar {
     ///   - isIdentityEqual: A comparison function that determines whether two values have the same
     ///     identity or not.
     @inlinable
-    func mutate<Subject: Observable, Value>(
+    public func mutate<Subject: Observable, Value>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, some Any>,
         _ value: inout Value,
@@ -71,7 +71,7 @@ public extension ObservationStateRegistrar {
     /// See ``willModify(_:keyPath:_:)-29op6`` info on what this method does when used with
     /// observable values.
     @inlinable
-    func willModify<Subject: Observable, Member>(
+    public func willModify<Subject: Observable, Member>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member
@@ -86,7 +86,7 @@ public extension ObservationStateRegistrar {
     ///   - keyPath: The key path of an observed property.
     ///   - member: The value in the subject that will be set.
     @inlinable
-    func willModify<Subject: Observable, Member: ObservableState>(
+    public func willModify<Subject: Observable, Member: ObservableState>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member
@@ -100,7 +100,7 @@ public extension ObservationStateRegistrar {
     /// If the identity of the value changed between ``willModify(_:keyPath:_:)-29op6`` and
     /// ``didModify(_:keyPath:_:_:_:)-34nhq``, observers are notified.
     @inlinable
-    func didModify<Subject: Observable, Member>(
+    public func didModify<Subject: Observable, Member>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member,
@@ -117,10 +117,10 @@ public extension ObservationStateRegistrar {
 #endif
 
 #if !os(visionOS)
-public extension ObservationStateRegistrar {
+extension ObservationStateRegistrar {
     @_disfavoredOverload
     @inlinable
-    func access<Subject: Perceptible>(
+    public func access<Subject: Perceptible>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, some Any>
     ) {
@@ -129,7 +129,7 @@ public extension ObservationStateRegistrar {
 
     @_disfavoredOverload
     @inlinable
-    func mutate<Subject: Perceptible, Value>(
+    public func mutate<Subject: Perceptible, Value>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, some Any>,
         _ value: inout Value,
@@ -147,7 +147,7 @@ public extension ObservationStateRegistrar {
 
     @_disfavoredOverload
     @inlinable
-    func willModify<Subject: Perceptible, Member>(
+    public func willModify<Subject: Perceptible, Member>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member
@@ -157,7 +157,7 @@ public extension ObservationStateRegistrar {
 
     @_disfavoredOverload
     @inlinable
-    func willModify<Subject: Perceptible, Member: ObservableState>(
+    public func willModify<Subject: Perceptible, Member: ObservableState>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member
@@ -168,7 +168,7 @@ public extension ObservationStateRegistrar {
 
     @_disfavoredOverload
     @inlinable
-    func didModify<Subject: Perceptible, Member>(
+    public func didModify<Subject: Perceptible, Member>(
         _ subject: Subject,
         keyPath: KeyPath<Subject, Member>,
         _ member: inout Member,

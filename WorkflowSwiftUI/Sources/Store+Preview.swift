@@ -22,7 +22,7 @@ public struct StaticStorePreviewContext {
     }
 }
 
-public extension Store {
+extension Store {
     /// Generates a static store for previews.
     ///
     /// Previews generated with this method are static and do not update state. To generate a
@@ -32,7 +32,7 @@ public extension Store {
     /// - Parameter makeModel: A closure to create the store's model. The provided `context` param
     ///  is a convenience to generate dummy sinks and state accessors.
     /// - Returns: A store for previews.
-    static func preview(
+    public static func preview(
         makeModel: (StaticStorePreviewContext) -> Model
     ) -> Store {
         let context = StaticStorePreviewContext()
@@ -49,7 +49,7 @@ public extension Store {
     ///
     /// - Parameter state: The state of the view.
     /// - Returns: A store for previews.
-    static func preview<State, Action>(
+    public static func preview<State, Action>(
         state: State
     ) -> Store<ActionModel<State, Action>> where Model == ActionModel<State, Action> {
         preview { context in
@@ -65,7 +65,7 @@ public extension Store {
     ///
     /// - Parameter state: The state of the view.
     /// - Returns: A store for previews.
-    static func preview<State>(
+    public static func preview<State>(
         state: State
     ) -> Store<StateAccessor<State>> where Model == StateAccessor<State> {
         preview { context in

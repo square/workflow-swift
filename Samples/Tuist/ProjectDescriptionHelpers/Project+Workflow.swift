@@ -6,7 +6,6 @@ public let workflowDestinations: ProjectDescription.Destinations = .iOS
 public let workflowDeploymentTargets: DeploymentTargets = .iOS("15.0")
 
 extension Target {
-    
     public static func app(
         name: String,
         sources: ProjectDescription.SourceFilesList,
@@ -29,7 +28,7 @@ extension Target {
             dependencies: dependencies
         )
     }
-    
+
     public static func target(
         name: String,
         sources: ProjectDescription.SourceFilesList? = nil,
@@ -47,13 +46,13 @@ extension Target {
             dependencies: dependencies
         )
     }
-    
+
     public static func unitTest(
         for moduleUnderTest: String,
         testName: String = "Tests",
         sources: ProjectDescription.SourceFilesList? = nil,
         dependencies: [TargetDependency] = [],
-        environmentVariables: [String : EnvironmentVariable] = [:]
+        environmentVariables: [String: EnvironmentVariable] = [:]
     ) -> Self {
         let name = "\(moduleUnderTest)-\(testName)"
         return .target(

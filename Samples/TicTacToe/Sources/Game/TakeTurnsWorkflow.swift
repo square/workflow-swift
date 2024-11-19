@@ -35,7 +35,7 @@ extension TakeTurnsWorkflow {
     }
 
     func makeInitialState() -> TakeTurnsWorkflow.State {
-        return State(board: Board(), gameState: .ongoing(turn: .x))
+        State(board: Board(), gameState: .ongoing(turn: .x))
     }
 }
 
@@ -72,6 +72,7 @@ extension TakeTurnsWorkflow {
 
             case .tie:
                 return nil
+
             case .win:
                 return nil
             }

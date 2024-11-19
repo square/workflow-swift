@@ -255,8 +255,8 @@ private struct TestScreen: Screen {
     }
 }
 
-private extension ViewControllerDescription {
-    static var testing: Self {
+extension ViewControllerDescription {
+    fileprivate static var testing: Self {
         .init(
             environment: .empty,
             build: { UIViewController() },

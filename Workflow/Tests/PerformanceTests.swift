@@ -99,8 +99,8 @@ class PerformanceTests: XCTestCase {
     }
 }
 
-private extension PerformanceTests {
-    struct WideShallowParentWorkflow: Workflow {
+extension PerformanceTests {
+    fileprivate struct WideShallowParentWorkflow: Workflow {
         typealias State = Void
         typealias Rendering = Int
 
@@ -115,7 +115,7 @@ private extension PerformanceTests {
         }
     }
 
-    struct NarrowDeepParentWorkflow: Workflow {
+    fileprivate struct NarrowDeepParentWorkflow: Workflow {
         typealias State = Void
         typealias Rendering = Int
 
@@ -128,20 +128,18 @@ private extension PerformanceTests {
         }
     }
 
-    struct ChildWorkflow: Workflow {
+    fileprivate struct ChildWorkflow: Workflow {
         typealias State = Void
         typealias Rendering = Int
 
         var remainingChildren: UInt = 0
 
         func render(state: Void, context: RenderContext<ChildWorkflow>) -> Int {
-            let rendering: Int
-
-            if remainingChildren > 0 {
-                rendering = ChildWorkflow(remainingChildren: remainingChildren - 1)
+            let rendering: Int = if remainingChildren > 0 {
+                ChildWorkflow(remainingChildren: remainingChildren - 1)
                     .rendered(in: context)
             } else {
-                rendering = 42
+                42
             }
 
             return rendering

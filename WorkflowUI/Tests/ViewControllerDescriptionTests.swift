@@ -135,6 +135,8 @@ class ViewControllerDescriptionTests: XCTestCase {
                 self.onEnvironmentDidChange = onEnvironmentDidChange
                 super.init(nibName: nil, bundle: nil)
             }
+
+            @available(*, unavailable)
             required init?(coder: NSCoder) { fatalError() }
             func environmentDidChange() { onEnvironmentDidChange(environment) }
         }
@@ -184,7 +186,7 @@ class ViewControllerDescriptionTests: XCTestCase {
 
         struct MyScreen: Screen {
             func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-                return MyScreenViewController.description(for: self, environment: environment)
+                MyScreenViewController.description(for: self, environment: environment)
             }
         }
 

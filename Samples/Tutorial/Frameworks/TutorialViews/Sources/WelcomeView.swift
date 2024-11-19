@@ -56,6 +56,7 @@ public final class WelcomeView: UIView {
         addSubview(button)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

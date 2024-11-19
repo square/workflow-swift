@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct DemoScreen: Screen {
     let title: String
@@ -31,7 +31,7 @@ struct DemoScreen: Screen {
     let onRefreshTap: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return DemoViewController.description(for: self, environment: environment)
+        DemoViewController.description(for: self, environment: environment)
     }
 }
 

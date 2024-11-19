@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 struct TwoFactorScreen: Screen {
     var title: String
     var onLoginTapped: (String) -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return TwoFactorViewController.description(for: self, environment: environment)
+        TwoFactorViewController.description(for: self, environment: environment)
     }
 }
 

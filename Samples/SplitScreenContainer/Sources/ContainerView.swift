@@ -16,7 +16,7 @@
 
 import UIKit
 
-internal class ContainerView: UIView {
+class ContainerView: UIView {
     var contentView: UIView = .init()
 
     override init(frame: CGRect) {

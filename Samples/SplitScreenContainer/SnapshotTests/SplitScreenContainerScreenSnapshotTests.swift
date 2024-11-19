@@ -60,7 +60,7 @@ private struct FooScreen: Screen {
     let viewTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return FooScreenViewController.description(for: self, environment: environment)
+        FooScreenViewController.description(for: self, environment: environment)
     }
 }
 

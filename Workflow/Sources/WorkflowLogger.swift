@@ -17,16 +17,14 @@
 import Foundation
 import os.signpost
 
-private extension OSLog {
+extension OSLog {
     /// Logging will use this log handle when enabled
-    static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
+    fileprivate static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
 
     /// The active log handle to use when logging. If `WorkflowLogging.osLoggingSupported` is
     /// `true`, defaults to the `workflow` handle, otherwise defaults to the shared `.disabled`
     /// handle.
-    static var active: OSLog = {
-        WorkflowLogging.isOSLoggingAllowed ? .workflow : .disabled
-    }()
+    fileprivate static var active: OSLog = WorkflowLogging.isOSLoggingAllowed ? .workflow : .disabled
 }
 
 // MARK: -
@@ -113,7 +111,7 @@ final class SignpostRef {
     init() {}
 }
 
-final class WorkflowLogger {
+enum WorkflowLogger {
     // MARK: Workflows
 
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
@@ -133,7 +131,7 @@ final class WorkflowLogger {
         )
     }
 
-    static func logWorkflowFinished<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
+    static func logWorkflowFinished(ref: WorkflowNode<some Any>) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
             WorkflowLogging.config.logLifetimes
@@ -181,8 +179,8 @@ final class WorkflowLogger {
         )
     }
 
-    static func logWorkflowFinishedRendering<WorkflowType>(
-        ref: WorkflowNode<WorkflowType>,
+    static func logWorkflowFinishedRendering(
+        ref: WorkflowNode<some Any>,
         isRootNode: Bool
     ) {
         guard shouldLogRenderTimings(

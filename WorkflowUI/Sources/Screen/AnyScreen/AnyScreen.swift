@@ -22,7 +22,7 @@ public struct AnyScreen: Screen {
     /// The original screen, retained for debugging
     public let wrappedScreen: Screen
 
-    public init<T: Screen>(_ screen: T) {
+    public init(_ screen: some Screen) {
         if let anyScreen = screen as? AnyScreen {
             self = anyScreen
             return
@@ -31,7 +31,7 @@ public struct AnyScreen: Screen {
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return wrappedScreen.viewControllerDescription(environment: environment)
+        wrappedScreen.viewControllerDescription(environment: environment)
     }
 }
 

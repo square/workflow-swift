@@ -37,7 +37,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
 
     // @testable
-    internal let rootNode: WorkflowNode<WorkflowType>
+    let rootNode: WorkflowNode<WorkflowType>
 
     private let mutableRendering: MutableProperty<WorkflowType.Rendering>
 
@@ -112,6 +112,6 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// A signal containing output events emitted by the root workflow in the hierarchy.
     public var output: Signal<WorkflowType.Output, Never> {
-        return outputEvent
+        outputEvent
     }
 }

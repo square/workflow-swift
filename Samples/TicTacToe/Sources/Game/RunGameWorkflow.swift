@@ -42,7 +42,7 @@ extension RunGameWorkflow {
     }
 
     func makeInitialState() -> RunGameWorkflow.State {
-        return State(playerX: "X", playerO: "O", step: .newGame)
+        State(playerX: "X", playerO: "O", step: .newGame)
     }
 }
 
@@ -161,7 +161,7 @@ extension RunGameWorkflow {
     }
 
     private func newGameScreen(sink: Sink<Action>, playerX: String, playerO: String) -> NewGameScreen {
-        return NewGameScreen(
+        NewGameScreen(
             playerX: playerX,
             playerO: playerO,
             eventHandler: { event in

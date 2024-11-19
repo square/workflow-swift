@@ -6,7 +6,7 @@ import SwiftUI
 import Workflow
 import WorkflowUI
 
-public extension ObservableScreen {
+extension ObservableScreen {
     /// Generates a static preview of this screen type.
     ///
     /// Previews generated with this method are static and do not update state. To generate a
@@ -16,7 +16,7 @@ public extension ObservableScreen {
     /// - Parameter makeModel: A closure to create the screen's model. The provided `context` param
     ///   is a convenience to generate dummy sinks and state accessors.
     /// - Returns: A View for previews.
-    static func observableScreenPreview(makeModel: (StaticStorePreviewContext) -> Model) -> some View {
+    public static func observableScreenPreview(makeModel: (StaticStorePreviewContext) -> Model) -> some View {
         let store = Store<Model>.preview(makeModel: makeModel)
         return Self.makeView(store: store)
     }
@@ -29,7 +29,7 @@ public extension ObservableScreen {
     ///
     /// - Parameter state: The state of the screen.
     /// - Returns: A View for previews.
-    static func observableScreenPreview<S, A>(state: S) -> some View where Model == ActionModel<S, A> {
+    public static func observableScreenPreview<S, A>(state: S) -> some View where Model == ActionModel<S, A> {
         observableScreenPreview { context in
             context.makeActionModel(state: state)
         }
@@ -43,7 +43,7 @@ public extension ObservableScreen {
     ///
     /// - Parameter state: The state of the screen.
     /// - Returns: A View for previews.
-    static func observableScreenPreview<S>(state: S) -> some View where Model == StateAccessor<S> {
+    public static func observableScreenPreview<S>(state: S) -> some View where Model == StateAccessor<S> {
         observableScreenPreview { context in
             context.makeStateAccessor(state: state)
         }

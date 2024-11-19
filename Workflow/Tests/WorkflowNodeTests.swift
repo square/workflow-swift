@@ -241,7 +241,8 @@ final class WorkflowNodeTests: XCTestCase {
 /// Renders two child state machines of types `A` and `B`.
 private struct CompositeWorkflow<A, B>: Workflow where
     A: Workflow,
-    B: Workflow {
+    B: Workflow
+{
     var a: A
     var b: B
 }
@@ -268,19 +269,19 @@ extension CompositeWorkflow {
         func apply(toState state: inout CompositeWorkflow<A, B>.State) -> CompositeWorkflow<A, B>.Output? {
             switch self {
             case .a(let childOutput):
-                return .childADidSomething(childOutput)
+                .childADidSomething(childOutput)
             case .b(let childOutput):
-                return .childBDidSomething(childOutput)
+                .childBDidSomething(childOutput)
             }
         }
     }
 
     func makeInitialState() -> CompositeWorkflow<A, B>.State {
-        return State()
+        State()
     }
 
     func render(state: State, context: RenderContext<CompositeWorkflow<A, B>>) -> Rendering {
-        return Rendering(
+        Rendering(
             aRendering: a
                 .mapOutput { Event.a($0) }
                 .rendered(in: context, key: "a"),
@@ -293,7 +294,7 @@ extension CompositeWorkflow {
 
 extension CompositeWorkflow.Rendering: Equatable where A.Rendering: Equatable, B.Rendering: Equatable {
     fileprivate static func == (lhs: CompositeWorkflow.Rendering, rhs: CompositeWorkflow.Rendering) -> Bool {
-        return lhs.aRendering == rhs.aRendering
+        lhs.aRendering == rhs.aRendering
             && lhs.bRendering == rhs.bRendering
     }
 }
@@ -302,11 +303,11 @@ extension CompositeWorkflow.Output: Equatable where A.Output: Equatable, B.Outpu
     fileprivate static func == (lhs: CompositeWorkflow.Output, rhs: CompositeWorkflow.Output) -> Bool {
         switch (lhs, rhs) {
         case (.childADidSomething(let l), .childADidSomething(let r)):
-            return l == r
+            l == r
         case (.childBDidSomething(let l), .childBDidSomething(let r)):
-            return l == r
+            l == r
         default:
-            return false
+            false
         }
     }
 }
@@ -318,11 +319,11 @@ private struct SimpleWorkflow: Workflow {
     struct State {}
 
     func makeInitialState() -> State {
-        return State()
+        State()
     }
 
     func render(state: State, context: RenderContext<SimpleWorkflow>) -> String {
-        return String(string.reversed())
+        String(string.reversed())
     }
 }
 
@@ -339,7 +340,7 @@ extension EventEmittingWorkflow {
     }
 
     func makeInitialState() -> State {
-        return State()
+        State()
     }
 
     enum Event: Equatable, WorkflowAction {
@@ -350,7 +351,7 @@ extension EventEmittingWorkflow {
         func apply(toState state: inout EventEmittingWorkflow.State) -> EventEmittingWorkflow.Output? {
             switch self {
             case .tapped:
-                return .helloWorld
+                .helloWorld
             }
         }
     }

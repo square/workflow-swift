@@ -19,7 +19,7 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
-public struct ObservableStateMacro {
+public enum ObservableStateMacro {
     static let moduleName = "WorkflowSwiftUI"
 
     static let conformanceName = "ObservableState"
@@ -112,8 +112,8 @@ struct ObservationDiagnostic: DiagnosticMessage {
 }
 
 extension DiagnosticsError {
-    init<S: SyntaxProtocol>(
-        syntax: S, message: String, domain: String = "Observation", id: ObservationDiagnostic.ID,
+    init(
+        syntax: some SyntaxProtocol, message: String, domain: String = "Observation", id: ObservationDiagnostic.ID,
         severity: SwiftDiagnostics.DiagnosticSeverity = .error
     ) {
         self.init(diagnostics: [
@@ -127,19 +127,19 @@ extension DiagnosticsError {
 
 extension DeclModifierListSyntax {
     func privatePrefixed(_ prefix: String) -> DeclModifierListSyntax {
-        let modifier: DeclModifierSyntax = DeclModifierSyntax(name: "private", trailingTrivia: .space)
+        let modifier = DeclModifierSyntax(name: "private", trailingTrivia: .space)
         return [modifier]
             + filter {
                 switch $0.name.tokenKind {
                 case .keyword(let keyword):
                     switch keyword {
                     case .fileprivate, .private, .internal, .public, .package:
-                        return false
+                        false
                     default:
-                        return true
+                        true
                     }
                 default:
-                    return true
+                    true
                 }
             }
     }
@@ -153,12 +153,12 @@ extension TokenSyntax {
     func privatePrefixed(_ prefix: String) -> TokenSyntax {
         switch tokenKind {
         case .identifier(let identifier):
-            return TokenSyntax(
+            TokenSyntax(
                 .identifier(prefix + identifier), leadingTrivia: leadingTrivia,
                 trailingTrivia: trailingTrivia, presence: presence
             )
         default:
-            return self
+            self
         }
     }
 }
@@ -191,7 +191,8 @@ extension PatternBindingListSyntax {
 
 extension VariableDeclSyntax {
     func privatePrefixed(_ prefix: String, addingAttribute attribute: AttributeSyntax)
-        -> VariableDeclSyntax {
+        -> VariableDeclSyntax
+    {
         let newAttributes = attributes + [.attribute(attribute)]
         return VariableDeclSyntax(
             leadingTrivia: leadingTrivia,
@@ -212,13 +213,10 @@ extension VariableDeclSyntax {
 }
 
 extension ObservableStateMacro: MemberMacro {
-    public static func expansion<
-        Declaration: DeclGroupSyntax,
-        Context: MacroExpansionContext
-    >(
+    public static func expansion(
         of node: AttributeSyntax,
-        providingMembersOf declaration: Declaration,
-        in context: Context
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard !declaration.isEnum
         else {
@@ -260,7 +258,7 @@ extension ObservableStateMacro: MemberMacro {
     }
 }
 
-extension Array where Element == ObservableStateCase {
+extension [ObservableStateCase] {
     init(members: MemberBlockItemListSyntax) {
         var tag = 0
         self.init(members: members, tag: &tag)
@@ -307,26 +305,25 @@ enum ObservableStateCase {
         switch self {
         case .element(let element, let tag):
             if let parameters = element.parameterClause?.parameters, parameters.count == 1 {
-                return """
+                """
                 case let .\(element.name.text)(state):
                 return ._$id(for: state)._$tag(\(tag))
                 """
             } else {
-                return """
+                """
                 case .\(element.name.text):
                 return ObservableStateID()._$tag(\(tag))
                 """
             }
         case .ifConfig(let configs):
-            return
-                configs
-                    .map {
-                        """
-                        \($0.poundKeyword.text) \($0.condition?.trimmedDescription ?? "")
-                        \($0.cases.map(\.getCase).joined(separator: "\n"))
-                        """
-                    }
-                    .joined(separator: "\n") + "#endif\n"
+            configs
+                .map {
+                    """
+                    \($0.poundKeyword.text) \($0.condition?.trimmedDescription ?? "")
+                    \($0.cases.map(\.getCase).joined(separator: "\n"))
+                    """
+                }
+                .joined(separator: "\n") + "#endif\n"
         }
     }
 
@@ -334,41 +331,38 @@ enum ObservableStateCase {
         switch self {
         case .element(let element, _):
             if let parameters = element.parameterClause?.parameters,
-                parameters.count == 1,
-                let parameter = parameters.first {
-                return """
+               parameters.count == 1,
+               let parameter = parameters.first
+            {
+                """
                 case var .\(element.name.text)(state):
                 \(ObservableStateMacro.moduleName)._$willModify(&state)
                 self = .\(element.name.text)(\(parameter.firstName.map { "\($0): " } ?? "")state)
                 """
             } else {
-                return """
+                """
                 case .\(element.name.text):
                 break
                 """
             }
         case .ifConfig(let configs):
-            return
-                configs
-                    .map {
-                        """
-                        \($0.poundKeyword.text) \($0.condition?.trimmedDescription ?? "")
-                        \($0.cases.map(\.willModifyCase).joined(separator: "\n"))
-                        """
-                    }
-                    .joined(separator: "\n") + "#endif\n"
+            configs
+                .map {
+                    """
+                    \($0.poundKeyword.text) \($0.condition?.trimmedDescription ?? "")
+                    \($0.cases.map(\.willModifyCase).joined(separator: "\n"))
+                    """
+                }
+                .joined(separator: "\n") + "#endif\n"
         }
     }
 }
 
 extension ObservableStateMacro {
-    public static func enumExpansion<
-        Declaration: DeclGroupSyntax,
-        Context: MacroExpansionContext
-    >(
+    public static func enumExpansion(
         of node: AttributeSyntax,
-        providingMembersOf declaration: Declaration,
-        in context: Context
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         let cases = [ObservableStateCase](members: declaration.memberBlock.members)
         var getCases: [String] = []
@@ -399,7 +393,7 @@ extension ObservableStateMacro {
 
 extension SyntaxStringInterpolation {
     // It would be nice for SwiftSyntaxBuilder to provide this out-of-the-box.
-    mutating func appendInterpolation<Node: SyntaxProtocol>(_ node: Node?) {
+    mutating func appendInterpolation(_ node: (some SyntaxProtocol)?) {
         if let node {
             appendInterpolation(node)
         }
@@ -407,25 +401,22 @@ extension SyntaxStringInterpolation {
 }
 
 extension ObservableStateMacro: MemberAttributeMacro {
-    public static func expansion<
-        Declaration: DeclGroupSyntax,
-        MemberDeclaration: DeclSyntaxProtocol,
-        Context: MacroExpansionContext
-    >(
+    public static func expansion(
         of node: AttributeSyntax,
-        attachedTo declaration: Declaration,
-        providingAttributesFor member: MemberDeclaration,
-        in context: Context
+        attachedTo declaration: some DeclGroupSyntax,
+        providingAttributesFor member: some DeclSyntaxProtocol,
+        in context: some MacroExpansionContext
     ) throws -> [AttributeSyntax] {
         guard let property = member.as(VariableDeclSyntax.self), property.isValidForObservation,
-            property.identifier != nil
+              property.identifier != nil
         else {
             return []
         }
 
         // dont apply to ignored properties or properties that are already flagged as tracked
         if property.hasMacroApplication(ObservableStateMacro.ignoredMacroName)
-            || property.hasMacroApplication(ObservableStateMacro.trackedMacroName) {
+            || property.hasMacroApplication(ObservableStateMacro.trackedMacroName)
+        {
             return []
         }
 
@@ -449,13 +440,14 @@ extension ObservableStateMacro: MemberAttributeMacro {
 }
 
 extension VariableDeclSyntax {
-    func diagnose<C: MacroExpansionContext>(
+    func diagnose(
         attribute name: String,
         renamed rename: String,
-        context: C
+        context: some MacroExpansionContext
     ) {
         if let attribute = firstAttribute(for: name),
-            let type = attribute.attributeName.as(IdentifierTypeSyntax.self) {
+           let type = attribute.attributeName.as(IdentifierTypeSyntax.self)
+        {
             context.diagnose(
                 Diagnostic(
                     node: attribute,
@@ -504,17 +496,14 @@ extension ObservableStateMacro: ExtensionMacro {
 }
 
 public struct ObservationStateTrackedMacro: AccessorMacro {
-    public static func expansion<
-        Context: MacroExpansionContext,
-        Declaration: DeclSyntaxProtocol
-    >(
+    public static func expansion(
         of node: AttributeSyntax,
-        providingAccessorsOf declaration: Declaration,
-        in context: Context
+        providingAccessorsOf declaration: some DeclSyntaxProtocol,
+        in context: some MacroExpansionContext
     ) throws -> [AccessorDeclSyntax] {
         guard let property = declaration.as(VariableDeclSyntax.self),
-            property.isValidForObservation,
-            let identifier = property.identifier?.trimmed
+              property.isValidForObservation,
+              let identifier = property.identifier?.trimmed
         else {
             return []
         }
@@ -560,22 +549,20 @@ public struct ObservationStateTrackedMacro: AccessorMacro {
 }
 
 extension ObservationStateTrackedMacro: PeerMacro {
-    public static func expansion<
-        Context: MacroExpansionContext,
-        Declaration: DeclSyntaxProtocol
-    >(
+    public static func expansion(
         of node: SwiftSyntax.AttributeSyntax,
-        providingPeersOf declaration: Declaration,
-        in context: Context
+        providingPeersOf declaration: some DeclSyntaxProtocol,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let property = declaration.as(VariableDeclSyntax.self),
-            property.isValidForObservation
+              property.isValidForObservation
         else {
             return []
         }
 
         if property.hasMacroApplication(ObservableStateMacro.ignoredMacroName)
-            || property.hasMacroApplication(ObservableStateMacro.trackedMacroName) {
+            || property.hasMacroApplication(ObservableStateMacro.trackedMacroName)
+        {
             return []
         }
 
@@ -586,13 +573,10 @@ extension ObservationStateTrackedMacro: PeerMacro {
 }
 
 public struct ObservationStateIgnoredMacro: AccessorMacro {
-    public static func expansion<
-        Context: MacroExpansionContext,
-        Declaration: DeclSyntaxProtocol
-    >(
+    public static func expansion(
         of node: AttributeSyntax,
-        providingAccessorsOf declaration: Declaration,
-        in context: Context
+        providingAccessorsOf declaration: some DeclSyntaxProtocol,
+        in context: some MacroExpansionContext
     ) throws -> [AccessorDeclSyntax] {
         []
     }

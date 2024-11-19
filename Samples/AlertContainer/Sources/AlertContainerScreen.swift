@@ -30,7 +30,7 @@ public struct AlertContainerScreen<BaseScreen: Screen>: Screen {
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return AlertContainerViewController.description(for: self, environment: environment)
+        AlertContainerViewController.description(for: self, environment: environment)
     }
 }
 

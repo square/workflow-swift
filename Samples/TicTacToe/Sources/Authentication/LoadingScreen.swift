@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 struct LoadingScreen: Screen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return LoadingScreenViewController.description(for: self, environment: environment)
+        LoadingScreenViewController.description(for: self, environment: environment)
     }
 }
 

@@ -37,10 +37,10 @@ extension ActionModel: Identifiable where State: Identifiable {
 
 #if DEBUG
 
-public extension ActionModel {
+extension ActionModel {
     /// Creates a static model which ignores all sent values, suitable for static previews
     /// or testing.
-    static func constant(state: State) -> ActionModel<State, Action> {
+    public static func constant(state: State) -> ActionModel<State, Action> {
         ActionModel(accessor: .constant(state: state), sendAction: { _ in })
     }
 }

@@ -48,7 +48,7 @@ class Rx_ReactiveWorkersTests: XCTestCase {
                 func apply(toState state: inout State) -> Output? {
                     switch self {
                     case .complete:
-                        return .finished
+                        .finished
                     }
                 }
             }

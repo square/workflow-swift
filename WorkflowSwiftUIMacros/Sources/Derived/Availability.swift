@@ -21,9 +21,9 @@ import SwiftSyntaxMacros
 extension AttributeSyntax {
     var availability: AttributeSyntax? {
         if attributeName.identifier == "available" {
-            return self
+            self
         } else {
-            return nil
+            nil
         }
     }
 }
@@ -33,12 +33,12 @@ extension IfConfigClauseSyntax.Elements {
         switch self {
         case .attributes(let attributes):
             if let availability = attributes.availability {
-                return .attributes(availability)
+                .attributes(availability)
             } else {
-                return nil
+                nil
             }
         default:
-            return nil
+            nil
         }
     }
 }
@@ -46,9 +46,9 @@ extension IfConfigClauseSyntax.Elements {
 extension IfConfigClauseSyntax {
     var availability: IfConfigClauseSyntax? {
         if let availability = elements?.availability {
-            return with(\.elements, availability)
+            with(\.elements, availability)
         } else {
-            return nil
+            nil
         }
     }
 

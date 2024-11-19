@@ -40,7 +40,7 @@ public struct AnyWorkflow<Rendering, Output> {
 
     /// The underlying workflow's implementation type.
     public var workflowType: Any.Type {
-        return storage.workflowType
+        storage.workflowType
     }
 }
 
@@ -56,7 +56,7 @@ extension AnyWorkflow: Workflow {
     }
 
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
-        return self
+        self
     }
 }
 
@@ -67,7 +67,7 @@ extension AnyWorkflow {
     ///
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
     public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
-        let storage = self.storage.mapOutput(transform: transform)
+        let storage = storage.mapOutput(transform: transform)
         return AnyWorkflow<Rendering, NewOutput>(storage: storage)
     }
 
@@ -77,7 +77,7 @@ extension AnyWorkflow {
     ///
     /// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
     public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
-        let storage = self.storage.mapRendering(transform: transform)
+        let storage = storage.mapRendering(transform: transform)
         return AnyWorkflow<NewRendering, Output>(storage: storage)
     }
 
@@ -91,8 +91,8 @@ extension AnyWorkflow {
     /// That type information *is* present in our storage object, however, so we
     /// pass the context down to that storage object which will ultimately call
     /// through to `context.render(workflow:key:reducer:)`.
-    internal func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
-        return storage.render(context: context, key: key, outputMap: outputMap)
+    func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+        storage.render(context: context, key: key, outputMap: outputMap)
     }
 }
 
@@ -137,7 +137,7 @@ extension AnyWorkflow {
         override var base: Any { workflow }
 
         override var workflowType: Any.Type {
-            return T.self
+            T.self
         }
 
         override func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
@@ -149,7 +149,7 @@ extension AnyWorkflow {
         }
 
         override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
-            return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
+            AnyWorkflow<Rendering, NewOutput>.Storage<T>(
                 workflow: workflow,
                 renderingTransform: renderingTransform,
                 outputTransform: { [outputTransform] in
@@ -159,7 +159,7 @@ extension AnyWorkflow {
         }
 
         override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
-            return AnyWorkflow<NewRendering, Output>.Storage<T>(
+            AnyWorkflow<NewRendering, Output>.Storage<T>(
                 workflow: workflow,
                 renderingTransform: { [renderingTransform] in
                     transform(renderingTransform($0))
@@ -172,10 +172,10 @@ extension AnyWorkflow {
 
 extension AnyWorkflowConvertible {
     public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
-        return asAnyWorkflow().mapOutput(transform)
+        asAnyWorkflow().mapOutput(transform)
     }
 
     public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
-        return asAnyWorkflow().mapRendering(transform)
+        asAnyWorkflow().mapRendering(transform)
     }
 }

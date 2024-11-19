@@ -38,7 +38,7 @@ import class Workflow.Lifetime
 /// ```
 extension SignalProducer: AnyWorkflowConvertible where Error == Never {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-        return SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
+        SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
     }
 }
 
@@ -74,8 +74,8 @@ struct SignalProducerWorkflow<Value>: Workflow {
     }
 }
 
-private extension Lifetime {
-    var reactiveLifetime: ReactiveSwift.Lifetime {
+extension Lifetime {
+    fileprivate var reactiveLifetime: ReactiveSwift.Lifetime {
         let (lifetime, token) = ReactiveSwift.Lifetime.make()
         onEnded {
             token.dispose()

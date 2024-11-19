@@ -91,7 +91,7 @@ class WorkflowCombineTestingTests: XCTestCase {
         file: StaticString = #file, line: UInt = #line,
         perform: () -> Result
     ) -> Result {
-        return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
+        expectingFailures([messageSubstring], file: file, line: line, perform: perform)
     }
 
     @discardableResult

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 /// A `SplitScreenContainerScreen` displays two screens side by side with a separator in between.
 public struct SplitScreenContainerScreen<LeadingScreenType: Screen, TrailingScreenType: Screen>: Screen {
@@ -49,12 +49,12 @@ public struct SplitScreenContainerScreen<LeadingScreenType: Screen, TrailingScre
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return SplitScreenContainerViewController.description(for: self, environment: environment)
+        SplitScreenContainerViewController.description(for: self, environment: environment)
     }
 }
 
-public extension CGFloat {
-    static let quarter: CGFloat = 1.0 / 4.0
-    static let third: CGFloat = 1.0 / 3.0
-    static let half: CGFloat = 1.0 / 2.0
+extension CGFloat {
+    public static let quarter: CGFloat = 1.0 / 4.0
+    public static let third: CGFloat = 1.0 / 3.0
+    public static let half: CGFloat = 1.0 / 2.0
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct ConfirmQuitScreen: Screen {
     let question: String
@@ -24,14 +24,14 @@ struct ConfirmQuitScreen: Screen {
     var onCancelTapped: () -> Void = {}
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return ConfirmQuitViewController.description(for: self, environment: environment)
+        ConfirmQuitViewController.description(for: self, environment: environment)
     }
 }
 
 final class ConfirmQuitViewController: ScreenViewController<ConfirmQuitScreen> {
-    private let questionLabel: UILabel = UILabel(frame: .zero)
-    private let confirmButton: UIButton = UIButton(frame: .zero)
-    private let cancelButton: UIButton = UIButton(frame: .zero)
+    private let questionLabel: UILabel = .init(frame: .zero)
+    private let confirmButton: UIButton = .init(frame: .zero)
+    private let cancelButton: UIButton = .init(frame: .zero)
     private var onQuitTapped: () -> Void = {}
     private var onCancelTapped: () -> Void = {}
 

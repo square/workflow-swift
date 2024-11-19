@@ -42,7 +42,7 @@ extension ConfirmQuitWorkflow {
     }
 
     func makeInitialState() -> ConfirmQuitWorkflow.State {
-        return State(step: .confirmOnce)
+        State(step: .confirmOnce)
     }
 }
 
@@ -63,6 +63,7 @@ extension ConfirmQuitWorkflow {
 
             case .quit:
                 return .quit
+
             case .confirm:
                 state.step = .confirmTwice
                 return nil

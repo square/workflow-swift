@@ -19,16 +19,16 @@ import Workflow
 import WorkflowUI
 
 /// Container for showing workflow screens modally over a base screen.
-internal final class ModalContainerViewController<ModalScreen: Screen>: ScreenViewController<ModalContainerScreen<ModalScreen>> {
+final class ModalContainerViewController<ModalScreen: Screen>: ScreenViewController<ModalContainerScreen<ModalScreen>> {
     var baseScreenViewController: DescribedViewController
 
     private var presentedScreens: [ModallyPresentedScreen] = []
 
     private var topmostScreenViewController: DescribedViewController? {
         if let topModal = presentedScreens.last {
-            return topModal.viewController
+            topModal.viewController
         } else {
-            return baseScreenViewController
+            baseScreenViewController
         }
     }
 
@@ -184,31 +184,31 @@ internal final class ModalContainerViewController<ModalScreen: Screen>: ScreenVi
         super.viewDidLayoutSubviews()
         baseScreenViewController.view.frame = view.bounds
 
-        presentedScreens.forEach {
-            let displayInfo = ModalDisplayInfo(containerSize: view.bounds.size, style: $0.style, animated: $0.animated)
-            $0.viewController.view.frame = displayInfo.frame
-            $0.dimmingView?.frame = view.bounds
+        for presentedScreen in presentedScreens {
+            let displayInfo = ModalDisplayInfo(containerSize: view.bounds.size, style: presentedScreen.style, animated: presentedScreen.animated)
+            presentedScreen.viewController.view.frame = displayInfo.frame
+            presentedScreen.dimmingView?.frame = view.bounds
         }
     }
 
     override var childForStatusBarStyle: UIViewController? {
-        return topmostScreenViewController
+        topmostScreenViewController
     }
 
     override var childForStatusBarHidden: UIViewController? {
-        return topmostScreenViewController
+        topmostScreenViewController
     }
 
     override var childForHomeIndicatorAutoHidden: UIViewController? {
-        return topmostScreenViewController
+        topmostScreenViewController
     }
 
     override var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return topmostScreenViewController
+        topmostScreenViewController
     }
 
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return topmostScreenViewController?.supportedInterfaceOrientations ?? super.supportedInterfaceOrientations
+        topmostScreenViewController?.supportedInterfaceOrientations ?? super.supportedInterfaceOrientations
     }
 }
 
@@ -220,7 +220,7 @@ private struct ModallyPresentedScreen {
     var animated: Bool
 
     var identifier: ModalIdentifier {
-        return ModalIdentifier(
+        ModalIdentifier(
             style: style,
             key: key,
             animated: animated
@@ -230,7 +230,7 @@ private struct ModallyPresentedScreen {
 
 extension ModalContainerScreenModal {
     fileprivate var identifier: ModalIdentifier {
-        return ModalIdentifier(
+        ModalIdentifier(
             style: style,
             key: key,
             animated: animated
@@ -259,36 +259,36 @@ private struct ModalDisplayInfo {
 
     init(containerSize: CGSize, style: ModalContainerScreenModal.Style, animated: Bool) {
         // Configure all properties so that they default to fullScreen/sheet animation.
-        frame = CGRect(origin: .zero, size: containerSize)
-        alpha = 1.0
-        transform = .identity
-        incomingInitialFrame = CGRect(
+        self.frame = CGRect(origin: .zero, size: containerSize)
+        self.alpha = 1.0
+        self.transform = .identity
+        self.incomingInitialFrame = CGRect(
             x: frame.origin.x,
             y: containerSize.height,
             width: frame.size.width,
             height: frame.size.height
         )
-        outgoingFinalFrame = CGRect(
+        self.outgoingFinalFrame = CGRect(
             x: frame.origin.x,
             y: containerSize.height,
             width: frame.size.width,
             height: frame.size.height
         )
-        incomingInitialTransform = .identity
-        outgoingFinalTransform = .identity
-        incomingInitialAlpha = 1.0
-        outgoingFinalAlpha = 1.0
-        duration = 0.5
-        animationOptions = UIView.AnimationOptions(rawValue: 7 << 16)
+        self.incomingInitialTransform = .identity
+        self.outgoingFinalTransform = .identity
+        self.incomingInitialAlpha = 1.0
+        self.outgoingFinalAlpha = 1.0
+        self.duration = 0.5
+        self.animationOptions = UIView.AnimationOptions(rawValue: 7 << 16)
 
         switch style {
         case .fullScreen:
             // Clear the default fullscreen animation configuration.
             if !animated {
-                duration = 0
-                animationOptions = UIView.AnimationOptions(rawValue: 0)
-                incomingInitialFrame = frame
-                outgoingFinalFrame = frame
+                self.duration = 0
+                self.animationOptions = UIView.AnimationOptions(rawValue: 0)
+                self.incomingInitialFrame = frame
+                self.outgoingFinalFrame = frame
             }
         case .sheet:
             if UIDevice.current.userInterfaceIdiom == .phone {
@@ -303,20 +303,20 @@ private struct ModalDisplayInfo {
                 y: (containerSize.height - popoverSideLength) / 2
             )
 
-            frame = CGRect(origin: popOverOrigin, size: popoverSize)
+            self.frame = CGRect(origin: popOverOrigin, size: popoverSize)
 
-            duration = 0.1
-            animationOptions = UIView.AnimationOptions(rawValue: 0)
+            self.duration = 0.1
+            self.animationOptions = UIView.AnimationOptions(rawValue: 0)
 
             // Do not animate frame.
-            incomingInitialFrame = frame
-            outgoingFinalFrame = frame
+            self.incomingInitialFrame = frame
+            self.outgoingFinalFrame = frame
 
             // Animate transform and alpha.
-            incomingInitialTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-            outgoingFinalTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-            incomingInitialAlpha = 0.0
-            outgoingFinalAlpha = 0.0
+            self.incomingInitialTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.outgoingFinalTransform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.incomingInitialAlpha = 0.0
+            self.outgoingFinalAlpha = 0.0
         }
     }
 }

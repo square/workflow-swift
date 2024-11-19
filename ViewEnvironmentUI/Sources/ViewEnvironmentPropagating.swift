@@ -197,11 +197,11 @@ extension ViewEnvironmentPropagating {
         customizations.append(storedCustomization)
         return .init { [weak self] in
             guard let self,
-                let index = self.customizations.firstIndex(where: { $0 === storedCustomization })
+                  let index = customizations.firstIndex(where: { $0 === storedCustomization })
             else {
                 return
             }
-            self.customizations.remove(at: index)
+            customizations.remove(at: index)
         }
     }
 

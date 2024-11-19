@@ -22,7 +22,7 @@ extension AsyncWorkerWorkflow {
     }
 
     func makeInitialState() -> AsyncWorkerWorkflow.State {
-        return State(model: Model(message: "Initial State"))
+        State(model: Model(message: "Initial State"))
     }
 
     func workflowDidChange(from previousWorkflow: AsyncWorkerWorkflow, state: inout State) {}

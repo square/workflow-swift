@@ -58,7 +58,7 @@ final class SubtreeManagerTests: XCTestCase {
 
         XCTAssertEqual(manager.childWorkflows.count, 1)
 
-        manager.render { context -> Void in
+        manager.render { context in
         }
 
         XCTAssertTrue(manager.childWorkflows.isEmpty)
@@ -276,7 +276,7 @@ private struct ParentWorkflow: Workflow {
     typealias Output = Never
 
     func makeInitialState() -> State {
-        return State()
+        State()
     }
 
     func render(state: State, context: RenderContext<ParentWorkflow>) -> Never {
@@ -315,7 +315,7 @@ private struct TestWorkflow: Workflow {
     }
 
     func makeInitialState() -> State {
-        return .foo
+        .foo
     }
 
     func render(state: State, context: RenderContext<TestWorkflow>) -> TestViewModel {
@@ -330,8 +330,8 @@ private struct TestWorkflow: Workflow {
 
 // MARK: Testing conveniences
 
-private extension WorkflowSession {
-    static func testing() -> WorkflowSession {
+extension WorkflowSession {
+    fileprivate static func testing() -> WorkflowSession {
         struct SessionTestWorkflow: Workflow {
             typealias State = Void
             typealias Rendering = Void
@@ -349,8 +349,8 @@ private extension WorkflowSession {
     }
 }
 
-private extension WorkflowNode.SubtreeManager {
-    convenience init() {
+extension WorkflowNode.SubtreeManager {
+    fileprivate convenience init() {
         self.init(
             session: .testing(),
             observer: nil

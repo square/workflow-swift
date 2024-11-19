@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
-internal final class SplitScreenContainerViewController<LeadingScreenType: Screen, TrailingScreenType: Screen>: ScreenViewController<SplitScreenContainerViewController.ContainerScreen> {
-    internal typealias ContainerScreen = SplitScreenContainerScreen<LeadingScreenType, TrailingScreenType>
+final class SplitScreenContainerViewController<LeadingScreenType: Screen, TrailingScreenType: Screen>: ScreenViewController<SplitScreenContainerViewController.ContainerScreen> {
+    typealias ContainerScreen = SplitScreenContainerScreen<LeadingScreenType, TrailingScreenType>
 
     private var leadingContentViewController: DescribedViewController
     private lazy var leadingContainerView: ContainerView = .init()
@@ -45,7 +45,7 @@ internal final class SplitScreenContainerViewController<LeadingScreenType: Scree
         super.init(screen: screen, environment: environment)
     }
 
-    override internal func screenDidChange(from previousScreen: ContainerScreen, previousEnvironment: ViewEnvironment) {
+    override func screenDidChange(from previousScreen: ContainerScreen, previousEnvironment: ViewEnvironment) {
         super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
         if screen.ratio != previousScreen.ratio {
@@ -84,7 +84,7 @@ internal final class SplitScreenContainerViewController<LeadingScreenType: Scree
         }
     }
 
-    override internal func viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
 
         view.addSubview(leadingContainerView)
@@ -102,7 +102,7 @@ internal final class SplitScreenContainerViewController<LeadingScreenType: Scree
         update(with: screen)
     }
 
-    override internal func viewDidLayoutSubviews() {
+    override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
         let distance = view.bounds.width * screen.ratio
@@ -119,8 +119,8 @@ internal final class SplitScreenContainerViewController<LeadingScreenType: Scree
     }
 }
 
-private extension UIViewController {
-    var isLayoutDirectionRightToLeft: Bool {
-        return traitCollection.layoutDirection == .rightToLeft
+extension UIViewController {
+    fileprivate var isLayoutDirectionRightToLeft: Bool {
+        traitCollection.layoutDirection == .rightToLeft
     }
 }

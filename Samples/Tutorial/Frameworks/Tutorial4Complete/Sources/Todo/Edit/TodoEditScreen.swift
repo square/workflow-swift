@@ -29,7 +29,7 @@ struct TodoEditScreen: Screen {
     var onNoteChanged: (String) -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return TodoEditViewController.description(for: self, environment: environment)
+        TodoEditViewController.description(for: self, environment: environment)
     }
 }
 

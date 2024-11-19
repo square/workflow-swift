@@ -29,7 +29,7 @@ public enum SplitScreenPosition {
 
 extension ViewEnvironment {
     public internal(set) var splitScreenPosition: SplitScreenPosition {
-        get { return self[SplitScreenPositionKey.self] }
+        get { self[SplitScreenPositionKey.self] }
         set { self[SplitScreenPositionKey.self] = newValue }
     }
 }

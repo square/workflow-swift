@@ -180,7 +180,7 @@ class DescribedViewControllerTests: XCTestCase {
         let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
         // When
-        let expectation = self.expectation(description: "did observe size changes")
+        let expectation = expectation(description: "did observe size changes")
         expectation.expectedFulfillmentCount = 2
 
         var observedSizes: [CGSize] = []
@@ -210,7 +210,7 @@ class DescribedViewControllerTests: XCTestCase {
         let WorkflowHostingController = WorkflowHostingController(describedViewController: describedViewController)
 
         // When
-        let expectation = self.expectation(description: "did observe size changes")
+        let expectation = expectation(description: "did observe size changes")
         expectation.expectedFulfillmentCount = 3
 
         var observedSizes: [CGSize] = []
@@ -246,14 +246,14 @@ fileprivate enum TestScreen: Screen, Equatable {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         switch self {
         case .counter(let count):
-            return ViewControllerDescription(
+            ViewControllerDescription(
                 environment: environment,
                 build: { CounterViewController(count: count) },
                 update: { $0.count = count }
             )
 
         case .message(let message):
-            return ViewControllerDescription(
+            ViewControllerDescription(
                 environment: environment,
                 build: { MessageViewController(message: message) },
                 update: { $0.message = message }
@@ -265,7 +265,7 @@ fileprivate enum TestScreen: Screen, Equatable {
 fileprivate class WorkflowHostingController: UIViewController {
     let describedViewController: DescribedViewController
 
-    var preferredContentSizeSignal: Signal<CGSize, Never> { return signal.skipRepeats() }
+    var preferredContentSizeSignal: Signal<CGSize, Never> { signal.skipRepeats() }
 
     private let (signal, sink) = Signal<CGSize, Never>.pipe()
 

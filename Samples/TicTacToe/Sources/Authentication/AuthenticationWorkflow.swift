@@ -44,7 +44,7 @@ extension AuthenticationWorkflow {
     }
 
     func makeInitialState() -> AuthenticationWorkflow.State {
-        return .emailPassword
+        .emailPassword
     }
 }
 
@@ -92,6 +92,7 @@ extension AuthenticationWorkflow {
                 switch state {
                 case .authorizingEmailPassword:
                     state = .authenticationErrorAlert(error: error)
+
                 case .authorizingTwoFactor(twoFactorCode: _, intermediateSession: let intermediateSession):
                     state = .twoFactor(intermediateSession: intermediateSession, authenticationError: error)
 
@@ -115,7 +116,7 @@ extension AuthenticationWorkflow {
         var password: String
 
         func run() -> SignalProducer<Output, Never> {
-            return authenticationService
+            authenticationService
                 .login(email: email, password: password)
                 .map { response -> Action in
                     .authenticationSucceeded(response: response)
@@ -126,7 +127,7 @@ extension AuthenticationWorkflow {
         }
 
         func isEquivalent(to otherWorker: AuthorizingEmailPasswordWorker) -> Bool {
-            return email == otherWorker.email
+            email == otherWorker.email
                 && password == otherWorker.password
         }
     }
@@ -139,7 +140,7 @@ extension AuthenticationWorkflow {
         var twoFactorCode: String
 
         func run() -> SignalProducer<Output, Never> {
-            return authenticationService
+            authenticationService
                 .secondFactor(
                     token: intermediateToken,
                     secondFactor: twoFactorCode
@@ -153,7 +154,7 @@ extension AuthenticationWorkflow {
         }
 
         func isEquivalent(to otherWorker: AuthenticationWorkflow.AuthorizingTwoFactorWorker) -> Bool {
-            return intermediateToken == otherWorker.intermediateToken
+            intermediateToken == otherWorker.intermediateToken
                 && twoFactorCode == otherWorker.twoFactorCode
         }
     }
@@ -184,7 +185,7 @@ extension AuthenticationWorkflow {
             break
 
         case .authenticationErrorAlert(error: let error):
-            if let error = error {
+            if let error {
                 alert = Alert(
                     title: "Error",
                     message: error.localizedDescription,
@@ -235,11 +236,10 @@ extension AuthenticationWorkflow {
     }
 
     private func twoFactorScreen(error: AuthenticationService.AuthenticationError?, intermediateSession: String, sink: Sink<Action>) -> BackStackScreen<AnyScreen>.Item {
-        let title: String
-        if let authenticationError = error {
-            title = authenticationError.localizedDescription
+        let title: String = if let authenticationError = error {
+            authenticationError.localizedDescription
         } else {
-            title = "Enter the one time code to continue"
+            "Enter the one time code to continue"
         }
 
         let twoFactorScreen = TwoFactorScreen(

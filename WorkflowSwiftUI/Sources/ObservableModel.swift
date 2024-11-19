@@ -137,9 +137,9 @@ public protocol ObservableModel<State> {
     var accessor: StateAccessor<State> { get }
 }
 
-public extension ObservableModel {
+extension ObservableModel {
     /// Allows dynamic member lookup to read and write state through the accessor.
-    subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
         get {
             accessor.state[keyPath: keyPath]
         }

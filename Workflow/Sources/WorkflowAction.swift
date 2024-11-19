@@ -50,7 +50,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             self = anyEvent
             return
         }
-        self._apply = { return base.apply(toState: &$0) }
+        self._apply = { base.apply(toState: &$0) }
         self.base = base
         self.isClosureBased = false
     }
@@ -80,7 +80,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     }
 
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        return _apply(&state)
+        _apply(&state)
     }
 }
 
@@ -97,7 +97,7 @@ extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
     /// event).
     public static var noAction: AnyWorkflowAction<WorkflowType> {
-        return AnyWorkflowAction { state in
+        AnyWorkflowAction { state in
             nil
         }
     }

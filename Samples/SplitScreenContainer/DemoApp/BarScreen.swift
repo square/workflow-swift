@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct BarScreen: Screen {
     let title: String
@@ -24,7 +24,7 @@ struct BarScreen: Screen {
     let viewTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return BarScreenViewController.description(for: self, environment: environment)
+        BarScreenViewController.description(for: self, environment: environment)
     }
 }
 
@@ -64,7 +64,7 @@ private final class BarScreenViewController: ScreenViewController<BarScreen> {
         let newGradientLayer = CAGradientLayer()
 
         newGradientLayer.frame = targetView.bounds
-        newGradientLayer.colors = colors.map { $0.cgColor }
+        newGradientLayer.colors = colors.map(\.cgColor)
 
         targetView.layer.insertSublayer(newGradientLayer, at: 0)
 

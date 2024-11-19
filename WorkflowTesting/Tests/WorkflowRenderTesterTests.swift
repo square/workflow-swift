@@ -272,7 +272,7 @@ private struct OutputWorkflow: Workflow {
         func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
-                return .success
+                .success
             }
         }
     }

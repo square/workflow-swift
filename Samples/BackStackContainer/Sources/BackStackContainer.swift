@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 public final class BackStackContainer<Content: Screen>: ScreenViewController<BackStackScreen<Content>>, UINavigationControllerDelegate {
     private let navController = UINavigationController()
@@ -69,14 +69,12 @@ public final class BackStackContainer<Content: Screen>: ScreenViewController<Bac
             return
         }
 
-        let hidden: Bool
-
-        switch topScreen.barVisibility {
+        let hidden = switch topScreen.barVisibility {
         case .hidden:
-            hidden = true
+            true
 
         case .visible:
-            hidden = false
+            false
         }
         navController.setNavigationBarHidden(hidden, animated: animated)
     }

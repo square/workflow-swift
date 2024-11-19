@@ -74,13 +74,13 @@ open class WorkflowUIObservationTestCase: XCTestCase {
 
 final class PublishingObserver: WorkflowUIObserver {
     let subject: PassthroughSubject<WorkflowUIEvent, Never>
-    private(set) lazy var publisher = { subject.eraseToAnyPublisher() }()
+    private(set) lazy var publisher = subject.eraseToAnyPublisher()
 
     init() {
         self.subject = .init()
     }
 
-    func observeEvent<E: WorkflowUIEvent>(_ event: E) {
+    func observeEvent(_ event: some WorkflowUIEvent) {
         subject.send(event)
     }
 }

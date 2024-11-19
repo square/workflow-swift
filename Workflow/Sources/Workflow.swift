@@ -89,7 +89,7 @@ extension Workflow {
 /// implementations, making a “stateless workflow”.
 extension Workflow where State == Void {
     public func makeInitialState() -> State {
-        return ()
+        ()
     }
 
     public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
@@ -97,6 +97,6 @@ extension Workflow where State == Void {
 
 extension Workflow {
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
-        return AnyWorkflow(self)
+        AnyWorkflow(self)
     }
 }

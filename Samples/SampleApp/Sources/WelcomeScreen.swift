@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct WelcomeScreen: Screen {
     var name: String
@@ -24,7 +24,7 @@ struct WelcomeScreen: Screen {
     var onLoginTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return WelcomeViewController.description(for: self, environment: environment)
+        WelcomeViewController.description(for: self, environment: environment)
     }
 }
 

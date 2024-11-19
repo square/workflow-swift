@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct FooScreen: Screen {
     let title: String
@@ -24,7 +24,7 @@ struct FooScreen: Screen {
     let viewTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return FooScreenViewController.description(for: self, environment: environment)
+        FooScreenViewController.description(for: self, environment: environment)
     }
 }
 

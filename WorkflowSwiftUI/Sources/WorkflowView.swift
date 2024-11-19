@@ -71,25 +71,25 @@ public struct WorkflowView<T: Workflow, Content: View>: View {
 }
 
 @available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
-public extension WorkflowView where T.Output == Never {
+extension WorkflowView where T.Output == Never {
     /// Convenience initializer for workflows with no output.
-    init(workflow: T, content: @escaping (T.Rendering) -> Content) {
+    public init(workflow: T, content: @escaping (T.Rendering) -> Content) {
         self.init(workflow: workflow, onOutput: { _ in }, content: content)
     }
 }
 
 @available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
-public extension WorkflowView where T.Rendering == Content {
+extension WorkflowView where T.Rendering == Content {
     /// Convenience initializer for workflows whose rendering type conforms to `View`.
-    init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
+    public init(workflow: T, onOutput: @escaping (T.Output) -> Void) {
         self.init(workflow: workflow, onOutput: onOutput, content: { $0 })
     }
 }
 
 @available(*, deprecated, message: "Use ObservableScreen to render SwiftUI content")
-public extension WorkflowView where T.Output == Never, T.Rendering == Content {
+extension WorkflowView where T.Output == Never, T.Rendering == Content {
     /// Convenience initializer for workflows with no output whose rendering type conforms to `View`.
-    init(workflow: T) {
+    public init(workflow: T) {
         self.init(workflow: workflow, onOutput: { _ in }, content: { $0 })
     }
 }

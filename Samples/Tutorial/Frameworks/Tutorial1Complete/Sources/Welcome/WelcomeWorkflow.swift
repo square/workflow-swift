@@ -33,7 +33,7 @@ extension WelcomeWorkflow {
     }
 
     func makeInitialState() -> WelcomeWorkflow.State {
-        return State(name: "")
+        State(name: "")
     }
 
     func workflowDidChange(from previousWorkflow: WelcomeWorkflow, state: inout State) {}
@@ -70,7 +70,7 @@ extension WelcomeWorkflow {
         }
 
         func isEquivalent(to otherWorker: WelcomeWorker) -> Bool {
-            return true
+            true
         }
     }
 }

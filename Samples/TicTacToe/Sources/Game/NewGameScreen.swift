@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 struct NewGameScreen: Screen {
     var playerX: String
@@ -29,7 +29,7 @@ struct NewGameScreen: Screen {
     }
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return NewGameViewController.description(for: self, environment: environment)
+        NewGameViewController.description(for: self, environment: environment)
     }
 }
 

@@ -33,7 +33,7 @@ extension WelcomeWorkflow {
     }
 
     func makeInitialState() -> WelcomeWorkflow.State {
-        return State(name: "")
+        State(name: "")
     }
 }
 

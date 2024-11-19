@@ -9,7 +9,7 @@ import Foundation
 
 class FakeNetworkManager {
     static func makeFakeNetworkRequest() -> FakeRequest {
-        return FakeRequest()
+        FakeRequest()
     }
 }
 

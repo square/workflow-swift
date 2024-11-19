@@ -91,11 +91,11 @@ class WorkerTests: XCTestCase {
                     Just(())
                         .handleEvents(
                             receiveSubscription: { _ in
-                                self.startExpectation.fulfill()
+                                startExpectation.fulfill()
 
                             },
                             receiveCompletion: { _ in
-                                self.endExpectation.fulfill()
+                                endExpectation.fulfill()
                             }
                         )
                         .eraseToAnyPublisher()

@@ -458,6 +458,7 @@ extension ViewEnvironmentObservingTests {
             applyEnvironmentIfNeeded()
         }
 
+        @available(*, unavailable)
         required init?(coder: NSCoder) { fatalError("") }
     }
 
@@ -489,6 +490,7 @@ extension ViewEnvironmentObservingTests {
             super.layoutSubviews()
         }
 
+        @available(*, unavailable)
         required init?(coder: NSCoder) { fatalError("") }
     }
 }

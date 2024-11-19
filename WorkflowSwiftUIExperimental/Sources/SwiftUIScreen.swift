@@ -31,20 +31,20 @@ public protocol SwiftUIScreen: Screen {
     static var isEquivalent: ((Self, Self) -> Bool)? { get }
 }
 
-public extension SwiftUIScreen {
-    var sizingOptions: SwiftUIScreenSizingOptions { [] }
+extension SwiftUIScreen {
+    public var sizingOptions: SwiftUIScreenSizingOptions { [] }
 }
 
-public extension SwiftUIScreen {
-    static var isEquivalent: ((Self, Self) -> Bool)? { nil }
+extension SwiftUIScreen {
+    public static var isEquivalent: ((Self, Self) -> Bool)? { nil }
 }
 
-public extension SwiftUIScreen where Self: Equatable {
-    static var isEquivalent: ((Self, Self) -> Bool)? { { $0 == $1 } }
+extension SwiftUIScreen where Self: Equatable {
+    public static var isEquivalent: ((Self, Self) -> Bool)? { { $0 == $1 } }
 }
 
-public extension SwiftUIScreen {
-    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+extension SwiftUIScreen {
+    public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         ViewControllerDescription(
             type: ModeledHostingController<Self, WithModel<Self, EnvironmentInjectingView<Content>>>.self,
             environment: environment,
@@ -201,9 +201,9 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     }
 }
 
-fileprivate extension SwiftUIScreenSizingOptions {
+extension SwiftUIScreenSizingOptions {
     @available(iOS 16.0, *)
-    var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
+    fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
         var options = UIHostingControllerSizingOptions()
 
         if contains(.preferredContentSize) {

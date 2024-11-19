@@ -49,6 +49,7 @@ public final class TodoListView: UIView, UITableViewDelegate, UITableViewDataSou
         addSubview(tableView)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -78,7 +79,7 @@ public final class TodoListView: UIView, UITableViewDelegate, UITableViewDataSou
     // MARK: UITableViewDelegate, UITableViewDataSource
 
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todoList.count
+        todoList.count
     }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

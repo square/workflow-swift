@@ -1,5 +1,5 @@
 //
-//  FakeModel.swift
+//  Model.swift
 //  AsyncWorker
 //
 //  Created by Mark Johnson on 6/16/22.

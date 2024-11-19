@@ -27,7 +27,7 @@ extension UIViewController: ViewEnvironmentPropagating {
     public var defaultEnvironmentDescendants: [ViewEnvironmentPropagating] {
         var descendants = children
 
-        if let presentedViewController = presentedViewController {
+        if let presentedViewController {
             descendants.append(presentedViewController)
         }
 

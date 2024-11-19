@@ -27,7 +27,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     /// Emits output events from the bound workflow.
     public var output: Signal<Output, Never> {
-        return workflowHost.output
+        workflowHost.output
     }
 
     /// An environment customization that will be applied to the environment of the root screen.
@@ -84,11 +84,11 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
             .signal
             .take(during: lifetime)
             .observeValues { [weak self] screen in
-                guard let self = self else { return }
+                guard let self else { return }
 
-                self.update(
+                update(
                     screen: screen,
-                    environmentAncestorPath: self.environmentAncestorPath
+                    environmentAncestorPath: environmentAncestorPath
                 )
             }
     }
@@ -98,6 +98,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         workflowHost.update(workflow: workflow.asAnyWorkflow())
     }
 
+    @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -149,31 +150,31 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
     }
 
     override public var childForStatusBarStyle: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForStatusBarHidden: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForHomeIndicatorAutoHidden: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return rootViewController.supportedInterfaceOrientations
+        rootViewController.supportedInterfaceOrientations
     }
 
     override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return rootViewController.preferredStatusBarUpdateAnimation
+        rootViewController.preferredStatusBarUpdateAnimation
     }
 
     override public var childViewControllerForPointerLock: UIViewController? {
-        return rootViewController
+        rootViewController
     }
 
     override public func preferredContentSizeDidChange(

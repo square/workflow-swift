@@ -35,7 +35,7 @@ extension MainWorkflow {
     }
 
     func makeInitialState() -> MainWorkflow.State {
-        return .authenticating
+        .authenticating
     }
 }
 
@@ -70,7 +70,7 @@ extension MainWorkflow {
     func render(state: MainWorkflow.State, context: RenderContext<MainWorkflow>) -> Rendering {
         switch state {
         case .authenticating:
-            return AuthenticationWorkflow(authenticationService: AuthenticationService())
+            AuthenticationWorkflow(authenticationService: AuthenticationService())
                 .mapOutput { output -> Action in
                     switch output {
                     case .authorized(session: let sessionToken):
@@ -80,7 +80,7 @@ extension MainWorkflow {
                 .rendered(in: context)
 
         case .runningGame:
-            return RunGameWorkflow().rendered(in: context)
+            RunGameWorkflow().rendered(in: context)
         }
     }
 }

@@ -37,6 +37,6 @@ import Workflow
 /// ```
 extension Signal: AnyWorkflowConvertible where Error == Never {
     public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-        return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
+        SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
     }
 }

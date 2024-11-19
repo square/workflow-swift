@@ -49,9 +49,9 @@ extension VariableDeclSyntax {
         let accessors: [AccessorDeclListSyntax.Element] = patternBindings.compactMap { patternBinding in
             switch patternBinding.accessorBlock?.accessors {
             case .accessors(let accessors):
-                return accessors
+                accessors
             default:
-                return nil
+                nil
             }
         }.flatMap { $0 }
         return accessors.compactMap { accessor in
@@ -76,13 +76,13 @@ extension VariableDeclSyntax {
 
     var isComputed: Bool {
         if accessorsMatching({ $0 == .keyword(.get) }).count > 0 {
-            return true
+            true
         } else {
-            return bindings.contains { binding in
+            bindings.contains { binding in
                 if case .getter = binding.accessorBlock?.accessors {
-                    return true
+                    true
                 } else {
-                    return false
+                    false
                 }
             }
         }
@@ -107,7 +107,7 @@ extension VariableDeclSyntax {
         for attribute in attributes {
             switch attribute {
             case .attribute(let attr):
-                if attr.attributeName.tokens(viewMode: .all).map({ $0.tokenKind }) == [.identifier(name)] {
+                if attr.attributeName.tokens(viewMode: .all).map(\.tokenKind) == [.identifier(name)] {
                     return true
                 }
             default:
@@ -121,7 +121,7 @@ extension VariableDeclSyntax {
         for attribute in attributes {
             switch attribute {
             case .attribute(let attr):
-                if attr.attributeName.tokens(viewMode: .all).map({ $0.tokenKind }) == [.identifier(name)] {
+                if attr.attributeName.tokens(viewMode: .all).map(\.tokenKind) == [.identifier(name)] {
                     return attr
                 }
             default:

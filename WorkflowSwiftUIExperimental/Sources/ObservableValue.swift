@@ -26,7 +26,7 @@ public final class ObservableValue<Value>: ObservableObject {
 
     public private(set) var value: Value {
         get {
-            return internalValue
+            internalValue
         }
         set {
             subject.send(newValue)
@@ -54,7 +54,7 @@ public final class ObservableValue<Value>: ObservableObject {
         self.cancellable = valuePublisher()
             .dropFirst()
             .sink { [weak self] newValue in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.objectWillChange.send()
                 self.internalValue = newValue
             }
@@ -68,14 +68,14 @@ public final class ObservableValue<Value>: ObservableObject {
     ///   - isEquivalent: An optional closure that checks to see if a LocalValue is equivalent.
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue, isEquivalent: ((LocalValue, LocalValue) -> Bool)? = nil) -> ObservableValue<LocalValue> {
-        return scopeToLocalValue(toLocalValue, isEquivalent: isEquivalent)
+        scopeToLocalValue(toLocalValue, isEquivalent: isEquivalent)
     }
 
     /// Scopes the ObservableValue to a subset of Value to LocalValue given the supplied closure and removes duplicate values using Equatable.
     /// - Parameter toLocalValue: A closure that takes a Value and returns a LocalValue.
     /// - Returns: a scoped ObservableValue of LocalValue.
     public func scope<LocalValue>(_ toLocalValue: @escaping (Value) -> LocalValue) -> ObservableValue<LocalValue> where LocalValue: Equatable {
-        return scopeToLocalValue(toLocalValue, isEquivalent: { $0 == $1 })
+        scopeToLocalValue(toLocalValue, isEquivalent: { $0 == $1 })
     }
 
     /// Returns the value at the given keypath of ``Value``.
@@ -98,7 +98,7 @@ public final class ObservableValue<Value>: ObservableObject {
     }
 
     private func valuePublisher() -> AnyPublisher<Value, Never> {
-        guard let isEquivalent = isEquivalent else {
+        guard let isEquivalent else {
             return subject.eraseToAnyPublisher()
         }
 

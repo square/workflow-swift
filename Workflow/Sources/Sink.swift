@@ -53,8 +53,8 @@ public struct Sink<Value> {
     ///
     /// - Parameter transform: An escaping closure that transforms `T` into `Event`.
     public func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
-        return Sink<NewValue> { value in
-            self.send(transform(value))
+        Sink<NewValue> { value in
+            send(transform(value))
         }
     }
 }

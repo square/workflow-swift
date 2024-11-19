@@ -105,7 +105,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 
     // API to allow custom context implementations to power a render context
     static func make<T: RenderContextType>(implementation: T) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
-        return ConcreteRenderContext(implementation)
+        ConcreteRenderContext(implementation)
     }
 
     // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
@@ -139,7 +139,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 }
 
-internal protocol RenderContextType: AnyObject {
+protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
     func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
@@ -151,7 +151,7 @@ internal protocol RenderContextType: AnyObject {
 
 extension RenderContext {
     public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
-        return makeSink(of: AnyWorkflowAction.self)
+        makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
                 AnyWorkflowAction<WorkflowType> { state in
                     onEvent(event, &state)
@@ -162,7 +162,7 @@ extension RenderContext {
     /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
     /// intermediate action.
     public func makeOutputSink() -> Sink<WorkflowType.Output> {
-        return makeSink(of: AnyWorkflowAction.self)
+        makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }
 }
