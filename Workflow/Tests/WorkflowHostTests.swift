@@ -37,7 +37,7 @@ final class WorkflowHostTests: XCTestCase {
 
         struct State {}
         func makeInitialState() -> State {
-            return State()
+            State()
         }
 
         typealias Rendering = Int
@@ -45,9 +45,9 @@ final class WorkflowHostTests: XCTestCase {
         func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
             switch step {
             case .first:
-                return 1
+                1
             case .second:
-                return 2
+                2
             }
         }
     }
@@ -151,7 +151,7 @@ extension WorkflowHost_EventEmissionTests {
             case eventOccurred
 
             func apply(toState state: inout Void) -> Child.Output? {
-                return .eventOccurred
+                .eventOccurred
             }
         }
     }

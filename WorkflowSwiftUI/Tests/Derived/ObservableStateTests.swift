@@ -125,13 +125,13 @@ final class ObservableStateTests: XCTestCase {
         do {
             var state = ParentState(optional: nil)
             let optionalDidChange = expectation(description: "optional.didChange")
-            
+
             withPerceptionTracking {
                 _ = state.optional
             } onChange: {
                 optionalDidChange.fulfill()
             }
-            
+
             state.optional = ChildState(count: 42)
             await fulfillment(of: [optionalDidChange], timeout: 0)
             XCTAssertEqual(state.optional?.count, 42)
@@ -141,13 +141,13 @@ final class ObservableStateTests: XCTestCase {
         do {
             var state = ParentState(optional: nil)
             let optionalDidChange = expectation(description: "optional.didChange")
-            
+
             withPerceptionTracking {
                 _ = state.optional
             } onChange: {
                 optionalDidChange.fulfill()
             }
-            
+
             state.optional = nil
             await fulfillment(of: [optionalDidChange], timeout: 0)
             XCTAssertNil(state.optional)
@@ -157,13 +157,13 @@ final class ObservableStateTests: XCTestCase {
         do {
             var state = ParentState(optional: ChildState())
             let optionalDidChange = expectation(description: "optional.didChange")
-            
+
             withPerceptionTracking {
                 _ = state.optional
             } onChange: {
                 optionalDidChange.fulfill()
             }
-            
+
             state.optional = nil
             await fulfillment(of: [optionalDidChange], timeout: 0)
             XCTAssertNil(state.optional)

@@ -407,9 +407,9 @@ private enum TestAction: WorkflowAction, Equatable {
     func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
         switch self {
         case .noop:
-            return nil
+            nil
         case .sendOutput(let string):
-            return .string(string)
+            .string(string)
         }
     }
 }

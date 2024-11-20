@@ -18,7 +18,7 @@ public struct WorkflowUpdateDebugInfo: Codable, Equatable {
     public var workflowType: String
     public var kind: Kind
 
-    internal init(workflowType: String, kind: Kind) {
+    init(workflowType: String, kind: Kind) {
         self.workflowType = workflowType
         self.kind = kind
     }

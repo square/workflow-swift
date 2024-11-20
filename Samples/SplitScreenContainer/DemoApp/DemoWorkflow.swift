@@ -15,9 +15,9 @@
  */
 
 import SplitScreenContainer
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 // MARK: Input and Output
 
@@ -31,7 +31,7 @@ extension DemoWorkflow {
     typealias State = Int
 
     func makeInitialState() -> State {
-        return 1
+        1
     }
 }
 

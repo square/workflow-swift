@@ -109,7 +109,7 @@ private struct ExampleAction: WorkflowAction, Equatable {
     typealias WorkflowType = ExampleWorkflow
 
     func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        return nil
+        nil
     }
 }
 

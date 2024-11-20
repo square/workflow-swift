@@ -178,7 +178,7 @@ final class ConcurrencyTests: XCTestCase {
             }
 
             func makeInitialState() -> State {
-                return State(count: 0)
+                State(count: 0)
             }
 
             enum Action: WorkflowAction {
@@ -271,7 +271,7 @@ final class ConcurrencyTests: XCTestCase {
             }
 
             func makeInitialState() -> State {
-                return State(count: 0)
+                State(count: 0)
             }
 
             enum Action: WorkflowAction {
@@ -371,7 +371,7 @@ final class ConcurrencyTests: XCTestCase {
             }
 
             func makeInitialState() -> State {
-                return State(count: 0)
+                State(count: 0)
             }
 
             enum FirstAction: WorkflowAction {
@@ -480,12 +480,12 @@ final class ConcurrencyTests: XCTestCase {
             var signal: TestSignal
 
             var description: String {
-                return "\(count)"
+                "\(count)"
             }
         }
 
         func makeInitialState() -> State {
-            return State(count: 0, running: running, signal: signal)
+            State(count: 0, running: running, signal: signal)
         }
 
         enum Action: WorkflowAction {
@@ -513,6 +513,7 @@ final class ConcurrencyTests: XCTestCase {
             switch state.running {
             case .idle:
                 break
+
             case .signal:
                 context.runSideEffect(key: "signal1") { lifetime in
                     signal.signal
@@ -548,8 +549,8 @@ final class ConcurrencyTests: XCTestCase {
     }
 }
 
-private extension Lifetime {
-    var reactiveLifetime: ReactiveSwift.Lifetime {
+extension Lifetime {
+    fileprivate var reactiveLifetime: ReactiveSwift.Lifetime {
         let (lifetime, token) = ReactiveSwift.Lifetime.make()
         onEnded {
             token.dispose()

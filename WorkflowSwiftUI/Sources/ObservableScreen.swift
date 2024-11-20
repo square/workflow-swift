@@ -36,12 +36,12 @@ public protocol ObservableScreen: Screen {
     static func makeView(store: Store<Model>) -> Content
 }
 
-public extension ObservableScreen {
-    var sizingOptions: SwiftUIScreenSizingOptions { [] }
+extension ObservableScreen {
+    public var sizingOptions: SwiftUIScreenSizingOptions { [] }
 }
 
-public extension ObservableScreen {
-    func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+extension ObservableScreen {
+    public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         ViewControllerDescription(
             type: ModeledHostingController<Model, Content>.self,
             environment: environment,
@@ -203,9 +203,9 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     }
 }
 
-fileprivate extension SwiftUIScreenSizingOptions {
+extension SwiftUIScreenSizingOptions {
     @available(iOS 16.0, *)
-    var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
+    fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
         var options = UIHostingControllerSizingOptions()
 
         if contains(.preferredContentSize) {

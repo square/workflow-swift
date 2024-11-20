@@ -1,7 +1,17 @@
 #!/bin/bash
 
-swift_files=$(git diff --diff-filter=d --staged --name-only -- '*.swift')
+# Do not run on merge
+if [[ $(git rev-parse -q --verify MERGE_HEAD) ]]; then
+    exit 0
+fi
 
-echo $swift_files | xargs swift run swiftformat --quiet
+ROOT="$(git rev-parse --show-toplevel)"
+SWIFT_FORMAT="mise x -- swiftformat"
+GIT_FORMAT_STAGED="$ROOT/Scripts/git-format-staged"
+CONFIG="${ROOT}/.swiftformat"
 
-echo $swift_files | xargs git add
+$SWIFT_FORMAT --version 1>/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+    $GIT_FORMAT_STAGED --formatter "$SWIFT_FORMAT stdin --config "$CONFIG" --stdinpath '{}'" "*.swift"
+fi

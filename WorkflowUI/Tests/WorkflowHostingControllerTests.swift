@@ -29,7 +29,7 @@ fileprivate struct TestScreen: Screen {
     var onEnvironmentDidChange: ((ViewEnvironment) -> Void)?
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return TestScreenViewController.description(for: self, environment: environment)
+        TestScreenViewController.description(for: self, environment: environment)
     }
 }
 
@@ -291,7 +291,7 @@ fileprivate struct SubscribingWorkflow: Workflow {
     typealias Output = Int
 
     func makeInitialState() -> State {
-        return 0
+        0
     }
 
     func render(state: State, context: RenderContext<Self>) -> TestScreen {
@@ -315,7 +315,7 @@ fileprivate struct PassthroughWorkflow: Workflow {
     typealias Output = Never
 
     func render(state: State, context: RenderContext<Self>) -> TestScreen {
-        return TestScreen(string: value)
+        TestScreen(string: value)
     }
 }
 
@@ -330,11 +330,11 @@ fileprivate struct EchoWorkflow: Workflow {
         var value: Int
 
         func run() -> SignalProducer<Int, Never> {
-            return SignalProducer(value: value)
+            SignalProducer(value: value)
         }
 
         func isEquivalent(to otherWorker: Self) -> Bool {
-            return value == otherWorker.value
+            value == otherWorker.value
         }
     }
 
@@ -355,7 +355,7 @@ fileprivate struct EnvironmentObservingWorkflow: Workflow {
     typealias Output = Never
 
     func render(state: State, context: RenderContext<Self>) -> TestScreen {
-        return TestScreen(string: value, onEnvironmentDidChange: onEnvironmentDidChange)
+        TestScreen(string: value, onEnvironmentDidChange: onEnvironmentDidChange)
     }
 }
 
@@ -367,6 +367,7 @@ fileprivate final class EnvironmentCustomizingViewController: UIViewController, 
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
     func customize(environment: inout ViewEnvironment) {

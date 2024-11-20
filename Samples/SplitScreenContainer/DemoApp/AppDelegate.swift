@@ -19,7 +19,7 @@ import UIKit
 import Workflow
 import WorkflowUI
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 

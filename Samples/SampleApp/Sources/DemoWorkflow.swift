@@ -15,10 +15,10 @@
  */
 
 import ReactiveSwift
+import UIKit
 import Workflow
 import WorkflowReactiveSwift
 import WorkflowUI
-import UIKit
 
 // MARK: Input and Output
 
@@ -55,7 +55,7 @@ extension DemoWorkflow {
     }
 
     func makeInitialState() -> DemoWorkflow.State {
-        return State(
+        State(
             signal: TimerSignal(),
             colorState: .red,
             loadingState: .idle(title: "Not Loaded"),
@@ -98,8 +98,10 @@ extension DemoWorkflow {
 
             case .refreshButtonTapped:
                 state.loadingState = .loading
+
             case .refreshComplete(let message):
                 state.loadingState = .idle(title: message)
+
             case .refreshError(let error):
                 state.loadingState = .idle(title: error.localizedDescription)
             }
@@ -117,12 +119,12 @@ struct RefreshWorker: Worker {
     }
 
     func run() -> SignalProducer<RefreshWorker.Output, Never> {
-        return SignalProducer(value: .success("We did it!"))
+        SignalProducer(value: .success("We did it!"))
             .delay(1.0, on: QueueScheduler.main)
     }
 
     func isEquivalent(to otherWorker: RefreshWorker) -> Bool {
-        return true
+        true
     }
 }
 
@@ -132,14 +134,13 @@ extension DemoWorkflow {
     typealias Rendering = DemoScreen
 
     func render(state: DemoWorkflow.State, context: RenderContext<DemoWorkflow>) -> Rendering {
-        let color: UIColor
-        switch state.colorState {
+        let color: UIColor = switch state.colorState {
         case .red:
-            color = .red
+            .red
         case .green:
-            color = .green
+            .green
         case .blue:
-            color = .blue
+            .blue
         }
 
         var title = "Hello, \(name)!"

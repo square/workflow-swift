@@ -29,7 +29,7 @@ public final class DescribedViewController: WorkflowUIViewController {
         currentViewController.didMove(toParent: self)
     }
 
-    public convenience init<S: Screen>(screen: S, environment: ViewEnvironment) {
+    public convenience init(screen: some Screen, environment: ViewEnvironment) {
         self.init(description: screen.viewControllerDescription(environment: environment))
     }
 
@@ -62,7 +62,7 @@ public final class DescribedViewController: WorkflowUIViewController {
         }
     }
 
-    public func update<S: Screen>(screen: S, environment: ViewEnvironment) {
+    public func update(screen: some Screen, environment: ViewEnvironment) {
         update(description: screen.viewControllerDescription(environment: environment))
     }
 
@@ -81,31 +81,31 @@ public final class DescribedViewController: WorkflowUIViewController {
     }
 
     override public var childForStatusBarStyle: UIViewController? {
-        return currentViewController
+        currentViewController
     }
 
     override public var childForStatusBarHidden: UIViewController? {
-        return currentViewController
+        currentViewController
     }
 
     override public var childForHomeIndicatorAutoHidden: UIViewController? {
-        return currentViewController
+        currentViewController
     }
 
     override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return currentViewController
+        currentViewController
     }
 
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return currentViewController.supportedInterfaceOrientations
+        currentViewController.supportedInterfaceOrientations
     }
 
     override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return currentViewController.preferredStatusBarUpdateAnimation
+        currentViewController.preferredStatusBarUpdateAnimation
     }
 
     override public var childViewControllerForPointerLock: UIViewController? {
-        return currentViewController
+        currentViewController
     }
 
     override public func preferredContentSizeDidChange(

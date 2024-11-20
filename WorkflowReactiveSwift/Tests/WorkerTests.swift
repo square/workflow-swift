@@ -91,10 +91,10 @@ class WorkerTests: XCTestCase {
                 func run() -> SignalProducer<Void, Never> {
                     SignalProducer<Void, Never> { observer, lifetime in
                         lifetime.observeEnded {
-                            self.endExpectation.fulfill()
+                            endExpectation.fulfill()
                         }
 
-                        self.startExpectation.fulfill()
+                        startExpectation.fulfill()
                     }
                 }
 

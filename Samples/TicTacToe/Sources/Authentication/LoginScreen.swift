@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct LoginScreen: Screen {
     var title: String
@@ -27,7 +27,7 @@ struct LoginScreen: Screen {
     var onLoginTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return ViewControllerDescription(
+        ViewControllerDescription(
             environment: environment,
             build: { LoginViewController() },
             update: { $0.update(with: self) }
@@ -36,10 +36,10 @@ struct LoginScreen: Screen {
 }
 
 private final class LoginViewController: UIViewController {
-    private let welcomeLabel: UILabel = UILabel(frame: .zero)
-    private let emailField: UITextField = UITextField(frame: .zero)
-    private let passwordField: UITextField = UITextField(frame: .zero)
-    private let button: UIButton = UIButton(frame: .zero)
+    private let welcomeLabel: UILabel = .init(frame: .zero)
+    private let emailField: UITextField = .init(frame: .zero)
+    private let passwordField: UITextField = .init(frame: .zero)
+    private let button: UIButton = .init(frame: .zero)
     private var onEmailChanged: (String) -> Void = { _ in }
     private var onPasswordChanged: (String) -> Void = { _ in }
     private var onLoginTapped: () -> Void = {}

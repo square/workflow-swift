@@ -3,9 +3,9 @@ import Perception
 import SwiftUI
 import Workflow
 
-public extension Perception.Bindable {
+extension Perception.Bindable {
     @_disfavoredOverload
-    subscript<Model: ObservableModel, Member>(
+    public subscript<Model: ObservableModel, Member>(
         dynamicMember keyPath: KeyPath<Model.State, Member>
     ) -> _StoreBindable<Model, Member>
         where Value == Store<Model>
@@ -111,12 +111,12 @@ public struct _StoreBindable<Model: ObservableModel, Value> {
     }
 }
 
-public extension _StoreBindable where Model: SingleActionModel {
+extension _StoreBindable where Model: SingleActionModel {
     /// Creates a binding to the value by sending new values through the model's action.
     ///
     /// - Parameter action: An action to contain sent values.
     /// - Returns: A binding.
-    func sending(
+    public func sending(
         action: CaseKeyPath<Model.Action, Value>
     ) -> Binding<Value> {
         bindable[state: keyPath, action: action]

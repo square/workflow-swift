@@ -40,7 +40,6 @@ let project = Project(
     name: "Development",
     settings: .settings(base: ["ENABLE_MODULE_VERIFIER": "YES"]),
     targets: [
-        
         // MARK: - Samples
 
         .target(
@@ -72,13 +71,13 @@ let project = Project(
             sources: "ObservableScreen/Sources/**",
             dependencies: [.external(name: "WorkflowSwiftUI")]
         ),
-        
+
         .app(
             name: "SampleApp",
             sources: "SampleApp/Sources/**",
             dependencies: [.external(name: "WorkflowUI")]
         ),
-        
+
         .target(
             name: "SplitScreenContainer",
             dependencies: [.external(name: "WorkflowUI")]
@@ -95,7 +94,7 @@ let project = Project(
                 .external(name: "iOSSnapshotTestCase"),
             ]
         ),
-        
+
         .app(
             name: "TicTacToe",
             sources: "TicTacToe/Sources/**",
@@ -130,7 +129,7 @@ let project = Project(
                 .external(name: "WorkflowTesting"),
             ]
         ),
-        
+
         // MARK: - Workflow Tests
 
         // Some of these tests are duplicates of the test definitions in the root Package.swift, but Tuist
@@ -245,7 +244,7 @@ let project = Project(
                 .external(name: "WorkflowReactiveSwift"),
                 .target(name: "TestAppHost"),
             ]
-        )
+        ),
     ],
     schemes: [
         .scheme(

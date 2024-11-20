@@ -82,3 +82,13 @@ jobs:
     - name: Swiftdocs
       run: |
         .buildscript/build_swift_docs.sh ${{ runner.temp }}/swiftdocs
+
+  swiftformat:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jdx/mise-action@v2
+
+    - name: Run swiftformat
+      run: swiftformat --lint .

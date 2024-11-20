@@ -25,7 +25,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     let appliedAction: AppliedAction<WorkflowType>?
     let output: WorkflowType.Output?
 
-    internal init(initialState: WorkflowType.State, state: WorkflowType.State, appliedAction: AppliedAction<WorkflowType>?, output: WorkflowType.Output?) {
+    init(initialState: WorkflowType.State, state: WorkflowType.State, appliedAction: AppliedAction<WorkflowType>?, output: WorkflowType.Output?) {
         self.initialState = initialState
         self.state = state
         self.appliedAction = appliedAction
@@ -49,7 +49,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
-        if let appliedAction = appliedAction {
+        if let appliedAction {
             XCTFail("Expected no action, but got \(appliedAction.erasedAction).", file: file, line: line)
         }
         return self
@@ -63,7 +63,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line,
         assertions: (ActionType) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType {
-        guard let appliedAction = appliedAction else {
+        guard let appliedAction else {
             XCTFail("No action was produced", file: file, line: line)
             return self
         }
@@ -78,7 +78,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType, ActionType: Equatable {
-        return verifyAction(file: file, line: line) { appliedAction in
+        verifyAction(file: file, line: line) { appliedAction in
             XCTAssertEqual(appliedAction, action, file: file, line: line)
         }
     }
@@ -89,7 +89,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
-        if let output = output {
+        if let output {
             XCTFail("Expected no output, but got \(output).", file: file, line: line)
         }
         return self
@@ -102,7 +102,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line,
         assertions: (WorkflowType.Output) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
-        guard let output = output else {
+        guard let output else {
             XCTFail("No output was produced", file: file, line: line)
             return self
         }
@@ -133,7 +133,7 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
         line: UInt = #line,
         _ modifications: (inout WorkflowType.State) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
-        var initialState = self.initialState
+        var initialState = initialState
         try modifications(&initialState)
         XCTAssertEqual(state, initialState, "Expected state does not match", file: file, line: line)
         return self
@@ -148,7 +148,7 @@ extension RenderTesterResult where WorkflowType.Output: Equatable {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
-        return verifyOutput(file: file, line: line) { output in
+        verifyOutput(file: file, line: line) { output in
             XCTAssertEqual(output, expectedOutput, file: file, line: line)
         }
     }

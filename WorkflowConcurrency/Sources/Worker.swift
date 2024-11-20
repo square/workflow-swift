@@ -63,7 +63,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         let logger = WorkerLogger<WorkerType>()
         let sink = context.makeOutputSink()
         context.runSideEffect(key: state) { lifetime in
-            let send: @MainActor(Output) -> Void = sink.send
+            let send: @MainActor (Output) -> Void = sink.send
             let task = Task(priority: .high) {
                 logger.logStarted()
                 let output = await worker.run()

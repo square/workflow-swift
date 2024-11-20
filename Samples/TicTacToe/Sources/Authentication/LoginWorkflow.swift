@@ -35,7 +35,7 @@ extension LoginWorkflow {
     }
 
     func makeInitialState() -> LoginWorkflow.State {
-        return State(email: "", password: "")
+        State(email: "", password: "")
     }
 }
 

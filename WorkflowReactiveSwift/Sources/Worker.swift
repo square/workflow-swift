@@ -67,7 +67,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
 
         // Start with Void to ensure `worker.run()` is called only once for a given key
         SignalProducer(value: ())
-            .flatMap(.latest) { self.worker.run() }
+            .flatMap(.latest) { worker.run() }
             .on(
                 started: { logger.logStarted() },
                 event: { logger.log(event: $0) }
@@ -77,8 +77,8 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
     }
 }
 
-private extension WorkerLogger {
-    func log(event: SignalProducer<WorkerType.Output, Never>.ProducedSignal.Event) {
+extension WorkerLogger {
+    fileprivate func log(event: SignalProducer<WorkerType.Output, Never>.ProducedSignal.Event) {
         switch event {
         case .completed:
             logFinished(status: "Completed")

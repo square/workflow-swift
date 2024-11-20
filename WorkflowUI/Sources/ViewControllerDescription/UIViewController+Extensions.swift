@@ -32,9 +32,9 @@ extension UpdateChildScreenViewController where Self: UIViewController {
     /// - parameter environment: The `environment` to used when updating the view controller.
     /// - parameter onChange: A callback called if the view controller instance changed.
     ///
-    public func update<VC: UIViewController, ScreenType: Screen>(
+    public func update<VC: UIViewController>(
         child: ReferenceWritableKeyPath<Self, VC>,
-        with screen: ScreenType,
+        with screen: some Screen,
         in environment: ViewEnvironment,
         onChange: (VC) -> Void = { _ in }
     ) {
@@ -78,7 +78,8 @@ extension UpdateChildScreenViewController where Self: UIViewController {
                 if
                     parent.isViewLoaded,
                     old.isViewLoaded,
-                    let container = old.view.superview {
+                    let container = old.view.superview
+                {
                     // We will only add the view to the hierarchy if
                     // the parent's view is loaded, and the existing view
                     // is loaded, and the old view was in a superview.

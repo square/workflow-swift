@@ -140,9 +140,9 @@ public struct WorkflowSession {
     public var parent: WorkflowSession? {
         switch _indirectParent {
         case .some(let parent):
-            return parent
+            parent
         case .none:
-            return nil
+            nil
         }
     }
 
@@ -165,41 +165,41 @@ public struct WorkflowSession {
 
 // MARK: - No-op Defaults
 
-public extension WorkflowObserver {
-    func sessionDidBegin(
+extension WorkflowObserver {
+    public func sessionDidBegin(
         _ session: WorkflowSession
     ) {}
 
-    func sessionDidEnd(
+    public func sessionDidEnd(
         _ session: WorkflowSession
     ) {}
 
-    func workflowDidMakeInitialState<WorkflowType: Workflow>(
+    public func workflowDidMakeInitialState<WorkflowType: Workflow>(
         _ workflow: WorkflowType,
         initialState: WorkflowType.State,
         session: WorkflowSession
     ) {}
 
-    func workflowWillRender<WorkflowType: Workflow>(
+    public func workflowWillRender<WorkflowType: Workflow>(
         _ workflow: WorkflowType,
         state: WorkflowType.State,
         session: WorkflowSession
     ) -> ((WorkflowType.Rendering) -> Void)? { nil }
 
-    func workflowDidChange<WorkflowType: Workflow>(
+    public func workflowDidChange<WorkflowType: Workflow>(
         from oldWorkflow: WorkflowType,
         to newWorkflow: WorkflowType,
         state: WorkflowType.State,
         session: WorkflowSession
     ) {}
 
-    func workflowDidReceiveAction<Action: WorkflowAction>(
+    public func workflowDidReceiveAction<Action: WorkflowAction>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
     ) {}
 
-    func workflowWillApplyAction<Action: WorkflowAction>(
+    public func workflowWillApplyAction<Action: WorkflowAction>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
@@ -321,13 +321,13 @@ final class ChainedWorkflowObserver: WorkflowObserver {
     }
 }
 
-extension Array where Element == WorkflowObserver {
+extension [WorkflowObserver] {
     func chained() -> WorkflowObserver? {
         if count <= 1 {
             // no wrapping needed if empty or a single element
-            return first
+            first
         } else {
-            return ChainedWorkflowObserver(observers: self)
+            ChainedWorkflowObserver(observers: self)
         }
     }
 }

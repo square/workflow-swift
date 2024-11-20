@@ -51,12 +51,12 @@ public struct AsyncOperationWorker<OutputType>: Worker {
     }
 
     public func run() async -> OutputType {
-        return await operation()
+        await operation()
     }
 
     public typealias Output = OutputType
 
     public func isEquivalent(to otherWorker: AsyncOperationWorker) -> Bool {
-        return true
+        true
     }
 }

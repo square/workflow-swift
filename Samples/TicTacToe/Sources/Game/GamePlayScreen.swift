@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 struct GamePlayScreen: Screen {
     var gameState: GameState
@@ -25,17 +25,15 @@ struct GamePlayScreen: Screen {
     var onSelected: (Int, Int) -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return GamePlayViewController.description(for: self, environment: environment)
+        GamePlayViewController.description(for: self, environment: environment)
     }
 }
 
 final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
-    let titleLabel: UILabel = UILabel(frame: .zero)
-    let cells: [[UIButton]] = {
-        (0 ..< 3).map { _ in
-            (0 ..< 3).map { _ in UIButton(frame: .zero) }
-        }
-    }()
+    let titleLabel: UILabel = .init(frame: .zero)
+    let cells: [[UIButton]] = (0 ..< 3).map { _ in
+        (0 ..< 3).map { _ in UIButton(frame: .zero) }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,11 +45,10 @@ final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
         var toggle = true
         for row in cells {
             for cell in row {
-                let backgroundColor: UIColor
-                if toggle {
-                    backgroundColor = UIColor(white: 0.92, alpha: 1.0)
+                let backgroundColor = if toggle {
+                    UIColor(white: 0.92, alpha: 1.0)
                 } else {
-                    backgroundColor = UIColor(white: 0.82, alpha: 1.0)
+                    UIColor(white: 0.82, alpha: 1.0)
                 }
                 cell.backgroundColor = backgroundColor
                 toggle = !toggle
@@ -98,25 +95,24 @@ final class GamePlayViewController: ScreenViewController<GamePlayScreen> {
     override func screenDidChange(from previousScreen: GamePlayScreen, previousEnvironment: ViewEnvironment) {
         super.screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 
-        let title: String
-        switch screen.gameState {
+        let title = switch screen.gameState {
         case .ongoing(turn: let turn):
             switch turn {
             case .x:
-                title = "\(screen.playerX), place your 🙅"
+                "\(screen.playerX), place your 🙅"
             case .o:
-                title = "\(screen.playerO), place your 🙆"
+                "\(screen.playerO), place your 🙆"
             }
 
         case .tie:
-            title = "It's a Tie!"
+            "It's a Tie!"
 
         case .win(let player):
             switch player {
             case .x:
-                title = "The 🙅's have it, \(screen.playerX) wins!"
+                "The 🙅's have it, \(screen.playerX) wins!"
             case .o:
-                title = "The 🙆's have it, \(screen.playerO) wins!"
+                "The 🙆's have it, \(screen.playerO) wins!"
             }
         }
         titleLabel.text = title

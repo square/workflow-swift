@@ -26,7 +26,7 @@ public struct ViewEnvironment {
     /// root workflow into a root WorkflowHostingController or when writing tests.
     /// In other scenarios, containers should pass down the ViewEnvironment
     /// value they get from above.
-    public static let empty: ViewEnvironment = ViewEnvironment()
+    public static let empty: ViewEnvironment = .init()
 
     /// Storage of [K.Type: K.Value] where K: ViewEnvironmentKey
     private var storage: [ObjectIdentifier: Any]
@@ -44,9 +44,9 @@ public struct ViewEnvironment {
     public subscript<Key>(key: Key.Type) -> Key.Value where Key: ViewEnvironmentKey {
         get {
             if let value = storage[ObjectIdentifier(key)] as? Key.Value {
-                return value
+                value
             } else {
-                return Key.defaultValue
+                Key.defaultValue
             }
         }
 

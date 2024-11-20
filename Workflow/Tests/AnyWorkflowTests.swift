@@ -93,11 +93,11 @@ extension PassthroughWorkflow {
     struct State {}
 
     func makeInitialState() -> State {
-        return State()
+        State()
     }
 
     func render(state: State, context: RenderContext<PassthroughWorkflow<Rendering>>) -> Rendering {
-        return child.rendered(in: context)
+        child.rendered(in: context)
     }
 }
 
@@ -110,11 +110,11 @@ extension SimpleWorkflow {
     struct State {}
 
     func makeInitialState() -> State {
-        return State()
+        State()
     }
 
     func render(state: State, context: RenderContext<SimpleWorkflow>) -> String {
-        return String(string.reversed())
+        String(string.reversed())
     }
 }
 

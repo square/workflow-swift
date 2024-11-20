@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
+import UIKit
 import Workflow
 import WorkflowUI
-import UIKit
 
 struct CrossFadeScreen: Screen {
     var baseScreen: AnyScreen
     var key: AnyHashable
 
-    init<ScreenType: Screen, Key: Hashable>(base screen: ScreenType, key: Key?) {
+    init<ScreenType: Screen>(base screen: ScreenType, key: (some Hashable)?) {
         self.baseScreen = AnyScreen(screen)
-        if let key = key {
+        if let key {
             self.key = AnyHashable(key)
         } else {
             self.key = AnyHashable(ObjectIdentifier(ScreenType.self))
         }
     }
 
-    init<ScreenType: Screen>(base screen: ScreenType) {
+    init(base screen: some Screen) {
         let key = Optional<AnyHashable>.none
         self.init(base: screen, key: key)
     }
 
     fileprivate func isEquivalent(to otherScreen: CrossFadeScreen) -> Bool {
-        return key == otherScreen.key
+        key == otherScreen.key
     }
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return CrossFadeContainerViewController.description(for: self, environment: environment)
+        CrossFadeContainerViewController.description(for: self, environment: environment)
     }
 }
 

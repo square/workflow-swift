@@ -59,8 +59,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.6.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.54.0"),
-        .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0"..<"601.0.0-prerelease"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0" ..< "601.0.0-prerelease"),
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.1.0"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
@@ -278,7 +277,7 @@ extension PackageDescription.Product {
 }
 
 for target in package.targets {
-  var settings = target.swiftSettings ?? []
-  settings.append(.enableExperimentalFeature("StrictConcurrency=targeted"))
-  target.swiftSettings = settings
+    var settings = target.swiftSettings ?? []
+    settings.append(.enableExperimentalFeature("StrictConcurrency=targeted"))
+    target.swiftSettings = settings
 }

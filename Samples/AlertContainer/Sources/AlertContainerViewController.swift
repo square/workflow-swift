@@ -18,13 +18,13 @@ import UIKit
 import Workflow
 import WorkflowUI
 
-private struct AlertStyleConstants {
+private enum AlertStyleConstants {
     static let viewWidth: CGFloat = 343.0
     static let buttonTitleColor = UIColor(red: 41 / 255, green: 150 / 255, blue: 204 / 255, alpha: 1.0)
     static let titleFont = UIFont.systemFont(ofSize: 18, weight: .medium)
 }
 
-internal final class AlertContainerViewController<AlertScreen: Screen>: ScreenViewController<AlertContainerScreen<AlertScreen>> {
+final class AlertContainerViewController<AlertScreen: Screen>: ScreenViewController<AlertContainerScreen<AlertScreen>> {
     private var baseScreenViewController: DescribedViewController
 
     private let dimmingView = UIView()
@@ -63,7 +63,7 @@ internal final class AlertContainerViewController<AlertScreen: Screen>: ScreenVi
         baseScreenViewController.update(screen: screen.baseScreen, environment: environment)
 
         if let alert = screen.alert {
-            if let alertView = alertView {
+            if let alertView {
                 alertView.alert = alert
             } else {
                 let inAlertView = AlertView(alert: alert)
@@ -104,7 +104,7 @@ internal final class AlertContainerViewController<AlertScreen: Screen>: ScreenVi
                 )
             }
         } else {
-            if let alertView = alertView {
+            if let alertView {
                 UIView.animate(
                     withDuration: 0.1,
                     delay: 0,
@@ -126,23 +126,23 @@ internal final class AlertContainerViewController<AlertScreen: Screen>: ScreenVi
     }
 
     override var childForStatusBarStyle: UIViewController? {
-        return baseScreenViewController
+        baseScreenViewController
     }
 
     override var childForStatusBarHidden: UIViewController? {
-        return baseScreenViewController
+        baseScreenViewController
     }
 
     override var childForHomeIndicatorAutoHidden: UIViewController? {
-        return baseScreenViewController
+        baseScreenViewController
     }
 
     override var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return baseScreenViewController
+        baseScreenViewController
     }
 
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return baseScreenViewController.supportedInterfaceOrientations
+        baseScreenViewController.supportedInterfaceOrientations
     }
 }
 
@@ -173,7 +173,7 @@ private final class AlertView: UIView {
     }
 
     private func commonInit() {
-        guard let alert = alert else {
+        guard let alert else {
             return
         }
         title.text = alert.title
@@ -253,6 +253,7 @@ private final class AlertButton: UIButton {
         addTarget(self, action: #selector(triggerActionHandler), for: .touchUpInside)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

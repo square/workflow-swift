@@ -26,7 +26,7 @@ struct TodoListScreen: Screen {
     var onTodoSelected: (Int) -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return TodoListViewController.description(for: self, environment: environment)
+        TodoListViewController.description(for: self, environment: environment)
     }
 }
 

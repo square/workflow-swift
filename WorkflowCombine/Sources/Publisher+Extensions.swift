@@ -17,7 +17,8 @@ import Workflow
 /// this solutions makes it so that all publishers can render its view.
 extension Publisher where Failure == Never {
     public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where
-        Output == AnyWorkflowAction<Parent> {
+        Output == AnyWorkflowAction<Parent>
+    {
         asAnyWorkflow().rendered(in: context, key: key, outputMap: { $0 })
     }
 

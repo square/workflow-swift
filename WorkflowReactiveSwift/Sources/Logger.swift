@@ -30,12 +30,10 @@ extension WorkerLogging {
     }
 }
 
-private extension OSLog {
-    static let worker = OSLog(subsystem: "com.squareup.WorkflowReactiveSwift", category: "Worker")
+extension OSLog {
+    fileprivate static let worker = OSLog(subsystem: "com.squareup.WorkflowReactiveSwift", category: "Worker")
 
-    static var active: OSLog = {
-        WorkflowLogging.isOSLoggingAllowed ? .worker : .disabled
-    }()
+    fileprivate static var active: OSLog = WorkflowLogging.isOSLoggingAllowed ? .worker : .disabled
 }
 
 // MARK: -

@@ -28,8 +28,8 @@ open class WorkflowUIViewController: UIViewController {
     /// Observation event emission point.
     /// - Parameter event: The event forwarded to any observers.
     @_spi(ExperimentalObservation)
-    public final func sendObservationEvent<E: WorkflowUIEvent>(
-        _ event: @autoclosure () -> E
+    public final func sendObservationEvent(
+        _ event: @autoclosure () -> some WorkflowUIEvent
     ) {
         WorkflowUIObservation
             .sharedUIObserver?

@@ -17,7 +17,7 @@ let project = Project(
                 .target(name: "Tutorial5Complete"),
             ]
         ),
-        
+
         .target(
             name: "Tutorial1Complete",
             sources: "Frameworks/Tutorial1Complete/Sources/**",
@@ -116,6 +116,6 @@ let project = Project(
                     .testableTarget(target: .target("TutorialBase-Tests")),
                 ]
             )
-        )
+        ),
     ]
 )

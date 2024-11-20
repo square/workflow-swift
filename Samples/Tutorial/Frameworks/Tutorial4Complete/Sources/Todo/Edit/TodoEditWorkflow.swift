@@ -41,7 +41,7 @@ extension TodoEditWorkflow {
     }
 
     func makeInitialState() -> TodoEditWorkflow.State {
-        return State(todo: initialTodo)
+        State(todo: initialTodo)
     }
 
     func workflowDidChange(from previousWorkflow: TodoEditWorkflow, state: inout State) {
@@ -99,7 +99,7 @@ extension TodoEditWorkflow {
         }
 
         func isEquivalent(to otherWorker: TodoEditWorker) -> Bool {
-            return true
+            true
         }
     }
 }

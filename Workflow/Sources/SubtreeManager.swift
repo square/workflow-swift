@@ -19,20 +19,20 @@ import Dispatch
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
     /// the lifecycle of nested workflows across multiple render passes.
-    internal final class SubtreeManager {
-        internal var onUpdate: ((Output) -> Void)?
+    final class SubtreeManager {
+        var onUpdate: ((Output) -> Void)?
 
         /// Sinks from the outside world (i.e. UI)
-        internal private(set) var eventPipes: [EventPipe] = []
+        private(set) var eventPipes: [EventPipe] = []
 
         /// Reusable sinks from the previous render pass
         private var previousSinks: [ObjectIdentifier: AnyReusableSink] = [:]
 
         /// The current array of children
-        internal private(set) var childWorkflows: [ChildKey: AnyChildWorkflow] = [:]
+        private(set) var childWorkflows: [ChildKey: AnyChildWorkflow] = [:]
 
         /// The current array of side-effects
-        internal private(set) var sideEffectLifetimes: [AnyHashable: SideEffectLifetime] = [:]
+        private(set) var sideEffectLifetimes: [AnyHashable: SideEffectLifetime] = [:]
 
         private let session: WorkflowSession
 
@@ -108,8 +108,8 @@ extension WorkflowNode {
         }
 
         func makeDebugSnapshot() -> [WorkflowHierarchyDebugSnapshot.Child] {
-            return childWorkflows
-                .sorted(by: { (lhs, rhs) -> Bool in
+            childWorkflows
+                .sorted(by: { lhs, rhs -> Bool in
                     lhs.key.key < rhs.key.key
                 })
                 .map {
@@ -138,20 +138,20 @@ extension WorkflowNode.SubtreeManager {
 extension WorkflowNode.SubtreeManager {
     /// The workflow context implementation used by the subtree manager.
     fileprivate final class Context: RenderContextType {
-        internal private(set) var eventPipes: [EventPipe]
+        private(set) var eventPipes: [EventPipe]
 
-        internal private(set) var sinkStore: SinkStore
+        private(set) var sinkStore: SinkStore
 
         private let originalChildWorkflows: [ChildKey: AnyChildWorkflow]
-        internal private(set) var usedChildWorkflows: [ChildKey: AnyChildWorkflow]
+        private(set) var usedChildWorkflows: [ChildKey: AnyChildWorkflow]
 
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
-        internal private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
+        private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
         private let session: WorkflowSession
         private let observer: WorkflowObserver?
 
-        internal init(
+        init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
             originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
@@ -179,7 +179,8 @@ extension WorkflowNode.SubtreeManager {
         ) -> Child.Rendering
             where Child: Workflow,
             Action: WorkflowAction,
-            WorkflowType == Action.WorkflowType {
+            WorkflowType == Action.WorkflowType
+        {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
 
@@ -257,7 +258,7 @@ extension WorkflowNode.SubtreeManager {
 extension WorkflowNode.SubtreeManager {
     fileprivate struct SinkStore {
         var eventPipes: [EventPipe] {
-            return usedSinks.values.map { reusableSink -> EventPipe in
+            usedSinks.values.map { reusableSink -> EventPipe in
                 reusableSink.eventPipe
             }
         }
@@ -322,7 +323,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - EventPipe
 
 extension WorkflowNode.SubtreeManager {
-    internal final class EventPipe {
+    final class EventPipe {
         var validationState: ValidationState
         enum ValidationState {
             case preparing
@@ -406,7 +407,7 @@ extension WorkflowNode.SubtreeManager {
         var childType: Any.Type
         var key: String
 
-        init<T>(childType: T.Type, key: String) {
+        init(childType: (some Any).Type, key: String) {
             self.childType = childType
             self.key = key
         }
@@ -417,7 +418,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         static func == (lhs: ChildKey, rhs: ChildKey) -> Bool {
-            return lhs.childType == rhs.childType
+            lhs.childType == rhs.childType
                 && lhs.key == rhs.key
         }
     }
@@ -427,7 +428,7 @@ extension WorkflowNode.SubtreeManager {
 
 extension WorkflowNode.SubtreeManager {
     /// Abstract base class for running children in the subtree.
-    internal class AnyChildWorkflow {
+    class AnyChildWorkflow {
         fileprivate var eventPipe: EventPipe
 
         fileprivate init(eventPipe: EventPipe) {
@@ -475,7 +476,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func render() -> W.Rendering {
-            return node.render(isRootNode: false)
+            node.render(isRootNode: false)
         }
 
         func update(
@@ -489,22 +490,20 @@ extension WorkflowNode.SubtreeManager {
         }
 
         private func handle(workflowOutput: WorkflowNode<W>.Output) {
-            let output: Output
-
-            if let outputEvent = workflowOutput.outputEvent {
-                output = Output.update(
+            let output = if let outputEvent = workflowOutput.outputEvent {
+                Output.update(
                     outputMap(outputEvent),
                     source: .subtree(workflowOutput.debugInfo)
                 )
             } else {
-                output = Output.childDidUpdate(workflowOutput.debugInfo)
+                Output.childDidUpdate(workflowOutput.debugInfo)
             }
 
             eventPipe.handle(event: output)
         }
 
         override func makeDebugSnapshot() -> WorkflowHierarchyDebugSnapshot {
-            return node.makeDebugSnapshot()
+            node.makeDebugSnapshot()
         }
     }
 }
@@ -512,7 +511,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - Side Effects
 
 extension WorkflowNode.SubtreeManager {
-    internal class SideEffectLifetime {
+    class SideEffectLifetime {
         fileprivate let lifetime: Lifetime
 
         fileprivate init() {

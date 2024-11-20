@@ -13,7 +13,7 @@ struct CounterWorkflow: Workflow {
     @ObservableState
     struct State {
         private var _count: Int
-        
+
         var count: Int {
             get { _count }
             set {
@@ -35,7 +35,7 @@ struct CounterWorkflow: Workflow {
         }
 
         var info: CounterInfo
-        
+
         init(count: Int, maxValue: Int? = nil, info: CounterInfo) {
             self._count = count
             self.maxValue = maxValue

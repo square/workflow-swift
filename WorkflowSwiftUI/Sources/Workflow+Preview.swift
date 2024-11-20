@@ -7,8 +7,8 @@ import SwiftUI
 import Workflow
 import WorkflowUI
 
-public extension Workflow where Rendering: Screen {
-    func workflowPreview(
+extension Workflow where Rendering: Screen {
+    public func workflowPreview(
         customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in },
         onOutput: @escaping (Output) -> Void
     ) -> some View {
@@ -21,8 +21,8 @@ public extension Workflow where Rendering: Screen {
     }
 }
 
-public extension Workflow where Rendering: Screen, Output == Never {
-    func workflowPreview(
+extension Workflow where Rendering: Screen, Output == Never {
+    public func workflowPreview(
         customizeEnvironment: @escaping (inout ViewEnvironment) -> Void = { _ in }
     ) -> some View {
         PreviewView(

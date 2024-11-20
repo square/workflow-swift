@@ -39,7 +39,7 @@ extension RootWorkflow {
     }
 
     func makeInitialState() -> RootWorkflow.State {
-        return .welcome
+        .welcome
     }
 
     func workflowDidChange(from previousWorkflow: RootWorkflow, state: inout State) {}
@@ -78,7 +78,7 @@ extension RootWorkflow {
         }
 
         func isEquivalent(to otherWorker: RootWorker) -> Bool {
-            return true
+            true
         }
     }
 }

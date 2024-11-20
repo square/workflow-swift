@@ -91,7 +91,7 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
         file: StaticString = #file, line: UInt = #line,
         perform: () -> Result
     ) -> Result {
-        return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
+        expectingFailures([messageSubstring], file: file, line: line, perform: perform)
     }
 
     @discardableResult
@@ -172,7 +172,7 @@ private struct TestWorker: Worker {
     let input: String
 
     func run() -> SignalProducer<String, Never> {
-        return SignalProducer(value: input)
+        SignalProducer(value: input)
     }
 
     func isEquivalent(to otherWorker: TestWorker) -> Bool {

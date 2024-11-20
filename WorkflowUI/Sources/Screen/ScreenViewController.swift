@@ -41,7 +41,7 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
     public private(set) final var screen: ScreenType
 
     public final var screenType: Screen.Type {
-        return ScreenType.self
+        ScreenType.self
     }
 
     private var previousEnvironment: ViewEnvironment
@@ -60,7 +60,7 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
     public final func update(screen: ScreenType) {
         let previousScreen = self.screen
         self.screen = screen
-        let previousEnvironment = self.previousEnvironment
+        let previousEnvironment = previousEnvironment
         self.previousEnvironment = environment
         screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
     }

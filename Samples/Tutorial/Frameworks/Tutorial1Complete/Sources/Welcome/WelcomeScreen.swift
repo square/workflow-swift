@@ -27,7 +27,7 @@ struct WelcomeScreen: Screen {
     var onLoginTapped: () -> Void
 
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return WelcomeViewController.description(for: self, environment: environment)
+        WelcomeViewController.description(for: self, environment: environment)
     }
 }
 

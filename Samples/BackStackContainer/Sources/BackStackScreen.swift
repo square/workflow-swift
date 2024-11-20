@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 public struct BackStackScreen<ScreenType: Screen>: Screen {
     var items: [Item]
@@ -25,7 +25,7 @@ public struct BackStackScreen<ScreenType: Screen>: Screen {
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return BackStackContainer.description(for: self, environment: environment)
+        BackStackContainer.description(for: self, environment: environment)
     }
 }
 
@@ -36,10 +36,10 @@ extension BackStackScreen {
         public var screen: ScreenType
         public var barVisibility: BarVisibility
 
-        public init<Key: Hashable>(key: Key?, screen: ScreenType, barVisibility: BarVisibility) {
+        public init(key: (some Hashable)?, screen: ScreenType, barVisibility: BarVisibility) {
             self.screen = screen
 
-            if let key = key {
+            if let key {
                 self.key = AnyHashable(key)
             } else {
                 self.key = AnyHashable(ObjectIdentifier(ScreenType.self))
@@ -52,7 +52,7 @@ extension BackStackScreen {
             self.init(key: key, screen: screen, barVisibility: barVisibility)
         }
 
-        public init<Key: Hashable>(key: Key?, screen: ScreenType, barContent: BackStackScreen.BarContent) {
+        public init(key: (some Hashable)?, screen: ScreenType, barContent: BackStackScreen.BarContent) {
             self.init(key: key, screen: screen, barVisibility: .visible(barContent))
         }
 
@@ -61,7 +61,7 @@ extension BackStackScreen {
             self.init(key: key, screen: screen, barContent: barContent)
         }
 
-        public init<Key: Hashable>(key: Key?, screen: ScreenType) {
+        public init(key: (some Hashable)?, screen: ScreenType) {
             let barVisibility: BarVisibility = .visible(BarContent())
             self.init(key: key, screen: screen, barVisibility: barVisibility)
         }
@@ -125,7 +125,7 @@ extension BackStackScreen.BarContent {
 
         /// Convenience factory for a default back button.
         public static func back(handler: @escaping () -> Void) -> Button {
-            return Button(content: .text("Back"), handler: handler)
+            Button(content: .text("Back"), handler: handler)
         }
     }
 }

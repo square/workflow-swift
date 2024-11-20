@@ -22,14 +22,14 @@
 import XCTest
 @testable import Workflow
 
-public extension Workflow {
+extension Workflow {
     /// Returns a `RenderTester` with a specified initial state.
-    func renderTester(initialState: Self.State) -> RenderTester<Self> {
+    public func renderTester(initialState: Self.State) -> RenderTester<Self> {
         RenderTester(workflow: self, state: initialState)
     }
 
     /// Returns a `RenderTester` with an initial state provided by `self.makeInitialState()`
-    func renderTester() -> RenderTester<Self> {
+    public func renderTester() -> RenderTester<Self> {
         renderTester(initialState: makeInitialState())
     }
 }
@@ -283,14 +283,14 @@ public struct RenderTester<WorkflowType: Workflow> {
     }
 }
 
-fileprivate extension Collection {
-    func appending(_ element: Element) -> [Element] {
+extension Collection {
+    fileprivate func appending(_ element: Element) -> [Element] {
         self + [element]
     }
 }
 
-fileprivate extension Dictionary {
-    func setting(key: Key, value: Value) -> [Key: Value] {
+extension Dictionary {
+    fileprivate func setting(key: Key, value: Value) -> [Key: Value] {
         var newDictionary = self
         newDictionary[key] = value
         return newDictionary

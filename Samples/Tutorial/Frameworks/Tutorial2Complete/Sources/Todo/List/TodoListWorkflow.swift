@@ -33,7 +33,7 @@ extension TodoListWorkflow {
     }
 
     func makeInitialState() -> TodoListWorkflow.State {
-        return State(todos: [TodoModel(title: "Take the cat for a walk", note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect.")])
+        State(todos: [TodoModel(title: "Take the cat for a walk", note: "Cats really need their outside sunshine time. Don't forget to walk Charlie. Hamilton is less excited about the prospect.")])
     }
 
     func workflowDidChange(from previousWorkflow: TodoListWorkflow, state: inout State) {}
@@ -64,7 +64,7 @@ extension TodoListWorkflow {
         }
 
         func isEquivalent(to otherWorker: TodoListWorker) -> Bool {
-            return true
+            true
         }
     }
 }

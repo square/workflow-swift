@@ -74,7 +74,7 @@ class SignalProducerTests: XCTestCase {
         let signalProducer = SignalProducer(values: 1, 2, 3)
             .on(disposed: {
                 expectation.fulfill()
-        })
+            })
 
         let host = WorkflowHost(
             workflow: SignalProducerWorkflow(signalProducer: signalProducer)

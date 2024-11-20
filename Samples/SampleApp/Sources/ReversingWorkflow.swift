@@ -32,6 +32,6 @@ struct ReversingWorkflow: Workflow {
 
 extension ReversingWorkflow {
     func render(state: ReversingWorkflow.State, context: RenderContext<ReversingWorkflow>) -> String {
-        return String(text.reversed())
+        String(text.reversed())
     }
 }

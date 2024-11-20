@@ -660,7 +660,7 @@ private struct Child: Workflow {
     var prop: String
 
     func render(state: Void, context: RenderContext<Child>) -> String {
-        return prop
+        prop
     }
 }
 
@@ -686,7 +686,7 @@ private struct InjectableWorkflow: Workflow {
         case forwardedOutput
 
         func apply(toState state: inout ()) -> InjectableWorkflow.Output? {
-            return .forwardedOutput
+            .forwardedOutput
         }
     }
 
@@ -697,10 +697,10 @@ private struct InjectableWorkflow: Workflow {
     }
 }
 
-private extension WorkflowSession {
-    var workflowTypeString: String { String(describing: workflowType) }
+extension WorkflowSession {
+    fileprivate var workflowTypeString: String { String(describing: workflowType) }
 
-    static var testingSession: Self {
+    fileprivate static var testingSession: Self {
         WorkflowSession(
             workflow: Parent(),
             renderKey: "",
@@ -730,7 +730,7 @@ private struct VoidStateWorkflow: Workflow {
         case actionValue
 
         func apply(toState state: inout VoidStateWorkflow.State) -> VoidStateWorkflow.Output? {
-            return nil
+            nil
         }
     }
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import WorkflowUI
 import UIKit
+import WorkflowUI
 
 /**
  Wrapper view controller for being hosted in a backstack. Handles updating the bar button items.
@@ -58,7 +58,7 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
     }
 
     func matches(item: BackStackScreen<ScreenType>.Item) -> Bool {
-        return item.key == key
+        item.key == key
             && type(of: item.screen) == ScreenType.self
     }
 
@@ -97,16 +97,16 @@ final class ScreenWrapperViewController<ScreenType: Screen>: UIViewController {
             }
         }
 
-        let title: String
-        switch barContent.title {
+        let title: String = switch barContent.title {
         case .none:
-            title = ""
+            ""
         case .text(let text):
-            title = text
+            text
         }
         navigationItem.title = title
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -127,6 +127,7 @@ extension ScreenWrapperViewController {
             update(with: button)
         }
 
+        @available(*, unavailable)
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }

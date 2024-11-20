@@ -96,7 +96,7 @@ final class AsyncOperationWorkerTests: XCTestCase {
                 }
             }
 
-            func asyncOperation(startExpectation: XCTestExpectation, endExpectation: XCTestExpectation) async -> Void {
+            func asyncOperation(startExpectation: XCTestExpectation, endExpectation: XCTestExpectation) async {
                 startExpectation.fulfill()
                 for _ in 1 ... 200 {
                     if Task.isCancelled {
@@ -147,6 +147,6 @@ private struct TestAsyncOperationWorkerWorkflow: Workflow {
     }
 
     func outputOne() async -> Int {
-        return 1
+        1
     }
 }

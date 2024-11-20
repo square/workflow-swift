@@ -30,7 +30,7 @@ public struct ModalContainerScreen<BaseScreen: Screen>: Screen {
     }
 
     public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return ModalContainerViewController.description(for: self, environment: environment)
+        ModalContainerViewController.description(for: self, environment: environment)
     }
 }
 
@@ -55,7 +55,7 @@ public struct ModalContainerScreenModal {
     /// A key used to differentiate modal screens during updates
     public var key: AnyHashable
 
-    public init<Key: Hashable>(screen: AnyScreen, style: Style = .fullScreen, key: Key, animated: Bool = true) {
+    public init(screen: AnyScreen, style: Style = .fullScreen, key: some Hashable, animated: Bool = true) {
         self.screen = screen
         self.style = style
         self.key = AnyHashable(key)

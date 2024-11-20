@@ -18,8 +18,8 @@
 
 import SwiftUI
 
-public extension ObservableValue {
-    func binding<T>(
+extension ObservableValue {
+    public func binding<T>(
         get: @escaping (Value) -> T,
         set: @escaping (Value) -> (T) -> Void
     ) -> Binding<T> {

@@ -90,7 +90,7 @@ class WorkflowConcurrencyTestingTests: XCTestCase {
         file: StaticString = #file, line: UInt = #line,
         perform: () -> Result
     ) -> Result {
-        return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
+        expectingFailures([messageSubstring], file: file, line: line, perform: perform)
     }
 
     @discardableResult
@@ -173,7 +173,7 @@ private struct TestWorker: Worker {
     let input: String
 
     func run() async -> String {
-        return input
+        input
     }
 
     func isEquivalent(to otherWorker: TestWorker) -> Bool { input == otherWorker.input }

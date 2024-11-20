@@ -162,7 +162,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     func makeDebugSnapshot() -> WorkflowHierarchyDebugSnapshot {
-        return WorkflowHierarchyDebugSnapshot(
+        WorkflowHierarchyDebugSnapshot(
             workflowType: "\(WorkflowType.self)",
             stateDescription: "\(state)",
             children: subtreeManager.makeDebugSnapshot()
@@ -177,13 +177,13 @@ extension WorkflowNode {
     }
 }
 
-private extension WorkflowNode {
+extension WorkflowNode {
     /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
     /// - Parameters:
     ///   - action: The `WorkflowAction` to apply
     ///   - isExternal: Whether the handled action came from the 'outside world' vs being bubbled up from a child node
     /// - Returns: An optional `Output` produced by the action application
-    func openAndApply<A: WorkflowAction>(
+    private func openAndApply<A: WorkflowAction>(
         _ action: A,
         isExternal: Bool
     ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {

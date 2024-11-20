@@ -42,7 +42,7 @@ extension TodoListWorkflow {
     struct State {}
 
     func makeInitialState() -> TodoListWorkflow.State {
-        return State()
+        State()
     }
 
     func workflowDidChange(from previousWorkflow: TodoListWorkflow, state: inout State) {}
@@ -62,15 +62,15 @@ extension TodoListWorkflow {
             switch self {
             case .onBack:
                 // When a `.onBack` action is received, emit a `.back` output
-                return .back
+                .back
 
             case .selectTodo(index: let index):
                 // Tell our parent that a todo item was selected.
-                return .selectTodo(index: index)
+                .selectTodo(index: index)
 
             case .new:
                 // Tell our parent a new todo item should be created.
-                return .newTodo
+                .newTodo
             }
         }
     }
@@ -87,7 +87,7 @@ extension TodoListWorkflow {
         }
 
         func isEquivalent(to otherWorker: TodoListWorker) -> Bool {
-            return true
+            true
         }
     }
 }

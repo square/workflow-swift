@@ -33,7 +33,7 @@ extension RootWorkflow {
     }
 
     func makeInitialState() -> RootWorkflow.State {
-        return .welcome
+        .welcome
     }
 }
 
@@ -64,7 +64,7 @@ extension RootWorkflow {
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         switch state {
         case .welcome:
-            return CrossFadeScreen(
+            CrossFadeScreen(
                 base: WelcomeWorkflow()
                     .mapOutput { output -> Action in
                         switch output {
@@ -76,7 +76,7 @@ extension RootWorkflow {
             )
 
         case .demo(name: let name):
-            return CrossFadeScreen(
+            CrossFadeScreen(
                 base: DemoWorkflow(name: name)
                     .rendered(in: context)
             )

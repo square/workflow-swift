@@ -112,12 +112,12 @@ public final class Store<Model: ObservableModel>: Perceptible {
 
 // MARK: - Subscripting
 
-public extension Store {
-    subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
+extension Store {
+    public subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
         state[keyPath: keyPath]
     }
 
-    subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
         get {
             state[keyPath: keyPath]
         }
@@ -126,11 +126,11 @@ public extension Store {
         }
     }
 
-    subscript<Action>(dynamicMember keyPath: KeyPath<Model, Sink<Action>>) -> Sink<Action> {
+    public subscript<Action>(dynamicMember keyPath: KeyPath<Model, Sink<Action>>) -> Sink<Action> {
         model[keyPath: keyPath]
     }
 
-    subscript<Value>(
+    public subscript<Value>(
         state state: KeyPath<State, Value>,
         send send: KeyPath<Model, (Value) -> Void>
     ) -> Value {
@@ -142,7 +142,7 @@ public extension Store {
         }
     }
 
-    subscript<Value, Action>(
+    public subscript<Value, Action>(
         state state: KeyPath<State, Value>,
         sink sink: KeyPath<Model, Sink<Action>>,
         action action: CaseKeyPath<Action, Value>
@@ -158,9 +158,9 @@ public extension Store {
 
 // MARK: - Scoping
 
-public extension Store {
+extension Store {
     /// Holds a cached child store for a nested ObservableModel on this store's model.
-    internal struct ChildStore {
+    struct ChildStore {
         var store: Any
         var setModel: (Model) -> Void
         var isInvalid: (Model) -> Bool
@@ -191,7 +191,7 @@ public extension Store {
     ///
     /// Each nested model's scope will track its own mutations, but we use this to track mutations
     /// to the wrapper itself, such as changes to a collection size.
-    internal struct ChildModelAccess {
+    struct ChildModelAccess {
         var willSet: (Store<Model>) -> Void
         var didSet: (Store<Model>) -> Void
         var isChanged: (Model, Model) -> Bool
@@ -214,7 +214,7 @@ public extension Store {
     }
 
     /// Track access to a child store wrapper.
-    internal func access(
+    func access(
         keyPath key: KeyPath<Model, some Any>,
         isChanged: @escaping (Model, Model) -> Bool,
         isInvalid: @escaping (Model) -> Bool = { _ in false }
@@ -229,7 +229,7 @@ public extension Store {
         }
     }
 
-    internal func scope<ChildModel>(
+    func scope<ChildModel>(
         key: AnyHashable,
         getModel: @escaping (Model) -> ChildModel,
         isInvalid: @escaping (Model) -> Bool
@@ -254,7 +254,7 @@ public extension Store {
 
     // Normal props
 
-    func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
+    public func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
         scope(
             key: keyPath,
             getModel: { $0[keyPath: keyPath] },
@@ -264,7 +264,7 @@ public extension Store {
 
     // Optionals
 
-    func scope<ChildModel>(
+    public func scope<ChildModel>(
         keyPath: KeyPath<Model, ChildModel?>
     ) -> Store<ChildModel>? {
         access(keyPath: keyPath) { oldModel, newModel in
@@ -289,7 +289,7 @@ public extension Store {
 
     // Collections
 
-    func scope<ChildModel, ChildCollection>(
+    public func scope<ChildModel, ChildCollection>(
         collection: KeyPath<Model, ChildCollection>
     ) -> _StoreCollection<ChildModel>
         where
@@ -321,7 +321,7 @@ public extension Store {
         }
     }
 
-    func scope<ChildModel>(
+    public func scope<ChildModel>(
         collection: KeyPath<Model, IdentifiedArray<some Any, ChildModel>>
     ) -> _StoreCollection<ChildModel> where ChildModel: ObservableModel {
         access(keyPath: collection) { oldModel, newModel in
@@ -359,17 +359,17 @@ public extension Store {
         }
     }
 
-    subscript<ChildModel: ObservableModel>(dynamicMember keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
+    public subscript<ChildModel: ObservableModel>(dynamicMember keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
         scope(keyPath: keyPath)
     }
 
-    subscript<ChildModel>(
+    public subscript<ChildModel>(
         dynamicMember keyPath: KeyPath<Model, ChildModel?>
     ) -> Store<ChildModel>? {
         scope(keyPath: keyPath)
     }
 
-    subscript<ChildModel, ChildCollection>(
+    public subscript<ChildModel, ChildCollection>(
         dynamicMember collection: KeyPath<Model, ChildCollection>
     ) -> _StoreCollection<ChildModel> where
         ChildModel: ObservableModel,
@@ -380,7 +380,7 @@ public extension Store {
         scope(collection: collection)
     }
 
-    subscript<ChildModel>(
+    public subscript<ChildModel>(
         dynamicMember collection: KeyPath<Model, IdentifiedArray<some Any, ChildModel>>
     ) -> _StoreCollection<ChildModel> where ChildModel: ObservableModel {
         scope(collection: collection)
@@ -408,19 +408,19 @@ public struct _StoreCollection<Model: ObservableModel>: RandomAccessCollection {
 
 // MARK: - Single action conveniences
 
-public extension Store where Model: SingleActionModel {
-    func action(_ action: Model.Action) -> () -> Void {
+extension Store where Model: SingleActionModel {
+    public func action(_ action: Model.Action) -> () -> Void {
         { self.send(action) }
     }
 
-    func send(_ action: Model.Action) {
+    public func send(_ action: Model.Action) {
         guard !invalidated else {
             return
         }
         model.sendAction(action)
     }
 
-    subscript<Value>(
+    public subscript<Value>(
         state keyPath: KeyPath<State, Value>,
         action action: CaseKeyPath<Model.Action, Value>
     ) -> Value {

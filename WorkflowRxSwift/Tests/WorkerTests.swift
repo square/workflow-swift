@@ -93,9 +93,9 @@ class WorkerTests: XCTestCase {
                         .never()
                         .startWith(())
                         .do(onSubscribed: {
-                            self.startExpectation.fulfill()
+                            startExpectation.fulfill()
                         }, onDispose: {
-                            self.endExpectation.fulfill()
+                            endExpectation.fulfill()
                         })
                 }
 
