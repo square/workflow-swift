@@ -91,8 +91,6 @@ extension Workflow where State == Void {
     public func makeInitialState() -> State {
         ()
     }
-
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 extension Workflow {

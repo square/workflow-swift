@@ -127,8 +127,6 @@ private struct OnOutputWorkflow: Workflow {
         false
     }
 
-    func workflowDidChange(from previousWorkflow: OnOutputWorkflow, state: inout Bool) {}
-
     func render(state: State, context: RenderContext<OnOutputWorkflow>) -> Bool {
         OnOutputChildWorkflow()
             .onOutput { state, output in
