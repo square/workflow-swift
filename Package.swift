@@ -57,8 +57,8 @@ let package = Package(
         .singleTargetLibrary("WorkflowSwiftUIExperimental"),
     ],
     dependencies: [
-        .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.6.0"),
+        .package(url: "https://github.com/reactivecocoa/reactiveswift.git", from: "7.1.1"),
+        .package(url: "https://github.com/reactivex/rxswift.git", from: "6.6.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0" ..< "601.0.0-prerelease"),
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.1.0"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
@@ -70,7 +70,7 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: [.product(name: "ReactiveSwift", package: "ReactiveSwift")],
+            dependencies: [.product(name: "reactiveswift", package: "reactiveswift")],
             path: "Workflow/Sources"
         ),
         .testTarget(
@@ -143,7 +143,7 @@ let package = Package(
 
         .target(
             name: "WorkflowReactiveSwift",
-            dependencies: [.product(name: "ReactiveSwift", package: "ReactiveSwift"), "Workflow"],
+            dependencies: [.product(name: "reactiveswift", package: "reactiveswift"), "Workflow"],
             path: "WorkflowReactiveSwift/Sources"
         ),
         .testTarget(
@@ -167,7 +167,7 @@ let package = Package(
 
         .target(
             name: "WorkflowRxSwift",
-            dependencies: [.product(name: "RxSwift", package: "RxSwift"), "Workflow"],
+            dependencies: [.product(name: "rxswift", package: "rxswift"), "Workflow"],
             path: "WorkflowRxSwift/Sources"
         ),
         .testTarget(
