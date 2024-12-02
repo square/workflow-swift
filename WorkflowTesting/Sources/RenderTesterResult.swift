@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import CustomDump
 import Workflow
 import XCTest
 
@@ -129,13 +130,23 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     ///   and is expected to mutate it to match the new state.
     @discardableResult
     public func assertStateModifications(
-        file: StaticString = #file,
+        _ modifications: (inout WorkflowType.State) throws -> Void,
+        fileID: StaticString = #fileID,
+        filePath: StaticString = #filePath,
         line: UInt = #line,
-        _ modifications: (inout WorkflowType.State) throws -> Void
+        column: UInt = #column
     ) rethrows -> RenderTesterResult<WorkflowType> {
         var initialState = initialState
         try modifications(&initialState)
-        XCTAssertEqual(state, initialState, "Expected state does not match", file: file, line: line)
+        expectNoDifference(
+            initialState,
+            state,
+            "Expected state does not match",
+            fileID: fileID,
+            filePath: filePath,
+            line: line,
+            column: column
+        )
         return self
     }
 }
