@@ -64,7 +64,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
         .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.1.4"),
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.2.1"),
     ],
     targets: [
         // MARK: Workflow

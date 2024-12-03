@@ -130,22 +130,18 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     ///   and is expected to mutate it to match the new state.
     @discardableResult
     public func assertStateModifications(
-        _ modifications: (inout WorkflowType.State) throws -> Void,
-        fileID: StaticString = #fileID,
-        filePath: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line,
-        column: UInt = #column
+        _ modifications: (inout WorkflowType.State) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         var initialState = initialState
         try modifications(&initialState)
-        expectNoDifference(
+        XCTAssertNoDifference(
             initialState,
             state,
             "Expected state does not match",
-            fileID: fileID,
-            filePath: filePath,
-            line: line,
-            column: column
+            file: file,
+            line: line
         )
         return self
     }
