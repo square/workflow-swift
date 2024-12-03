@@ -152,7 +152,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowReactiveSwiftTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
+            dependencies: ["WorkflowTesting", "WorkflowReactiveSwiftTesting"],
             path: "WorkflowReactiveSwift/Tests"
         ),
         .target(
@@ -163,7 +163,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowReactiveSwiftTestingTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
+            dependencies: ["WorkflowTesting", "WorkflowReactiveSwiftTesting"],
             path: "WorkflowReactiveSwift/TestingTests"
         ),
 
@@ -176,7 +176,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowRxSwiftTests",
-            dependencies: ["WorkflowRxSwiftTesting", "WorkflowReactiveSwift"],
+            dependencies: ["WorkflowTesting", "WorkflowRxSwiftTesting", "WorkflowReactiveSwift"],
             path: "WorkflowRxSwift/Tests"
         ),
         .target(
@@ -187,7 +187,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WorkflowRxSwiftTestingTests",
-            dependencies: ["WorkflowRxSwiftTesting"],
+            dependencies: ["WorkflowTesting", "WorkflowRxSwiftTesting"],
             path: "WorkflowRxSwift/TestingTests"
         ),
 
