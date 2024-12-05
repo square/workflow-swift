@@ -341,7 +341,7 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
-    func test_assertState() {
+    func test_assertStateModifications() {
         let result = TestWorkflow()
             .renderTester(initialState: .idle)
             .render { _ in }

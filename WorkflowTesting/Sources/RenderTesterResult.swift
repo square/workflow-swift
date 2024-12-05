@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import CustomDump
 import Workflow
 import XCTest
 
@@ -135,7 +136,13 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     ) rethrows -> RenderTesterResult<WorkflowType> {
         var initialState = initialState
         try modifications(&initialState)
-        XCTAssertEqual(state, initialState, "Expected state does not match", file: file, line: line)
+        XCTAssertNoDifference(
+            initialState,
+            state,
+            "Expected state does not match",
+            file: file,
+            line: line
+        )
         return self
     }
 }
