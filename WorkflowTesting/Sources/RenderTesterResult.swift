@@ -80,7 +80,13 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType, ActionType: Equatable {
         verifyAction(file: file, line: line) { appliedAction in
-            XCTAssertEqual(appliedAction, action, file: file, line: line)
+            XCTAssertNoDifference(
+                appliedAction,
+                action,
+                "Action (First) does not match the expected action (Second)",
+                file: file,
+                line: line
+            )
         }
     }
 
@@ -120,7 +126,13 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
         file: StaticString = #file,
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
-        XCTAssertEqual(state, expectedState, file: file, line: line)
+        XCTAssertNoDifference(
+            state,
+            expectedState,
+            "State (First) does not match the expected state (Second)",
+            file: file,
+            line: line
+        )
         return self
     }
 
@@ -137,9 +149,9 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
         var initialState = initialState
         try modifications(&initialState)
         XCTAssertNoDifference(
-            initialState,
             state,
-            "Expected state does not match",
+            initialState,
+            "State (First) does not match the expected state (Second)",
             file: file,
             line: line
         )
@@ -156,7 +168,13 @@ extension RenderTesterResult where WorkflowType.Output: Equatable {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
         verifyOutput(file: file, line: line) { output in
-            XCTAssertEqual(output, expectedOutput, file: file, line: line)
+            XCTAssertNoDifference(
+                output,
+                expectedOutput,
+                "Output (First) does not match the expected output (Second)",
+                file: file,
+                line: line
+            )
         }
     }
 }

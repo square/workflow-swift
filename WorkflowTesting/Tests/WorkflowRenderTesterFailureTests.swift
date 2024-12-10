@@ -227,7 +227,14 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doNoopAction(10)
             }
 
-        expectingFailure(#"("noop(10)") is not equal to ("noop(70)")"#) {
+        expectingFailure("""
+        failed - XCTAssertNoDifference failed: …
+
+          − TestAction.noop(10)
+          + TestAction.noop(70)
+
+        (First: −, Second: +) - Action (First) does not match the expected action (Second)
+        """) {
             result.assert(action: TestAction.noop(70))
         }
 
@@ -272,7 +279,14 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
         }
 
-        expectingFailure(#"("sendOutput("second")") is not equal to ("noop(0)")"#) {
+        expectingFailure("""
+        failed - XCTAssertNoDifference failed: …
+
+          − TestAction.sendOutput("second")
+          + TestAction.noop(0)
+
+        (First: −, Second: +) - Action (First) does not match the expected action (Second)
+        """) {
             result.assert(action: TestAction.noop(0))
         }
 
@@ -296,7 +310,14 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
                 rendering.doOutput("hello")
             }
 
-        expectingFailure(#"("string("hello")") is not equal to ("string("nope")")"#) {
+        expectingFailure("""
+        failed - XCTAssertNoDifference failed: …
+
+          − TestWorkflow.Output.string("hello")
+          + TestWorkflow.Output.string("nope")
+
+        (First: −, Second: +) - Output (First) does not match the expected output (Second)
+        """) {
             result.assert(output: .string("nope"))
         }
 
@@ -341,12 +362,36 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
     }
 
+    func test_assertState() {
+        let result = TestWorkflow()
+            .renderTester(initialState: .idle)
+            .render { _ in }
+
+        expectingFailure("""
+        failed - XCTAssertNoDifference failed: …
+
+          − TestWorkflow.State.idle
+          + TestWorkflow.State.sideEffect(key: "nah")
+
+        (First: −, Second: +) - State (First) does not match the expected state (Second)
+        """) {
+            result.assert(state: TestWorkflow.State.sideEffect(key: "nah"))
+        }
+    }
+
     func test_assertStateModifications() {
         let result = TestWorkflow()
             .renderTester(initialState: .idle)
             .render { _ in }
 
-        expectingFailure("Expected state does not match") {
+        expectingFailure("""
+        XCTAssertNoDifference failed: …
+
+          − TestWorkflow.State.idle
+          + TestWorkflow.State.sideEffect(key: "nah")
+
+        (First: −, Second: +) - State (First) does not match the expected state (Second)
+        """) {
             result.assertStateModifications { state in
                 state = .sideEffect(key: "nah")
             }
