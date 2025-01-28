@@ -39,6 +39,13 @@ private struct TestKey: ViewEnvironmentKey {
     static var defaultValue: Int = 0
 }
 
+extension ViewEnvironment {
+    fileprivate var testKey: Int {
+        get { self[TestKey.self] }
+        set { self[TestKey.self] = newValue }
+    }
+}
+
 @ObservableState
 private struct MyState {
     var emittedValue: TestKey.Value?
@@ -62,14 +69,14 @@ private struct TestKeyEmittingScreen: ObservableScreen {
     }
 
     struct ContentView: View {
-        @Environment(\.viewEnvironment)
-        var viewEnvironment: ViewEnvironment
+        @Environment(\.viewEnvironment.testKey)
+        var testValue: Int
 
         var store: Store<Model>
 
         var body: some View {
             WithPerceptionTracking {
-                let _ = { store.emittedValue = viewEnvironment[TestKey.self] }()
+                let _ = { store.emittedValue = testValue }()
                 Color.clear
                     .frame(width: 1, height: 1)
             }

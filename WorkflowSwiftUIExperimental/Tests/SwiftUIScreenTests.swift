@@ -84,6 +84,13 @@ private struct TestKey: ViewEnvironmentKey {
     static var defaultValue: Int = 0
 }
 
+extension ViewEnvironment {
+    fileprivate var testKey: Int {
+        get { self[TestKey.self] }
+        set { self[TestKey.self] = newValue }
+    }
+}
+
 private struct ContentScreen: SwiftUIScreen {
     let sizingOptions: SwiftUIScreenSizingOptions
 
@@ -103,13 +110,14 @@ private struct TestKeyEmittingScreen: SwiftUIScreen {
     }
 
     struct ContentView: View {
-        @Environment(\.viewEnvironment)
-        var viewEnvironment: ViewEnvironment
+        @Environment(\.viewEnvironment.testKey)
+        var testValue: Int
 
         var onTestKeyEmission: (TestKey.Value) -> Void
 
         var body: some View {
-            let _ = onTestKeyEmission(viewEnvironment[TestKey.self])
+            let _ = onTestKeyEmission(testValue)
+
             Color.clear
                 .frame(width: 1, height: 1)
         }
