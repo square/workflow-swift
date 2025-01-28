@@ -29,18 +29,16 @@ extension EnvironmentValues {
     }
 }
 
-
 extension Environment where Value == ViewEnvironment {
-    
     @available(
         *,
-         deprecated,
-         message:
-            """
-            Please do not create an `@Environment` property that references the top-level `viewEnvironment`: \
-            it will break SwiftUI's automatic invalidation when any part of the `ViewEnvironment` changes. \
-            Instead, reference your relevant sub-property, eg `@Environment(\\.viewEnvironment.myProperty)`.
-            """
+        deprecated,
+        message:
+        """
+        Please do not create an `@Environment` property that references the top-level `viewEnvironment`: \
+        it will break SwiftUI's automatic invalidation when any part of the `ViewEnvironment` changes. \
+        Instead, reference your relevant sub-property, eg `@Environment(\\.viewEnvironment.myProperty)`.
+        """
     )
     @inlinable public init(_ keyPath: KeyPath<EnvironmentValues, Value>) {
         fatalError(
