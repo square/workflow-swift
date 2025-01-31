@@ -97,14 +97,15 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     var swiftUIScreenSizingOptions: SwiftUIScreenSizingOptions {
         didSet {
             updateSizingOptionsIfNeeded()
-
-            if !hasLaidOutOnce {
+            if isViewLoaded {
                 setNeedsLayoutBeforeFirstLayoutIfNeeded()
             }
         }
     }
 
     private var hasLaidOutOnce = false
+    private var maxFrameWidth: CGFloat = 0
+    private var maxFrameHeight: CGFloat = 0
 
     init(
         setModel: @escaping (Model) -> Void,
@@ -132,10 +133,9 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // `UIHostingController`'s provides a system background color by default. In order to
-        // support `ObervableModelScreen`s being composed in contexts where it is composed within another
-        // view controller where a transparent background is more desirable, we set the background
-        // to clear to allow this kind of flexibility.
+        // `UIHostingController` provides a system background color by default. We set the
+        // background to clear to support contexts where it is composed within another view
+        // controller.
         view.backgroundColor = .clear
 
         setNeedsLayoutBeforeFirstLayoutIfNeeded()
@@ -146,21 +146,31 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
 
         defer { hasLaidOutOnce = true }
 
-        if #available(iOS 16.0, *) {
-            // Handled in initializer, but set it on first layout to resolve a bug where the PCS is
-            // not updated appropriately after the first layout.
-            // UI-5797
-            if !hasLaidOutOnce,
-               swiftUIScreenSizingOptions.contains(.preferredContentSize)
-            {
-                let size = view.sizeThatFits(view.frame.size)
+        if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+            // Use the largest frame ever laid out in as a constraint for preferredContentSize
+            // measurements.
+            let width = max(view.frame.width, maxFrameWidth)
+            let height = max(view.frame.height, maxFrameHeight)
 
-                if preferredContentSize != size {
-                    preferredContentSize = size
-                }
-            }
-        } else if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
-            let size = view.sizeThatFits(view.frame.size)
+            maxFrameWidth = width
+            maxFrameHeight = height
+
+            let fixedSize = CGSize(width: width, height: height)
+
+            // Measure a few different ways to account for ScrollView behavior. ScrollViews will
+            // always greedily fill the space available, but will report the natural content size
+            // when given an infinite size. By combining the results of these measurements we can
+            // deduce the natural size of content that scrolls in either direction, or both, or
+            // neither.
+
+            let fixedResult = view.sizeThatFits(fixedSize)
+            let unboundedHorizontalResult = view.sizeThatFits(CGSize(width: .infinity, height: fixedSize.height))
+            let unboundedVerticalResult = view.sizeThatFits(CGSize(width: fixedSize.width, height: .infinity))
+
+            let size = CGSize(
+                width: min(fixedResult.width, unboundedHorizontalResult.width),
+                height: min(fixedResult.height, unboundedVerticalResult.height)
+            )
 
             if preferredContentSize != size {
                 preferredContentSize = size
@@ -175,10 +185,6 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     }
 
     private func updateSizingOptionsIfNeeded() {
-        if #available(iOS 16.0, *) {
-            self.sizingOptions = swiftUIScreenSizingOptions.uiHostingControllerSizingOptions
-        }
-
         if !swiftUIScreenSizingOptions.contains(.preferredContentSize),
            preferredContentSize != .zero
         {
@@ -187,7 +193,7 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
     }
 
     private func setNeedsLayoutBeforeFirstLayoutIfNeeded() {
-        if swiftUIScreenSizingOptions.contains(.preferredContentSize) {
+        if swiftUIScreenSizingOptions.contains(.preferredContentSize), !hasLaidOutOnce {
             // Without manually calling setNeedsLayout here it was observed that a call to
             // layoutIfNeeded() immediately after loading the view would not perform a layout, and
             // therefore would not update the preferredContentSize in viewDidLayoutSubviews().
@@ -200,19 +206,6 @@ private final class ModeledHostingController<Model, Content: View>: UIHostingCon
 
     func apply(environment: ViewEnvironment) {
         viewEnvironmentHolder.viewEnvironment = environment
-    }
-}
-
-extension SwiftUIScreenSizingOptions {
-    @available(iOS 16.0, *)
-    fileprivate var uiHostingControllerSizingOptions: UIHostingControllerSizingOptions {
-        var options = UIHostingControllerSizingOptions()
-
-        if contains(.preferredContentSize) {
-            options.insert(.preferredContentSize)
-        }
-
-        return options
     }
 }
 
