@@ -44,6 +44,7 @@ open class ScreenViewController<ScreenType: Screen>: WorkflowUIViewController {
         ScreenType.self
     }
 
+    @_alwaysEmitIntoClient
     private var previousEnvironment: ViewEnvironment
 
     public required init(screen: ScreenType, environment: ViewEnvironment) {
