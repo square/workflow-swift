@@ -476,7 +476,7 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func render() -> W.Rendering {
-            node.render(isRootNode: false)
+            node.render()
         }
 
         func update(
