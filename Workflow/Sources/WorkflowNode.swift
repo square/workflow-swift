@@ -114,8 +114,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
     /// - Parameter isRootNode: whether or not this is the root node of the tree. Note, this
     /// is currently only used as a hint for the logging infrastructure, and is up to callers to correctly specify.
     /// - Returns: A `Rendering` of appropriate type
-    func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
-        WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
+    func render() -> WorkflowType.Rendering {
+        WorkflowLogger.logWorkflowStartedRendering(ref: self)
 
         let renderObserverCompletion = observer?.workflowWillRender(
             workflow,
@@ -128,7 +128,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
         defer {
             renderObserverCompletion?(rendering)
 
-            WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
+            WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
         rendering = subtreeManager.render { context in
@@ -211,5 +211,13 @@ extension WorkflowNode {
         output = action.apply(toState: &state)
 
         return output
+    }
+}
+
+// MARK: - Utility
+
+extension WorkflowNode {
+    var isRootNode: Bool {
+        session.parent == nil
     }
 }

@@ -37,7 +37,7 @@ class PerformanceTests: XCTestCase {
     func test_render_wideShallowTree() throws {
         measure {
             let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
@@ -47,14 +47,14 @@ class PerformanceTests: XCTestCase {
                 workflow: WideShallowParentWorkflow(),
                 observer: noOpObserver
             )
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
     func test_render_narrowDeepTree() throws {
         measure {
             let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
@@ -64,7 +64,7 @@ class PerformanceTests: XCTestCase {
                 workflow: NarrowDeepParentWorkflow(),
                 observer: noOpObserver
             )
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
@@ -74,7 +74,7 @@ class PerformanceTests: XCTestCase {
 
         measure {
             let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
@@ -84,7 +84,7 @@ class PerformanceTests: XCTestCase {
 
         measure {
             let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 
@@ -94,7 +94,7 @@ class PerformanceTests: XCTestCase {
 
         measure {
             let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
-            _ = node.render(isRootNode: true)
+            _ = node.render()
         }
     }
 }

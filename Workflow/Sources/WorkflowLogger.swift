@@ -161,11 +161,10 @@ enum WorkflowLogger {
     // MARK: Rendering
 
     static func logWorkflowStartedRendering<WorkflowType>(
-        ref: WorkflowNode<WorkflowType>,
-        isRootNode: Bool
+        ref: WorkflowNode<WorkflowType>
     ) {
         guard shouldLogRenderTimings(
-            isRootNode: isRootNode
+            isRootNode: ref.isRootNode
         ) else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
@@ -180,11 +179,10 @@ enum WorkflowLogger {
     }
 
     static func logWorkflowFinishedRendering(
-        ref: WorkflowNode<some Any>,
-        isRootNode: Bool
+        ref: WorkflowNode<some Any>
     ) {
         guard shouldLogRenderTimings(
-            isRootNode: isRootNode
+            isRootNode: ref.isRootNode
         ) else { return }
 
         let signpostID = OSSignpostID(log: .active, object: ref)
@@ -194,7 +192,7 @@ enum WorkflowLogger {
     // MARK: - Utilities
 
     private static func shouldLogRenderTimings(
-        isRootNode: Bool
+        isRootNode: @autoclosure () -> Bool
     ) -> Bool {
         guard WorkflowLogging.isOSLoggingAllowed else {
             return false
@@ -203,7 +201,7 @@ enum WorkflowLogger {
         case .none:
             return false
         case .rootsOnly:
-            return isRootNode
+            return isRootNode()
         case .allNodes:
             return true
         }

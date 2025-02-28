@@ -69,7 +69,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             observer: observer
         )
 
-        self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))
+        self.mutableRendering = MutableProperty(rootNode.render())
         self.rendering = Property(mutableRendering)
         rootNode.enableEvents()
 
@@ -96,7 +96,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render(isRootNode: true)
+        mutableRendering.value = rootNode.render()
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)

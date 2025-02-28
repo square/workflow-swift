@@ -236,6 +236,26 @@ final class WorkflowNodeTests: XCTestCase {
         XCTAssertTrue(sessions[2].workflowType is EventEmittingWorkflow.Type)
         XCTAssertEqual(sessions[0].sessionID, sessions[1].parent?.sessionID)
     }
+
+    func test_isRootNode() {
+        do {
+            let root = WorkflowNode(workflow: SimpleWorkflow(string: "root"))
+            XCTAssert(root.isRootNode)
+        }
+
+        do {
+            let parentSession = WorkflowSession(
+                workflow: SimpleWorkflow(string: "parent"),
+                renderKey: "",
+                parent: nil
+            )
+            let root = WorkflowNode(
+                workflow: SimpleWorkflow(string: "root"),
+                parentSession: parentSession
+            )
+            XCTAssertFalse(root.isRootNode)
+        }
+    }
 }
 
 /// Renders two child state machines of types `A` and `B`.
