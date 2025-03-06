@@ -120,9 +120,9 @@ NameLoadingWorkflow()
 // After
 NameLoadingWorkflow()
     .renderTester(initialState: .init(state: .loading, token: "user-token"))
-    .expect(
-        worker: LoadingWorker(token: "user-token"),
-        producingOutput: .success("Ben Cochran")
+    .mockWorker(
+        expectedWorker: LoadingWorker(token: "user-token"),
+        mockingOutput: .success("Ben Cochran")
     )
     .render { rendering in 
         XCTAssertEqual(rendering.title, "Loading")

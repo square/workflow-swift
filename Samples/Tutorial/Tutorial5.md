@@ -334,9 +334,9 @@ workflow
         producingRendering: ChildScreen(),
         producingOutput: .closed
     )
-    .expect(
-        worker: TestWorker(),
-        producingOutput: .finished
+    .mockWorker(
+        expectedWorker: TestWorker(),
+        mockingOutput: .finished
     )
     .render { rendering in
         XCTAssertEqual("expected text on rendering", rendering.text)
