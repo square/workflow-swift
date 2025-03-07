@@ -17,8 +17,6 @@ extension ___VARIABLE_productName___Workflow {
     func makeInitialState() -> ___VARIABLE_productName___Workflow.State {
         return State()
     }
-
-    func workflowDidChange(from previousWorkflow: ___VARIABLE_productName___Workflow, state: inout State) {}
 }
 
 // MARK: Actions
