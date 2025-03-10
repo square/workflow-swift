@@ -119,7 +119,10 @@ extension Store {
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
         get {
-            state[keyPath: keyPath]
+            print("reading from Store: \(keyPath)")
+            let value = state[keyPath: keyPath]
+            print("read value: \(value)")
+            return value
         }
         set {
             send(keyPath: keyPath, value: newValue)
@@ -252,6 +255,39 @@ extension Store {
         return childStore
     }
 
+    func scope<ChildState: ObservableState>(
+        key: AnyHashable,
+        path: WritableKeyPath<Model.State, ChildState>,
+        isInvalid: @escaping (Model) -> Bool
+    ) -> Store<StateAccessor<ChildState>> {
+        if let childStore = childStores[key]?.store as? Store<StateAccessor<ChildState>> {
+            return childStore
+        }
+
+        func makeChildModel(model: Model) -> StateAccessor<ChildState> {
+            let childState = model.accessor.state[keyPath: path]
+            return StateAccessor(state: childState, sendValue: sendValue)
+        }
+
+        func sendValue(_ mutation: @escaping (inout ChildState) -> Void) {
+            model.accessor.sendValue { modelState in
+                mutation(&modelState[keyPath: path])
+            }
+        }
+
+        let childStore = Store<StateAccessor>(makeChildModel(model: model))
+
+        childStores[key] = ChildStore(
+            store: childStore,
+            setModel: { model in
+                childStore.setModel(makeChildModel(model: model))
+            },
+            isInvalid: isInvalid
+        )
+
+        return childStore
+    }
+
     // Normal props
 
     public func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
@@ -321,6 +357,44 @@ extension Store {
         }
     }
 
+    public func scope<ChildState>(
+        collection: WritableKeyPath<Model.State, [ChildState]>
+    ) -> _StoreCollection<StateAccessor<ChildState>>
+        where
+        ChildState: ObservableState
+//        ChildCollection: Array,
+//        ChildCollection.Element == ChildState,
+//        ChildCollection.Index == Int
+    {
+        access(keyPath: (\Model.accessor.state).appending(path: collection)) { oldModel, newModel in
+            // invalidate if collection size changes
+            oldModel.accessor.state[keyPath: collection].count != newModel.accessor.state[keyPath: collection].count
+        }
+
+        let states = model.accessor.state[keyPath: collection]
+
+        let store: Store<StateAccessor<ChildState>> = self.scope(
+            key: collection.appending(path: \.[0]),
+            path: collection.appending(path: \.[0]),
+            isInvalid: { model in
+                !model.accessor.state[keyPath: collection].indices.contains(0)
+            }
+        )
+
+        return _StoreCollection(
+            startIndex: states.startIndex,
+            endIndex: states.endIndex
+        ) { index in
+            self.scope(
+                key: collection.appending(path: \.[index]),
+                path: collection.appending(path: \.[index]),
+                isInvalid: { model in
+                    !model.accessor.state[keyPath: collection].indices.contains(index)
+                }
+            )
+        }
+    }
+
     public func scope<ChildModel>(
         collection: KeyPath<Model, IdentifiedArray<some Any, ChildModel>>
     ) -> _StoreCollection<ChildModel> where ChildModel: ObservableModel {
@@ -376,6 +450,15 @@ extension Store {
         ChildCollection: RandomAccessCollection,
         ChildCollection.Element == ChildModel,
         ChildCollection.Index == Int
+    {
+        scope(collection: collection)
+    }
+
+    public subscript<ChildState>(
+        dynamicMember collection: WritableKeyPath<Model.State, [ChildState]>
+    ) -> _StoreCollection<StateAccessor<ChildState>>
+        where
+        ChildState: ObservableState
     {
         scope(collection: collection)
     }

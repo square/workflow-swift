@@ -26,6 +26,10 @@ public struct StateAccessor<State: ObservableState> {
         self.state = state
         self.sendValue = sendValue
     }
+
+    func send(_ mutation: @escaping (inout State) -> Void) {
+        sendValue(mutation)
+    }
 }
 
 extension StateAccessor: ObservableModel {

@@ -8,7 +8,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let root = WorkflowHostingController(
-            workflow: MultiCounterWorkflow().mapRendering(MultiCounterScreen.init)
+            //            workflow: MultiCounterWorkflow().mapRendering(MultiCounterScreen.init)
+            workflow: FlatMultiCounterWorkflow().mapRendering(FlatMultiCounterScreen.init)
         )
         root.view.backgroundColor = .systemBackground
 
