@@ -404,22 +404,15 @@ extension WorkflowNode.SubtreeManager {
 
 extension WorkflowNode.SubtreeManager {
     struct ChildKey: Hashable {
-        var childType: Any.Type
+        var childTypeID: ObjectIdentifier
         var key: String
 
-        init(childType: (some Any).Type, key: String) {
-            self.childType = childType
+        init(
+            childType: (some Workflow).Type,
+            key: String
+        ) {
+            self.childTypeID = ObjectIdentifier(childType)
             self.key = key
-        }
-
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(ObjectIdentifier(childType))
-            hasher.combine(key)
-        }
-
-        static func == (lhs: ChildKey, rhs: ChildKey) -> Bool {
-            lhs.childType == rhs.childType
-                && lhs.key == rhs.key
         }
     }
 }
