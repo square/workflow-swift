@@ -36,14 +36,19 @@ extension WorkflowNode {
 
         private let session: WorkflowSession
 
-        private let observer: WorkflowObserver?
+        /// Reference to the context object for the entity hosting the corresponding node.
+        private let hostContext: HostContext
+
+        private var observer: WorkflowObserver? {
+            hostContext.observer
+        }
 
         init(
             session: WorkflowSession,
-            observer: WorkflowObserver? = nil
+            hostContext: HostContext
         ) {
             self.session = session
-            self.observer = observer
+            self.hostContext = hostContext
         }
 
         /// Performs an update pass using the given closure.
@@ -60,8 +65,8 @@ extension WorkflowNode {
                 previousSinks: previousSinks,
                 originalChildWorkflows: childWorkflows,
                 originalSideEffectLifetimes: sideEffectLifetimes,
-                session: session,
-                observer: observer
+                hostContext: hostContext,
+                session: session
             )
 
             let wrapped = RenderContext.make(implementation: context)
@@ -148,18 +153,21 @@ extension WorkflowNode.SubtreeManager {
         private let originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
         private(set) var usedSideEffectLifetimes: [AnyHashable: SideEffectLifetime]
 
+        private let hostContext: HostContext
         private let session: WorkflowSession
-        private let observer: WorkflowObserver?
+
+        private var observer: WorkflowObserver? {
+            hostContext.observer
+        }
 
         init(
             previousSinks: [ObjectIdentifier: AnyReusableSink],
             originalChildWorkflows: [ChildKey: AnyChildWorkflow],
             originalSideEffectLifetimes: [AnyHashable: SideEffectLifetime],
-            session: WorkflowSession,
-            observer: WorkflowObserver?
+            hostContext: HostContext,
+            session: WorkflowSession
         ) {
             self.eventPipes = []
-
             self.sinkStore = SinkStore(previousSinks: previousSinks)
 
             self.originalChildWorkflows = originalChildWorkflows
@@ -168,8 +176,8 @@ extension WorkflowNode.SubtreeManager {
             self.originalSideEffectLifetimes = originalSideEffectLifetimes
             self.usedSideEffectLifetimes = [:]
 
+            self.hostContext = hostContext
             self.session = session
-            self.observer = observer
         }
 
         func render<Child, Action>(
@@ -194,7 +202,7 @@ extension WorkflowNode.SubtreeManager {
             let eventPipe = EventPipe()
             eventPipes.append(eventPipe)
 
-            /// See if we can
+            /// See if we can reuse an existing child node for the given key.
             if let existing = originalChildWorkflows[childKey] {
                 /// Cast the untyped child into a specific typed child. Because our children are keyed by their workflow
                 /// type, this should never fail.
@@ -217,8 +225,8 @@ extension WorkflowNode.SubtreeManager {
                     outputMap: { outputMap($0) },
                     eventPipe: eventPipe,
                     key: key,
-                    parentSession: session,
-                    observer: observer
+                    hostContext: hostContext,
+                    parentSession: session
                 )
             }
 
@@ -446,15 +454,15 @@ extension WorkflowNode.SubtreeManager {
             outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe,
             key: String,
-            parentSession: WorkflowSession?,
-            observer: WorkflowObserver?
+            hostContext: HostContext,
+            parentSession: WorkflowSession?
         ) {
             self.outputMap = outputMap
             self.node = WorkflowNode<W>(
                 workflow: workflow,
                 key: key,
-                parentSession: parentSession,
-                observer: observer
+                hostContext: hostContext,
+                parentSession: parentSession
             )
 
             super.init(eventPipe: eventPipe)

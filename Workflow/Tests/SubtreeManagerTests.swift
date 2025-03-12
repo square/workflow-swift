@@ -353,7 +353,7 @@ extension WorkflowNode.SubtreeManager {
     fileprivate convenience init() {
         self.init(
             session: .testing(),
-            observer: nil
+            hostContext: .testing()
         )
     }
 }
