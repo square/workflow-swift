@@ -217,8 +217,42 @@ extension WorkflowNode {
         )
         defer { observerCompletion?(state, output) }
 
-        /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        // Take this path only if no known state has yet been invalidated
+        // while handling this chain of action applications. We'll handle
+        // some cases in which we can reasonably infer if state actually
+        // changed during the action application.
+        if !hostContext.needsRootRender {
+            if let equatableState = state as? (any Equatable) {
+                // If we can recover an Equatable conformance, then
+                // compare before & after to see if something changed.
+                func openAndApplyEquatableState<EquatableState: Equatable>(
+                    _ equatableState: EquatableState
+                ) -> (changed: Bool, output: WorkflowType.Output?) {
+                    let initialState = equatableState
+                    // TODO: how does CoW work here?
+                    let output = action.apply(toState: &state)
+                    return (state as! EquatableState != initialState, output)
+                }
+                let result = openAndApplyEquatableState(equatableState)
+                if result.changed {
+                    // Note that we will need to render since something changed
+                    hostContext.setNeedsRootRender()
+                } else {
+                    __debug_onRenderSkipped()
+                }
+                output = result.output
+            } else if WorkflowType.State.self == Void.self {
+                // State is Void, so treat as no change
+                output = action.apply(toState: &state)
+            } else {
+                // Otherwise, assume something changed
+                hostContext.setNeedsRootRender()
+                output = action.apply(toState: &state)
+            }
+        } else {
+            // Apply the action to the current state
+            output = action.apply(toState: &state)
+        }
 
         return output
     }
@@ -231,3 +265,7 @@ extension WorkflowNode {
         session.parent == nil
     }
 }
+
+// for breakpoints
+@inline(never)
+func __debug_onRenderSkipped() {}

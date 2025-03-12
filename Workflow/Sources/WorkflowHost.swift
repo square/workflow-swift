@@ -59,8 +59,11 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     public init(
         workflow: WorkflowType,
         observers: [WorkflowObserver] = [],
-        debugger: WorkflowDebugger? = nil
+        debugger: WorkflowDebugger? = nil,
+        options: HostOptions? = nil
     ) {
+        let opts = options ?? defaultHostOptions
+
         let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
@@ -68,7 +71,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         self.context = HostContext(
             observer: observer,
-            debugger: debugger
+            debugger: debugger,
+            options: .init(canSkipRootRenderIfStateUnchanged: opts.contains(.renderOnlyIfStateChanged))
         )
 
         self.rootNode = WorkflowNode(
@@ -102,11 +106,21 @@ public final class WorkflowHost<WorkflowType: Workflow> {
                 )
             }
         )
+        // Explicitly enable re-rendering in this case as
+        // no action propagation occurred so the skip rendering
+        // flag could be stale
+        context.setNeedsRootRender()
         handle(output: output)
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render()
+        let newRendering = context.renderIfNeeded(rootNode.render)
+
+        if let newRendering {
+            mutableRendering.value = newRendering
+        } else {
+            __debug_onRootRenderSkipped()
+        }
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
@@ -117,7 +131,10 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             updateInfo: output.debugInfo.unwrappedOrErrorDefault
         )
 
-        rootNode.enableEvents()
+        // Re-enable event handlers if we rendered
+        if newRendering != nil {
+            rootNode.enableEvents()
+        }
     }
 
     /// A signal containing output events emitted by the root workflow in the hierarchy.
@@ -126,6 +143,18 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 }
 
+public struct HostOptions: OptionSet {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let renderOnlyIfStateChanged = HostOptions(rawValue: 1 << 0)
+}
+
+public var defaultHostOptions: HostOptions = [.renderOnlyIfStateChanged]
+
 // MARK: - HostContext
 
 /// A context object to expose certain root-level information to each node
@@ -133,13 +162,47 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 final class HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
+    let options: Options
+
+    private var _maybeNeedsRootRender = true
+
+    var needsRootRender: Bool {
+        guard options.canSkipRootRenderIfStateUnchanged else {
+            return true
+        }
+
+        return _maybeNeedsRootRender
+    }
+
+    fileprivate func renderIfNeeded<T>(_ render: () -> T) -> T? {
+        defer { _maybeNeedsRootRender = false }
+
+        guard needsRootRender else { return nil }
+        return render()
+    }
+
+    func setNeedsRootRender() {
+        guard options.canSkipRootRenderIfStateUnchanged,
+              !_maybeNeedsRootRender
+        else { return }
+
+        _maybeNeedsRootRender = true
+    }
+
+    // MARK: -
+
+    var canSkipRenders: Bool {
+        options.canSkipRootRenderIfStateUnchanged
+    }
 
     init(
         observer: WorkflowObserver?,
-        debugger: WorkflowDebugger?
+        debugger: WorkflowDebugger?,
+        options: Options = .default
     ) {
         self.observer = observer
         self.debugger = debugger
+        self.options = options
     }
 }
 
@@ -150,3 +213,14 @@ extension HostContext {
         debugger != nil ? perform() : nil
     }
 }
+
+extension HostContext {
+    struct Options {
+        static let `default` = Options()
+
+        var canSkipRootRenderIfStateUnchanged: Bool = false
+    }
+}
+
+@inline(never)
+func __debug_onRootRenderSkipped() {}
