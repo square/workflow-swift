@@ -32,8 +32,6 @@ public protocol WorkflowDebugger {
 
 /// Manages an active workflow hierarchy.
 public final class WorkflowHost<WorkflowType: Workflow> {
-    private let debugger: WorkflowDebugger?
-
     private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
 
     // @testable
@@ -44,6 +42,13 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
     /// as state transitions occur within the hierarchy.
     public let rendering: Property<WorkflowType.Rendering>
+
+    /// Context object to pass down to descendant nodes in the tree.
+    let context: HostContext
+
+    private var debugger: WorkflowDebugger? {
+        context.debugger
+    }
 
     /// Initializes a new host with the given workflow at the root.
     ///
@@ -56,17 +61,20 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         observers: [WorkflowObserver] = [],
         debugger: WorkflowDebugger? = nil
     ) {
-        self.debugger = debugger
-
         let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
             .chained()
 
+        self.context = HostContext(
+            observer: observer,
+            debugger: debugger
+        )
+
         self.rootNode = WorkflowNode(
             workflow: workflow,
-            parentSession: nil,
-            observer: observer
+            hostContext: context,
+            parentSession: nil
         )
 
         self.mutableRendering = MutableProperty(rootNode.render())
@@ -113,5 +121,22 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// A signal containing output events emitted by the root workflow in the hierarchy.
     public var output: Signal<WorkflowType.Output, Never> {
         outputEvent
+    }
+}
+
+// MARK: - HostContext
+
+/// A context object to expose certain root-level information to each node
+/// in the Workflow tree.
+final class HostContext {
+    let observer: WorkflowObserver?
+    let debugger: WorkflowDebugger?
+
+    init(
+        observer: WorkflowObserver?,
+        debugger: WorkflowDebugger?
+    ) {
+        self.observer = observer
+        self.debugger = debugger
     }
 }

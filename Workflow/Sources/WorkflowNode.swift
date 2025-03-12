@@ -16,16 +16,14 @@
 
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
-    /// Holds the current state of the workflow
+    /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
 
-    /// Holds the current workflow.
+    /// Holds the current `Workflow` managed by this node.
     private var workflow: WorkflowType
 
-    /// An optional `WorkflowObserver` instance
-    let observer: WorkflowObserver?
-
-    var onOutput: ((Output) -> Void)?
+    /// Reference to the context object for the entity hosting this node.
+    let hostContext: HostContext
 
     /// Manages the children of this workflow, including diffs during/after render passes.
     private let subtreeManager: SubtreeManager
@@ -33,15 +31,23 @@ final class WorkflowNode<WorkflowType: Workflow> {
     /// 'Session' metadata associated with this node
     let session: WorkflowSession
 
+    /// Callback to invoke when a child `Output` is produced.
+    var onOutput: ((Output) -> Void)?
+
+    /// An optional `WorkflowObserver` instance
+    var observer: WorkflowObserver? {
+        hostContext.observer
+    }
+
     init(
         workflow: WorkflowType,
         key: String = "",
-        parentSession: WorkflowSession? = nil,
-        observer: WorkflowObserver? = nil
+        hostContext: HostContext,
+        parentSession: WorkflowSession? = nil
     ) {
         /// Get the initial state
         self.workflow = workflow
-        self.observer = observer
+        self.hostContext = hostContext
         self.session = WorkflowSession(
             workflow: workflow,
             renderKey: key,
@@ -49,14 +55,14 @@ final class WorkflowNode<WorkflowType: Workflow> {
         )
         self.subtreeManager = SubtreeManager(
             session: session,
-            observer: observer
+            hostContext: hostContext
         )
 
-        self.observer?.sessionDidBegin(session)
+        hostContext.observer?.sessionDidBegin(session)
 
         self.state = workflow.makeInitialState()
 
-        self.observer?.workflowDidMakeInitialState(
+        observer?.workflowDidMakeInitialState(
             workflow,
             initialState: state,
             session: session

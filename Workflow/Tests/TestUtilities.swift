@@ -15,7 +15,8 @@
  */
 
 import Foundation
-import Workflow
+
+@testable import Workflow
 
 /// Renders to a model that contains a callback, which in turn sends an output event.
 struct StateTransitioningWorkflow: Workflow {
@@ -53,5 +54,18 @@ struct StateTransitioningWorkflow: Workflow {
             }
             return nil
         }
+    }
+}
+
+// MARK: -
+
+extension HostContext {
+    static func testing(
+        observer: WorkflowObserver? = nil
+    ) -> HostContext {
+        HostContext(
+            observer: observer,
+            debugger: nil
+        )
     }
 }

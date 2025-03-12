@@ -400,3 +400,21 @@ private class SessionCollectingObserver: WorkflowObserver {
 #else
 extension Never: Equatable {}
 #endif
+
+// MARK: -
+
+extension WorkflowNode {
+    convenience init(
+        workflow: WorkflowType,
+        key: String = "",
+        parentSession: WorkflowSession? = nil,
+        observer: WorkflowObserver? = nil
+    ) {
+        self.init(
+            workflow: workflow,
+            key: key,
+            hostContext: HostContext.testing(observer: observer),
+            parentSession: parentSession
+        )
+    }
+}
