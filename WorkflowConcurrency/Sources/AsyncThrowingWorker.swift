@@ -17,13 +17,13 @@
 import Foundation
 import Workflow
 
-/// Convenience to execute an async function in a worker.
+/// Convenience to execute a throwing async function in a worker.
 ///
-/// Example of using an async function.
+/// Example of using a throwing async function.
 /// ```
 /// func render(state: State, context: RenderContext<Self>) -> MyScreen {
-///     AsyncOperationWorker(myAsyncFunction)
-///         .mapOutput { MyAction($0) }
+///     AsyncOperationWorker(myAsyncThrowsFunction)
+///         .mapOutput { MyResultAction($0) }
 ///         .running(in: context, key: "UniqueKey")
 ///
 ///     return MyScreen()
@@ -34,28 +34,32 @@ import Workflow
 /// ```
 /// func render(state: State, context: RenderContext<Self>) -> MyScreen {
 ///     AsyncOperationWorker {
-///         return await asyncFunctionCall()
+///         try await asyncFunctionCall()
 ///     }
-///         .mapOutput { MyAction($0) }
+///         .mapOutput { MyResultAction($0) }
 ///         .running(in: context, key: "UniqueKey")
 ///
 ///     return MyScreen()
 /// }
 /// ```
-public struct AsyncOperationWorker<OutputType>: Worker {
-    private let operation: () async -> OutputType
+public struct AsyncThrowingWorker<Success>: Worker {
+    public typealias Output = Result<Success, Error>
 
-    public init(_ operation: @escaping () async -> OutputType) {
+    private let operation: () async throws -> Success
+
+    public init(_ operation: @escaping () async throws -> Success) {
         self.operation = operation
     }
 
-    public func run() async -> OutputType {
-        await operation()
+    public func run() async -> Result<Success, Error> {
+        do {
+            return .success(try await operation())
+        } catch {
+            return .failure(error)
+        }
     }
 
-    public typealias Output = OutputType
-
-    public func isEquivalent(to otherWorker: AsyncOperationWorker) -> Bool {
+    public func isEquivalent(to otherWorker: AsyncThrowingWorker<Success>) -> Bool {
         true
     }
 }
