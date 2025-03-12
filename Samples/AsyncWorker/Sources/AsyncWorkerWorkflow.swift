@@ -24,8 +24,6 @@ extension AsyncWorkerWorkflow {
     func makeInitialState() -> AsyncWorkerWorkflow.State {
         State(model: Model(message: "Initial State"))
     }
-
-    func workflowDidChange(from previousWorkflow: AsyncWorkerWorkflow, state: inout State) {}
 }
 
 // MARK: Actions
