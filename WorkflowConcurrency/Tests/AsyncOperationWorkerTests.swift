@@ -22,7 +22,7 @@ import XCTest
 final class AsyncOperationWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(
-            workflow: TestAsyncOperationWorkerWorkflow(key: "")
+            workflow: TestAsyncOperationWorkerWorkflow(key: "testWorkerOutput")
         )
 
         let expectation = XCTestExpectation()
@@ -40,7 +40,7 @@ final class AsyncOperationWorkerTests: XCTestCase {
 
     func testAsyncWorkerRunsOnlyOnce() {
         let host = WorkflowHost(
-            workflow: TestAsyncOperationWorkerWorkflow(key: "")
+            workflow: TestAsyncOperationWorkerWorkflow(key: "testAsyncWorkerRunsOnlyOnce")
         )
 
         var expectation = XCTestExpectation()
@@ -61,7 +61,7 @@ final class AsyncOperationWorkerTests: XCTestCase {
         }
 
         // Trigger a render
-        host.update(workflow: TestAsyncOperationWorkerWorkflow(key: ""))
+        host.update(workflow: TestAsyncOperationWorkerWorkflow(key: "testAsyncWorkerRunsOnlyOnce"))
 
         wait(for: [expectation], timeout: 1.0)
         // If the render value is 1 then the state has not been incremented
@@ -135,14 +135,13 @@ private struct TestAsyncOperationWorkerWorkflow: Workflow {
     func makeInitialState() -> Int { 0 }
 
     func render(state: Int, context: RenderContext<TestAsyncOperationWorkerWorkflow>) -> Int {
-        AsyncOperationWorker(outputOne)
-            .mapOutput { output in
-                AnyWorkflowAction { state in
-                    state += output
-                    return nil
-                }
+        context.run {
+            let output = await outputOne()
+            return AnyWorkflowAction<TestAsyncOperationWorkerWorkflow> { state in
+                state += output
+                return nil
             }
-            .running(in: context, key: key)
+        }
         return state
     }
 

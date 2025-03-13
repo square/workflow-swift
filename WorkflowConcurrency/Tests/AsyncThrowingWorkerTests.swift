@@ -160,14 +160,29 @@ private struct TestAsyncThrowingWorkerWorkflow: Workflow {
 
     func render(state: State, context: RenderContext<TestAsyncThrowingWorkerWorkflow>) -> Rendering {
         let function = shouldThrowError ? throwError : outputOne
-        AsyncThrowingWorker(function)
-            .mapOutput { output in
-                AnyWorkflowAction { state in
-                    state = output
-                    return nil
-                }
+
+//        AsyncThrowingWorker(function)
+//            .mapOutput { output in
+//                AnyWorkflowAction { state in
+//                    state = output
+//                    return nil
+//                }
+//            }
+//            .running(in: context, key: key)
+
+        context.run {
+            let output = try await function()
+            return AnyWorkflowAction { state in
+                state = .success(output)
+                return nil
             }
-            .running(in: context, key: key)
+        } catch: { error in
+            AnyWorkflowAction { state in
+                state = .failure(error)
+                return nil
+            }
+        }
+
         return state
     }
 
