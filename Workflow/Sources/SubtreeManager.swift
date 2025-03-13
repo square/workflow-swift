@@ -192,12 +192,6 @@ extension WorkflowNode.SubtreeManager {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
 
-            /// If the key already exists in `used`, then a workflow of the same type has been rendered multiple times
-            /// during this render pass with the same key. This is not allowed.
-            guard usedChildWorkflows[childKey] == nil else {
-                fatalError("Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
-            }
-
             let child: ChildWorkflow<Child>
             let eventPipe = EventPipe()
             eventPipes.append(eventPipe)
@@ -232,7 +226,12 @@ extension WorkflowNode.SubtreeManager {
 
             /// Store the resolved child in `used`. This allows us to a) hold on to any used children after this render
             /// pass, and b) ensure that we never allow the use of a given workflow type with identical keys.
-            usedChildWorkflows[childKey] = child
+            let keyWasUnused = usedChildWorkflows.updateValue(child, forKey: childKey) == nil
+
+            /// If the key was already in `used`, then a workflow of the same type was rendered multiple times
+            /// during this render pass with the same key. This is not allowed.
+            precondition(keyWasUnused, "Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
+
             return child.render()
         }
 
