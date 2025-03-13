@@ -85,6 +85,14 @@ extension RenderContext {
             .running(in: self, key: "\(keyFile).\(keyFunction):\(keyLine)")
     }
 
+    public func run<Action>(
+        key: String,
+        block: @escaping () async -> Action
+    ) where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+        AsyncOperationWorker(block)
+            .running(in: self, key: key)
+    }
+
     public func run<Output, Action>(
         keyFile: StaticString = #file,
         keyFunction: StaticString = #function,
@@ -107,6 +115,23 @@ extension RenderContext {
     {
         AsyncThrowingWorker(block)
             .running(in: self, key: "\(keyFile).\(keyFunction):\(keyLine)") { result -> Action in
+                switch result {
+                case .success(let output):
+                    return output
+                case .failure(let error):
+                    return `catch`(error)
+                }
+            }
+    }
+
+    public func run<Action>(
+        key: String,
+        block: @escaping () async throws -> Action,
+        catch: @escaping (Error) -> Action
+    ) where Action: WorkflowAction, Action.WorkflowType == WorkflowType
+    {
+        AsyncThrowingWorker(block)
+            .running(in: self, key: key) { result -> Action in
                 switch result {
                 case .success(let output):
                     return output
