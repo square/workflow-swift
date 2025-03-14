@@ -19,10 +19,10 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
-final class AsyncOperationWorkerTests: XCTestCase {
+final class AsyncThrowingWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(
-            workflow: TestAsyncOperationWorkerWorkflow(key: "testWorkerOutput")
+            workflow: TestAsyncThrowingWorkerWorkflow(key: "", shouldThrowError: false)
         )
 
         let expectation = XCTestExpectation()
@@ -30,17 +30,38 @@ final class AsyncOperationWorkerTests: XCTestCase {
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, try! host.rendering.value.get())
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, try! host.rendering.value.get())
+
+        disposable?.dispose()
+    }
+
+    func testWorkerThrows() {
+        let host = WorkflowHost(
+            workflow: TestAsyncThrowingWorkerWorkflow(key: "", shouldThrowError: true)
+        )
+
+        let expectation = XCTestExpectation()
+        let disposable = host.rendering.signal.observeValues { rendering in
+            expectation.fulfill()
+        }
+
+        XCTAssertEqual(0, try! host.rendering.value.get())
+
+        wait(for: [expectation], timeout: 1.0)
+
+        XCTAssertThrowsError(try host.rendering.value.get()) { error in
+            XCTAssertTrue(error is TestAsyncThrowingWorkerError)
+        }
 
         disposable?.dispose()
     }
 
     func testAsyncWorkerRunsOnlyOnce() {
         let host = WorkflowHost(
-            workflow: TestAsyncOperationWorkerWorkflow(key: "testAsyncWorkerRunsOnlyOnce")
+            workflow: TestAsyncThrowingWorkerWorkflow(key: "", shouldThrowError: false)
         )
 
         var expectation = XCTestExpectation()
@@ -48,10 +69,10 @@ final class AsyncOperationWorkerTests: XCTestCase {
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, try! host.rendering.value.get())
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, try! host.rendering.value.get())
 
         disposable?.dispose()
 
@@ -61,17 +82,17 @@ final class AsyncOperationWorkerTests: XCTestCase {
         }
 
         // Trigger a render
-        host.update(workflow: TestAsyncOperationWorkerWorkflow(key: "testAsyncWorkerRunsOnlyOnce"))
+        host.update(workflow: TestAsyncThrowingWorkerWorkflow(key: "", shouldThrowError: false))
 
         wait(for: [expectation], timeout: 1.0)
         // If the render value is 1 then the state has not been incremented
         // by running the worker's async operation again.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, try! host.rendering.value.get())
 
         disposable?.dispose()
     }
 
-    func testCancelAsyncOperationWorker() {
+    func testCancelAsyncThrowingWorker() {
         struct WorkerWorkflow: Workflow {
             typealias State = Void
 
@@ -87,7 +108,7 @@ final class AsyncOperationWorkerTests: XCTestCase {
                 case .notWorking:
                     return false
                 case .working(start: let startExpectation, end: let endExpectation):
-                    AsyncOperationWorker {
+                    AsyncThrowingWorker {
                         await asyncOperation(startExpectation: startExpectation, endExpectation: endExpectation)
                     }
                     .mapOutput { _ in AnyWorkflowAction.noAction }
@@ -126,26 +147,41 @@ final class AsyncOperationWorkerTests: XCTestCase {
     }
 }
 
-private struct TestAsyncOperationWorkerWorkflow: Workflow {
-    typealias State = Int
-    typealias Rendering = Int
+private struct TestAsyncThrowingWorkerError: Error {}
+
+private struct TestAsyncThrowingWorkerWorkflow: Workflow {
+    typealias State = Result<Int, Error>
+    typealias Rendering = Result<Int, Error>
 
     let key: String
+    let shouldThrowError: Bool
 
-    func makeInitialState() -> Int { 0 }
+    func makeInitialState() -> State { .success(0) }
 
-    func render(state: Int, context: RenderContext<TestAsyncOperationWorkerWorkflow>) -> Int {
+    func render(state: State, context: RenderContext<TestAsyncThrowingWorkerWorkflow>) -> Rendering {
+        let function = shouldThrowError ? throwError : outputOne
+
         context.run {
-            let output = await outputOne()
-            return AnyWorkflowAction<TestAsyncOperationWorkerWorkflow> { state in
-                state += output
+            let output = try await function()
+            return AnyWorkflowAction { state in
+                state = .success(output)
+                return nil
+            }
+        } catch: { error in
+            AnyWorkflowAction { state in
+                state = .failure(error)
                 return nil
             }
         }
+
         return state
     }
 
-    func outputOne() async -> Int {
+    func outputOne() async throws -> Int {
         1
+    }
+
+    func throwError() async throws -> Int {
+        throw TestAsyncThrowingWorkerError()
     }
 }
