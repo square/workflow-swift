@@ -131,14 +131,15 @@ public struct ViewControllerDescription {
     /// You must pass a view controller previously created by a compatible `ViewControllerDescription`
     /// that passes `canUpdate(viewController:)`. Failure to do so will result in a fatal precondition.
     public func update(viewController: UIViewController) {
-        precondition(
-            canUpdate(viewController: viewController),
-            """
-            `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
+        guard canUpdate(viewController: viewController) else {
+            fatalError(
+                """
+                `ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
 
-            The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(kind.viewControllerType)).
-            """
-        )
+                The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(kind.viewControllerType)).
+                """
+            )
+        }
 
         configureAncestor(of: viewController)
 
