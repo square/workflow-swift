@@ -228,12 +228,12 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
 
         expectingFailure("""
-        failed - XCTAssertNoDifference failed: …
+        failed - Action (First) does not match the expected action (Second) - Difference: …
 
           − TestAction.noop(10)
           + TestAction.noop(70)
 
-        (First: −, Second: +) - Action (First) does not match the expected action (Second)
+        (First: −, Second: +)
         """) {
             result.assert(action: TestAction.noop(70))
         }
@@ -280,12 +280,12 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
         }
 
         expectingFailure("""
-        failed - XCTAssertNoDifference failed: …
+        failed - Action (First) does not match the expected action (Second) - Difference: …
 
           − TestAction.sendOutput("second")
           + TestAction.noop(0)
 
-        (First: −, Second: +) - Action (First) does not match the expected action (Second)
+        (First: −, Second: +)
         """) {
             result.assert(action: TestAction.noop(0))
         }
@@ -311,12 +311,12 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             }
 
         expectingFailure("""
-        failed - XCTAssertNoDifference failed: …
+        failed - Output (First) does not match the expected output (Second) - Difference: …
 
           − TestWorkflow.Output.string("hello")
           + TestWorkflow.Output.string("nope")
 
-        (First: −, Second: +) - Output (First) does not match the expected output (Second)
+        (First: −, Second: +)
         """) {
             result.assert(output: .string("nope"))
         }
@@ -368,12 +368,12 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .render { _ in }
 
         expectingFailure("""
-        failed - XCTAssertNoDifference failed: …
+        failed - State (First) does not match the expected state (Second) - Difference: …
 
           − TestWorkflow.State.idle
           + TestWorkflow.State.sideEffect(key: "nah")
 
-        (First: −, Second: +) - State (First) does not match the expected state (Second)
+        (First: −, Second: +)
         """) {
             result.assert(state: TestWorkflow.State.sideEffect(key: "nah"))
         }
@@ -385,12 +385,12 @@ final class WorkflowRenderTesterFailureTests: XCTestCase {
             .render { _ in }
 
         expectingFailure("""
-        XCTAssertNoDifference failed: …
+        failed - State (First) does not match the expected state (Second) - Difference: …
 
           − TestWorkflow.State.idle
           + TestWorkflow.State.sideEffect(key: "nah")
 
-        (First: −, Second: +) - State (First) does not match the expected state (Second)
+        (First: −, Second: +)
         """) {
             result.assertStateModifications { state in
                 state = .sideEffect(key: "nah")
