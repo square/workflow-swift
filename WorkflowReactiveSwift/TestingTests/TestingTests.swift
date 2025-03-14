@@ -27,7 +27,7 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
             .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
         renderTester
-            .expect(worker: TestWorker(input: "otherText"))
+            .mockWorker(expectedWorker: TestWorker(input: "otherText"))
             .render { _ in }
     }
 
@@ -36,9 +36,9 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
             .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
         renderTester
-            .expect(
-                worker: TestWorker(input: "otherText"),
-                producingOutput: "otherText"
+            .mockWorker(
+                expectedWorker: TestWorker(input: "otherText"),
+                mockingOutput: "otherText"
             )
             .render { _ in }
             .verifyState { state in
@@ -49,8 +49,8 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
     func test_worker_missing() {
         let tester = TestWorkflow()
             .renderTester()
-            .expect(
-                worker: TestWorker(input: "input")
+            .mockWorker(
+                expectedWorker: TestWorker(input: "input")
             )
 
         expectingFailure(#"Expected child workflow of type: WorkerWorkflow<TestWorker>, key: """#) {
@@ -61,8 +61,8 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
     func test_worker_mismatch() {
         let tester = TestWorkflow()
             .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
-            .expect(
-                worker: TestWorker(input: "not-test")
+            .mockWorker(
+                expectedWorker: TestWorker(input: "not-test")
             )
 
         expectingFailures([
