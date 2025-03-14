@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
+extension WorkflowNode {
+    struct RenderingSnapshot: ~Copyable {
+        var lastRendering: WorkflowType.Rendering?
+    }
+}
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
+
+    private var cachedRendering = RenderingSnapshot()
+
+    var isDirty = true {
+        willSet {
+            _ = 0
+        }
+    }
 
     /// Holds the current `Workflow` managed by this node.
     private var workflow: WorkflowType
@@ -86,6 +100,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         switch subtreeOutput {
         case .update(let action, let source):
+//            defer { isDirty = true }
+
             /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
             /// allowing the underlying conformance to be applied to the Workflow's State
             let outputEvent = openAndApply(
@@ -137,12 +153,25 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        if
+            hostContext.isNodeValid(session.sessionID),
+//            !isDirty,
+            let cachedRendering = cachedRendering.lastRendering
+        {
+            // if node isn't invalidated, and we have a cached
+            // rendering, use it
+            rendering = cachedRendering
+            for eventPipe in subtreeManager.eventPipes {
+                eventPipe.prepareForReuse()
+            }
+//            subtreeManager.invalida
+        } else {
+            // otherwise, produce a new rendering for this node
+            rendering = subtreeManager.render { context in
+                workflow.render(state: state, context: context)
+            }
+//            isDirty = false
+            cachedRendering.lastRendering = rendering
         }
 
         return rendering
@@ -203,6 +232,9 @@ extension WorkflowNode {
                 workflow: workflow,
                 session: session
             )
+
+            hostContext.invalidateNodes(from: self)
+//            hostContext.invalidateNodes(from: session)
         }
 
         let observerCompletion = observer?.workflowWillApplyAction(

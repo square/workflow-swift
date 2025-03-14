@@ -90,6 +90,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
+//        rootNode.isDirty = true
+        context.invalidateTree()
         rootNode.update(workflow: workflow)
 
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
@@ -104,7 +106,10 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render()
+        let newRendering = rootNode.render()
+        context.markTreeValid()
+
+        mutableRendering.value = newRendering
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
@@ -131,6 +136,30 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 final class HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
+
+    private var isEntireTreeInvalid = true
+    private var invalidatedNodes: Set<WorkflowSession.Identifier> = []
+
+    fileprivate func invalidateTree() { isEntireTreeInvalid = true }
+    fileprivate func markTreeValid() {
+        isEntireTreeInvalid = false
+        invalidatedNodes.removeAll(keepingCapacity: true)
+    }
+
+    func invalidateNodes(from node: WorkflowNode<some Workflow>) {
+        var session: WorkflowSession? = node.session
+        while session != nil {
+            defer { session = session?.parent }
+            if let sessionID = session?.sessionID {
+                invalidatedNodes.insert(sessionID)
+            }
+        }
+    }
+
+    func isNodeValid(_ nodeID: WorkflowSession.Identifier) -> Bool {
+        if isEntireTreeInvalid { return false }
+        return !invalidatedNodes.contains(nodeID)
+    }
 
     init(
         observer: WorkflowObserver?,

@@ -53,7 +53,7 @@ extension WorkflowNode {
 
         /// Performs an update pass using the given closure.
         func render<Rendering>(
-            _ actions: (RenderContext<WorkflowType>) -> Rendering
+            _ renderImpl: (RenderContext<WorkflowType>) -> Rendering
         ) -> Rendering {
             /// Invalidate the previous action handlers.
             for eventPipe in eventPipes {
@@ -69,12 +69,12 @@ extension WorkflowNode {
                 session: session
             )
 
-            let wrapped = RenderContext.make(implementation: context)
+            let wrappedRenderContext = RenderContext.make(implementation: context)
 
             /// Pass the context into the closure to allow a render to take place
-            let rendering = actions(wrapped)
+            let rendering = renderImpl(wrappedRenderContext)
 
-            wrapped.invalidate()
+            wrappedRenderContext.invalidate()
 
             /// After the render is complete, assign children using *only the children that were used during the render
             /// pass.* This means that any pre-existing children that were *not* used during the render pass are removed
@@ -233,6 +233,7 @@ extension WorkflowNode.SubtreeManager {
             /// Store the resolved child in `used`. This allows us to a) hold on to any used children after this render
             /// pass, and b) ensure that we never allow the use of a given workflow type with identical keys.
             usedChildWorkflows[childKey] = child
+            // TODO: cache check should maybe be here?
             return child.render()
         }
 
@@ -345,6 +346,12 @@ extension WorkflowNode.SubtreeManager {
 
         init() {
             self.validationState = .preparing
+        }
+
+        // called when using a cached rendering
+        func prepareForReuse() {
+            validationState = .preparing
+            validationState = .pending
         }
 
         func handle(event: Output) {
