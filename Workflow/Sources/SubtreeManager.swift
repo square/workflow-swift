@@ -230,7 +230,9 @@ extension WorkflowNode.SubtreeManager {
 
             /// If the key was already in `used`, then a workflow of the same type was rendered multiple times
             /// during this render pass with the same key. This is not allowed.
-            precondition(keyWasUnused, "Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
+            guard keyWasUnused else {
+                fatalError("Child workflows of the same type must be given unique keys. Duplicate workflows of type \(Child.self) were encountered with the key \"\(key)\" in \(WorkflowType.self)")
+            }
 
             return child.render()
         }

@@ -62,13 +62,14 @@ extension UpdateChildScreenViewController where Self: UIViewController {
             // We should only add the view controller if the old one was already within the parent.
 
             if let parent = old.parent {
-                precondition(
-                    parent == self,
-                    """
-                    The parent of the child view controller must be \(self). Instead, it was \(parent). \
-                    Please call `update(child:)` on the correct parent view controller.
-                    """
-                )
+                guard parent == self else {
+                    fatalError(
+                        """
+                        The parent of the child view controller must be \(self). Instead, it was \(parent). \
+                        Please call `update(child:)` on the correct parent view controller.
+                        """
+                    )
+                }
 
                 // Begin the transition: Signal the new vc will begin moving in, and the old one, out.
 
