@@ -184,3 +184,21 @@ extension ObservationStateRegistrar {
 }
 #endif
 #endif
+
+public struct WorkflowRegistrar: Equatable, Hashable, Codable {
+    public init() {}
+    public func mutate() {
+        print("workflow registrar detected mutation")
+        _accessDetected = true
+    }
+}
+
+var _accessDetected = false
+
+public func detectAccesses<T>(accessDetected: inout Bool, callback: () -> T) -> T {
+    _accessDetected = false
+    defer { _accessDetected = false }
+    let result = callback()
+    accessDetected = _accessDetected
+    return result
+}

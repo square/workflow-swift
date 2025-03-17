@@ -6,7 +6,29 @@ import Workflow
 import XCTest
 @testable import WorkflowSwiftUI
 
+@ObservableState
+struct FooState {
+    var count = 0
+}
+
 final class StoreTests: XCTestCase {
+    func test_perceiveWrites() {
+        var state = FooState()
+        let model = StateAccessor(state: state) { update in
+            update(&state)
+        }
+        let (store, _) = Store.make(model: model)
+
+        withPerceptionTracking {
+            _ = store.state
+        } onChange: {
+            print("onChange called")
+        }
+
+        state.count += 1
+        print("done")
+    }
+
     func test_stateRead() {
         var state = State()
         let model = StateAccessor(state: state) { update in

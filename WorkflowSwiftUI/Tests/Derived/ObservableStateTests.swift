@@ -301,6 +301,16 @@ final class ObservableStateTests: XCTestCase {
 
         state.children[0].count += 1
     }
+
+    func testWorkflowRegistrar() {
+        var state = ChildState()
+
+        _ = state.count
+
+        state.count = 1
+
+        print("")
+    }
 }
 
 @ObservableState

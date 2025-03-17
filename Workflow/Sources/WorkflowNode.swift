@@ -213,8 +213,15 @@ extension WorkflowNode {
         )
         defer { observerCompletion?(state, output) }
 
+        var writeDetected = false
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        output = detectAccesses(accessDetected: &writeDetected) {
+            action.apply(toState: &state)
+        }
+
+        if !writeDetected {
+            // no writes made to state
+        }
 
         return output
     }

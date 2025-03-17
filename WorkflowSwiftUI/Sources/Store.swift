@@ -451,3 +451,13 @@ import Observation
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 extension Store: Observable {}
 #endif
+
+func applyAndDetectChanges<State: Perceptible>(
+    state: State,
+    action: (inout State) -> Void
+) {}
+
+@ObservableState
+struct Foo {
+    var count: Int = 0
+}
