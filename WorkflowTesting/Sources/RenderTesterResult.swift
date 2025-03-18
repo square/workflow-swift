@@ -156,10 +156,10 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     @discardableResult
     public func assertStateModifications(
         file: StaticString = #file,
-        line: UInt = #line,
-        _ modifications: (inout WorkflowType.State) throws -> Void,
         fileID: StaticString = #fileID,
-        column: UInt = #column
+        line: UInt = #line,
+        column: UInt = #column,
+        _ modifications: (inout WorkflowType.State) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         var initialState = initialState
         try modifications(&initialState)
