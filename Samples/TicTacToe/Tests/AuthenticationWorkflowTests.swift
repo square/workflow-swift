@@ -218,8 +218,8 @@ class AuthenticationWorkflowTests: XCTestCase {
                     onLoginTapped: {}
                 )
             )
-            .expect(
-                worker: AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
+            .mockWorker(
+                expectedWorker: AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
                     authenticationService: authenticationService,
                     email: "reza@example.com",
                     password: "password"
@@ -252,8 +252,8 @@ class AuthenticationWorkflowTests: XCTestCase {
                     onLoginTapped: {}
                 )
             )
-            .expect(
-                worker: AuthenticationWorkflow.AuthorizingTwoFactorWorker(
+            .mockWorker(
+                expectedWorker: AuthenticationWorkflow.AuthorizingTwoFactorWorker(
                     authenticationService: authenticationService,
                     intermediateToken: "intermediateSession",
                     twoFactorCode: "twoFactorCode"
