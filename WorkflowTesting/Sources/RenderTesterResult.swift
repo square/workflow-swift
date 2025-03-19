@@ -26,7 +26,12 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     let appliedAction: AppliedAction<WorkflowType>?
     let output: WorkflowType.Output?
 
-    init(initialState: WorkflowType.State, state: WorkflowType.State, appliedAction: AppliedAction<WorkflowType>?, output: WorkflowType.Output?) {
+    init(
+        initialState: WorkflowType.State,
+        state: WorkflowType.State,
+        appliedAction: AppliedAction<WorkflowType>?,
+        output: WorkflowType.Output?
+    ) {
         self.initialState = initialState
         self.state = state
         self.appliedAction = appliedAction
@@ -77,15 +82,19 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
     public func assert<ActionType: WorkflowAction>(
         action: ActionType,
         file: StaticString = #file,
-        line: UInt = #line
+        fileID: StaticString = #fileID,
+        line: UInt = #line,
+        column: UInt = #column
     ) -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType, ActionType: Equatable {
         verifyAction(file: file, line: line) { appliedAction in
-            XCTAssertNoDifference(
+            expectNoDifference(
                 appliedAction,
                 action,
                 "Action (First) does not match the expected action (Second)",
-                file: file,
-                line: line
+                fileID: fileID,
+                filePath: file,
+                line: line,
+                column: column
             )
         }
     }
@@ -124,14 +133,18 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     public func assert(
         state expectedState: WorkflowType.State,
         file: StaticString = #file,
-        line: UInt = #line
+        fileID: StaticString = #fileID,
+        line: UInt = #line,
+        column: UInt = #column
     ) -> RenderTesterResult<WorkflowType> {
-        XCTAssertNoDifference(
+        expectNoDifference(
             state,
             expectedState,
             "State (First) does not match the expected state (Second)",
-            file: file,
-            line: line
+            fileID: fileID,
+            filePath: file,
+            line: line,
+            column: column
         )
         return self
     }
@@ -143,17 +156,21 @@ extension RenderTesterResult where WorkflowType.State: Equatable {
     @discardableResult
     public func assertStateModifications(
         file: StaticString = #file,
+        fileID: StaticString = #fileID,
         line: UInt = #line,
+        column: UInt = #column,
         _ modifications: (inout WorkflowType.State) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         var initialState = initialState
         try modifications(&initialState)
-        XCTAssertNoDifference(
+        expectNoDifference(
             state,
             initialState,
             "State (First) does not match the expected state (Second)",
-            file: file,
-            line: line
+            fileID: fileID,
+            filePath: file,
+            line: line,
+            column: column
         )
         return self
     }
@@ -165,15 +182,19 @@ extension RenderTesterResult where WorkflowType.Output: Equatable {
     public func assert(
         output expectedOutput: WorkflowType.Output,
         file: StaticString = #file,
-        line: UInt = #line
+        fileID: StaticString = #fileID,
+        line: UInt = #line,
+        column: UInt = #column
     ) -> RenderTesterResult<WorkflowType> {
         verifyOutput(file: file, line: line) { output in
-            XCTAssertNoDifference(
+            expectNoDifference(
                 output,
                 expectedOutput,
                 "Output (First) does not match the expected output (Second)",
-                file: file,
-                line: line
+                fileID: fileID,
+                filePath: file,
+                line: line,
+                column: column
             )
         }
     }
