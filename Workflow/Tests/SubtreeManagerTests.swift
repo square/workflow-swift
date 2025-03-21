@@ -265,6 +265,105 @@ final class SubtreeManagerTests: XCTestCase {
     }
 }
 
+// MARK: - Short Circuiting
+
+final class SubtreeManager_ShortCircuitTests: XCTestCase {
+    typealias ParentWorkflow = ShortCircuitTesting.ParentWorkflow
+    typealias ChildWorkflow = ShortCircuitTesting.ChildWorkflow
+    typealias Subject = WorkflowNode<ParentWorkflow>.SubtreeManager
+
+    var hostShortCircuitCallCount: Int!
+    var rootUpdateWithNoOutputCallCount: Int!
+    var rootUpdateWithOutputCallCount: Int!
+    var parentWorkflow: ParentWorkflow!
+
+    var subject: Subject!
+
+    override func setUp() {
+        hostShortCircuitCallCount = 0
+        rootUpdateWithNoOutputCallCount = 0
+        rootUpdateWithOutputCallCount = 0
+        parentWorkflow = ParentWorkflow()
+
+        subject = makeSubject()
+    }
+
+    func makeSubject(
+        hostContext: HostContext? = nil
+    ) -> Subject {
+        let hostContext = hostContext ?? HostContext.testing {
+            self.hostShortCircuitCallCount += 1
+        }
+
+        let subject = Subject.testing(hostContext: hostContext)
+
+        subject.onUpdate = { update in
+            switch update {
+            case .childDidUpdate:
+                self.rootUpdateWithNoOutputCallCount += 1
+            case .update:
+                self.rootUpdateWithOutputCallCount += 1
+            }
+        }
+
+        return subject
+    }
+
+    func test_shortCircuiting_enabled_propagatesToRootIfOutputProduced() {
+        let rendering = subject.renderWorkflow(parentWorkflow, enableEvents: true)
+
+        // Send an action to the child that should not short circuit
+        rendering.sendChildAction(.propagatingEvent("propagate"))
+
+        XCTAssertEqual(rootUpdateWithNoOutputCallCount, 0)
+        XCTAssertEqual(rootUpdateWithOutputCallCount, 1)
+        XCTAssertEqual(hostShortCircuitCallCount, 0)
+    }
+
+    func test_shortCircuiting_enabled_shortCircuitsIfNoOutputProduced() {
+        let rendering = subject.renderWorkflow(parentWorkflow, enableEvents: true)
+
+        // Send an action to the child that should not short circuit
+        rendering.sendChildAction(.ignoredEvent)
+
+        XCTAssertEqual(rootUpdateWithNoOutputCallCount, 0)
+        XCTAssertEqual(rootUpdateWithOutputCallCount, 0)
+        XCTAssertEqual(hostShortCircuitCallCount, 1)
+    }
+
+    func test_shortCircuiting_disabled_propagatesToRootIfOutputProduced() {
+        let noShortCircuitContext = HostContext.testing {
+            XCTFail("should not be called")
+        }
+        subject = makeSubject(hostContext: noShortCircuitContext)
+
+        let rendering = subject.renderWorkflow(parentWorkflow, enableEvents: true)
+
+        // Send an action to the child that should not short circuit
+        rendering.sendChildAction(.propagatingEvent("propagate"))
+
+        XCTAssertEqual(rootUpdateWithNoOutputCallCount, 0)
+        XCTAssertEqual(rootUpdateWithOutputCallCount, 1)
+        XCTAssertEqual(hostShortCircuitCallCount, 0)
+    }
+
+    func test_shortCircuiting_disabled_shortCircuitsIfNoOutputProduced() {
+        let noShortCircuitContext = HostContext.testing(onTerminalOutput: nil)
+        subject = makeSubject(hostContext: noShortCircuitContext)
+
+        let rendering = subject.renderWorkflow(parentWorkflow, enableEvents: true)
+
+        // Send an action to the child that should not short circuit
+        rendering.sendChildAction(.ignoredEvent)
+
+        XCTAssertEqual(rootUpdateWithNoOutputCallCount, 1)
+        XCTAssertEqual(rootUpdateWithOutputCallCount, 0)
+        XCTAssertEqual(hostShortCircuitCallCount, 0)
+    }
+}
+
+// MARK: -
+
 private struct TestViewModel {
     var onTap: () -> Void
     var onToggle: () -> Void
@@ -350,10 +449,36 @@ extension WorkflowSession {
 }
 
 extension WorkflowNode.SubtreeManager {
+    fileprivate func renderWorkflow(
+        _ workflow: WorkflowType,
+        enableEvents: Bool = false
+    ) -> WorkflowType.Rendering {
+        defer {
+            if enableEvents { self.enableEvents() }
+        }
+        return render { ctx in
+            ctx.render(
+                workflow: workflow,
+                key: "",
+                outputMap: { _ in AnyWorkflowAction.noAction }
+            )
+        }
+    }
+
     fileprivate convenience init() {
         self.init(
             session: .testing(),
             hostContext: .testing()
+        )
+    }
+
+    fileprivate static func testing(
+        session: WorkflowSession = .testing(),
+        hostContext: HostContext = .testing()
+    ) -> Self {
+        Self(
+            session: session,
+            hostContext: hostContext
         )
     }
 }

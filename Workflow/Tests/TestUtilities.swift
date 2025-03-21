@@ -61,11 +61,82 @@ struct StateTransitioningWorkflow: Workflow {
 
 extension HostContext {
     static func testing(
-        observer: WorkflowObserver? = nil
+        observer: WorkflowObserver? = nil,
+        onTerminalOutput: (() -> Void)? = nil
     ) -> HostContext {
         HostContext(
             observer: observer,
-            debugger: nil
+            debugger: nil,
+            onTerminalOutput: onTerminalOutput
         )
+    }
+}
+
+enum ShortCircuitTesting {
+    struct ParentWorkflow: Workflow {
+        typealias State = Void
+        typealias Output = ChildWorkflow.Action
+
+        struct Rendering {
+            var sendChildAction: (ChildWorkflow.Action) -> Void
+        }
+
+        func render(
+            state: State,
+            context: RenderContext<ParentWorkflow>
+        ) -> Rendering {
+            let childOutputHandler = ChildWorkflow()
+                .mapOutput { output in
+                    ParentAction.propagateChildOutput(output)
+                }
+                .rendered(in: context)
+
+            return Rendering { childAction in
+                childOutputHandler(childAction)
+            }
+        }
+
+        enum ParentAction: WorkflowAction {
+            typealias WorkflowType = ParentWorkflow
+
+            case propagateChildOutput(ChildWorkflow.Output)
+
+            func apply(toState state: inout State) -> Output? {
+                switch self {
+                case .propagateChildOutput(let output):
+                    output
+                }
+            }
+        }
+    }
+
+    struct ChildWorkflow: Workflow {
+        typealias State = Void
+        typealias Output = Action
+        typealias Rendering = (Action) -> Void
+
+        func render(
+            state: State,
+            context: RenderContext<ChildWorkflow>
+        ) -> Rendering {
+            let sink = context.makeSink(of: Action.self)
+            return sink.send(_:)
+        }
+
+        enum Action: WorkflowAction, Equatable {
+            typealias WorkflowType = ChildWorkflow
+
+            case propagatingEvent(String)
+            case ignoredEvent
+
+            func apply(toState state: inout State) -> Output? {
+                switch self {
+                case .propagatingEvent:
+                    self
+                case .ignoredEvent:
+                    nil
+                }
+            }
+        }
     }
 }

@@ -126,7 +126,19 @@ extension WorkflowNode {
         }
 
         private func handle(output: Output) {
-            onUpdate?(output)
+            switch output {
+            case .update:
+                onUpdate?(output)
+            case .childDidUpdate:
+                if let shortCircuit = hostContext.onTerminalOutput {
+                    // If we can short circuit to the root, then do so.
+                    shortCircuit()
+                } else {
+                    // Otherwise, continue propagating to our parent.
+                    // We'll reach the root eventually...
+                    onUpdate?(output)
+                }
+            }
         }
     }
 }
@@ -180,14 +192,12 @@ extension WorkflowNode.SubtreeManager {
             self.session = session
         }
 
-        func render<Child, Action>(
+        func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
             outputMap: @escaping (Child.Output) -> Action
         ) -> Child.Rendering
-            where Child: Workflow,
-            Action: WorkflowAction,
-            WorkflowType == Action.WorkflowType
+            where WorkflowType == Action.WorkflowType
         {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)

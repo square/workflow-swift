@@ -79,9 +79,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         self.mutableRendering = MutableProperty(rootNode.render())
         self.rendering = Property(mutableRendering)
+
         rootNode.enableEvents()
 
         debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
+
+        context.onTerminalOutput = { [weak self] in
+            // short circuit path when no output produced
+            self?.handle(output: nil)
+        }
 
         rootNode.onOutput = { [weak self] output in
             self?.handle(output: output)
@@ -103,16 +109,19 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         handle(output: output)
     }
 
-    private func handle(output: WorkflowNode<WorkflowType>.Output) {
+    private func handle(output: WorkflowNode<WorkflowType>.Output?) {
         mutableRendering.value = rootNode.render()
 
-        if let outputEvent = output.outputEvent {
+        if let outputEvent = output?.outputEvent {
             outputEventObserver.send(value: outputEvent)
         }
 
         debugger?.didUpdate(
             snapshot: rootNode.makeDebugSnapshot(),
-            updateInfo: output.debugInfo
+            updateInfo: WorkflowUpdateDebugInfo(
+                workflowType: "\(WorkflowType.self)",
+                kind: .didUpdate(source: .external)
+            )
         )
 
         rootNode.enableEvents()
@@ -132,11 +141,17 @@ final class HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
 
+    /// Callback to be invoked when action application has finished producing
+    /// outputs, and can effectively 'short circuit' to the hosting entity for handling.
+    fileprivate(set) var onTerminalOutput: (() -> Void)?
+
     init(
         observer: WorkflowObserver?,
-        debugger: WorkflowDebugger?
+        debugger: WorkflowDebugger?,
+        onTerminalOutput: (() -> Void)? = nil
     ) {
         self.observer = observer
         self.debugger = debugger
+        self.onTerminalOutput = onTerminalOutput
     }
 }

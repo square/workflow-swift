@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import Workflow
 import XCTest
+
+@testable import Workflow
 
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
@@ -156,3 +157,55 @@ extension WorkflowHost_EventEmissionTests {
         }
     }
 }
+
+// MARK: Short Circuit Tests
+
+extension WorkflowHostTests {
+    func test_shortCircuitOutputPropagation() {
+        typealias ParentWorkflow = ShortCircuitTesting.ParentWorkflow
+        typealias ChildWorkflow = ShortCircuitTesting.ChildWorkflow
+
+        let parent = ParentWorkflow()
+        let host = WorkflowHost(workflow: parent)
+
+        let root = host.rootNode
+        let originalHandler = host.rootNode.onOutput
+
+        // intercept the root node's output handler to
+        // track how many times it's called
+        var rootNodeOutputCount = 0
+        root.onOutput = {
+            rootNodeOutputCount += 1
+            originalHandler?($0)
+        }
+
+        let rendering = host.rendering.value
+
+        var receivedOutput: ParentWorkflow.Output?
+        let disposable = host.output.signal.observeValues { output in
+            receivedOutput = output
+        }
+        defer { disposable?.dispose() }
+
+        XCTAssertEqual(rootNodeOutputCount, 0)
+
+        for _ in 1 ... 3 {
+            // Trigger the child workflow's output a few times
+            rendering.sendChildAction(.propagatingEvent("hello"))
+            XCTAssertEqual(receivedOutput, .propagatingEvent("hello"))
+        }
+
+        // Each action should increment the root output count since it
+        // should not short-circuit
+        XCTAssertEqual(rootNodeOutputCount, 3)
+
+        // If the child produces no output, it should skip to the host
+        rendering.sendChildAction(.ignoredEvent)
+
+        // Should skip the parent application, hence also the root node's
+        // `onOutput` callback.
+        XCTAssertEqual(rootNodeOutputCount, 3)
+    }
+}
+
+// MARK: -
