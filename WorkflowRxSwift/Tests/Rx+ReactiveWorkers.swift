@@ -45,7 +45,7 @@ class Rx_ReactiveWorkersTests: XCTestCase {
                 typealias WorkflowType = TestWorkflow
                 case complete
 
-                func apply(toState state: inout State) -> Output? {
+                func apply(toState state: inout State, workflow: WorkflowType) -> Output? {
                     switch self {
                     case .complete:
                         .finished

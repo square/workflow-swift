@@ -245,7 +245,7 @@ private struct TaskTestWorkerWorkflow: Workflow {
     func render(state: Int, context: RenderContext<TaskTestWorkerWorkflow>) -> Int {
         TaskTestWorker(initialState: initialState)
             .mapOutput { output in
-                AnyWorkflowAction { state in
+                AnyWorkflowAction { state, _ in
                     state = output
                     return nil
                 }
