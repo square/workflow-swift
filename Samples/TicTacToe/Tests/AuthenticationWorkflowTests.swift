@@ -263,8 +263,6 @@ class AuthenticationWorkflowTests: XCTestCase {
     }
 
     func test_render_authenticationErrorAlert() {
-        let authenticationService = AuthenticationService()
-
         workflow
             .renderTester(
                 initialState: .authenticationErrorAlert(error: AuthenticationService.AuthenticationError.invalidUserPassword)
