@@ -297,7 +297,7 @@ fileprivate struct SubscribingWorkflow: Workflow {
     func render(state: State, context: RenderContext<Self>) -> TestScreen {
         subscription
             .mapOutput { output in
-                AnyWorkflowAction { state in
+                AnyWorkflowAction { state, _ in
                     state = output
                     return output
                 }

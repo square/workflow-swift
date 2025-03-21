@@ -38,7 +38,10 @@ class TakeTurnsWorkflowTests: XCTestCase {
 
         TakeTurnsWorkflow
             .Action
-            .tester(withState: emptyBoardState)
+            .tester(
+                workflow: workflow,
+                state: emptyBoardState
+            )
             .send(action: .selected(row: 0, col: 0))
             // This workflow has no outputs.
             .assertNoOutput()
@@ -128,7 +131,10 @@ class TakeTurnsWorkflowTests: XCTestCase {
 
         TakeTurnsWorkflow
             .Action
-            .tester(withState: boardState)
+            .tester(
+                workflow: workflow,
+                state: boardState
+            )
             .send(action: .selected(row: 2, col: 2))
             // This workflow has no outputs.
             .assertNoOutput()
@@ -176,7 +182,10 @@ class TakeTurnsWorkflowTests: XCTestCase {
 
         TakeTurnsWorkflow
             .Action
-            .tester(withState: boardState)
+            .tester(
+                workflow: workflow,
+                state: boardState
+            )
             .send(action: .selected(row: 1, col: 0))
             // This workflow has no outputs.
             .assertNoOutput()
@@ -206,7 +215,7 @@ class TakeTurnsWorkflowTests: XCTestCase {
             gameState: .ongoing(turn: .x)
         )
 
-        TakeTurnsWorkflow(playerX: "X", playerO: "O")
+        workflow
             .renderTester(initialState: emptyBoardState)
             .render { screen in
 
@@ -234,7 +243,7 @@ class TakeTurnsWorkflowTests: XCTestCase {
             gameState: .ongoing(turn: .x)
         )
 
-        TakeTurnsWorkflow(playerX: "X", playerO: "O")
+        workflow
             .renderTester(initialState: emptyBoardState)
             .render { screen in
                 // Select a tile
@@ -269,7 +278,7 @@ class TakeTurnsWorkflowTests: XCTestCase {
             gameState: .win(.o)
         )
 
-        TakeTurnsWorkflow(playerX: "X", playerO: "O")
+        workflow
             .renderTester(initialState: boardState)
             .render { screen in
 
@@ -289,3 +298,8 @@ class TakeTurnsWorkflowTests: XCTestCase {
             .assertNoAction()
     }
 }
+
+private let workflow = TakeTurnsWorkflow(
+    playerX: "X",
+    playerO: "O"
+)

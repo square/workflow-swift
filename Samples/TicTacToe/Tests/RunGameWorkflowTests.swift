@@ -25,11 +25,9 @@ class RunGameWorkflowTests: XCTestCase {
     // MARK: Action Tests
 
     func test_action_updatePlayers() {
-        let initalState = RunGameWorkflow.State(playerX: "X", playerO: "O", step: .newGame)
-
         RunGameWorkflow
             .Action
-            .tester(withState: initalState)
+            .tester(workflow: RunGameWorkflow())
             .send(action: .updatePlayerX("❌"))
             .assertNoOutput()
             .verifyState { state in
@@ -47,15 +45,9 @@ class RunGameWorkflowTests: XCTestCase {
     }
 
     func test_action_startGame() {
-        let initialState = RunGameWorkflow.State(
-            playerX: "X",
-            playerO: "O",
-            step: .newGame
-        )
-
         RunGameWorkflow
             .Action
-            .tester(withState: initialState)
+            .tester(workflow: RunGameWorkflow())
             .send(action: .startGame)
             .assertNoOutput()
             .verifyState { state in
@@ -74,7 +66,7 @@ class RunGameWorkflowTests: XCTestCase {
 
         RunGameWorkflow
             .Action
-            .tester(withState: playingState)
+            .tester(workflow: RunGameWorkflow(), state: playingState)
             .send(action: .back)
             .assertNoOutput()
             .verifyState { state in
@@ -93,7 +85,7 @@ class RunGameWorkflowTests: XCTestCase {
 
         RunGameWorkflow
             .Action
-            .tester(withState: playingState)
+            .tester(workflow: RunGameWorkflow(), state: playingState)
             .send(action: .confirmQuit)
             .assertNoOutput()
             .verifyState { state in

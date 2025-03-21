@@ -17,7 +17,7 @@ class DemoWorkflowTests: XCTestCase {
 
         DemoWorkflow
             .Action
-            .tester(withState: .init(date: Date())) // the initial date itself does not matter
+            .tester(workflow: DemoWorkflow())
             .send(action: .init(publishedDate: expectedDate))
             .assert(state: .init(date: expectedDate))
     }

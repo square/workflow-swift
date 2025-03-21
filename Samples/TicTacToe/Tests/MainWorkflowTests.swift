@@ -28,7 +28,7 @@ class MainWorkflowTests: XCTestCase {
     func test_action_authenticated() {
         MainWorkflow
             .Action
-            .tester(withState: .authenticating)
+            .tester(workflow: MainWorkflow(), state: .authenticating)
             .send(action: .authenticated(sessionToken: "token"))
             .verifyState { state in
                 if case MainWorkflow.State.runningGame(let token) = state {
@@ -42,7 +42,7 @@ class MainWorkflowTests: XCTestCase {
     func test_action_logout() {
         MainWorkflow
             .Action
-            .tester(withState: .runningGame(sessionToken: "token"))
+            .tester(workflow: MainWorkflow(), state: .runningGame(sessionToken: "token"))
             .send(action: .logout)
             .assert(state: .authenticating)
     }

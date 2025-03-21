@@ -27,7 +27,10 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_action_back() {
         AuthenticationWorkflow
             .Action
-            .tester(withState: .twoFactor(intermediateSession: "test", authenticationError: nil))
+            .tester(
+                workflow: workflow,
+                state: .twoFactor(intermediateSession: "test", authenticationError: nil)
+            )
             .send(action: .back)
             .assert(state: .emailPassword)
     }
@@ -35,7 +38,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_action_login() {
         AuthenticationWorkflow
             .Action
-            .tester(withState: .emailPassword)
+            .tester(workflow: workflow)
             .send(action: .login(email: "reza@example.com", password: "password"))
             .verifyState { state in
                 if case .authorizingEmailPassword(let email, let password) = state {
@@ -50,7 +53,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_action_verifySecondFactor() {
         AuthenticationWorkflow
             .Action
-            .tester(withState: .emailPassword)
+            .tester(workflow: workflow)
             .send(
                 action: .verifySecondFactor(
                     intermediateSession: "intermediateSession",
@@ -70,7 +73,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_action_authenticationSucceeded() {
         AuthenticationWorkflow
             .Action
-            .tester(withState: .emailPassword)
+            .tester(workflow: workflow)
             .send(
                 action: .authenticationSucceeded(
                     response: AuthenticationService.AuthenticationResponse(
@@ -90,7 +93,7 @@ class AuthenticationWorkflowTests: XCTestCase {
 
         AuthenticationWorkflow
             .Action
-            .tester(withState: .emailPassword)
+            .tester(workflow: workflow)
             .send(
                 action: .authenticationSucceeded(
                     response: AuthenticationService.AuthenticationResponse(
@@ -112,10 +115,8 @@ class AuthenticationWorkflowTests: XCTestCase {
         AuthenticationWorkflow
             .Action
             .tester(
-                withState: .authorizingEmailPassword(
-                    email: "reza@example.com",
-                    password: "password"
-                )
+                workflow: workflow,
+                state: .authorizingEmailPassword(email: "test@example.com", password: "password")
             )
             .send(
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidUserPassword)
@@ -136,10 +137,8 @@ class AuthenticationWorkflowTests: XCTestCase {
         AuthenticationWorkflow
             .Action
             .tester(
-                withState: .authorizingEmailPassword(
-                    email: "reza@example.com",
-                    password: "password"
-                )
+                workflow: workflow,
+                state: .authorizingEmailPassword(email: "test@example.com", password: "password")
             )
             .send(
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidUserPassword)
@@ -156,10 +155,8 @@ class AuthenticationWorkflowTests: XCTestCase {
         AuthenticationWorkflow
             .Action
             .tester(
-                withState: .authorizingTwoFactor(
-                    twoFactorCode: "twoFactorCode",
-                    intermediateSession: "intermediateSession"
-                )
+                workflow: workflow,
+                state: .authorizingTwoFactor(twoFactorCode: "123456", intermediateSession: "session")
             )
             .send(
                 action: .authenticationError(AuthenticationService.AuthenticationError.invalidTwoFactor)
@@ -178,7 +175,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     // MARK: Render Tests
 
     func test_render_initial() {
-        AuthenticationWorkflow(authenticationService: AuthenticationService())
+        workflow
             .renderTester(initialState: .emailPassword)
             .expectWorkflow(
                 type: LoginWorkflow.self,
@@ -200,7 +197,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_render_AuthorizingEmailPasswordWorker() {
         let authenticationService = AuthenticationService()
 
-        AuthenticationWorkflow(authenticationService: authenticationService)
+        workflow
             .renderTester(
                 initialState: .authorizingEmailPassword(
                     email: "reza@example.com",
@@ -234,7 +231,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_render_authorizingTwoFactorWorker() {
         let authenticationService = AuthenticationService()
 
-        AuthenticationWorkflow(authenticationService: authenticationService)
+        workflow
             .renderTester(
                 initialState: .authorizingTwoFactor(
                     twoFactorCode: "twoFactorCode",
@@ -268,7 +265,7 @@ class AuthenticationWorkflowTests: XCTestCase {
     func test_render_authenticationErrorAlert() {
         let authenticationService = AuthenticationService()
 
-        AuthenticationWorkflow(authenticationService: authenticationService)
+        workflow
             .renderTester(
                 initialState: .authenticationErrorAlert(error: AuthenticationService.AuthenticationError.invalidUserPassword)
             )
@@ -288,3 +285,7 @@ class AuthenticationWorkflowTests: XCTestCase {
             }
     }
 }
+
+private let workflow = AuthenticationWorkflow(
+    authenticationService: AuthenticationService()
+)
