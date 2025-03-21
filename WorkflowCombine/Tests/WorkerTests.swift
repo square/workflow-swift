@@ -181,7 +181,7 @@ private struct PublisherTestWorkflow: Workflow {
     func render(state: Int, context: RenderContext<PublisherTestWorkflow>) -> Int {
         PublisherTestWorker()
             .mapOutput { output in
-                AnyWorkflowAction { state in
+                AnyWorkflowAction { state, _ in
                     state = output
                     return nil
                 }
