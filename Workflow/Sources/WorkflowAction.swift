@@ -71,6 +71,17 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         self.init(closureAction: closureAction)
     }
 
+    /// Creates a type-erased workflow action with the given `apply` implementation that only uses the state parameter.
+    ///
+    /// - Parameter apply: the apply function for the resulting action that only uses the state parameter.
+    public init(
+        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) {
+        self.init({ state, _ in apply(&state) }, fileID: fileID, line: line)
+    }
+
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
@@ -89,7 +100,7 @@ extension AnyWorkflowAction {
     ///
     /// - Parameter output: The output event to send when this action is applied.
     public init(sendingOutput output: WorkflowType.Output) {
-        self = AnyWorkflowAction { state, _ in
+        self = AnyWorkflowAction { state in
             output
         }
     }
@@ -97,7 +108,7 @@ extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
     /// event).
     public static var noAction: AnyWorkflowAction<WorkflowType> {
-        AnyWorkflowAction { state, _ in
+        AnyWorkflowAction { state in
             nil
         }
     }

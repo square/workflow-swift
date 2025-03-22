@@ -137,8 +137,8 @@ private struct TestAsyncOperationWorkerWorkflow: Workflow {
     func render(state: Int, context: RenderContext<TestAsyncOperationWorkerWorkflow>) -> Int {
         AsyncOperationWorker(outputOne)
             .mapOutput { output in
-                AnyWorkflowAction { state, _ in
-                    state += output
+                AnyWorkflowAction { state in
+                    state = output
                     return nil
                 }
             }

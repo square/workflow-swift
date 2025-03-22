@@ -180,7 +180,7 @@ private struct ObservableTestWorkflow: Workflow {
     func render(state: Int, context: RenderContext<Self>) -> Int {
         ObservableTestWorker()
             .mapOutput { output in
-                AnyWorkflowAction { state, _ in
+                AnyWorkflowAction { state in
                     state = output
                     return nil
                 }

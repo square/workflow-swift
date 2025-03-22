@@ -180,7 +180,7 @@ private struct SignalProducerTestWorkflow: Workflow {
     func render(state: Int, context: RenderContext<SignalProducerTestWorkflow>) -> Int {
         SignalProducerTestWorker()
             .mapOutput { output in
-                AnyWorkflowAction { state, _ in
+                AnyWorkflowAction { state in
                     state = output
                     return nil
                 }
