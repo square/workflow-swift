@@ -156,8 +156,8 @@ private struct TestWorkflow: Workflow {
         case .worker(input: let input):
             TestWorker(input: input)
                 .mapOutput { output in
-                    AnyWorkflowAction { state in
-                        state.output = output
+                    AnyWorkflowAction {
+                        $0.output = output
                         return nil
                     }
                 }

@@ -138,7 +138,7 @@ private struct TestAsyncOperationWorkerWorkflow: Workflow {
         AsyncOperationWorker(outputOne)
             .mapOutput { output in
                 AnyWorkflowAction { state in
-                    state = output
+                    state += output
                     return nil
                 }
             }
