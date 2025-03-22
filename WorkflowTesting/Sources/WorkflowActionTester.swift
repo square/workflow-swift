@@ -18,15 +18,12 @@ import Workflow
 import XCTest
 
 extension WorkflowAction {
-//    /// Returns a state tester containing `self`.
-//    public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
-//        WorkflowActionTester(state: state)
-//    }
-
+    /// Returns a tester for action `self` beginning at a specific `state`
     public static func tester(workflow: WorkflowType, state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
         WorkflowActionTester(workflow: workflow, state: state)
     }
 
+    /// Returns a tester for action `self` beginning at `workflow`'s initial state
     public static func tester(workflow: WorkflowType) -> WorkflowActionTester<WorkflowType, Self> {
         tester(workflow: workflow, state: workflow.makeInitialState())
     }
