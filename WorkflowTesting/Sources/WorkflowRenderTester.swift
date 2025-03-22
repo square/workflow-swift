@@ -261,6 +261,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         assertions: (WorkflowType.Rendering) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         let contextImplementation = TestContext(
+            workflow: workflow,
             state: state,
             expectedWorkflows: expectedWorkflows,
             expectedSideEffects: expectedSideEffects,

@@ -58,7 +58,7 @@ extension RunGameWorkflow {
         case back
         case confirmQuit
 
-        func apply(toState state: inout RunGameWorkflow.State) -> RunGameWorkflow.Output? {
+        func apply(toState state: inout RunGameWorkflow.State, workflow: WorkflowType) -> RunGameWorkflow.Output? {
             switch self {
             case .updatePlayerX(let name):
                 state.playerX = name

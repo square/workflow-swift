@@ -221,7 +221,7 @@ extension WelcomeWorkflow {
 
         case nameChanged(name: String)
 
-        func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
+        func apply(toState state: inout WelcomeWorkflow.State, workflow: WorkflowType) -> WelcomeWorkflow.Output? {
 
             switch self {
 
@@ -267,7 +267,7 @@ If we run the app again, it will still behave the same but we are now capturing 
 
 To see this, change the `apply` method to append an extra letter on the name received, eg:
 ```swift
-        func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
+        func apply(toState state: inout WelcomeWorkflow.State, workflow: WorkflowType) -> WelcomeWorkflow.Output? {
 
             switch self {
             case .nameChanged(name: let name):

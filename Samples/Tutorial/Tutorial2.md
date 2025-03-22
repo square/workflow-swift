@@ -290,7 +290,7 @@ extension RootWorkflow {
         case logIn(name: String)
         case logOut
 
-        func apply(toState state: inout RootWorkflow.State) -> RootWorkflow.Output? {
+        func apply(toState state: inout RootWorkflow.State, workflow: WorkflowType) -> RootWorkflow.Output? {
             switch self {
             case .logIn(name: let name):
                 state = .todo(name: name)
@@ -324,7 +324,7 @@ extension WelcomeWorkflow {
         case nameChanged(name: String)
         case didLogIn
 
-        func apply(toState state: inout WelcomeWorkflow.State) -> WelcomeWorkflow.Output? {
+        func apply(toState state: inout WelcomeWorkflow.State, workflow: WorkflowType) -> WelcomeWorkflow.Output? {
             switch self {
             case .nameChanged(name: let name):
                 // Update our state with the updated name.

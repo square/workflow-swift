@@ -18,9 +18,14 @@ import Workflow
 import XCTest
 
 extension WorkflowAction {
-    /// Returns a state tester containing `self`.
-    public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
-        WorkflowActionTester(state: state)
+    /// Returns a tester for action `self` beginning at a specific `state`
+    public static func tester(workflow: WorkflowType, state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
+        WorkflowActionTester(workflow: workflow, state: state)
+    }
+
+    /// Returns a tester for action `self` beginning at `workflow`'s initial state
+    public static func tester(workflow: WorkflowType) -> WorkflowActionTester<WorkflowType, Self> {
+        tester(workflow: workflow, state: workflow.makeInitialState())
     }
 }
 
@@ -61,11 +66,13 @@ extension WorkflowAction {
 /// ```
 public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
     /// The current state
+    let workflow: WorkflowType
     let state: WorkflowType.State
     let output: WorkflowType.Output?
 
     /// Initializes a new state tester
-    fileprivate init(state: WorkflowType.State, output: WorkflowType.Output? = nil) {
+    fileprivate init(workflow: WorkflowType, state: WorkflowType.State, output: WorkflowType.Output? = nil) {
+        self.workflow = workflow
         self.state = state
         self.output = output
     }
@@ -78,8 +85,8 @@ public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowA
     @discardableResult
     public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action> {
         var newState = state
-        let output = action.apply(toState: &newState)
-        return WorkflowActionTester(state: newState, output: output)
+        let output = action.apply(toState: &newState, workflow: workflow)
+        return WorkflowActionTester(workflow: workflow, state: newState, output: output)
     }
 
     /// Asserts that the action produced no output

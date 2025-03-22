@@ -21,7 +21,7 @@ import XCTest
 class TodoListWorkflowTests: XCTestCase {
     func testActions() throws {
         TodoListWorkflow.Action
-            .tester(withState: TodoListWorkflow.State())
+            .tester(workflow: TodoListWorkflow(name: "", todos: []))
             .send(action: .onBack)
             .verifyOutput { output in
                 // The `.onBack` action should emit an output of `.back`.

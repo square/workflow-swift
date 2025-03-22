@@ -191,7 +191,7 @@ extension TodoEditWorkflow {
         case titleChanged(String)
         case noteChanged(String)
 
-        func apply(toState state: inout TodoEditWorkflow.State) -> TodoEditWorkflow.Output? {
+        func apply(toState state: inout TodoEditWorkflow.State, workflow: WorkflowType) -> TodoEditWorkflow.Output? {
 
             switch self {
 
@@ -267,7 +267,7 @@ extension TodoEditWorkflow {
         case discardChanges
         case saveChanges
 
-        func apply(toState state: inout TodoEditWorkflow.State) -> TodoEditWorkflow.Output? {
+        func apply(toState state: inout TodoEditWorkflow.State, workflow: WorkflowType) -> TodoEditWorkflow.Output? {
 
             switch self {
 
@@ -382,7 +382,7 @@ extension TodoListWorkflow {
 
         case onBack
 
-        func apply(toState state: inout TodoListWorkflow.State) -> TodoListWorkflow.Output? {
+        func apply(toState state: inout TodoListWorkflow.State, workflow: WorkflowType) -> TodoListWorkflow.Output? {
 
             switch self {
 
@@ -531,7 +531,7 @@ extension TodoListWorkflow {
         case discardChanges
         case saveChanges(todo: TodoModel, index: Int)
 
-        func apply(toState state: inout TodoListWorkflow.State) -> TodoListWorkflow.Output? {
+        func apply(toState state: inout TodoListWorkflow.State, workflow: WorkflowType) -> TodoListWorkflow.Output? {
 
             switch self {
 

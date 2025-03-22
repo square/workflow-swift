@@ -21,6 +21,7 @@ import XCTest
 
 extension RenderTester {
     final class TestContext: RenderContextType {
+        let workflow: WorkflowType
         var state: WorkflowType.State
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
@@ -32,12 +33,14 @@ extension RenderTester {
         private var usedWorkflowKeys: Set<WorkflowKey> = []
 
         init(
+            workflow: WorkflowType,
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect],
             file: StaticString,
             line: UInt
         ) {
+            self.workflow = workflow
             self.state = state
             self.expectedWorkflows = expectedWorkflows
             self.expectedSideEffects = expectedSideEffects
@@ -117,7 +120,7 @@ extension RenderTester {
         private func apply<ActionType>(action: ActionType) where ActionType: WorkflowAction, ActionType.WorkflowType == WorkflowType {
             XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
             appliedAction = AppliedAction(action)
-            let output = action.apply(toState: &state)
+            let output = action.apply(toState: &state, workflow: workflow)
 
             if let output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)

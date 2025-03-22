@@ -27,10 +27,8 @@ class LoginWorkflowTests: XCTestCase {
         LoginWorkflow
             .Action
             .tester(
-                withState: LoginWorkflow.State(
-                    email: "reza@example.com",
-                    password: "password"
-                )
+                workflow: LoginWorkflow(),
+                state: LoginWorkflow.State(email: "reza@example.com", password: "password")
             )
             .send(action: .emailUpdated("square@example.com"))
             .assertNoOutput()
@@ -44,10 +42,8 @@ class LoginWorkflowTests: XCTestCase {
         LoginWorkflow
             .Action
             .tester(
-                withState: LoginWorkflow.State(
-                    email: "reza@example.com",
-                    password: "password"
-                )
+                workflow: LoginWorkflow(),
+                state: LoginWorkflow.State(email: "reza@example.com", password: "password")
             )
             .send(action: .passwordUpdated("drowssap"))
             .assertNoOutput()
@@ -61,10 +57,8 @@ class LoginWorkflowTests: XCTestCase {
         LoginWorkflow
             .Action
             .tester(
-                withState: LoginWorkflow.State(
-                    email: "reza@example.com",
-                    password: "password"
-                )
+                workflow: LoginWorkflow(),
+                state: LoginWorkflow.State(email: "reza@example.com", password: "password")
             )
             .send(action: .login)
             .verifyOutput { output in
