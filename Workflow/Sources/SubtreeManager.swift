@@ -131,10 +131,29 @@ extension WorkflowNode {
     }
 }
 
+/// Carries information about the provenance of an event handled by the runtime.
+enum EventSource: Equatable {
+    /// An event received from an external source.
+    case external
+
+    /// An event that from a descendent in the subtree.
+    /// Will contain associated debug info iff the `debugger` property of the `WorkflowHost`
+    /// is set.
+    case subtree(WorkflowUpdateDebugInfo?)
+
+    /// Compatibility method to convert to the public representation of this data
+    func toDebugInfoSource() -> WorkflowUpdateDebugInfo.Source {
+        switch self {
+        case .external: .external
+        case .subtree(let maybeInfo): .subtree(maybeInfo.unwrappedOrErrorDefault)
+        }
+    }
+}
+
 extension WorkflowNode.SubtreeManager {
     enum Output {
-        case update(any WorkflowAction<WorkflowType>, source: WorkflowUpdateDebugInfo.Source)
-        case childDidUpdate(WorkflowUpdateDebugInfo)
+        case update(any WorkflowAction<WorkflowType>, source: EventSource)
+        case childDidUpdate(WorkflowUpdateDebugInfo?)
     }
 }
 

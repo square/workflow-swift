@@ -110,12 +110,13 @@ final class WorkflowNodeTests: XCTestCase {
             b: SimpleWorkflow(string: "World")
         )
 
-        let node = WorkflowNode(workflow: workflow)
+        let context = HostContext.testing(debugger: TestDebugger())
+        let node = WorkflowNode(workflow: workflow, hostContext: context)
 
         let rendering = node.render()
         node.enableEvents()
 
-        var emittedDebugInfo: [WorkflowUpdateDebugInfo] = []
+        var emittedDebugInfo: [WorkflowUpdateDebugInfo?] = []
 
         let expectation = XCTestExpectation(description: "Output")
         node.onOutput = { value in
@@ -130,11 +131,12 @@ final class WorkflowNodeTests: XCTestCase {
         XCTAssertEqual(emittedDebugInfo.count, 1)
 
         let debugInfo = emittedDebugInfo[0]
-
-        XCTAssert(debugInfo.workflowType == "\(WorkflowType.self)")
+        XCTAssert(debugInfo?.workflowType == "\(WorkflowType.self)")
 
         /// Test the shape of the emitted debug info
-        switch debugInfo.kind {
+        switch debugInfo?.kind {
+        case .none:
+            XCTFail()
         case .childDidUpdate:
             XCTFail()
         case .didUpdate(let source):
@@ -417,4 +419,17 @@ extension WorkflowNode {
             parentSession: parentSession
         )
     }
+}
+
+// MARK: -
+
+private struct TestDebugger: WorkflowDebugger {
+    func didEnterInitialState(
+        snapshot: WorkflowHierarchyDebugSnapshot
+    ) {}
+
+    func didUpdate(
+        snapshot: WorkflowHierarchyDebugSnapshot,
+        updateInfo: WorkflowUpdateDebugInfo
+    ) {}
 }

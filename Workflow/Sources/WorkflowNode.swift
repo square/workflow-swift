@@ -96,19 +96,23 @@ final class WorkflowNode<WorkflowType: Workflow> {
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
                 outputEvent: outputEvent,
-                debugInfo: WorkflowUpdateDebugInfo(
-                    workflowType: "\(WorkflowType.self)",
-                    kind: .didUpdate(source: source)
-                )
+                debugInfo: hostContext.ifDebuggerEnabled {
+                    WorkflowUpdateDebugInfo(
+                        workflowType: "\(WorkflowType.self)",
+                        kind: .didUpdate(source: source.toDebugInfoSource())
+                    )
+                }
             )
 
         case .childDidUpdate(let debugInfo):
             output = Output(
                 outputEvent: nil,
-                debugInfo: WorkflowUpdateDebugInfo(
-                    workflowType: "\(WorkflowType.self)",
-                    kind: .childDidUpdate(debugInfo)
-                )
+                debugInfo: hostContext.ifDebuggerEnabled {
+                    WorkflowUpdateDebugInfo(
+                        workflowType: "\(WorkflowType.self)",
+                        kind: .childDidUpdate(debugInfo.unwrappedOrErrorDefault)
+                    )
+                }
             )
         }
 
@@ -179,7 +183,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 extension WorkflowNode {
     struct Output {
         var outputEvent: WorkflowType.Output?
-        var debugInfo: WorkflowUpdateDebugInfo
+        var debugInfo: WorkflowUpdateDebugInfo?
     }
 }
 

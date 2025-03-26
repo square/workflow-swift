@@ -61,11 +61,12 @@ struct StateTransitioningWorkflow: Workflow {
 
 extension HostContext {
     static func testing(
-        observer: WorkflowObserver? = nil
+        observer: WorkflowObserver? = nil,
+        debugger: WorkflowDebugger? = nil
     ) -> HostContext {
         HostContext(
             observer: observer,
-            debugger: nil
+            debugger: debugger
         )
     }
 }
