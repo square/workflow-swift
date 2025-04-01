@@ -819,3 +819,396 @@ private struct ParentModel: ObservableModel {
     var array: [ChildModel] = []
     var identified: IdentifiedArrayOf<ChildModel> = []
 }
+
+// MARK: -
+
+// @testable import WorkflowTesting
+
+@ObservableState
+struct MyObsState {
+    var obsProp1 = 0
+    var obsProp2 = "two"
+}
+
+final class BlahTests: XCTestCase {
+    @available(iOS 17.0, *)
+    func test_zz() {
+        let a = MyAction.one
+
+        let wf = MyWF()
+
+        let mgdState = Managed<MyWF>(
+            wf.makeInitialState(),
+            props: wf
+        )
+
+//        withObservationTracking {
+        withPerceptionTracking {
+            wf.render2(state: mgdState)
+        } onChange: {
+            print("changed 1")
+        }
+
+//        let ctx = RenderTester<MyWF>.TestContext.init(
+//            state: wf.makeInitialState(),
+//            expectedWorkflows: [],
+//            expectedSideEffects: [:],
+//            file: #file,
+//            line: #line
+//        )
+
+        let rez = withPerceptionTracking {
+            a.apply(toState: mgdState)
+        } onChange: {
+            print("changed")
+        }
+
+//        let rez = a.apply(toState: mgdState)
+        print(rez)
+    }
+}
+
+// MARK: -
+
+// @propertyWrapper
+@dynamicMemberLookup
+struct Managed<W: Workflow>
+//: ~Copyable
+{
+    typealias State = W.State
+    typealias Props = W
+
+    final class Storage {
+        var props: Props
+        var state: State
+
+        init(_ state: State, props: Props) {
+            self.state = state
+            self.props = props
+        }
+    }
+
+    init(_ state: State, props: Props) {
+        self.storage = .init(state, props: props)
+    }
+
+    private let storage: Storage
+
+    subscript<Value>(
+        dynamicMember keyPath: WritableKeyPath<W.State, Value>
+    ) -> Value {
+        get {
+            print("getting state: \(keyPath)")
+            return self.storage.state[keyPath: keyPath]
+        }
+//        nonmutating set {
+//            print("setting state: \(keyPath)")
+//            self.storage.state[keyPath: keyPath] = newValue
+//        }
+        nonmutating _modify {
+            yield &self.storage.state[keyPath: keyPath]
+        }
+    }
+
+    func readProps<R>(
+        _ body: (Managed3<Props>) -> R
+    ) -> R {
+        let managed3 = Managed3<Props>(self.storage.props)
+        return body(managed3)
+    }
+
+    subscript<Value>(
+        dynamicMember keyPath: KeyPath<W, Value>
+    ) -> Value {
+        self.storage.props[keyPath: keyPath]
+    }
+}
+
+@dynamicMemberLookup
+struct Managed3<State> {
+    final class Storage {
+        var state: State
+
+        init(state: State) {
+            self.state = state
+        }
+    }
+
+    private let storage: Storage
+
+    init(_ state: State) {
+        self.storage = .init(state: state)
+    }
+
+    subscript<StateValue>(
+        dynamicMember keyPath: WritableKeyPath<State, StateValue>
+    ) -> StateValue {
+        get {
+            self.storage.state[keyPath: keyPath]
+        }
+        nonmutating set {
+            self.storage.state[keyPath: keyPath] = newValue
+        }
+    }
+}
+
+@dynamicMemberLookup
+struct Managed2<State, Props> {
+    final class Storage {
+        var props: Props
+        var state: State
+
+        init(state: State, props: Props) {
+            self.state = state
+            self.props = props
+        }
+    }
+
+    private let storage: Storage
+
+    subscript<StateValue>(
+        dynamicMember keyPath: WritableKeyPath<State, StateValue>
+    ) -> StateValue {
+        get {
+            self.storage.state[keyPath: keyPath]
+        }
+        nonmutating set {
+            self.storage.state[keyPath: keyPath] = newValue
+        }
+    }
+
+    func withProperty<PropValue, R>(
+        _ propKeyPath: KeyPath<Props, PropValue>,
+        _ body: (PropValue) -> R
+    ) -> R {
+        body(self.storage.props[keyPath: propKeyPath])
+    }
+
+//    subscript<PropValue>(
+//        dynamicMember keyPath: KeyPath<Props, PropValue>
+//    ) -> PropValue {
+//        self.storage.props[keyPath: keyPath]
+//    }
+}
+
+// extension Managed where State: AnyObject {
+//    subscript<Value>(
+//        dynamicMember keyPath: ReferenceWritableKeyPath<State, Value>
+//    ) -> Value {
+//        get { self.storage.state[keyPath: keyPath] }
+//        set { self.storage.state[keyPath: keyPath] = newValue }
+//    }
+// }
+
+protocol WA {
+    associatedtype WF: Workflow
+
+    func apply(
+        toState state: Managed<WF>
+    ) -> WF.Output?
+}
+
+protocol DefaultConstructible {
+    init()
+}
+
+extension DefaultConstructible {
+    static func make() -> Self { Self() }
+}
+
+struct Blah {
+    var one = 1
+    var two = "hi"
+}
+
+extension Blah: DefaultConstructible {}
+
+func g() {
+    let x: DefaultConstructible = Blah()
+
+    let y = Blah.make()
+}
+
+extension Workflow where State: DefaultConstructible {
+    func makeInitialState() -> State { State.make() }
+}
+
+func escape(_ it: @escaping () -> Void) {}
+
+struct MyWF: Workflow {
+    func render(state: MyState, context: borrowing RenderContext<MyWF>) {}
+
+//    func render(state: MyState, context: RenderContext<Self>) -> Void {
+//    }
+
+    func render2(
+        state: Managed<Self>
+//        context: RenderContext<Self>
+    ) {
+//        let s = state.readProps { $0 }
+        _ = state.prop2
+    }
+
+    typealias Rendering = Void
+
+    @ObservableState
+    struct MyState {
+        var prop1 = "hi"
+        var prop2 = 0
+    }
+
+    var wfProp1 = "hola"
+    var wfProp2 = 42
+
+    func workflowDidChange(from previousWorkflow: MyWF, state: inout MyState) {}
+
+    func workflowDidChange2(state: Managed<Self>) {
+        state.readProps { props in
+            props.wfProp1
+        }
+    }
+
+    func makeInitialState() -> MyState {
+        MyState()
+    }
+}
+
+enum MyAction: WA {
+    typealias WF = MyWF
+
+    case one
+    case two
+
+    func apply(toState state: Managed<MyWF>) -> WF.Output? {
+        switch self {
+        case .one:
+            state.prop2 = 1
+        case .two:
+            state.prop2 = 2
+        }
+
+        return nil
+    }
+}
+
+// MARK: -
+
+// public class RenderContext2<WorkflowType: Workflow>: RenderContextType2 {
+//    private(set) var isValid = true
+//
+//    // Ensure that this class can never be initialized externally
+//    private init() {}
+//
+//    /// Creates or updates a child workflow of the given type, performs a render
+//    /// pass, and returns the result.
+//    ///
+//    /// Note that it is a programmer error to render two instances of a given workflow type with the same `key`
+//    /// during the same render pass.
+//    ///
+//    /// - Parameter workflow: The child workflow to be rendered.
+//    /// - Parameter outputMap: A closure that transforms the child's output type into `Action`.
+//    /// - Parameter key: A string that uniquely identifies this child.
+//    ///
+//    /// - Returns: The `Rendering` result of the child's `render` method.
+//    func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+//        fatalError()
+//    }
+//
+//    /// Creates a `Sink` that can be used to send `Action`s.
+//    ///
+//    /// Sinks are the primary mechanism for feeding State-changing events into the Workflow runtime.
+//    /// Upon receipt of an action, the associated Workflow (node) in the tree will have its State
+//    /// potentially transformed, and then any subsequent Output will be propagated to its parent node until
+//    /// the root of the Workflow tree is reached. At this point the tree will be re-rendered to reflect any
+//    /// State changes that occurred.
+//    ///
+//    /// - Parameter actionType: The type of Action this Sink may process
+//    /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
+//    public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+//        fatalError()
+//    }
+//
+//    /// Execute a side-effect action.
+//    ///
+//    /// Note that it is a programmer error to run two side-effects with the same `key`
+//    /// during the same render pass.
+//    ///
+//    /// `action` will be executed the first time a side-effect is run with a given `key`.
+//    /// `runSideEffect` calls with a given `key` on subsequent renders are ignored.
+//    ///
+//    /// If after a render pass, a side-effect with a `key` that was previously used is not used,
+//    /// it's lifetime ends and the `Lifetime` object's `onEnded` closure will be called.
+//    ///
+//    /// - Parameters:
+//    ///   - key: represents the block of work that needs to be executed.
+//    ///   - action: a block of work that will be executed.
+//    public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
+//        fatalError()
+//    }
+//
+//    final func invalidate() {
+//        isValid = false
+//    }
+//
+//    // API to allow custom context implementations to power a render context
+//    static func make<T: RenderContextType2>(
+//        implementation: T
+//    ) -> RenderContext<WorkflowType>
+//    where T.WorkflowType == WorkflowType
+//    {
+//        ConcreteRenderContext(implementation)
+//    }
+//
+//    // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
+//    // that is ever instantiated.
+//    private struct ConcreteRenderContext2<T: RenderContextType2>: RenderContext where WorkflowType == T.WorkflowType {
+//        let implementation: T
+//
+//        init(_ implementation: T) {
+//            self.implementation = implementation
+//            super.init()
+//        }
+//
+//        override func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
+//            assertStillValid()
+//            return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
+//        }
+//
+//        override func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
+//            assertStillValid()
+//            return implementation.makeSink(of: actionType)
+//        }
+//
+//        override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
+//            assertStillValid()
+//            implementation.runSideEffect(key: key, action: action)
+//        }
+//
+//        private func assertStillValid() {
+//            assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+//        }
+//    }
+// }
+//
+// struct RenderContextImpl<Child, Action>: ~Copyable {
+////    var renderChild: (
+// }
+//
+// protocol RenderContextType2: ~Copyable {
+//    associatedtype WorkflowType: Workflow
+//
+//    func render<Child: Workflow, Action: WorkflowAction>(
+//        workflow: Child,
+//        key: String,
+//        outputMap: @escaping (Child.Output) -> Action
+//    ) -> Child.Rendering where Action.WorkflowType == WorkflowType
+//
+//    func makeSink<Action>(
+//        of actionType: Action.Type
+//    ) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
+//
+//    func runSideEffect(
+//        key: AnyHashable,
+//        action: (_ lifetime: Lifetime) -> Void
+//    )
+// }

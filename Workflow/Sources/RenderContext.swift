@@ -108,6 +108,14 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         ConcreteRenderContext(implementation)
     }
 
+    static func make2<T: RenderContextType>(
+        implementation: consuming T
+    ) -> some RenderContextType & ~Copyable
+        where T.WorkflowType == WorkflowType, T: ~Copyable
+    {
+        ConcreteRenderContext2(implementation)
+    }
+
     // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
     // that is ever instantiated.
     private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
@@ -139,7 +147,10 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 }
 
-protocol RenderContextType: AnyObject {
+protocol RenderContextType<WorkflowType>:
+    ~Copyable
+//: AnyObject
+{
     associatedtype WorkflowType: Workflow
 
     func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
@@ -166,3 +177,77 @@ extension RenderContext {
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
     }
 }
+
+// extension ConcreteRenderContext2 {
+// }
+
+struct ConcreteRenderContext2<T: RenderContextType>: RenderContextType, ~Copyable where T: ~Copyable {
+    typealias WorkflowType = T.WorkflowType
+
+    let implementation: T
+
+    init(_ implementation: consuming T) {
+        self.implementation = implementation
+    }
+
+//    init(_ implementation: consume T) {
+//        self.implementation = implementation
+    ////        super.init()
+//    }
+
+    func render<Child, Action>(
+        workflow: Child,
+        key: String,
+        outputMap: @escaping (Child.Output) -> Action
+    ) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
+        assertStillValid()
+        return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
+    }
+
+    func makeSink<Action>(
+        of actionType: Action.Type
+    ) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
+        assertStillValid()
+        return implementation.makeSink(of: actionType)
+    }
+
+    func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
+        assertStillValid()
+        implementation.runSideEffect(key: key, action: action)
+    }
+
+    private func assertStillValid() {
+//        assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+    }
+}
+
+// struct RenderContext2<WorkflowType: Workflow>: ~Copyable, RenderContextType {
+//
+//    let impl: any RenderContextType
+//
+//    init(impl: some RenderContextType) {
+//        self.impl = impl
+//    }
+//
+//    func render<Child: Workflow, Action: WorkflowAction>(
+//        workflow: Child,
+//        key: String,
+//        outputMap: @escaping (Child.Output) -> Action
+//    ) -> Child.Rendering where WorkflowType == Action.WorkflowType {
+//        impl.render(workflow: workflow, key: key, outputMap: outputMap)
+////        fatalError()
+//    }
+//
+//    func makeSink<Action: WorkflowAction>(
+//        of actionType: Action.Type
+//    ) -> Sink<Action> where WorkflowType == Action.WorkflowType {
+//        fatalError()
+//    }
+//
+//    func runSideEffect(
+//        key: AnyHashable,
+//        action: (Lifetime) -> Void
+//    ) {
+//        fatalError()
+//    }
+// }

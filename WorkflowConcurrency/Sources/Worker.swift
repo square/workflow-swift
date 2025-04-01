@@ -31,7 +31,7 @@ public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
 
     /// Execute the work represented by this worker asynchronously and return the result.
     /// This function will be run in a Task set to high priority.
-    func run() async -> Output
+    func run() async -> sending Output
     /// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
     /// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
     /// would not be equivalent to another worker with a different user ID.
@@ -63,7 +63,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
         let logger = WorkerLogger<WorkerType>()
         let sink = context.makeOutputSink()
         context.runSideEffect(key: state) { lifetime in
-            let send: @MainActor (Output) -> Void = sink.send
+            let send: @MainActor (sending Output) -> Void = sink.send
             let task = Task(priority: .high) {
                 logger.logStarted()
                 let output = await worker.run()
