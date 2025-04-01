@@ -161,7 +161,7 @@ extension WorkflowUpdateDebugInfo? {
 
 extension WorkflowUpdateDebugInfo {
     fileprivate static let unexpectedlyMissing = {
-        assertionFailure("Creation of actual WorkflowUpdateDebugInfo failed unexectedly")
+        assertionFailure("Creation of actual WorkflowUpdateDebugInfo failed unexpectedly")
         return WorkflowUpdateDebugInfo(
             workflowType: "BUG IN WORKFLOW",
             kind: .didUpdate(source: .external)

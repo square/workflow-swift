@@ -136,7 +136,7 @@ enum EventSource: Equatable {
     /// An event received from an external source.
     case external
 
-    /// An event that from a descendent in the subtree.
+    /// An event that comes from a descendent in the subtree.
     /// Will contain associated debug info iff the `debugger` property of the `WorkflowHost`
     /// is set.
     case subtree(WorkflowUpdateDebugInfo?)

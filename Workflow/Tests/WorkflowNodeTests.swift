@@ -160,6 +160,38 @@ final class WorkflowNodeTests: XCTestCase {
         }
     }
 
+    func test_noDebugUpdateInfoIfNoDebugger() {
+        typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
+
+        let workflow = CompositeWorkflow(
+            a: EventEmittingWorkflow(string: "Hello"),
+            b: SimpleWorkflow(string: "World")
+        )
+
+        let context = HostContext.testing(debugger: nil)
+        let node = WorkflowNode(workflow: workflow, hostContext: context)
+
+        let rendering = node.render()
+        node.enableEvents()
+
+        var emittedDebugInfo: [WorkflowUpdateDebugInfo?] = []
+
+        let expectation = XCTestExpectation(description: "Output")
+        node.onOutput = { value in
+            emittedDebugInfo.append(value.debugInfo)
+            expectation.fulfill()
+        }
+
+        rendering.aRendering.someoneTappedTheButton()
+
+        wait(for: [expectation], timeout: 1.0)
+
+        XCTAssertEqual(emittedDebugInfo.count, 1)
+
+        let debugInfo = emittedDebugInfo[0]
+        XCTAssertNil(debugInfo)
+    }
+
     func test_debugTreeSnapshots() {
         typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
 
@@ -419,17 +451,4 @@ extension WorkflowNode {
             parentSession: parentSession
         )
     }
-}
-
-// MARK: -
-
-private struct TestDebugger: WorkflowDebugger {
-    func didEnterInitialState(
-        snapshot: WorkflowHierarchyDebugSnapshot
-    ) {}
-
-    func didUpdate(
-        snapshot: WorkflowHierarchyDebugSnapshot,
-        updateInfo: WorkflowUpdateDebugInfo
-    ) {}
 }
