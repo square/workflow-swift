@@ -12,12 +12,12 @@ final class HostContextTests: XCTestCase {
 
     func test_conditional_debug_info_with_debugger() {
         let subject = HostContext.testing(debugger: TestDebugger())
-        let expectaiton = expectation(description: "debugger block invoked")
+        let expectation = expectation(description: "debugger block invoked")
 
         subject.ifDebuggerEnabled {
-            expectaiton.fulfill()
+            expectation.fulfill()
         }
 
-        wait(for: [expectaiton], timeout: 0.001)
+        wait(for: [expectation], timeout: 0.001)
     }
 }
