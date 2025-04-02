@@ -57,15 +57,29 @@ struct StateTransitioningWorkflow: Workflow {
     }
 }
 
-// MARK: -
+// MARK: - HostContext
 
 extension HostContext {
     static func testing(
-        observer: WorkflowObserver? = nil
+        observer: WorkflowObserver? = nil,
+        debugger: WorkflowDebugger? = nil
     ) -> HostContext {
         HostContext(
             observer: observer,
-            debugger: nil
+            debugger: debugger
         )
     }
+}
+
+// MARK: - WorkflowDebugger
+
+struct TestDebugger: WorkflowDebugger {
+    func didEnterInitialState(
+        snapshot: WorkflowHierarchyDebugSnapshot
+    ) {}
+
+    func didUpdate(
+        snapshot: WorkflowHierarchyDebugSnapshot,
+        updateInfo: WorkflowUpdateDebugInfo
+    ) {}
 }

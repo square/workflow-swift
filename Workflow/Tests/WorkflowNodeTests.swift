@@ -110,12 +110,13 @@ final class WorkflowNodeTests: XCTestCase {
             b: SimpleWorkflow(string: "World")
         )
 
-        let node = WorkflowNode(workflow: workflow)
+        let context = HostContext.testing(debugger: TestDebugger())
+        let node = WorkflowNode(workflow: workflow, hostContext: context)
 
         let rendering = node.render()
         node.enableEvents()
 
-        var emittedDebugInfo: [WorkflowUpdateDebugInfo] = []
+        var emittedDebugInfo: [WorkflowUpdateDebugInfo?] = []
 
         let expectation = XCTestExpectation(description: "Output")
         node.onOutput = { value in
@@ -130,11 +131,12 @@ final class WorkflowNodeTests: XCTestCase {
         XCTAssertEqual(emittedDebugInfo.count, 1)
 
         let debugInfo = emittedDebugInfo[0]
-
-        XCTAssert(debugInfo.workflowType == "\(WorkflowType.self)")
+        XCTAssert(debugInfo?.workflowType == "\(WorkflowType.self)")
 
         /// Test the shape of the emitted debug info
-        switch debugInfo.kind {
+        switch debugInfo?.kind {
+        case .none:
+            XCTFail()
         case .childDidUpdate:
             XCTFail()
         case .didUpdate(let source):
@@ -156,6 +158,38 @@ final class WorkflowNodeTests: XCTestCase {
                 }
             }
         }
+    }
+
+    func test_noDebugUpdateInfoIfNoDebugger() {
+        typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
+
+        let workflow = CompositeWorkflow(
+            a: EventEmittingWorkflow(string: "Hello"),
+            b: SimpleWorkflow(string: "World")
+        )
+
+        let context = HostContext.testing(debugger: nil)
+        let node = WorkflowNode(workflow: workflow, hostContext: context)
+
+        let rendering = node.render()
+        node.enableEvents()
+
+        var emittedDebugInfo: [WorkflowUpdateDebugInfo?] = []
+
+        let expectation = XCTestExpectation(description: "Output")
+        node.onOutput = { value in
+            emittedDebugInfo.append(value.debugInfo)
+            expectation.fulfill()
+        }
+
+        rendering.aRendering.someoneTappedTheButton()
+
+        wait(for: [expectation], timeout: 1.0)
+
+        XCTAssertEqual(emittedDebugInfo.count, 1)
+
+        let debugInfo = emittedDebugInfo[0]
+        XCTAssertNil(debugInfo)
     }
 
     func test_debugTreeSnapshots() {

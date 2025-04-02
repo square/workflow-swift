@@ -95,10 +95,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
         let output = WorkflowNode<WorkflowType>.Output(
             outputEvent: nil,
-            debugInfo: WorkflowUpdateDebugInfo(
-                workflowType: "\(WorkflowType.self)",
-                kind: .didUpdate(source: .external)
-            )
+            debugInfo: context.ifDebuggerEnabled {
+                WorkflowUpdateDebugInfo(
+                    workflowType: "\(WorkflowType.self)",
+                    kind: .didUpdate(source: .external)
+                )
+            }
         )
         handle(output: output)
     }
@@ -112,7 +114,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         debugger?.didUpdate(
             snapshot: rootNode.makeDebugSnapshot(),
-            updateInfo: output.debugInfo
+            updateInfo: output.debugInfo.unwrappedOrErrorDefault
         )
 
         rootNode.enableEvents()
@@ -138,5 +140,13 @@ final class HostContext {
     ) {
         self.observer = observer
         self.debugger = debugger
+    }
+}
+
+extension HostContext {
+    func ifDebuggerEnabled<T>(
+        _ perform: () -> T
+    ) -> T? {
+        debugger != nil ? perform() : nil
     }
 }

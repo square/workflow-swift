@@ -148,3 +148,23 @@ extension WorkflowHierarchyDebugSnapshot {
         }
     }
 }
+
+// MARK: - Compatibility
+
+/// These extensions are utilities to support conditionally emitting debug info only when a
+/// `debugger` is set.
+extension WorkflowUpdateDebugInfo? {
+    var unwrappedOrErrorDefault: WorkflowUpdateDebugInfo {
+        self ?? .unexpectedlyMissing
+    }
+}
+
+extension WorkflowUpdateDebugInfo {
+    fileprivate static let unexpectedlyMissing = {
+        assertionFailure("Creation of actual WorkflowUpdateDebugInfo failed unexpectedly")
+        return WorkflowUpdateDebugInfo(
+            workflowType: "BUG IN WORKFLOW",
+            kind: .didUpdate(source: .external)
+        )
+    }()
+}
