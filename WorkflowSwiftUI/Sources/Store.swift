@@ -229,24 +229,7 @@ extension Store {
         }
     }
 
-    /// Track access to a substate child store.
-    func access<Substate>(
-        keyPath key: KeyPath<Model.State, Substate>,
-        isChanged: @escaping (Substate, Substate) -> Bool,
-        isInvalid: @escaping (Substate) -> Bool = { _ in false }
-    ) {
-        access(
-            keyPath: (\Model.accessor.state).appending(path: key),
-            isChanged: { oldModel, newModel in
-                isChanged(oldModel.accessor.state[keyPath: key], newModel.accessor.state[keyPath: key])
-            },
-            isInvalid: { model in
-                isInvalid(model.accessor.state[keyPath: key])
-            }
-        )
-    }
-
-    /// Scoping for child models
+    /// Creates a child store for a child model.
     func scope<ChildModel>(
         key: AnyHashable,
         getModel: @escaping (Model) -> ChildModel,
@@ -270,7 +253,7 @@ extension Store {
         return childStore
     }
 
-    /// Scoping for nested observable states
+    /// Creates a child store for a nested observable state.
     func scope<Substate: ObservableState>(
         key: AnyHashable,
         getSubstate: @escaping (Model.State) -> Substate,
@@ -307,8 +290,12 @@ extension Store {
         return childStore
     }
 
-    // Normal props
+    // MARK: - Scoping - Normal props
 
+    /// Derives a store for a child model on the model.
+    ///
+    /// - Parameter keyPath: the keypath to the child model
+    /// - Returns: a store
     public func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
         scope(
             key: keyPath,
@@ -317,6 +304,10 @@ extension Store {
         )
     }
 
+    /// Derives a store for nested observable state on the model.
+    ///
+    /// - Parameter keyPath: the keypath to the substate
+    /// - Returns: a store
     public func scope<Substate: ObservableState>(
         keyPath: WritableKeyPath<Model.State, Substate>
     ) -> Store<StateAccessor<Substate>> {
@@ -328,13 +319,17 @@ extension Store {
         )
     }
 
-    // Optionals
+    // MARK: - Scoping - Optionals
 
+    /// Derives an optional store from an optional child model.
+    ///
+    /// - Parameter keyPath: the keypath to the child model
+    /// - Returns: a store if the model is present, otherwise nil
     public func scope<ChildModel>(
         keyPath: KeyPath<Model, ChildModel?>
     ) -> Store<ChildModel>? {
         access(keyPath: keyPath) { oldModel, newModel in
-            // invalidate if presence changes
+            // register mutation if presence changes
             (oldModel[keyPath: keyPath] == nil) != (newModel[keyPath: keyPath] == nil)
         }
 
@@ -353,6 +348,10 @@ extension Store {
         )
     }
 
+    /// Derives an optional store from optional nested observable state.
+    ///
+    /// - Parameter keyPath: the keypath to the substate
+    /// - Returns: a store if the substate is present, otherwise nil
     public func scope<Substate: ObservableState>(
         keyPath: WritableKeyPath<Model.State, Substate?>
     ) -> Store<StateAccessor<Substate>>? {
@@ -370,8 +369,15 @@ extension Store {
         )
     }
 
-    // Collections
+    // MARK: - Scoping - Collections
 
+    /// Derives a collection of stores from a collection of child models.
+    ///
+    /// Stores in the returned collection are lazy created on first access, and invalidated when
+    /// the index becomes invalid.
+    ///
+    /// - Parameter collection: the keypath to the child model collection
+    /// - Returns: a `RandomAccessCollection` of stores
     public func scope<ChildModel, ChildCollection>(
         collection: KeyPath<Model, ChildCollection>
     ) -> _StoreCollection<ChildModel>
@@ -382,7 +388,9 @@ extension Store {
         ChildCollection.Index == Int
     {
         access(keyPath: collection) { oldModel, newModel in
-            // invalidate if collection size changes
+            // Register mutation if collection size changes. This is more lenient than the usual
+            // `_$isIdentityEqual` check for collections, which requires that the IDs match. This
+            // works because the child stores register mutations for individual indices.
             oldModel[keyPath: collection].count != newModel[keyPath: collection].count
         }
 
@@ -404,6 +412,13 @@ extension Store {
         }
     }
 
+    /// Derives a collection of stores from a collection of nested observable states.
+    ///
+    /// Stores in the returned collection are lazy created on first access, and invalidated when
+    /// the index becomes invalid.
+    ///
+    /// - Parameter collection: the keypath to the substate collection
+    /// - Returns: a `RandomAccessCollection` of stores
     public func scope<Substate, SubstateCollection>(
         collection: WritableKeyPath<Model.State, SubstateCollection>
     ) -> _StoreCollection<StateAccessor<Substate>>
@@ -430,11 +445,21 @@ extension Store {
         }
     }
 
+    /// Derives a collection of stores from an `IdentifiedArray` of child models.
+    ///
+    /// Stores in the returned collection are lazy created on first access, and invalidated when
+    /// the ID is no longer present in the collection. Reorders do not invalidate.
+    ///
+    /// - Parameter collection: the keypath to the child model array
+    /// - Returns: a `RandomAccessCollection` of stores
     public func scope<ChildModel>(
         collection: KeyPath<Model, IdentifiedArray<some Any, ChildModel>>
     ) -> _StoreCollection<ChildModel> where ChildModel: ObservableModel {
         access(keyPath: collection) { oldModel, newModel in
-            // invalidate if collection size changes
+            // Register mutation if collection size changes. This is more lenient than the usual
+            // `_$isIdentityEqual` check for identified arrays, which calls
+            // `areOrderedSetsDuplicates(lhs.ids, rhs.ids)`. This works because the child stores
+            // register mutations for individual indices.
             oldModel[keyPath: collection].count != newModel[keyPath: collection].count
         }
 
@@ -468,6 +493,13 @@ extension Store {
         }
     }
 
+    /// Derives a collection of stores from an `IdentifiedArray` of nested observable states.
+    ///
+    /// Stores in the returned collection are lazy created on first access, and invalidated when
+    /// the ID is no longer present in the collection. Reorders do not invalidate.
+    ///
+    /// - Parameter collection: the keypath to the substate array
+    /// - Returns: a `RandomAccessCollection` of stores
     public func scope<Substate: ObservableState>(
         collection: WritableKeyPath<Model.State, IdentifiedArray<some Any, Substate>>
     ) -> _StoreCollection<StateAccessor<Substate>> {
@@ -494,6 +526,8 @@ extension Store {
             )
         }
     }
+
+    // MARK: - Scoping - child model sugar
 
     public subscript<ChildModel: ObservableModel>(dynamicMember keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
         scope(keyPath: keyPath)
