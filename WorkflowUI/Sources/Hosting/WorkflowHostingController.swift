@@ -16,6 +16,16 @@
 
 #if canImport(UIKit)
 
+import Foundation
+
+private let shouldDeferUpdates: Bool = {
+    ProcessInfo.processInfo.environment["WORKFLOWUI_DEFER_UPDATES"] == "1"
+}()
+
+import os
+
+let sp = OSSignposter.init(subsystem: "wfui", category: .pointsOfInterest)
+
 import ReactiveSwift
 import UIKit
 @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
@@ -85,12 +95,31 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
             .take(during: lifetime)
             .observeValues { [weak self] screen in
                 guard let self else { return }
-
-                update(
-                    screen: screen,
-                    environmentAncestorPath: environmentAncestorPath
-                )
+                sp.emitEvent("workflow-host-emit-rendering")
+                if shouldDeferUpdates {
+                    if needsUpdate {
+                        __debug_deferredUpdate()
+                    }
+                    setNeedsUpdate()
+                } else {
+                    update(
+                        screen: screen,
+                        environmentAncestorPath: environmentAncestorPath
+                    )
+                }
             }
+    }
+
+    private var renderingGeneration = 0
+    private var lastRenderingGeneration = 0
+
+    var needsUpdate: Bool {
+        lastRenderingGeneration != renderingGeneration
+    }
+
+    func setNeedsUpdate() {
+        renderingGeneration &+= 1
+        self.viewIfLoaded?.setNeedsLayout()
     }
 
     /// Updates the root Workflow in this container.
@@ -103,7 +132,17 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func update(screen: ScreenType, environmentAncestorPath: EnvironmentAncestorPath) {
+    private func update(
+        screen: ScreenType,
+        environmentAncestorPath: EnvironmentAncestorPath
+    ) {
+        sp.emitEvent("workflow-host-update-screen-and-env start")
+        defer {
+            if shouldDeferUpdates {
+                lastRenderingGeneration = renderingGeneration
+            }
+            sp.emitEvent("workflow-host-update-screen-and-env end")
+        }
         lastEnvironmentAncestorPath = environmentAncestorPath
 
         let environment = environment
@@ -132,15 +171,28 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         updatePreferredContentSizeIfNeeded()
     }
 
-    override public func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-
-        let environmentAncestorPath = environmentAncestorPath
-        if environmentAncestorPath != lastEnvironmentAncestorPath {
+    func updateScreenIfNeeded() {
+        if (shouldDeferUpdates && needsUpdate) || environmentAncestorPath != lastEnvironmentAncestorPath {
+            // TODO: only read ancestor path once
             update(
                 screen: workflowHost.rendering.value,
                 environmentAncestorPath: environmentAncestorPath
             )
+        }
+    }
+
+    override public func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if shouldDeferUpdates {
+            updateScreenIfNeeded()
+        } else {
+            let environmentAncestorPath = environmentAncestorPath
+            if environmentAncestorPath != lastEnvironmentAncestorPath {
+                update(
+                    screen: workflowHost.rendering.value,
+                    environmentAncestorPath: environmentAncestorPath
+                )
+            }
         }
     }
 
@@ -202,10 +254,14 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
     }
 
     public func environmentDidChange() {
-        update(
-            screen: workflowHost.rendering.value,
-            environmentAncestorPath: environmentAncestorPath
-        )
+        if shouldDeferUpdates {
+            updateScreenIfNeeded()
+        } else {
+            update(
+                screen: workflowHost.rendering.value,
+                environmentAncestorPath: environmentAncestorPath
+            )
+        }
     }
 }
 
@@ -215,6 +271,11 @@ extension WorkflowHostingController: SingleScreenContaining {
     public var primaryScreen: any Screen {
         workflowHost.rendering.value
     }
+}
+
+@inline(never)
+private func __debug_deferredUpdate() {
+    sp.emitEvent("workflow-host-deferred-update")
 }
 
 #endif
