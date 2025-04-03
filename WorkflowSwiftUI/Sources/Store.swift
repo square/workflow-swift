@@ -229,6 +229,24 @@ extension Store {
         }
     }
 
+    /// Track access to a substate child store.
+    func access<Substate>(
+        keyPath key: KeyPath<Model.State, Substate>,
+        isChanged: @escaping (Substate, Substate) -> Bool,
+        isInvalid: @escaping (Substate) -> Bool = { _ in false }
+    ) {
+        access(
+            keyPath: (\Model.accessor.state).appending(path: key),
+            isChanged: { oldModel, newModel in
+                isChanged(oldModel.accessor.state[keyPath: key], newModel.accessor.state[keyPath: key])
+            },
+            isInvalid: { model in
+                isInvalid(model.accessor.state[keyPath: key])
+            }
+        )
+    }
+
+    /// Scoping for child models
     func scope<ChildModel>(
         key: AnyHashable,
         getModel: @escaping (Model) -> ChildModel,
@@ -252,12 +270,60 @@ extension Store {
         return childStore
     }
 
+    /// Scoping for nested observable states
+    func scope<Substate: ObservableState>(
+        key: AnyHashable,
+        getSubstate: @escaping (Model.State) -> Substate,
+        setSubstate: @escaping (inout Model.State, Substate) -> Void,
+        isInvalid: @escaping (Model) -> Bool
+    ) -> Store<StateAccessor<Substate>> {
+        if let childStore = childStores[key]?.store as? Store<StateAccessor<Substate>> {
+            return childStore
+        }
+
+        func sendValue(_ mutation: @escaping (inout Substate) -> Void) {
+            model.accessor.sendValue { modelState in
+                var substate = getSubstate(modelState)
+                mutation(&substate)
+                setSubstate(&modelState, substate)
+            }
+        }
+
+        func makeChildModel(model: Model) -> StateAccessor<Substate> {
+            let substate = getSubstate(model.accessor.state)
+            return StateAccessor(state: substate, sendValue: sendValue)
+        }
+
+        let childStore = Store<StateAccessor>(makeChildModel(model: model))
+
+        childStores[key] = ChildStore(
+            store: childStore,
+            setModel: { model in
+                childStore.setModel(makeChildModel(model: model))
+            },
+            isInvalid: isInvalid
+        )
+
+        return childStore
+    }
+
     // Normal props
 
     public func scope<ChildModel>(keyPath: KeyPath<Model, ChildModel>) -> Store<ChildModel> {
         scope(
             key: keyPath,
             getModel: { $0[keyPath: keyPath] },
+            isInvalid: { _ in false }
+        )
+    }
+
+    public func scope<Substate: ObservableState>(
+        keyPath: WritableKeyPath<Model.State, Substate>
+    ) -> Store<StateAccessor<Substate>> {
+        scope(
+            key: keyPath,
+            getSubstate: { $0[keyPath: keyPath] },
+            setSubstate: { $0[keyPath: keyPath] = $1 },
             isInvalid: { _ in false }
         )
     }
@@ -283,6 +349,23 @@ extension Store {
             },
             isInvalid: { model in
                 model[keyPath: keyPath] == nil
+            }
+        )
+    }
+
+    public func scope<Substate: ObservableState>(
+        keyPath: WritableKeyPath<Model.State, Substate?>
+    ) -> Store<StateAccessor<Substate>>? {
+        guard let childState = model.accessor.state[keyPath: keyPath] else {
+            return nil
+        }
+
+        return scope(
+            key: keyPath,
+            getSubstate: { $0[keyPath: keyPath] ?? childState },
+            setSubstate: { $0[keyPath: keyPath] = $1 },
+            isInvalid: { model in
+                model.accessor.state[keyPath: keyPath] == nil
             }
         )
     }
@@ -321,6 +404,32 @@ extension Store {
         }
     }
 
+    public func scope<Substate, SubstateCollection>(
+        collection: WritableKeyPath<Model.State, SubstateCollection>
+    ) -> _StoreCollection<StateAccessor<Substate>>
+        where
+        Substate: ObservableState,
+        SubstateCollection: MutableCollection,
+        SubstateCollection.Element == Substate,
+        SubstateCollection.Index == Int
+    {
+        let states = model.accessor.state[keyPath: collection]
+
+        return _StoreCollection(
+            startIndex: states.startIndex,
+            endIndex: states.endIndex
+        ) { index in
+            self.scope(
+                key: collection.appending(path: \.[index]),
+                getSubstate: { $0[keyPath: collection][index] },
+                setSubstate: { $0[keyPath: collection][index] = $1 },
+                isInvalid: { model in
+                    !model.accessor.state[keyPath: collection].indices.contains(index)
+                }
+            )
+        }
+    }
+
     public func scope<ChildModel>(
         collection: KeyPath<Model, IdentifiedArray<some Any, ChildModel>>
     ) -> _StoreCollection<ChildModel> where ChildModel: ObservableModel {
@@ -354,6 +463,33 @@ extension Store {
                 },
                 isInvalid: { model in
                     !model[keyPath: collection].ids.contains(id)
+                }
+            )
+        }
+    }
+
+    public func scope<Substate: ObservableState>(
+        collection: WritableKeyPath<Model.State, IdentifiedArray<some Any, Substate>>
+    ) -> _StoreCollection<StateAccessor<Substate>> {
+        let stateCollection = model.accessor.state[keyPath: collection]
+
+        return _StoreCollection(
+            startIndex: stateCollection.startIndex,
+            endIndex: stateCollection.endIndex
+        ) { (index: Int) -> Store<StateAccessor<Substate>> in
+            let id = stateCollection.ids[index]
+
+            return self.scope(
+                key: collection.appending(path: \.[id: id]),
+                getSubstate: { state in
+                    let stateCollection = state[keyPath: collection]
+                    return stateCollection[id: id] ?? stateCollection[index]
+                },
+                setSubstate: { state, substate in
+                    state[keyPath: collection][id: id] = substate
+                },
+                isInvalid: { model in
+                    !model.accessor.state[keyPath: collection].ids.contains(id)
                 }
             )
         }
