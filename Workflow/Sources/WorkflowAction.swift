@@ -45,7 +45,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
     /// - Parameter base: A workflow action to wrap.
-    public init<E>(_ base: E) where E: WorkflowAction, E.WorkflowType == WorkflowType {
+    public init<E: WorkflowAction>(_ base: E) where E.WorkflowType == WorkflowType {
         if let anyEvent = base as? AnyWorkflowAction<WorkflowType> {
             self = anyEvent
             return

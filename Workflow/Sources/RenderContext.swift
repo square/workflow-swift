@@ -63,7 +63,11 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameter key: A string that uniquely identifies this child.
     ///
     /// - Returns: The `Rendering` result of the child's `render` method.
-    func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+    func render<Child: Workflow, Action: WorkflowAction>(
+        workflow: Child,
+        key: String,
+        outputMap: @escaping (Child.Output) -> Action
+    ) -> Child.Rendering where WorkflowType == Action.WorkflowType {
         fatalError()
     }
 
@@ -77,7 +81,9 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     ///
     /// - Parameter actionType: The type of Action this Sink may process
     /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
-    public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+    public func makeSink<Action: WorkflowAction>(
+        of actionType: Action.Type
+    ) -> Sink<Action> where Action.WorkflowType == WorkflowType {
         fatalError()
     }
 
@@ -118,17 +124,30 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             super.init()
         }
 
-        override func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
+        override func render<Child: Workflow, Action: WorkflowAction>(
+            workflow: Child,
+            key: String,
+            outputMap: @escaping (Child.Output) -> Action
+        ) -> Child.Rendering
+            where WorkflowType == Action.WorkflowType
+        {
             assertStillValid()
             return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
         }
 
-        override func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
+        override func makeSink<Action: WorkflowAction>(
+            of actionType: Action.Type
+        ) -> Sink<Action>
+            where WorkflowType == Action.WorkflowType
+        {
             assertStillValid()
             return implementation.makeSink(of: actionType)
         }
 
-        override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
+        override func runSideEffect(
+            key: AnyHashable,
+            action: (_ lifetime: Lifetime) -> Void
+        ) {
             assertStillValid()
             implementation.runSideEffect(key: key, action: action)
         }
@@ -142,15 +161,27 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
-    func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
+    func render<Child: Workflow, Action: WorkflowAction>(
+        workflow: Child,
+        key: String,
+        outputMap: @escaping (Child.Output) -> Action
+    ) -> Child.Rendering where Action.WorkflowType == WorkflowType
 
-    func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
+    func makeSink<Action: WorkflowAction>(
+        of actionType: Action.Type
+    ) -> Sink<Action> where Action.WorkflowType == WorkflowType
 
-    func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
+    func runSideEffect(
+        key: AnyHashable,
+        action: (_ lifetime: Lifetime) -> Void
+    )
 }
 
 extension RenderContext {
-    public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
+    public func makeSink<Event>(
+        of eventType: Event.Type,
+        onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?
+    ) -> Sink<Event> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
                 AnyWorkflowAction<WorkflowType> { state in

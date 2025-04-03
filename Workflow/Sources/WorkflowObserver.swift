@@ -276,11 +276,11 @@ final class ChainedWorkflowObserver: WorkflowObserver {
         }
     }
 
-    func workflowDidReceiveAction<Action>(
+    func workflowDidReceiveAction<Action: WorkflowAction>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
-    ) where Action: WorkflowAction {
+    ) {
         for observer in observers {
             observer.workflowDidReceiveAction(
                 action,
@@ -290,12 +290,12 @@ final class ChainedWorkflowObserver: WorkflowObserver {
         }
     }
 
-    func workflowWillApplyAction<Action>(
+    func workflowWillApplyAction<Action: WorkflowAction>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
         session: WorkflowSession
-    ) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? where Action: WorkflowAction {
+    ) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? {
         let callbacks = observers.compactMap {
             $0.workflowWillApplyAction(
                 action,

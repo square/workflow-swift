@@ -59,7 +59,7 @@ extension WorkflowAction {
 ///     .assert(output: .finished)
 ///     .assert(state: .differentState)
 /// ```
-public struct WorkflowActionTester<WorkflowType, Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where Action.WorkflowType == WorkflowType {
     /// The current state
     let state: WorkflowType.State
     let output: WorkflowType.Output?

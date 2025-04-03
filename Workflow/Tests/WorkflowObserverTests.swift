@@ -647,11 +647,11 @@ private final class TestObserver: WorkflowObserver {
         onDidChange?(oldWorkflow, newWorkflow, state, session)
     }
 
-    func workflowDidReceiveAction<Action>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) where Action: WorkflowAction {
+    func workflowDidReceiveAction<Action: WorkflowAction>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) {
         onDidReceiveAction?(action, workflow, session)
     }
 
-    func workflowWillApplyAction<Action>(_ action: Action, workflow: Action.WorkflowType, state: Action.WorkflowType.State, session: WorkflowSession) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? where Action: WorkflowAction {
+    func workflowWillApplyAction<Action: WorkflowAction>(_ action: Action, workflow: Action.WorkflowType, state: Action.WorkflowType.State, session: WorkflowSession) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? {
         onApplyAction?(action, workflow, state, session)
     }
 }
