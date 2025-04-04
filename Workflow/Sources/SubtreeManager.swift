@@ -199,14 +199,12 @@ extension WorkflowNode.SubtreeManager {
             self.session = session
         }
 
-        func render<Child, Action>(
+        func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
             outputMap: @escaping (Child.Output) -> Action
         ) -> Child.Rendering
-            where Child: Workflow,
-            Action: WorkflowAction,
-            WorkflowType == Action.WorkflowType
+            where WorkflowType == Action.WorkflowType
         {
             /// A unique key used to identify this child workflow
             let childKey = ChildKey(childType: Child.self, key: key)
@@ -256,7 +254,9 @@ extension WorkflowNode.SubtreeManager {
             return child.render()
         }
 
-        func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+        func makeSink<Action: WorkflowAction>(
+            of actionType: Action.Type
+        ) -> Sink<Action> where WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
 
             let sink = Sink<Action> { [weak reusableSink] action in
@@ -269,7 +269,10 @@ extension WorkflowNode.SubtreeManager {
             return sink
         }
 
-        func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
+        func runSideEffect(
+            key: AnyHashable,
+            action: (Lifetime) -> Void
+        ) {
             if let existingSideEffect = originalSideEffectLifetimes[key] {
                 usedSideEffectLifetimes[key] = existingSideEffect
             } else {

@@ -66,7 +66,9 @@ extension AnyWorkflow {
     /// - Parameter transform: An escaping closure that maps the original output type into the new output type.
     ///
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+    public func mapOutput<NewOutput>(
+        _ transform: @escaping (Output) -> NewOutput
+    ) -> AnyWorkflow<Rendering, NewOutput> {
         let storage = storage.mapOutput(transform: transform)
         return AnyWorkflow<Rendering, NewOutput>(storage: storage)
     }
@@ -76,7 +78,9 @@ extension AnyWorkflow {
     /// - Parameter transform: An escaping closure that maps the original rendering type into the new rendering type.
     ///
     /// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
-    public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
+    public func mapRendering<NewRendering>(
+        _ transform: @escaping (Rendering) -> NewRendering
+    ) -> AnyWorkflow<NewRendering, Output> {
         let storage = storage.mapRendering(transform: transform)
         return AnyWorkflow<NewRendering, Output>(storage: storage)
     }
@@ -91,7 +95,11 @@ extension AnyWorkflow {
     /// That type information *is* present in our storage object, however, so we
     /// pass the context down to that storage object which will ultimately call
     /// through to `context.render(workflow:key:reducer:)`.
-    func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+    func render<Parent, Action: WorkflowAction>(
+        context: RenderContext<Parent>,
+        key: String,
+        outputMap: @escaping (Output) -> Action
+    ) -> Rendering where Action.WorkflowType == Parent {
         storage.render(context: context, key: key, outputMap: outputMap)
     }
 }
@@ -103,7 +111,11 @@ extension AnyWorkflow {
     fileprivate class AnyStorage {
         var base: Any { fatalError() }
 
-        func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+        func render<Parent, Action: WorkflowAction>(
+            context: RenderContext<Parent>,
+            key: String,
+            outputMap: @escaping (Output) -> Action
+        ) -> Rendering where Action.WorkflowType == Parent {
             fatalError()
         }
 
@@ -140,7 +152,11 @@ extension AnyWorkflow {
             T.self
         }
 
-        override func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+        override func render<Parent, Action: WorkflowAction>(
+            context: RenderContext<Parent>,
+            key: String,
+            outputMap: @escaping (Output) -> Action
+        ) -> Rendering where Action.WorkflowType == Parent {
             let outputMap: (T.Output) -> Action = { [outputTransform] output in
                 outputMap(outputTransform(output))
             }
