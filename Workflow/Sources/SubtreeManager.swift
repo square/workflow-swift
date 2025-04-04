@@ -82,15 +82,19 @@ extension WorkflowNode {
             childWorkflows = context.usedChildWorkflows
             sideEffectLifetimes = context.usedSideEffectLifetimes
 
-            /// Captured the reusable sinks from this render pass.
+            /// Capture the reusable sinks from this render pass.
             previousSinks = context.sinkStore.usedSinks
 
             /// Capture all the pipes to be enabled after render completes.
             eventPipes = context.eventPipes
-            eventPipes.append(contentsOf: context.sinkStore.eventPipes)
+            for (_, sink) in context.sinkStore.usedSinks {
+                eventPipes.append(sink.eventPipe)
+            }
 
             /// Set all event pipes to `pending`.
-            eventPipes.forEach { $0.setPending() }
+            for eventPipe in eventPipes {
+                eventPipe.setPending()
+            }
 
             /// Return the rendered result
             return rendering
@@ -288,12 +292,6 @@ extension WorkflowNode.SubtreeManager {
 
 extension WorkflowNode.SubtreeManager {
     fileprivate struct SinkStore {
-        var eventPipes: [EventPipe] {
-            usedSinks.values.map { reusableSink -> EventPipe in
-                reusableSink.eventPipe
-            }
-        }
-
         private var previousSinks: [ObjectIdentifier: AnyReusableSink]
         private(set) var usedSinks: [ObjectIdentifier: AnyReusableSink]
 
