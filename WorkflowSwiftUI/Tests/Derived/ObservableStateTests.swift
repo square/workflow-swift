@@ -140,16 +140,14 @@ final class ObservableStateTests: XCTestCase {
         // nil -> nil
         do {
             var state = ParentState(optional: nil)
-            let optionalDidChange = expectation(description: "optional.didChange")
 
             withPerceptionTracking {
                 _ = state.optional
             } onChange: {
-                optionalDidChange.fulfill()
+                XCTFail("Optional should not change")
             }
 
             state.optional = nil
-            await fulfillment(of: [optionalDidChange], timeout: 0)
             XCTAssertNil(state.optional)
         }
 

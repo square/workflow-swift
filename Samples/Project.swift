@@ -67,8 +67,14 @@ let project = Project(
         ),
 
         .app(
-            name: "ObservableScreen",
-            sources: "ObservableScreen/Sources/**",
+            name: "ObservableCounter",
+            sources: "ObservableCounter/Sources/**",
+            dependencies: [.external(name: "WorkflowSwiftUI")]
+        ),
+
+        .app(
+            name: "ObservableComposition",
+            sources: "ObservableComposition/Sources/**",
             dependencies: [.external(name: "WorkflowSwiftUI")]
         ),
 
