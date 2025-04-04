@@ -26,7 +26,7 @@ class ConfirmQuitWorkflowTests: XCTestCase {
     func test_action_cancel() {
         ConfirmQuitWorkflow
             .Action
-            .tester(withState: ConfirmQuitWorkflow.State(step: .confirmOnce))
+            .tester(workflow: ConfirmQuitWorkflow())
             .send(action: .cancel)
             .assert(output: .cancel)
     }
@@ -34,7 +34,7 @@ class ConfirmQuitWorkflowTests: XCTestCase {
     func test_action_quit() {
         ConfirmQuitWorkflow
             .Action
-            .tester(withState: ConfirmQuitWorkflow.State(step: .confirmOnce))
+            .tester(workflow: ConfirmQuitWorkflow())
             .send(action: .quit)
             .assert(output: .quit)
     }
@@ -42,7 +42,7 @@ class ConfirmQuitWorkflowTests: XCTestCase {
     func test_action_confirm() {
         ConfirmQuitWorkflow
             .Action
-            .tester(withState: ConfirmQuitWorkflow.State(step: .confirmOnce))
+            .tester(workflow: ConfirmQuitWorkflow())
             .send(action: .confirm)
             .verifyState { state in
                 XCTAssertEqual(state.step, .confirmTwice)

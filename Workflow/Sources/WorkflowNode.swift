@@ -218,7 +218,7 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        output = action.apply(toState: &state, workflow: workflow)
 
         return output
     }
