@@ -107,7 +107,7 @@ public struct WorkflowSession {
         private static var _nextRawID: UInt64 = 0
         private static func _makeNextSessionID() -> UInt64 {
             let nextID = _nextRawID
-            _nextRawID += 1
+            _nextRawID &+= 1
             return nextID
         }
 
