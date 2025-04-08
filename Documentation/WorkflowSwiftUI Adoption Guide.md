@@ -219,6 +219,8 @@ struct PersonView: View {
 }
 ```
 
+`WithPerceptionTracking` is necessary in any view that accesses a `Store`, as well as inside many containers that lazily evaluate their content, including `ForEach`, `GeometryReader`, `List`, `LazyVStack`, and `LazyHStack`.
+
 If you forget to wrap your view's body in `WithPerceptionTracking`, a runtime warning will remind you.
 
 ## Screens
@@ -340,6 +342,81 @@ struct CoupleView: View {
 ```
 
 Child store mapping works for plain `ObservableModel` properties, as well as optionals, collections, and identified collections.
+
+## Nested observable state
+
+If your state has properties with types that also conform to `ObservableState`, you can create a child `Store` for those properties, similarly to creating child stores of child models from child workflows. Use the `scope(keyPath:)` methods to create a store for regular properties and optionals, and the `scope(collection:)` methods to create stores for items in collections.
+
+Scoping nested state to a child store is not required for simple properties, but is required to create an optional binding, and for collections in most cases. See the example below.
+
+```swift
+@ObservableState
+struct State {
+
+  @ObservableState
+  struct CounterState: Identifiable {
+    let id = UUID()
+    var count = 0
+  }
+
+  var counter = CounterState()
+  var optionalCounter? = CounterState()
+  var moreCounters: [CounterState] = [.init(), .init()]
+  var evenMoreCounters: IdentifiedArrayOf<CounterState> = [.init(), .init()]
+}
+
+struct VariousCounterView: View {
+  @Perception.Bindable
+  var store: Store<StateAccessor<CounterState>>
+
+  var body: some View {
+    WithPerceptionTracking {
+      // direct access OK
+      CounterView(count: $store.counter.count)
+
+      // nested store, also OK
+      @Perception.Bindable var counter = store.scope(keyPath: \.counter)
+      CounterView(count: $counter.count)
+
+      // required to get `Binding<Int>?` instead of `Binding<Int?>`
+      if let optionalCounter = store.scope(keyPath: \.optionalCounter) {
+        @Perception.Bindable var optionalCounter = optionalCounter
+        WithPerceptionTracking {
+          CounterView(count: $optionalCounter.count)
+        }
+      }
+
+      // ❌ compiles but does not work!
+      ForEach($store.moreCounters) { counter in
+        WithPerceptionTracking {
+          CounterView(count: counter.count)
+        }
+      }
+
+      // required for this collection
+      ForEach(store.scope(collection: \.moreCounters)) { counter in
+        @Perception.Bindable var counter = counter
+        WithPerceptionTracking {
+          CounterView(count: $counter.count)
+        }
+      }
+
+      // also required for this collection
+      ForEach(store.scope(collection: \.evenMoreCounters)) { counter in
+        @Perception.Bindable var counter = counter
+        WithPerceptionTracking {
+          CounterView(count: $counter.count)
+        }
+      }
+    }
+  }
+}
+
+struct CounterView: View {
+  @Binding var count: Int
+  // <snip>
+}
+```
 
 ## Actions
 
