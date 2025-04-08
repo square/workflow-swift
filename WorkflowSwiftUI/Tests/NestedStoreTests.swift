@@ -32,8 +32,6 @@ final class NestedStoreTests: XCTestCase {
             }
             let (store, _) = Store.make(model: model)
 
-            state.optional = .init()
-
             let optionalDidChange = expectation(description: "optional.didChange")
             withPerceptionTracking {
                 _ = store.scope(keyPath: \.optional)?.name
