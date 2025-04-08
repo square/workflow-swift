@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
+extension WorkflowNode {
+    struct RenderingSnapshot {
+        var lastRendering: WorkflowType.Rendering?
+    }
+}
+
+import Observation
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
+
+    private var isTrackingRenderChanges = false
+    private var isTrackingDidUpdateChanges = false
+    private var cachedRendering = RenderingSnapshot()
 
     /// Holds the current `Workflow` managed by this node.
     private var workflow: WorkflowType
@@ -60,7 +72,16 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         hostContext.observer?.sessionDidBegin(session)
 
-        self.state = workflow.makeInitialState()
+        if #available(iOS 17.0, *) {
+            self.state = withObservationTracking {
+                workflow.makeInitialState()
+            } onChange: { [weak hostContext, session] in
+                print("JQ: [makeInitialState] WOT onChange: invalidating nodes for session: \(session.sessionID)")
+                hostContext?.invalidateNodesForSession(session)
+            }
+        } else {
+            self.state = workflow.makeInitialState()
+        }
 
         observer?.workflowDidMakeInitialState(
             workflow,
@@ -141,12 +162,52 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        if
+//            false &&
+            hostContext.isNodeValid(session.sessionID),
+            let cachedRendering = cachedRendering.lastRendering
+        {
+            // if node isn't invalidated, and we have a cached
+            // rendering, use it
+            print("JQ: [cache hit] using cached rendering of \(type(of:cachedRendering)) for \(session.sessionID)")
+            rendering = cachedRendering
+            for eventPipe in subtreeManager.eventPipes {
+                eventPipe.prepareForReuse()
+            }
+        } else {
+            // otherwise, produce a new rendering for this node
+            if #available(iOS 17.0, *) {
+
+                rendering = subtreeManager.render { context in
+                    print("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
+                    if isTrackingRenderChanges {
+                        return workflow.render(state: state, context: context)
+                    } else {
+                        defer { isTrackingRenderChanges = true }
+                        return withObservationTracking {
+                            return workflow.render(state: state, context: context)
+                        } onChange: { [weak self] in
+                            guard let self else { return }
+                            print("JQ: [render] WOT onChange: invalidating nodes for session: \(session.sessionID)")
+                            isTrackingRenderChanges = false
+                            hostContext.invalidateNodesForSession(session)
+                        }
+                    }
+                }
+            } else {
+                rendering = subtreeManager.render { context in
+                    print("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
+                    return workflow.render(state: state, context: context)
+                }
+            }
+
+            // otherwise, produce a new rendering for this node
+//            rendering = subtreeManager.render { context in
+//                print("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
+//                return workflow.render(state: state, context: context)
+//            }
+
+            cachedRendering.lastRendering = rendering
         }
 
         return rendering
@@ -160,7 +221,39 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
-        workflow.workflowDidChange(from: oldWorkflow, state: &state)
+        print("JQ: updating wf: \(type(of: workflow)) session: \(session.sessionID)")
+
+        if #available(iOS 17.0, *) {
+            if isTrackingDidUpdateChanges {
+//                var copy = state
+                workflow.workflowDidChange(from: oldWorkflow, state: &state)
+//                state[keyPath: \.self] = copy
+            } else {
+                defer { isTrackingDidUpdateChanges = true }
+                withObservationTracking {
+                    workflow.workflowDidChange(from: oldWorkflow, state: &state)
+//                    var obs = ObserverWrapper(val: state)
+//                    defer { state = obs.val }
+//                    var copy = state[keyPath: \.self]
+//                    var hack = unsafeBitCast(obs, to: WorkflowType.State.self)
+//                    state = obs.val
+//                    withUnsafeMutablePointer(to: &obs) { ptr in
+//                        workflow.workflowDidChange(from: oldWorkflow, state: &ptr.pointee.val)
+//                    }
+//                    state = copy
+                } onChange: { [weak self] in
+                    guard let self else { return }
+                    print("JQ: [WFDidChange] WOT onChange: invalidating nodes for session: \(session.sessionID)")
+                    self.isTrackingDidUpdateChanges = true
+                    hostContext.invalidateNodesForSession(session)
+                }
+            }
+        } else {
+            workflow.workflowDidChange(from: oldWorkflow, state: &state)
+        }
+
+//        workflow.workflowDidChange(from: oldWorkflow, state: &state)
+
         self.workflow = workflow
 
         observer?.workflowDidChange(
@@ -187,6 +280,30 @@ extension WorkflowNode {
     }
 }
 
+@dynamicMemberLookup
+struct ObserverWrapper<T> {
+    var val: T {
+        willSet {
+            print("will set: newVal:")
+//            dump(newValue)
+//            print("old value:")
+//            dump(val)
+        }
+        didSet {
+            print("did set")
+        }
+    }
+
+    subscript<V>(dynamicMember keyPath: WritableKeyPath<T, V>) -> V {
+        get {
+            self.val[keyPath: keyPath]
+        }
+        set {
+            self.val[keyPath: keyPath] = newValue
+        }
+    }
+}
+
 extension WorkflowNode {
     /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
     /// - Parameters:
@@ -207,6 +324,10 @@ extension WorkflowNode {
                 workflow: workflow,
                 session: session
             )
+
+            // invalidate path to root
+            hostContext.invalidateNodes(from: self)
+//            hostContext.invalidateNodes(from: session)
         }
 
         let observerCompletion = observer?.workflowWillApplyAction(

@@ -3,6 +3,7 @@ import Workflow
 import WorkflowSwiftUI
 import WorkflowUI
 
+@ObservableState
 struct CounterWorkflow: Workflow {
     // Dependencies from parent.
     let info: CounterInfo
@@ -98,6 +99,7 @@ struct CounterWorkflow: Workflow {
         state: State,
         context: RenderContext<CounterWorkflow>
     ) -> ActionModel<State, Action> {
+        _ = self.resetToken
         print("\(Self.self) rendered \(state.info.name) count: \(state.count)")
         return context.makeActionModel(state: state)
     }
@@ -113,6 +115,7 @@ struct CounterInfo {
 }
 
 extension CounterWorkflow {
+    @ObservableState
     struct ResetToken: Equatable {
         let id = UUID()
     }
