@@ -6,6 +6,7 @@ struct CounterListView: View {
     var store: Store<CounterListModel>
 
     var body: some View {
+        // These print statements show the effect of state changes on body evaluations.
         let _ = print("CounterListView.body")
         WithPerceptionTracking {
             VStack {
