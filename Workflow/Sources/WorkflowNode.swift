@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
+extension WorkflowNode {
+    struct RenderingSnapshot {
+        var lastRendering: WorkflowType.Rendering?
+    }
+}
+
+import Observation
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
+
+    private var cachedRendering = RenderingSnapshot()
 
     /// Holds the current `Workflow` managed by this node.
     private var workflow: WorkflowType
@@ -141,12 +151,26 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        if
+//            false &&
+            hostContext.isNodeValid(session.sessionID),
+            let cachedRendering = cachedRendering.lastRendering
+        {
+            // if node isn't invalidated, and we have a cached
+            // rendering, use it
+            print("JQ: [cache hit] using cached rendering of \(type(of: cachedRendering)) for \(session.sessionID)")
+            rendering = cachedRendering
+            for eventPipe in subtreeManager.eventPipes {
+                eventPipe.prepareForReuse()
+            }
+        } else {
+            // otherwise, produce a new rendering for this node
+            rendering = subtreeManager.render { context in
+                print("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
+                return workflow.render(state: state, context: context)
+            }
+
+            cachedRendering.lastRendering = rendering
         }
 
         return rendering
@@ -160,7 +184,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
+        print("JQ: updating wf: \(type(of: workflow)) session: \(session.sessionID)")
+
         workflow.workflowDidChange(from: oldWorkflow, state: &state)
+        // TODO: need some sort of change detection here to invalidate cache
         self.workflow = workflow
 
         observer?.workflowDidChange(
@@ -207,6 +234,10 @@ extension WorkflowNode {
                 workflow: workflow,
                 session: session
             )
+
+            // invalidate path to root
+            hostContext.invalidateNodes(from: self)
+//            hostContext.invalidateNodes(from: session)
         }
 
         let observerCompletion = observer?.workflowWillApplyAction(

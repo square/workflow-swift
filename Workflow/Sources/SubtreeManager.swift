@@ -368,6 +368,12 @@ extension WorkflowNode.SubtreeManager {
             self.validationState = .preparing
         }
 
+        // called when using a cached rendering
+        func prepareForReuse() {
+            validationState = .preparing
+            validationState = .pending
+        }
+
         func handle(event: Output) {
             dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
 

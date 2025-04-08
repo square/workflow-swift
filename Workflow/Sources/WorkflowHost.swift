@@ -90,6 +90,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
+        context.invalidateTree()
         rootNode.update(workflow: workflow)
 
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
@@ -106,7 +107,10 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render()
+        let newRendering = rootNode.render()
+        context.markTreeValid()
+
+        mutableRendering.value = newRendering
 
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
@@ -134,6 +138,40 @@ final class HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
 
+    private var isEntireTreeInvalid = true
+    private var invalidatedNodes: Set<WorkflowSession.Identifier> = []
+
+    fileprivate func invalidateTree() { isEntireTreeInvalid = true }
+    fileprivate func markTreeValid() {
+        isEntireTreeInvalid = false
+        invalidatedNodes.removeAll(keepingCapacity: true)
+    }
+
+    func invalidateNodesForSession(_ session: WorkflowSession) {
+        var session: WorkflowSession? = session
+        while session != nil {
+            defer { session = session?.parent }
+            if let sessionID = session?.sessionID {
+                invalidatedNodes.insert(sessionID)
+            }
+        }
+    }
+
+    func invalidateNodes(from node: WorkflowNode<some Workflow>) {
+        var session: WorkflowSession? = node.session
+        while session != nil {
+            defer { session = session?.parent }
+            if let sessionID = session?.sessionID {
+                invalidatedNodes.insert(sessionID)
+            }
+        }
+    }
+
+    func isNodeValid(_ nodeID: WorkflowSession.Identifier) -> Bool {
+        if isEntireTreeInvalid { return false }
+        return !invalidatedNodes.contains(nodeID)
+    }
+
     init(
         observer: WorkflowObserver?,
         debugger: WorkflowDebugger?
@@ -149,4 +187,85 @@ extension HostContext {
     ) -> T? {
         debugger != nil ? perform() : nil
     }
+}
+
+// MARK: -
+
+import Observation
+
+@available(iOS 17.0, *)
+@available(macOS 14.0, *)
+@dynamicMemberLookup
+struct ManagedAccessor<T> {
+    @Observable
+    final class Storage {
+        var val: T
+
+        init(val: T) {
+            self.val = val
+        }
+    }
+
+    private let _storage: Storage
+
+    init(_ val: T) {
+        self._storage = Storage(val: val)
+    }
+
+    subscript<V>(dynamicMember keyPath: WritableKeyPath<T, V>) -> V {
+        get { self._storage.val[keyPath: keyPath] }
+        mutating set { self._storage.val[keyPath: keyPath] = newValue }
+    }
+}
+
+@dynamicMemberLookup
+struct ManagedGetter<T> {
+    let val: T
+
+    subscript<V>(dynamicMember keyPath: KeyPath<T, V>) -> V {
+        val[keyPath: keyPath]
+    }
+}
+
+@available(iOS 17.0, *)
+@available(macOS 14.0, *)
+protocol ManagedWorkflow: Workflow {
+    associatedtype Props = Self
+
+    static func render(
+        state: ManagedAccessor<State>,
+        props: ManagedGetter<Props>,
+        context: RenderContext<Self>
+    ) -> Rendering
+}
+
+@available(iOS 17.0, *)
+@available(macOS 14.0, *)
+extension ManagedWorkflow {
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        fatalError("do not implement")
+    }
+}
+
+@available(iOS 17.0, *)
+@available(macOS 14.0, *)
+struct MyCoolWF: ManagedWorkflow {
+    static func render(
+        state: ManagedAccessor<State>,
+        props: ManagedGetter<MyCoolWF>,
+        context: RenderContext<MyCoolWF>
+    ) -> Int {
+        let s = state.p1
+        return s + 2
+    }
+
+    func makeInitialState() -> State {
+        State(p1: 27)
+    }
+
+    struct State {
+        var p1 = 0
+    }
+
+    typealias Rendering = Int
 }
