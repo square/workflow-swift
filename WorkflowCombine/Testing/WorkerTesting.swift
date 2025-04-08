@@ -21,15 +21,35 @@ import XCTest
 @testable import WorkflowCombine
 
 extension RenderTester {
-    /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
+    /// Mock the given worker's output, and assert that the workflow's worker `isEquivalent(to:)` the `worker`.
     ///
     /// - Parameters:
-    ///   - worker: The worker to be expected
-    ///   - producingOutput: An output that will be returned when this worker is requested, if any.
+    ///   - worker: The worker that we expect was created by the workflow. Will be compared using
+    ///             `isEquivalent(to:)` to assert that the workflow's worker matches.
+    ///   - producingOutput: The output to be used instead of actually running the worker.
+    ///                      If the workflow never tries to run the worker, then this won't be used.
     ///   - key: Key to expect this `Workflow` to be rendered with.
+    @available(*, deprecated, renamed: "expectedWorker(_:mockingOutput:key:file:line:)", message: "renamed")
     public func expect<ExpectedWorkerType: Worker>(
         worker: ExpectedWorkerType,
         producingOutput output: ExpectedWorkerType.Output? = nil,
+        key: String = "",
+        file: StaticString = #file, line: UInt = #line
+    ) -> RenderTester<WorkflowType> {
+        expectWorker(worker, mockingOutput: output, key: key, file: file, line: line)
+    }
+
+    /// Mock the given worker's output, and assert that the workflow's worker `isEquivalent(to:)` the `expectedWorker`.
+    ///
+    /// - Parameters:
+    ///   - expectedWorker: The worker that we expect was created by the workflow. Will be compared using
+    ///                     `isEquivalent(to:)` to assert that the workflow's worker matches.
+    ///   - mockingOutput: The output to be used instead of actually running the worker.
+    ///                    If the workflow never tries to run the worker, then this won't be used.
+    ///   - key: Key to expect this `Workflow` to be rendered with.
+    public func expectWorker<ExpectedWorkerType: Worker>(
+        _ expectedWorker: ExpectedWorkerType,
+        mockingOutput output: ExpectedWorkerType.Output? = nil,
         key: String = "",
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
@@ -39,11 +59,11 @@ extension RenderTester {
             producingRendering: (),
             producingOutput: output,
             assertions: { workflow in
-                guard !workflow.worker.isEquivalent(to: worker) else {
+                guard !workflow.worker.isEquivalent(to: expectedWorker) else {
                     return
                 }
                 XCTFail(
-                    "Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(worker). Got: \(workflow.worker)",
+                    "Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(expectedWorker). Got: \(workflow.worker)",
                     file: file,
                     line: line
                 )

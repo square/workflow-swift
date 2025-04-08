@@ -45,9 +45,9 @@ extension Workflow {
 /// ```
 /// workflow
 ///     .renderTester(initialState: TestWorkflow.State())
-///     .expect(
-///         worker: TestWorker(),
-///         producingOutput: TestWorker.Output.success
+///     .expectWorker(
+///         TestWorker(),
+///         mockingOutput: TestWorker.Output.success
 ///     )
 ///     .expectWorkflow(
 ///         type: ChildWorkflow.self,
@@ -104,9 +104,9 @@ extension Workflow {
 /// ```
 /// workflow
 ///     .renderTester(initialState: TestWorkflow.State(loadingState: .loading))
-///     .expect(
-///         worker: TestWorker(),
-///         output: TestWorker.Output.success
+///     .expectWorker(
+///         TestWorker(),
+///         mockingOutput: TestWorker.Output.success
 ///     )
 ///     .render { _ in }
 /// ```

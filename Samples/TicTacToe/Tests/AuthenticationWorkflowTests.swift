@@ -218,13 +218,11 @@ class AuthenticationWorkflowTests: XCTestCase {
                     onLoginTapped: {}
                 )
             )
-            .expect(
-                worker: AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
-                    authenticationService: authenticationService,
-                    email: "reza@example.com",
-                    password: "password"
-                )
-            )
+            .expectWorker(AuthenticationWorkflow.AuthorizingEmailPasswordWorker(
+                authenticationService: authenticationService,
+                email: "reza@example.com",
+                password: "password"
+            ))
             .render { screen in
                 XCTAssertNil(screen.alert)
             }
@@ -252,13 +250,11 @@ class AuthenticationWorkflowTests: XCTestCase {
                     onLoginTapped: {}
                 )
             )
-            .expect(
-                worker: AuthenticationWorkflow.AuthorizingTwoFactorWorker(
-                    authenticationService: authenticationService,
-                    intermediateToken: "intermediateSession",
-                    twoFactorCode: "twoFactorCode"
-                )
-            )
+            .expectWorker(AuthenticationWorkflow.AuthorizingTwoFactorWorker(
+                authenticationService: authenticationService,
+                intermediateToken: "intermediateSession",
+                twoFactorCode: "twoFactorCode"
+            ))
             .render { screen in
                 XCTAssertNil(screen.alert)
             }

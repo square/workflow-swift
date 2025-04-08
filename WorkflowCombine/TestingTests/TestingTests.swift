@@ -27,7 +27,7 @@ class WorkflowCombineTestingTests: XCTestCase {
             .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
         renderTester
-            .expect(worker: TestWorker(input: "otherText"))
+            .expectWorker(TestWorker(input: "otherText"))
             .render { _ in }
     }
 
@@ -36,10 +36,7 @@ class WorkflowCombineTestingTests: XCTestCase {
             .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
         renderTester
-            .expect(
-                worker: TestWorker(input: "otherText"),
-                producingOutput: "otherText"
-            )
+            .expectWorker(TestWorker(input: "otherText"), mockingOutput: "otherText")
             .render { _ in }
             .verifyState { state in
                 XCTAssertEqual(state, TestWorkflow.State(mode: .worker(input: "otherText"), output: "otherText"))
@@ -49,9 +46,7 @@ class WorkflowCombineTestingTests: XCTestCase {
     func test_worker_missing() {
         let tester = TestWorkflow()
             .renderTester()
-            .expect(
-                worker: TestWorker(input: "input")
-            )
+            .expectWorker(TestWorker(input: "input"))
 
         expectingFailure(#"Expected child workflow of type: WorkerWorkflow<TestWorker>, key: """#) {
             tester.render { _ in }
@@ -61,9 +56,7 @@ class WorkflowCombineTestingTests: XCTestCase {
     func test_worker_mismatch() {
         let tester = TestWorkflow()
             .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
-            .expect(
-                worker: TestWorker(input: "not-test")
-            )
+            .expectWorker(TestWorker(input: "not-test"))
 
         expectingFailures([
             #"Workers of type TestWorker not equivalent. Expected: TestWorker(input: "not-test"). Got: TestWorker(input: "test")"#,
