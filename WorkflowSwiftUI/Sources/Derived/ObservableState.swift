@@ -114,6 +114,20 @@ public func _$isIdentityEqual<T: ObservableState>(
 }
 
 @inlinable
+public func _$isIdentityEqual<T: ObservableState>(
+    _ lhs: T?, _ rhs: T?
+) -> Bool {
+    switch (lhs, rhs) {
+    case (nil, nil):
+        true
+    case (let lhs?, let rhs?):
+        _$isIdentityEqual(lhs, rhs)
+    default:
+        false
+    }
+}
+
+@inlinable
 public func _$isIdentityEqual<ID: Hashable, T: ObservableState>(
     _ lhs: IdentifiedArray<ID, T>,
     _ rhs: IdentifiedArray<ID, T>
