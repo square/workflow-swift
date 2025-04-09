@@ -184,10 +184,22 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
-        print("JQ: updating wf: \(type(of: workflow)) session: \(session.sessionID)")
+        print("JQ: [update] updating wf: \(type(of: workflow)) session: \(session.sessionID)")
+
+        let oldState = state
 
         workflow.workflowDidChange(from: oldWorkflow, state: &state)
         // TODO: need some sort of change detection here to invalidate cache
+
+        // zero out the cache if needed
+        if !areDynamicallyEqual(oldWorkflow, workflow) {
+            print("JQ: [update] props changed!")
+            cachedRendering.lastRendering = nil
+        } else if !areDynamicallyEqual(oldState, state) {
+            print("JQ: [update] state changed!")
+            cachedRendering.lastRendering = nil
+        }
+
         self.workflow = workflow
 
         observer?.workflowDidChange(
@@ -261,4 +273,21 @@ extension WorkflowNode {
     var isRootNode: Bool {
         session.parent == nil
     }
+}
+
+func areDynamicallyEqual(_ lhs: Void, _ rhs: Void) -> Bool {
+    true
+}
+
+func areDynamicallyEqual<T>(_ lhs: T, _ rhs: T) -> Bool {
+    guard let lhs = lhs as? (any Equatable) else {
+        return false
+    }
+
+    func openAndCompare<EQ: Equatable>(_ lhs: EQ, _ rhs: Any) -> Bool {
+        guard let rhs = rhs as? EQ else { return false }
+        return lhs == rhs
+    }
+
+    return openAndCompare(lhs, rhs)
 }

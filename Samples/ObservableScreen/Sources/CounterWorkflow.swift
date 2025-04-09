@@ -3,7 +3,7 @@ import Workflow
 import WorkflowSwiftUI
 import WorkflowUI
 
-struct CounterWorkflow: Workflow {
+struct CounterWorkflow: Workflow, Equatable {
     // Dependencies from parent.
     let info: CounterInfo
     let resetToken: ResetToken
@@ -11,7 +11,7 @@ struct CounterWorkflow: Workflow {
     let maxValue: Int?
 
     @ObservableState
-    struct State {
+    struct State: Equatable {
         private var _count: Int
 
         var count: Int {
@@ -106,7 +106,7 @@ struct CounterWorkflow: Workflow {
 typealias CounterModel = CounterWorkflow.Model
 
 @ObservableState
-struct CounterInfo {
+struct CounterInfo: Equatable {
     let id = UUID()
     var name: String
     var stepSize = 1
