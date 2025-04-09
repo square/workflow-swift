@@ -5,10 +5,12 @@ import XCTest
 final class NestedStoreTests: XCTestCase {
     func test_nested() async {
         var state = State()
-        let model = StateAccessor(state: state) { update in
-            update(&state)
+        func makeModel() -> StateAccessor<State> {
+            StateAccessor(state: state) { update in
+                update(&state)
+            }
         }
-        let (store, _) = Store.make(model: model)
+        let (store, setModel) = Store.make(model: makeModel())
 
         let nestedNameDidChange = expectation(description: "nested.name.didChange")
         withPerceptionTracking {
@@ -18,6 +20,7 @@ final class NestedStoreTests: XCTestCase {
         }
 
         state.nested.name = "foo"
+        setModel(makeModel())
 
         await fulfillment(of: [nestedNameDidChange], timeout: 0)
         XCTAssertEqual(state.nested.name, "foo")
@@ -27,10 +30,12 @@ final class NestedStoreTests: XCTestCase {
         // some to nil
         do {
             var state = State(optional: .init())
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let optionalDidChange = expectation(description: "optional.didChange")
             withPerceptionTracking {
@@ -40,6 +45,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.optional = nil
+            setModel(makeModel())
 
             await fulfillment(of: [optionalDidChange], timeout: 0)
         }
@@ -47,10 +53,12 @@ final class NestedStoreTests: XCTestCase {
         // nil to some
         do {
             var state = State(optional: nil)
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let optionalDidChange = expectation(description: "optional.didChange")
             withPerceptionTracking {
@@ -60,6 +68,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.optional = .init()
+            setModel(makeModel())
 
             await fulfillment(of: [optionalDidChange], timeout: 0)
         }
@@ -67,10 +76,12 @@ final class NestedStoreTests: XCTestCase {
         // some to same
         do {
             var state = State(optional: .init())
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             withPerceptionTracking {
                 _ = store.scope(keyPath: \.optional)
@@ -79,15 +90,18 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.optional = state.optional
+            setModel(makeModel())
         }
 
         // some to new
         do {
             var state = State(optional: .init())
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let optionalNameDidChange = expectation(description: "optional.name.didChange")
             withPerceptionTracking {
@@ -99,6 +113,7 @@ final class NestedStoreTests: XCTestCase {
             // the new instance will trigger a change in store.optional.age even though the value
             // does not change
             state.optional = .init()
+            setModel(makeModel())
 
             await fulfillment(of: [optionalNameDidChange], timeout: 0)
         }
@@ -106,10 +121,12 @@ final class NestedStoreTests: XCTestCase {
         // nil to nil
         do {
             var state = State(optional: nil)
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             withPerceptionTracking {
                 _ = store.scope(keyPath: \.optional)?.name
@@ -118,6 +135,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.optional = nil
+            setModel(makeModel())
         }
     }
 
@@ -125,10 +143,12 @@ final class NestedStoreTests: XCTestCase {
         // add
         do {
             var state = State(array: [])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
             withPerceptionTracking {
@@ -138,6 +158,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.array.append(.init())
+            setModel(makeModel())
 
             await fulfillment(of: [arrayDidChange], timeout: 0)
         }
@@ -145,10 +166,12 @@ final class NestedStoreTests: XCTestCase {
         // remove
         do {
             var state = State(array: [.init()])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
             withPerceptionTracking {
@@ -158,6 +181,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.array.removeAll()
+            setModel(makeModel())
 
             await fulfillment(of: [arrayDidChange], timeout: 0)
         }
@@ -166,10 +190,12 @@ final class NestedStoreTests: XCTestCase {
         do {
             let array = [State.Nested(), State.Nested(), State.Nested()]
             var state = State(array: array)
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
             withPerceptionTracking {
@@ -178,20 +204,31 @@ final class NestedStoreTests: XCTestCase {
                 arrayDidChange.fulfill()
             }
 
+            let store0NameDidChange = expectation(description: "array[0].name.didChange")
+            let store0 = store.scope(collection: \.array)[0]
+            withPerceptionTracking {
+                _ = store0.name
+            } onChange: {
+                store0NameDidChange.fulfill()
+            }
+
             state.array[0] = array[1]
             state.array[1] = array[2]
             state.array[2] = array[0]
+            setModel(makeModel())
 
-            await fulfillment(of: [arrayDidChange], timeout: 0)
+            await fulfillment(of: [arrayDidChange, store0NameDidChange], timeout: 0)
         }
 
         // mutate element
         do {
             var state = State(array: [.init()])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             withPerceptionTracking {
                 _ = store.scope(collection: \.array)
@@ -213,6 +250,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.array[0].name = "test"
+            setModel(makeModel())
 
             await fulfillment(of: [array0NameDidChange], timeout: 0)
         }
@@ -222,10 +260,12 @@ final class NestedStoreTests: XCTestCase {
         // add
         do {
             var state = State(identified: [])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let identifiedDidChange = expectation(description: "identified.didChange")
             withPerceptionTracking {
@@ -235,6 +275,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.identified.append(.init())
+            setModel(makeModel())
 
             await fulfillment(of: [identifiedDidChange], timeout: 0)
         }
@@ -242,10 +283,12 @@ final class NestedStoreTests: XCTestCase {
         // remove
         do {
             var state = State(identified: [.init()])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "identified.didChange")
             withPerceptionTracking {
@@ -255,6 +298,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.identified.removeAll()
+            setModel(makeModel())
 
             await fulfillment(of: [arrayDidChange], timeout: 0)
         }
@@ -263,10 +307,12 @@ final class NestedStoreTests: XCTestCase {
         do {
             let identified: IdentifiedArrayOf<State.Nested> = [.init(), .init(), .init()]
             var state = State(identified: identified)
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             let identifiedDidChange = expectation(description: "identified.didChange")
             withPerceptionTracking {
@@ -275,9 +321,18 @@ final class NestedStoreTests: XCTestCase {
                 identifiedDidChange.fulfill()
             }
 
+            // this store is keyed by ID so moving it to a different index does not cause a mutation
+            let store0 = store.scope(collection: \.identified)[0]
+            withPerceptionTracking {
+                _ = store0.name
+            } onChange: {
+                XCTFail("identified[0].name should not change")
+            }
+
             state.identified[0] = identified[1]
             state.identified[1] = identified[2]
             state.identified[2] = identified[0]
+            setModel(makeModel())
 
             await fulfillment(of: [identifiedDidChange], timeout: 0)
         }
@@ -285,10 +340,12 @@ final class NestedStoreTests: XCTestCase {
         // mutate element
         do {
             var state = State(identified: [.init()])
-            let model = StateAccessor(state: state) { update in
-                update(&state)
+            func makeModel() -> StateAccessor<State> {
+                StateAccessor(state: state) { update in
+                    update(&state)
+                }
             }
-            let (store, _) = Store.make(model: model)
+            let (store, setModel) = Store.make(model: makeModel())
 
             withPerceptionTracking {
                 _ = store.scope(collection: \.identified)
@@ -310,6 +367,7 @@ final class NestedStoreTests: XCTestCase {
             }
 
             state.identified[0].name = "test"
+            setModel(makeModel())
 
             await fulfillment(of: [identified0NameDidChange], timeout: 0)
         }
