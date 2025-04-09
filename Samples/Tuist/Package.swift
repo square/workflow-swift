@@ -42,7 +42,7 @@ let packageSettings = PackageSettings(
 #endif
 
 let package = Package(
-    name: "Development",
+    name: "WorkflowDevelopment",
     dependencies: [
         .package(path: "../../"),
         .package(url: "https://github.com/uber/ios-snapshot-test-case.git", from: "8.0.0"),

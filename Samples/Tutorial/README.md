@@ -35,7 +35,7 @@ Generating workspace Tutorial.xcworkspace
 Generating project Workflow
 Generating project Tutorial
 Generating project swift-case-paths
-Generating project Development
+Generating project WorkflowDevelopment
 Generating project xctest-dynamic-overlay
 Generating project swift-identified-collections
 Generating project ReactiveSwift

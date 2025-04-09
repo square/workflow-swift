@@ -2,7 +2,7 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let workspace = Workspace(
-    name: "Development",
+    name: "WorkflowDevelopment",
     projects: [".", "Tutorial"],
     schemes: [
         // Generate a scheme for each target in Package.swift for convenience
