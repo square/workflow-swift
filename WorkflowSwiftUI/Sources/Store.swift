@@ -373,8 +373,9 @@ extension Store {
 
     /// Derives a collection of stores from a collection of child models.
     ///
-    /// Stores in the returned collection are lazy created on first access, and invalidated when
-    /// the index becomes invalid.
+    /// Stores in the returned collection are keyed by index, so swapping elements in the collection
+    /// will cause a mutation for each element. You can avoid this by using an `IdentifiedArray` for
+    /// your collection.
     ///
     /// - Parameter collection: the keypath to the child model collection
     /// - Returns: a `RandomAccessCollection` of stores
@@ -414,8 +415,9 @@ extension Store {
 
     /// Derives a collection of stores from a collection of nested observable states.
     ///
-    /// Stores in the returned collection are lazy created on first access, and invalidated when
-    /// the index becomes invalid.
+    /// Stores in the returned collection are keyed by index, so swapping elements in the collection
+    /// will cause a mutation for views using a child store. You can avoid this by using an
+    /// `IdentifiedArray` for your collection.
     ///
     /// - Parameter collection: the keypath to the substate collection
     /// - Returns: a `RandomAccessCollection` of stores
@@ -447,8 +449,8 @@ extension Store {
 
     /// Derives a collection of stores from an `IdentifiedArray` of child models.
     ///
-    /// Stores in the returned collection are lazy created on first access, and invalidated when
-    /// the ID is no longer present in the collection. Reorders do not invalidate.
+    /// Stores in the returned collection keyed by ID, so swapping elements in the collection will
+    /// not cause a mutation for views using child stores.
     ///
     /// - Parameter collection: the keypath to the child model array
     /// - Returns: a `RandomAccessCollection` of stores
@@ -495,8 +497,8 @@ extension Store {
 
     /// Derives a collection of stores from an `IdentifiedArray` of nested observable states.
     ///
-    /// Stores in the returned collection are lazy created on first access, and invalidated when
-    /// the ID is no longer present in the collection. Reorders do not invalidate.
+    /// Stores in the returned collection keyed by ID, so swapping elements in the collection will
+    /// not cause a mutation for views using child stores.
     ///
     /// - Parameter collection: the keypath to the substate array
     /// - Returns: a `RandomAccessCollection` of stores

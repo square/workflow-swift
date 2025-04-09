@@ -360,7 +360,7 @@ struct State {
   }
 
   var counter = CounterState()
-  var optionalCounter? = CounterState()
+  var optionalCounter: CounterState? = CounterState()
   var moreCounters: [CounterState] = [.init(), .init()]
   var evenMoreCounters: IdentifiedArrayOf<CounterState> = [.init(), .init()]
 }
