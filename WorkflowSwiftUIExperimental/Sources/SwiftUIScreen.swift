@@ -20,6 +20,7 @@ import SwiftUI
 import Workflow
 import WorkflowUI
 
+@available(*, deprecated, message: "Use the ObservableScreen protocol from WorkflowSwiftUI")
 public protocol SwiftUIScreen: Screen {
     associatedtype Content: View
 
