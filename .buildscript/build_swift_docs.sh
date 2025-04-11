@@ -41,5 +41,5 @@ for scheme in $WORKFLOW_SCHEMES; do
         --output-folder "$SOURCEDOCS_OUTPUT_DIR/$scheme" \
         -- \
         -scheme $scheme \
-        -workspace Samples/Development.xcworkspace
+        -workspace Samples/WorkflowDevelopment.xcworkspace
 done

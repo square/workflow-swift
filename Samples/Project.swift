@@ -37,7 +37,7 @@ let snapshotEnvironment: [String: EnvironmentVariable] = {
 }()
 
 let project = Project(
-    name: "Development",
+    name: "WorkflowDevelopment",
     settings: .settings(base: ["ENABLE_MODULE_VERIFIER": "YES"]),
     targets: [
         // MARK: - Samples
