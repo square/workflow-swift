@@ -18,7 +18,8 @@
 ///
 /// Use `RenderContext.makeSink` to create instances.
 public struct Sink<Value> {
-    private let onValue: (Value) -> Void
+    @usableFromInline
+    let onValue: (Value) -> Void
 
     /// Initializes a new sink with the given closure.
     public init(_ onValue: @escaping (Value) -> Void) {
@@ -28,6 +29,7 @@ public struct Sink<Value> {
     /// Sends a new event into the sink.
     ///
     /// - Parameter event: The value to send into the sink.
+    @inlinable
     public func send(_ value: Value) {
         onValue(value)
     }
@@ -52,6 +54,7 @@ public struct Sink<Value> {
     /// *input* types of its API.
     ///
     /// - Parameter transform: An escaping closure that transforms `T` into `Event`.
+    @inlinable
     public func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
         Sink<NewValue> { value in
             send(transform(value))

@@ -34,7 +34,8 @@ public protocol WorkflowAction<WorkflowType> {
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    @usableFromInline
+    let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -79,6 +80,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         self.isClosureBased = true
     }
 
+    @inlinable
     public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
         _apply(&state)
     }

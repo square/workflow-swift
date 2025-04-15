@@ -81,6 +81,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     ///
     /// - Parameter actionType: The type of Action this Sink may process
     /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
+    @inlinable
     public func makeSink<Action: WorkflowAction>(
         of actionType: Action.Type
     ) -> Sink<Action> where Action.WorkflowType == WorkflowType {
@@ -101,6 +102,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameters:
     ///   - key: represents the block of work that needs to be executed.
     ///   - action: a block of work that will be executed.
+    @inlinable
     public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
         fatalError()
     }
@@ -178,6 +180,7 @@ protocol RenderContextType: AnyObject {
 }
 
 extension RenderContext {
+    @inlinable
     public func makeSink<Event>(
         of eventType: Event.Type,
         onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?
@@ -192,6 +195,7 @@ extension RenderContext {
 
     /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
     /// intermediate action.
+    @inlinable
     public func makeOutputSink() -> Sink<WorkflowType.Output> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }

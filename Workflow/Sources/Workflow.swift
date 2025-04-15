@@ -82,18 +82,22 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
 }
 
 extension Workflow {
+    // TODO: does this one do anything?
+    @inlinable
     public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
 extension Workflow where State == Void {
+    @inlinable
     public func makeInitialState() -> State {
         ()
     }
 }
 
 extension Workflow {
+    @inlinable
     public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
         AnyWorkflow(self)
     }

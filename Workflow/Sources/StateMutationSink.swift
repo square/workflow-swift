@@ -28,6 +28,7 @@ extension RenderContext {
     /// ```
     /// stateMutationSink.send(\State.value, value: 10)
     /// ```
+    @inlinable
     public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
         let sink = makeSink(of: AnyWorkflowAction<WorkflowType>.self)
         return StateMutationSink(sink)
@@ -36,12 +37,14 @@ extension RenderContext {
 
 /// StateMutationSink provides a `Sink` that helps mutate `State` using it's `KeyPath`.
 public struct StateMutationSink<WorkflowType: Workflow> {
+    @usableFromInline
     let sink: Sink<AnyWorkflowAction<WorkflowType>>
 
     /// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
     ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
+    @inlinable
     public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
         sink.send(
             AnyWorkflowAction<WorkflowType> { state in
@@ -56,10 +59,12 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     /// - Parameters:
     ///   - keyPath: Key path of `State` whose value needs to be mutated.
     ///   - value: Value to update `State` with.
+    @inlinable
     public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
         send { $0[keyPath: keyPath] = value }
     }
 
+    @usableFromInline
     init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {
         self.sink = sink
     }

@@ -21,13 +21,16 @@ import Foundation
 /// Once ended, the `onEnded` closure is called.
 public final class Lifetime {
     /// Hook to clean-up after end of `lifetime`.
+    @inlinable
     public func onEnded(_ action: @escaping () -> Void) {
         assert(!hasEnded, "Lifetime used after being ended.")
         onEndedActions.append(action)
     }
 
     public private(set) var hasEnded: Bool = false
-    private var onEndedActions: [() -> Void] = []
+
+    @usableFromInline
+    var onEndedActions: [() -> Void] = []
 
     deinit {
         end()
