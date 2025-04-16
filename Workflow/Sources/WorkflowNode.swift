@@ -152,25 +152,22 @@ final class WorkflowNode<WorkflowType: Workflow> {
         }
 
         if
-//            false &&
             hostContext.isNodeValid(session.sessionID),
             let cachedRendering = cachedRendering.lastRendering
         {
             // if node isn't invalidated, and we have a cached
             // rendering, use it
-            print("JQ: [cache hit] using cached rendering of \(type(of: cachedRendering)) for \(session.sessionID)")
+            WFDebugLog("JQ: [cache hit] using cached rendering of \(type(of: cachedRendering)) for \(session.sessionID)")
+            subtreeManager.prepareForReuse()
             rendering = cachedRendering
-            for eventPipe in subtreeManager.eventPipes {
-                eventPipe.prepareForReuse()
-            }
         } else {
             // otherwise, produce a new rendering for this node
-            rendering = subtreeManager.render { context in
-                print("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
-                return workflow.render(state: state, context: context)
+            WFDebugLog("JQ: [cache miss] subtree producing rendering for \(session.sessionID)")
+            let newRendering = subtreeManager.render { context in
+                workflow.render(state: state, context: context)
             }
-
-            cachedRendering.lastRendering = rendering
+            cachedRendering.lastRendering = newRendering
+            rendering = newRendering
         }
 
         return rendering
@@ -180,11 +177,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
         subtreeManager.enableEvents()
     }
 
+    func prepareForReuse() {
+        subtreeManager.prepareForReuse()
+    }
+
     /// Updates the workflow.
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
-        print("JQ: [update] updating wf: \(type(of: workflow)) session: \(session.sessionID)")
+        WFDebugLog("JQ: [update] updating wf: \(type(of: workflow)) session: \(session.sessionID)")
 
         let oldState = state
 
@@ -193,10 +194,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         // zero out the cache if needed
         if !areDynamicallyEqual(oldWorkflow, workflow) {
-            print("JQ: [update] props changed!")
+            WFDebugLog("JQ: [update] props changed!")
             cachedRendering.lastRendering = nil
         } else if !areDynamicallyEqual(oldState, state) {
-            print("JQ: [update] state changed!")
+            WFDebugLog("JQ: [update] state changed!")
             cachedRendering.lastRendering = nil
         }
 
@@ -290,4 +291,21 @@ func areDynamicallyEqual<T>(_ lhs: T, _ rhs: T) -> Bool {
     }
 
     return openAndCompare(lhs, rhs)
+}
+
+// MARK: -
+
+import Foundation
+
+let shouldDebugPrint = {
+    let env = ProcessInfo.processInfo.environment
+    guard let value = env["com.squareup.workflow.debugPrintingEnabled"] else {
+        return false
+    }
+    return (value as NSString).boolValue
+}()
+
+func WFDebugLog(_ message: @autoclosure () -> String) {
+    guard shouldDebugPrint else { return }
+    print(message())
 }

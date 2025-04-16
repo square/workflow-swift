@@ -163,6 +163,10 @@ public struct WorkflowSession {
     }
 }
 
+extension WorkflowSession.Identifier: CustomStringConvertible {
+    public var description: String { String(describing: rawIdentifier) }
+}
+
 // MARK: - No-op Defaults
 
 extension WorkflowObserver {

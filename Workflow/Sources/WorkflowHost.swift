@@ -148,23 +148,15 @@ final class HostContext {
     }
 
     func invalidateNodesForSession(_ session: WorkflowSession) {
-        var session: WorkflowSession? = session
-        while session != nil {
-            defer { session = session?.parent }
-            if let sessionID = session?.sessionID {
-                invalidatedNodes.insert(sessionID)
-            }
+        var currentSession: WorkflowSession? = session
+        while let nextSession = currentSession {
+            defer { currentSession = currentSession?.parent }
+            invalidatedNodes.insert(nextSession.sessionID)
         }
     }
 
     func invalidateNodes(from node: WorkflowNode<some Workflow>) {
-        var session: WorkflowSession? = node.session
-        while session != nil {
-            defer { session = session?.parent }
-            if let sessionID = session?.sessionID {
-                invalidatedNodes.insert(sessionID)
-            }
-        }
+        invalidateNodesForSession(node.session)
     }
 
     func isNodeValid(_ nodeID: WorkflowSession.Identifier) -> Bool {
@@ -189,7 +181,7 @@ extension HostContext {
     }
 }
 
-// MARK: -
+// MARK: - API experiments
 
 import Observation
 
@@ -268,4 +260,154 @@ struct MyCoolWF: ManagedWorkflow {
     }
 
     typealias Rendering = Int
+}
+
+// MARK: - more experiments
+
+func ggg() {
+    let g = ManagedReadonly<String>(value: "hello")
+}
+
+private final class Storage<Value: ~Copyable> {
+    var value: Value
+
+    init(_ value: consuming Value) {
+        self.value = value
+    }
+}
+
+@dynamicMemberLookup
+struct ManagedReadonly<Value: ~Copyable>: ~Copyable {
+    private let storage: Storage<Value>
+
+    init(value: consuming Value) {
+        self.storage = Storage(value)
+    }
+
+    subscript<Property>(dynamicMember keyPath: KeyPath<Value, Property>) -> Property {
+        storage.value[keyPath: keyPath]
+    }
+}
+
+// extension ManagedReadonly where Value: Equatable {
+//    static func ==(lhs: borrowing Self, rhs: borrowing Self) -> Bool {
+//        lhs.value == rhs.value
+//    }
+// }
+
+@dynamicMemberLookup
+struct ManagedReadwrite<Value: ~Copyable>: ~Copyable {
+    private let storage: Storage<Value>
+
+    init(_ value: consuming Value) {
+        self.storage = Storage(value)
+    }
+
+    subscript<Property>(
+        dynamicMember keyPath: WritableKeyPath<Value, Property>
+    ) -> Property {
+        get { storage.value[keyPath: keyPath] }
+        nonmutating set { storage.value[keyPath: keyPath] = newValue }
+    }
+}
+
+protocol PropsWF: Workflow {
+    associatedtype Props = Self
+
+    func render2(
+        state: borrowing ManagedReadonly<State>,
+        self: borrowing ManagedReadonly<Props>,
+        context: RenderContext<Self> // TODO: ctx should also enforce noescape
+    ) -> Rendering
+}
+
+extension PropsWF {
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        fatalError()
+    }
+}
+
+func esc(_ it: @escaping () -> Void) {}
+
+protocol WFAction2: WorkflowAction where WorkflowType: PropsWF {
+    func apply2(
+        to state: borrowing ManagedReadwrite<WorkflowType.State>,
+        props: borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output?
+}
+
+extension WFAction2 {
+    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+        fatalError("should never be called")
+    }
+}
+
+enum MyAction: WFAction2 {
+    typealias WorkflowType = MPWF
+
+    case one
+    case two
+
+    func apply2(
+        to state: borrowing ManagedReadwrite<MPWF.State>,
+        props: borrowing ManagedReadonly<MPWF.Props>
+    ) -> Never? {
+        switch self {
+        case .one:
+            state.state1 = 1 + props.prop1
+        case .two:
+            state.state2 = "two" + " " + props.prop2
+        }
+
+//        esc {
+//            _ = state
+//            _ = props
+//        }
+
+        return nil
+    }
+}
+
+final class SomeRefType {
+    var prop = ""
+}
+
+struct MPWF: PropsWF {
+    struct State {
+        var state1 = 0
+        var state2 = "bye"
+        var refType: SomeRefType?
+    }
+
+    class Ref<T: ~Copyable> {
+        var ref: T
+
+        init(ref: consuming T) {
+            self.ref = ref
+        }
+    }
+
+    struct Rendering {
+        var val = ""
+        let ref: Ref<ManagedReadonly<State>?> = .init(ref: nil)
+//        var escapingStuff: any Any = (Int?.none as Any)
+    }
+
+    struct Props {
+        var prop1 = 0
+        var prop2 = "hi"
+    }
+
+    func render2(
+        state: borrowing ManagedReadonly<State>,
+        self: borrowing ManagedReadonly<Props>,
+        context: RenderContext<MPWF>
+    ) -> Rendering {
+        var r = Rendering(val: "\(self.prop1) + \(self.prop2)")
+//        r.escapingStuff = state
+//        r.ref.ref = consume state
+        return r
+    }
+
+    func makeInitialState() -> State { State() }
 }

@@ -116,6 +116,16 @@ extension WorkflowNode {
             }
         }
 
+        func prepareForReuse() {
+            for eventPipe in eventPipes {
+                eventPipe.prepareForReuse()
+            }
+
+            for child in childWorkflows {
+                child.value.prepareForReuse()
+            }
+        }
+
         func makeDebugSnapshot() -> [WorkflowHierarchyDebugSnapshot.Child] {
             childWorkflows
                 .sorted(by: { lhs, rhs -> Bool in
@@ -467,6 +477,10 @@ extension WorkflowNode.SubtreeManager {
             fatalError()
         }
 
+        func prepareForReuse() {
+            fatalError()
+        }
+
         func makeDebugSnapshot() -> WorkflowHierarchyDebugSnapshot {
             fatalError()
         }
@@ -500,6 +514,10 @@ extension WorkflowNode.SubtreeManager {
         }
 
         override func enableEvents() {
+            node.enableEvents()
+        }
+
+        override func prepareForReuse() {
             node.enableEvents()
         }
 
