@@ -42,10 +42,10 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
-    public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
+    public func send(_ update: @escaping (borrowing ManagedReadWrite<WorkflowType.State>) -> Void) {
         sink.send(
-            AnyWorkflowAction<WorkflowType> { state in
-                update(&state)
+            AnyWorkflowAction<WorkflowType> { state, _ in
+                update(state)
                 return nil
             }
         )
@@ -57,7 +57,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     ///   - keyPath: Key path of `State` whose value needs to be mutated.
     ///   - value: Value to update `State` with.
     public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
-        send { $0[keyPath: keyPath] = value }
+        send { $0[dynamicMember: keyPath] = value }
     }
 
     init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {

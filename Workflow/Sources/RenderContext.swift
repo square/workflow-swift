@@ -180,12 +180,17 @@ protocol RenderContextType: AnyObject {
 extension RenderContext {
     public func makeSink<Event>(
         of eventType: Event.Type,
-        onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?
+        onEvent: @escaping (
+            Event,
+            borrowing ManagedReadWrite<WorkflowType.State>,
+            borrowing ManagedReadonly<WorkflowType.Props>
+        ) -> WorkflowType.Output?
+        // (Event, inout WorkflowType.State) -> WorkflowType.Output?
     ) -> Sink<Event> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
-                AnyWorkflowAction<WorkflowType> { state in
-                    onEvent(event, &state)
+                AnyWorkflowAction<WorkflowType> { state, props in
+                    onEvent(event, state, props)
                 }
             }
     }
