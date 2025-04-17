@@ -93,6 +93,47 @@ final class WorkflowActionTesterTests: XCTestCase {
         XCTAssertEqual(state, tester.state)
         XCTAssertNil(tester.output)
     }
+
+    func test_old_api_still_works() {
+        TestActionWithProps
+            .tester(withState: true)
+            .send(action: .dontReadProps)
+            .assert(state: true)
+    }
+
+    func test_old_api_explodes_if_you_use_props() {
+        TestActionWithProps
+            .tester(withState: true)
+            .send(action: .readProps)
+            .assert(state: true)
+    }
+
+    func test_new_api_works_if_you_provide_props() {
+        TestActionWithProps
+            .tester(withState: true, props: TestWorkflow(prop: 42))
+            .send(action: .readProps)
+            .assert(state: true)
+    }
+}
+
+private enum TestActionWithProps: WorkflowAction {
+    typealias WorkflowType = TestWorkflow
+
+    case readProps
+    case dontReadProps
+
+    func apply(
+        toState state: inout Bool,
+        props: ManagedReadonly<TestWorkflow.Props>
+    ) -> TestWorkflow.Output? {
+        switch self {
+        case .dontReadProps:
+            break
+        case .readProps:
+            _ = props.prop
+        }
+        return nil
+    }
 }
 
 private enum TestAction: WorkflowAction {
@@ -118,6 +159,8 @@ private struct TestWorkflow: Workflow {
     enum Output {
         case finished
     }
+
+    var prop = 0
 
     func makeInitialState() -> Bool {
         true
