@@ -117,8 +117,8 @@ extension AnyWorkflowConvertible {
     /// - Parameter apply: On `Output`, mutate `State` as necessary and return new `Output` (or `nil`).
     public func onOutput<Parent>(
         _ apply: @escaping (
-            borrowing ManagedReadWrite<Parent.State>,
-            borrowing ManagedReadonly<Parent.Props>,
+            ManagedReadWrite<Parent.State>,
+            ManagedReadonly<Parent.Props>,
             Output
         ) -> Parent.Output?
         // @escaping ((inout Parent.State, Output) -> Parent.Output?)

@@ -29,8 +29,8 @@ public protocol WorkflowAction<WorkflowType> {
     ///            the workflow hierarchy to this workflow's parent.
 //    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
     func apply(
-        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
-        props: borrowing ManagedReadonly<WorkflowType.Props>
+        toState state: ManagedReadWrite<WorkflowType.State>,
+        props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 }
 
@@ -39,8 +39,8 @@ public protocol WorkflowAction<WorkflowType> {
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     public typealias ActionApply = (
-        borrowing ManagedReadWrite<WorkflowType.State>,
-        borrowing ManagedReadonly<WorkflowType.Props>
+        ManagedReadWrite<WorkflowType.State>,
+        ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -92,8 +92,8 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     }
 
     public func apply(
-        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
-        props: borrowing ManagedReadonly<WorkflowType.Props>
+        toState state: ManagedReadWrite<WorkflowType.State>,
+        props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output? {
         _apply(state, props)
     }
@@ -125,8 +125,8 @@ extension AnyWorkflowAction {
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     typealias ActionApply = (
-        borrowing ManagedReadWrite<WorkflowType.State>,
-        borrowing ManagedReadonly<WorkflowType.Props>
+        ManagedReadWrite<WorkflowType.State>,
+        ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -144,8 +144,8 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     }
 
     func apply(
-        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
-        props: borrowing ManagedReadonly<WorkflowType.Props>
+        toState state: ManagedReadWrite<WorkflowType.State>,
+        props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output? {
         _apply(state, props)
     }
@@ -159,7 +159,7 @@ extension ClosureAction: CustomStringConvertible {
 
 // MARK: - experimental API
 
-final class Storage<Value: ~Copyable> {
+final class Storage<Value> {
     var value: Value
 
     init(_ value: consuming Value) {
@@ -168,7 +168,7 @@ final class Storage<Value: ~Copyable> {
 }
 
 @dynamicMemberLookup
-public struct ManagedReadonly<Value: ~Copyable>: ~Copyable {
+public struct ManagedReadonly<Value> {
     private let storage: Storage<Value>
 
     init(_ value: consuming Value) {
@@ -181,7 +181,7 @@ public struct ManagedReadonly<Value: ~Copyable>: ~Copyable {
 }
 
 @dynamicMemberLookup
-public struct ManagedReadWrite<Value: ~Copyable>: ~Copyable {
+public struct ManagedReadWrite<Value> {
     let storage: Storage<Value>
 
     init(_ value: consuming Value) {
