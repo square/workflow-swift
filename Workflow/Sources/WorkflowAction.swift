@@ -167,6 +167,19 @@ final class Storage<Value> {
     }
 }
 
+extension Storage: Equatable where Value: Equatable {
+    static func == (lhs: Storage<Value>, rhs: Storage<Value>) -> Bool {
+        lhs.value == rhs.value
+    }
+}
+
+extension Storage: Hashable where Value: Hashable {
+    var hashValue: Int { value.hashValue }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(value)
+    }
+}
+
 @dynamicMemberLookup
 public struct ManagedReadonly<Value> {
     private let storage: Storage<Value>
@@ -177,6 +190,26 @@ public struct ManagedReadonly<Value> {
 
     public subscript<Property>(dynamicMember keyPath: KeyPath<Value, Property>) -> Property {
         storage.value[keyPath: keyPath]
+    }
+}
+
+extension ManagedReadonly: Equatable where Value: Equatable {}
+extension ManagedReadonly: Hashable where Value: Hashable {}
+
+extension ManagedReadonly where Value: Workflow {
+    public static func testing(_ value: Value) -> ManagedReadonly<Value> {
+        ManagedReadonly(value)
+    }
+
+    public static func testingCompatibilityShim() -> ManagedReadonly<Value> {
+        let buffer: ManagedBuffer<Void, Value> = ManagedBuffer.create(minimumCapacity: 1) { _ in }
+
+        let bad = buffer.withUnsafeMutablePointerToElements { ptr in
+            ptr.pointee
+        }
+
+        let managedBad = ManagedReadonly(bad)
+        return managedBad
     }
 }
 
@@ -193,5 +226,28 @@ public struct ManagedReadWrite<Value> {
     ) -> Property {
         get { storage.value[keyPath: keyPath] }
         nonmutating set { storage.value[keyPath: keyPath] = newValue }
+    }
+
+    public func replaceWith(_ newValue: Value) {
+        self.storage.value = newValue
+    }
+}
+
+extension ManagedReadWrite: Equatable where Value: Equatable {}
+extension ManagedReadWrite: Hashable where Value: Hashable {}
+
+// testing API
+
+extension ManagedReadWrite {
+    public static func testing(_ value: Value) -> ManagedReadWrite<Value> {
+        ManagedReadWrite(value)
+    }
+}
+
+extension ManagedReadWrite {
+    public func withValue<R>(
+        _ body: (Value) throws -> R
+    ) rethrows -> R {
+        try body(storage.value)
     }
 }

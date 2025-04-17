@@ -20,7 +20,7 @@ import XCTest
 extension WorkflowAction {
     /// Returns a state tester containing `self`.
     public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
-        WorkflowActionTester(state: state)
+        WorkflowActionTester(state: ManagedReadWrite.testing(state))
     }
 }
 
@@ -61,12 +61,16 @@ extension WorkflowAction {
 /// ```
 public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where Action.WorkflowType == WorkflowType {
     /// The current state
-    let state: WorkflowType.State
+    var state: WorkflowType.State { managedState.withValue { $0 } }
+    let managedState: ManagedReadWrite<WorkflowType.State>
     let output: WorkflowType.Output?
 
     /// Initializes a new state tester
-    fileprivate init(state: WorkflowType.State, output: WorkflowType.Output? = nil) {
-        self.state = state
+    fileprivate init(
+        state: ManagedReadWrite<WorkflowType.State>,
+        output: WorkflowType.Output? = nil
+    ) {
+        self.managedState = state
         self.output = output
     }
 
@@ -76,9 +80,12 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     ///
     /// - returns: A new state tester containing the state and output (if any) after the update.
     @discardableResult
-    public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action> {
-        var newState = state
-        let output = action.apply(toState: &newState)
+    public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action>
+        where WorkflowType.Props == WorkflowType
+    {
+        let newState = managedState
+        let compatProps: ManagedReadonly<WorkflowType> = ManagedReadonly.testingCompatibilityShim()
+        let output = action.apply(toState: newState, props: compatProps)
         return WorkflowActionTester(state: newState, output: output)
     }
 
@@ -122,7 +129,9 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     ///
     /// - returns: A tester containing the current state and output.
     @discardableResult
-    public func verifyState(_ assertions: (WorkflowType.State) throws -> Void) rethrows -> WorkflowActionTester<WorkflowType, Action> {
+    public func verifyState(
+        _ assertions: (WorkflowType.State) throws -> Void
+    ) rethrows -> WorkflowActionTester<WorkflowType, Action> {
         try assertions(state)
         return self
     }

@@ -22,7 +22,7 @@
 import XCTest
 @testable import Workflow
 
-extension Workflow {
+extension Workflow where Props == Self {
     /// Returns a `RenderTester` with a specified initial state.
     public func renderTester(initialState: Self.State) -> RenderTester<Self> {
         RenderTester(workflow: self, state: initialState)
@@ -122,7 +122,7 @@ extension Workflow {
 ///     )
 ///     .render { _ in }
 /// ```
-public struct RenderTester<WorkflowType: Workflow> {
+public struct RenderTester<WorkflowType: Workflow> where WorkflowType.Props == WorkflowType {
     let workflow: WorkflowType
     let state: WorkflowType.State
 
