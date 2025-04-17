@@ -229,7 +229,7 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: managedState, props: managedProps)
+        output = action.apply(toState: &managedState.storage.value, props: managedProps)
 
         return output
     }

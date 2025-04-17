@@ -239,7 +239,7 @@ extension TestWorkflow {
         case tapped
         case asyncSuccess
 
-        func apply(toState state: ManagedReadWrite<TestWorkflow.State>, props: ManagedReadonly<WorkflowType.Props>) -> TestWorkflow.Output? {
+        func apply(toState state: inout TestWorkflow.State, props: ManagedReadonly<WorkflowType.Props>) -> TestWorkflow.Output? {
             switch self {
             case .tapped:
                 state.substate = .waiting
@@ -269,7 +269,7 @@ private struct OutputWorkflow: Workflow {
 
         case emit
 
-        func apply(toState state: ManagedReadWrite<OutputWorkflow.State>, props: ManagedReadonly<WorkflowType.Props>) -> OutputWorkflow.Output? {
+        func apply(toState state: inout OutputWorkflow.State, props: ManagedReadonly<WorkflowType.Props>) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
                 .success
@@ -344,18 +344,21 @@ private struct SideEffectWorkflow: Workflow {
         case success
     }
 
+    var prop = "hi"
+
     enum Action: WorkflowAction {
         case testAction
 
         typealias WorkflowType = SideEffectWorkflow
 
         func apply(
-            toState state: ManagedReadWrite<SideEffectWorkflow.State>,
+            toState state: inout SideEffectWorkflow.State,
             props: ManagedReadonly<WorkflowType.Props>
         ) -> SideEffectWorkflow.Output? {
+            let shouldExplode = props.prop
             switch self {
             case .testAction:
-                state.replaceWith(.success)
+                state = .success
             }
             return nil
         }
@@ -399,7 +402,7 @@ private struct ParentWorkflow: Workflow {
         case childFailure
 
         func apply(
-            toState state: ManagedReadWrite<ParentWorkflow.State>,
+            toState state: inout ParentWorkflow.State,
             props: ManagedReadonly<WorkflowType.Props>
         ) -> Never? {
             switch self {
