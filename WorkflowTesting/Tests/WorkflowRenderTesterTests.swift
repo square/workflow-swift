@@ -239,7 +239,7 @@ extension TestWorkflow {
         case tapped
         case asyncSuccess
 
-        func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
+        func apply(toState state: ManagedReadWrite<TestWorkflow.State>, props: ManagedReadonly<WorkflowType.Props>) -> TestWorkflow.Output? {
             switch self {
             case .tapped:
                 state.substate = .waiting
@@ -269,7 +269,7 @@ private struct OutputWorkflow: Workflow {
 
         case emit
 
-        func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
+        func apply(toState state: ManagedReadWrite<OutputWorkflow.State>, props: ManagedReadonly<WorkflowType.Props>) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
                 .success
@@ -349,10 +349,13 @@ private struct SideEffectWorkflow: Workflow {
 
         typealias WorkflowType = SideEffectWorkflow
 
-        func apply(toState state: inout SideEffectWorkflow.State) -> SideEffectWorkflow.Output? {
+        func apply(
+            toState state: ManagedReadWrite<SideEffectWorkflow.State>,
+            props: ManagedReadonly<WorkflowType.Props>
+        ) -> SideEffectWorkflow.Output? {
             switch self {
             case .testAction:
-                state = .success
+                state.replaceWith(.success)
             }
             return nil
         }
@@ -395,7 +398,10 @@ private struct ParentWorkflow: Workflow {
         case childSuccess
         case childFailure
 
-        func apply(toState state: inout ParentWorkflow.State) -> Never? {
+        func apply(
+            toState state: ManagedReadWrite<ParentWorkflow.State>,
+            props: ManagedReadonly<WorkflowType.Props>
+        ) -> Never? {
             switch self {
             case .childSuccess:
                 state.text = String(state.text.reversed())

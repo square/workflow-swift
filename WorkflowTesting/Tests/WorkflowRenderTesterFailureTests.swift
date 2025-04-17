@@ -449,7 +449,7 @@ private enum TestAction: WorkflowAction, Equatable {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
+    func apply(toState state: ManagedReadWrite<TestWorkflow.State>, props: ManagedReadonly<TestWorkflow>) -> TestWorkflow.Output? {
         switch self {
         case .noop:
             nil

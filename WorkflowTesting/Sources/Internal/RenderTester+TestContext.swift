@@ -20,7 +20,7 @@ import XCTest
 @testable import Workflow
 
 extension RenderTester {
-    final class TestContext: RenderContextType {
+    final class TestContext: RenderContextType where WorkflowType.Props == WorkflowType {
         var state: WorkflowType.State
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
@@ -117,7 +117,10 @@ extension RenderTester {
         private func apply<ActionType: WorkflowAction>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
             XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
             appliedAction = AppliedAction(action)
-            let output = action.apply(toState: &state)
+            let mgdState = ManagedReadWrite.testing(state)
+            let mgdProps: ManagedReadonly<WorkflowType> = .testingCompatibilityShim()
+            let output = action.apply(toState: mgdState, props: mgdProps)
+//            let output = action.apply(toState: &state)
 
             if let output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)

@@ -101,10 +101,10 @@ private enum TestAction: WorkflowAction {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout Bool) -> TestWorkflow.Output? {
+    func apply(toState state: ManagedReadWrite<Bool>, props: ManagedReadonly<WorkflowType>) -> TestWorkflow.Output? {
         switch self {
         case .toggleTapped:
-            state = !state
+            state.replaceWith(true)
             return nil
         case .exitTapped:
             return .finished
