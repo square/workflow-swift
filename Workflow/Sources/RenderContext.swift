@@ -182,7 +182,7 @@ extension RenderContext {
         of eventType: Event.Type,
         onEvent: @escaping (
             Event,
-            ManagedReadWrite<WorkflowType.State>,
+            inout WorkflowType.State,
             ManagedReadonly<WorkflowType.Props>
         ) -> WorkflowType.Output?
         // (Event, inout WorkflowType.State) -> WorkflowType.Output?
@@ -190,7 +190,7 @@ extension RenderContext {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
                 AnyWorkflowAction<WorkflowType> { state, props in
-                    onEvent(event, state, props)
+                    onEvent(event, &state, props)
                 }
             }
     }

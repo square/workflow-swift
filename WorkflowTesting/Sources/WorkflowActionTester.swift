@@ -20,7 +20,7 @@ import XCTest
 extension WorkflowAction {
     /// Returns a state tester containing `self`.
     public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
-        WorkflowActionTester(state: ManagedReadWrite.testing(state))
+        WorkflowActionTester(state: state)
     }
 }
 
@@ -61,16 +61,15 @@ extension WorkflowAction {
 /// ```
 public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where Action.WorkflowType == WorkflowType {
     /// The current state
-    var state: WorkflowType.State { managedState.withValue { $0 } }
-    let managedState: ManagedReadWrite<WorkflowType.State>
+    var state: WorkflowType.State
     let output: WorkflowType.Output?
 
     /// Initializes a new state tester
     fileprivate init(
-        state: ManagedReadWrite<WorkflowType.State>,
+        state: WorkflowType.State,
         output: WorkflowType.Output? = nil
     ) {
-        self.managedState = state
+        self.state = state
         self.output = output
     }
 
@@ -83,9 +82,9 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action>
         where WorkflowType.Props == WorkflowType
     {
-        let newState = managedState
+        var newState = state
         let compatProps: ManagedReadonly<WorkflowType> = ManagedReadonly.testingCompatibilityShim()
-        let output = action.apply(toState: newState, props: compatProps)
+        let output = action.apply(toState: &newState, props: compatProps)
         return WorkflowActionTester(state: newState, output: output)
     }
 

@@ -29,7 +29,7 @@ public protocol WorkflowAction<WorkflowType> {
     ///            the workflow hierarchy to this workflow's parent.
 //    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
     func apply(
-        toState state: ManagedReadWrite<WorkflowType.State>,
+        toState state: inout WorkflowType.State,
         props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 }
@@ -39,7 +39,7 @@ public protocol WorkflowAction<WorkflowType> {
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     public typealias ActionApply = (
-        ManagedReadWrite<WorkflowType.State>,
+        inout WorkflowType.State,
         ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
@@ -60,7 +60,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             return
         }
         self._apply = {
-            base.apply(toState: $0, props: $1)
+            base.apply(toState: &$0, props: $1)
 //            base.apply(toState: &$0)
         }
         self.base = base
@@ -92,10 +92,10 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     }
 
     public func apply(
-        toState state: ManagedReadWrite<WorkflowType.State>,
+        toState state: inout WorkflowType.State,
         props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output? {
-        _apply(state, props)
+        _apply(&state, props)
     }
 }
 
@@ -125,7 +125,7 @@ extension AnyWorkflowAction {
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     typealias ActionApply = (
-        ManagedReadWrite<WorkflowType.State>,
+        inout WorkflowType.State,
         ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
@@ -144,10 +144,10 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     }
 
     func apply(
-        toState state: ManagedReadWrite<WorkflowType.State>,
+        toState state: inout WorkflowType.State,
         props: ManagedReadonly<WorkflowType.Props>
     ) -> WorkflowType.Output? {
-        _apply(state, props)
+        _apply(&state, props)
     }
 }
 
@@ -162,7 +162,7 @@ extension ClosureAction: CustomStringConvertible {
 final class Storage<Value> {
     var value: Value
 
-    init(_ value: consuming Value) {
+    init(_ value: Value) {
         self.value = value
     }
 }
@@ -183,13 +183,21 @@ extension Storage: Hashable where Value: Hashable {
 @dynamicMemberLookup
 public struct ManagedReadonly<Value> {
     private let storage: Storage<Value>
+    private let isPoisoned: Bool
 
-    init(_ value: consuming Value) {
+    init(
+        _ value: Value,
+        isPoisoned: Bool = false
+    ) {
         self.storage = Storage(value)
+        self.isPoisoned = isPoisoned
     }
 
     public subscript<Property>(dynamicMember keyPath: KeyPath<Value, Property>) -> Property {
-        storage.value[keyPath: keyPath]
+        guard !isPoisoned else {
+            fatalError("Use correct API")
+        }
+        return storage.value[keyPath: keyPath]
     }
 }
 
@@ -208,7 +216,7 @@ extension ManagedReadonly where Value: Workflow {
             ptr.pointee
         }
 
-        let managedBad = ManagedReadonly(bad)
+        let managedBad = ManagedReadonly(bad, isPoisoned: true)
         return managedBad
     }
 }
@@ -217,7 +225,7 @@ extension ManagedReadonly where Value: Workflow {
 public struct ManagedReadWrite<Value> {
     let storage: Storage<Value>
 
-    init(_ value: consuming Value) {
+    init(_ value: Value) {
         self.storage = Storage(value)
     }
 
