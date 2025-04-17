@@ -42,7 +42,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
-    public func send(_ update: @escaping (borrowing ManagedReadWrite<WorkflowType.State>) -> Void) {
+    public func send(_ update: @escaping (ManagedReadWrite<WorkflowType.State>) -> Void) {
         sink.send(
             AnyWorkflowAction<WorkflowType> { state, _ in
                 update(state)

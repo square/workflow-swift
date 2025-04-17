@@ -182,8 +182,8 @@ extension RenderContext {
         of eventType: Event.Type,
         onEvent: @escaping (
             Event,
-            borrowing ManagedReadWrite<WorkflowType.State>,
-            borrowing ManagedReadonly<WorkflowType.Props>
+            ManagedReadWrite<WorkflowType.State>,
+            ManagedReadonly<WorkflowType.Props>
         ) -> WorkflowType.Output?
         // (Event, inout WorkflowType.State) -> WorkflowType.Output?
     ) -> Sink<Event> {
