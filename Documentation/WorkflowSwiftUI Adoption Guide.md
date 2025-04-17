@@ -534,6 +534,23 @@ struct ChildWorkflow: Workflow {
 }
 ```
 
+<details>
+<summary>Expand to see details on the above example.</summary>
+
+1. Mutating `state.name` will trigger a body re-evaluation for views that observe `name` because ChildState’s `name` field is a String type. The String type is not observable.
+    - Under the hood, the `ObservableState` macro will generate wrappers for each of its struct’s properties. When the property is modified, these wrappers will check if the new value’s identity is equal to the old value’s identity:
+      - if the identities are equal, no mutation is observed.
+      - if the identities are not equal, a mutation will be observed.
+      - *See `ObservationStateRegistrar`’s `mutate(...)` function for implementation details.*
+    - String is not observable and will always fail its identity check against another String.
+2. Reassigning `state.info` won’t trigger a body re-evaluation because `MiscInfo` is itself an observable type.
+    - `ObservableState` endows structs with concept of identity, allowing them to behave similarly to class types.
+    - In this Workflow example, the `MiscInfo` supplied from the parent workflow will have the same identity as the `MiscInfo` supplied from the parent workflow’s previous rendering. Because the identities of the two structs are the same, a mutation will not be observed.
+    - In WorkflowSwiftUI, this `workflowDidChange(...)` function is executed after the underlying state has been mutated from a Binding. In these cases, the view will have already been invalidated if it observed this struct’s fields.
+3. Similar to 1 above, if ChildWorkflow had a `var foo: String` property and executed `state.info.foo = foo` within `workflowDidChange(…)`, this will trigger a body re-evaluation for views that observe `foo`. This is because the String type is not observable.
+
+</details>
+
 ## Previews
 
 `WorkflowSwiftUI` has conveniences for creating static previews based on a view or screen, or stateful preview of a workflow and screen.
