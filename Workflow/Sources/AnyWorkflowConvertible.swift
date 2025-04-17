@@ -115,10 +115,12 @@ extension AnyWorkflowConvertible {
     /// Process an `Output`
     ///
     /// - Parameter apply: On `Output`, mutate `State` as necessary and return new `Output` (or `nil`).
-    public func onOutput<Parent>(_ apply: @escaping ((inout Parent.State, Output) -> Parent.Output?)) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
+    public func onOutput<Parent>(
+        _ apply: @escaping (inout Parent.State, Output) -> Parent.Output?
+    ) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
         asAnyWorkflow()
             .mapOutput { output in
-                AnyWorkflowAction { state -> Parent.Output? in
+                AnyWorkflowAction { state, _ -> Parent.Output? in
                     apply(&state, output)
                 }
             }

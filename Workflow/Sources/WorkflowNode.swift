@@ -218,7 +218,14 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        do {
+            // TODO: can we avoid instantiating a class here somehow?
+            let context = ConcreteApplyContext(storage: workflow)
+            defer { context.invalidate() }
+
+            let wrappedContext = ApplyContext.make(implementation: context)
+            output = action.apply(toState: &state, context: wrappedContext)
+        }
 
         return output
     }

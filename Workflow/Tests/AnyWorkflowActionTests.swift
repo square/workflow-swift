@@ -83,7 +83,8 @@ final class AnyWorkflowActionTests: XCTestCase {
         XCTAssertEqual(log, [])
 
         var state: Void = ()
-        _ = erased.apply(toState: &state)
+        let ctx = ApplyContext(ConcreteApplyContext(storage: ExampleWorkflow()))
+        _ = erased.apply(toState: &state, context: ctx)
 
         XCTAssertEqual(log, ["action invoked"])
     }

@@ -44,7 +44,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     ///   - update: The `State` mutation to perform.
     public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
         sink.send(
-            AnyWorkflowAction<WorkflowType> { state in
+            AnyWorkflowAction<WorkflowType> { state, _ in
                 update(&state)
                 return nil
             }

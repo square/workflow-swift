@@ -128,6 +128,7 @@ public struct RenderTester<WorkflowType: Workflow> {
 
     private let expectedWorkflows: [AnyExpectedWorkflow]
     private let expectedSideEffects: [AnyHashable: ExpectedSideEffect]
+    private let applyContext: TestApplyContext<WorkflowType>
 
     init(
         workflow: WorkflowType,
@@ -139,6 +140,7 @@ public struct RenderTester<WorkflowType: Workflow> {
         self.state = state
         self.expectedWorkflows = expectedWorkflows
         self.expectedSideEffects = expectedSideEffects
+        self.applyContext = .init(kind: .workflow(workflow))
     }
 
     /// Expect the given workflow type in the next rendering.
@@ -264,6 +266,7 @@ public struct RenderTester<WorkflowType: Workflow> {
             state: state,
             expectedWorkflows: expectedWorkflows,
             expectedSideEffects: expectedSideEffects,
+            applyContext: applyContext,
             file: file,
             line: line
         )

@@ -27,6 +27,7 @@ extension RenderTester {
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
         var appliedAction: AppliedAction<WorkflowType>?
+        var applyContext: TestApplyContext<WorkflowType>
         var producedOutput: WorkflowType.Output?
         let file: StaticString
         let line: UInt
@@ -37,6 +38,7 @@ extension RenderTester {
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect],
+            applyContext: TestApplyContext<WorkflowType>,
             file: StaticString,
             line: UInt
         ) {
@@ -45,6 +47,7 @@ extension RenderTester {
             self.expectedSideEffects = expectedSideEffects
             self.file = file
             self.line = line
+            self.applyContext = applyContext
         }
 
         func render<Child: Workflow, Action: WorkflowAction>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
@@ -121,7 +124,8 @@ extension RenderTester {
                 reportIssue("Received multiple actions in a single render test", filePath: file, line: line)
             }
             appliedAction = AppliedAction(action)
-            let output = action.apply(toState: &state)
+            let wrappedContext = ApplyContext.make(implementation: applyContext)
+            let output = action.apply(toState: &state, context: wrappedContext)
 
             if let output {
                 if producedOutput != nil {
