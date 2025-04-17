@@ -191,6 +191,68 @@ final class WorkflowRenderTesterTests: XCTestCase {
     }
 }
 
+// MARK: - ApplyContext Tests
+
+extension WorkflowRenderTesterTests {
+    func test_applyContext_exposesProps() {
+        PropsWorkflow(prop1: "ichi", prop2: 42)
+            .renderTester()
+            .expectSideEffect(
+                key: "effect",
+                producingAction: PropsWorkflow.Action.emit
+            )
+            .render { rendering in
+                XCTAssertEqual(rendering, "")
+            }
+            .verifyAction { (action: PropsWorkflow.Action) in
+                XCTAssertEqual(action, .emit)
+            }
+            .verifyState { newState in
+                XCTAssertEqual(newState, "prop1: ichi, prop2: 42")
+            }
+    }
+}
+
+struct PropsWorkflow: Workflow {
+    typealias State = String
+    typealias Rendering = String
+
+    var prop1 = ""
+    var prop2 = 0
+
+    func makeInitialState() -> String { "" }
+
+    func render(state: State, context: RenderContext<PropsWorkflow>) -> Rendering {
+        let sink = context.makeSink(of: Action.self)
+
+        context.runSideEffect(key: "effect") { _ in
+            sink.send(.emit)
+        }
+
+        return state
+    }
+
+    enum Action: WorkflowAction {
+        typealias WorkflowType = PropsWorkflow
+
+        case emit
+
+        func apply(
+            toState state: inout WorkflowType.State,
+            context: ApplyContext<WorkflowType>
+        ) -> WorkflowType.Output? {
+            let prop1 = context[workflowValue: \.prop1]
+            let prop2 = context[workflowValue: \.prop2]
+
+            state = "prop1: \(prop1), prop2: \(prop2)"
+
+            return nil
+        }
+    }
+}
+
+// MARK: -
+
 private struct TestWorkflow: Workflow {
     /// Input
     var initialText: String
@@ -239,7 +301,7 @@ extension TestWorkflow {
         case tapped
         case asyncSuccess
 
-        func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
+        func apply(toState state: inout TestWorkflow.State, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
             switch self {
             case .tapped:
                 state.substate = .waiting
@@ -269,7 +331,7 @@ private struct OutputWorkflow: Workflow {
 
         case emit
 
-        func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
+        func apply(toState state: inout OutputWorkflow.State, context: ApplyContext<WorkflowType>) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
                 .success
@@ -349,7 +411,10 @@ private struct SideEffectWorkflow: Workflow {
 
         typealias WorkflowType = SideEffectWorkflow
 
-        func apply(toState state: inout SideEffectWorkflow.State) -> SideEffectWorkflow.Output? {
+        func apply(
+            toState state: inout SideEffectWorkflow.State,
+            context: ApplyContext<WorkflowType>
+        ) -> SideEffectWorkflow.Output? {
             switch self {
             case .testAction:
                 state = .success
@@ -395,7 +460,10 @@ private struct ParentWorkflow: Workflow {
         case childSuccess
         case childFailure
 
-        func apply(toState state: inout ParentWorkflow.State) -> Never? {
+        func apply(
+            toState state: inout ParentWorkflow.State,
+            context: ApplyContext<WorkflowType>
+        ) -> Never? {
             switch self {
             case .childSuccess:
                 state.text = String(state.text.reversed())
