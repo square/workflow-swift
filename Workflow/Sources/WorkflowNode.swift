@@ -17,11 +17,9 @@
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
-    private var state: WorkflowType.State {
-        managedState.storage.value
-    }
+    private var state: WorkflowType.State
 
-    private let managedState: ManagedReadWrite<WorkflowType.State>
+//    private let managedState: ManagedReadWrite<WorkflowType.State>
     private let managedProps: ManagedReadonly<WorkflowType.Props>
 
     /// Holds the current `Workflow` managed by this node.
@@ -65,9 +63,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         hostContext.observer?.sessionDidBegin(session)
 
-//        self.state = workflow.makeInitialState()
-        self.managedProps = ManagedReadonly(workflow.makeProps())
-        self.managedState = ManagedReadWrite(workflow.makeInitialState())
+        self.state = workflow.makeInitialState()
+//        self.managedProps = ManagedReadonly(workflow.makeProps())
+        self.managedProps = ManagedReadonly(workflow)
+//        self.managedState = ManagedReadWrite(workflow.makeInitialState())
 
         observer?.workflowDidMakeInitialState(
             workflow,
@@ -168,11 +167,12 @@ final class WorkflowNode<WorkflowType: Workflow> {
         let oldWorkflow = self.workflow
 
         // TODO: deal with this
-        var updatedState = state
-        workflow.workflowDidChange(from: oldWorkflow, state: &updatedState)
-        managedState.storage.value = updatedState
+//        var updatedState = state
+        workflow.workflowDidChange(from: oldWorkflow, state: &state)
+//        managedState.storage.value = updatedState
 
         self.workflow = workflow
+        managedProps.storage.value = workflow
 
         observer?.workflowDidChange(
             from: oldWorkflow,
@@ -229,7 +229,7 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &managedState.storage.value, props: managedProps)
+        output = action.apply(toState: &state, props: managedProps)
 
         return output
     }

@@ -182,7 +182,7 @@ extension Storage: Hashable where Value: Hashable {
 
 @dynamicMemberLookup
 public struct ManagedReadonly<Value> {
-    private let storage: Storage<Value>
+    let storage: Storage<Value>
     private let isPoisoned: Bool
 
     init(
