@@ -27,14 +27,23 @@ public protocol WorkflowAction<WorkflowType> {
     ///
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
+//    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
+    func apply(
+        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
+        props: borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output?
 }
 
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    public typealias ActionApply = (
+        borrowing ManagedReadWrite<WorkflowType.State>,
+        borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output?
+
+    private let _apply: ActionApply
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -50,7 +59,10 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             self = anyEvent
             return
         }
-        self._apply = { base.apply(toState: &$0) }
+        self._apply = {
+            base.apply(toState: $0, props: $1)
+//            base.apply(toState: &$0)
+        }
         self.base = base
         self.isClosureBased = false
     }
@@ -59,7 +71,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     ///
     /// - Parameter apply: the apply function for the resulting action.
     public init(
-        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _ apply: @escaping ActionApply,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -74,13 +86,16 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
-        self._apply = closureAction.apply(toState:)
+        self._apply = closureAction.apply(toState:props:)
         self.base = closureAction
         self.isClosureBased = true
     }
 
-    public func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+    public func apply(
+        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
+        props: borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output? {
+        _apply(state, props)
     }
 }
 
@@ -89,7 +104,7 @@ extension AnyWorkflowAction {
     ///
     /// - Parameter output: The output event to send when this action is applied.
     public init(sendingOutput output: WorkflowType.Output) {
-        self = AnyWorkflowAction { state in
+        self = AnyWorkflowAction { _, _ in
             output
         }
     }
@@ -97,7 +112,7 @@ extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
     /// event).
     public static var noAction: AnyWorkflowAction<WorkflowType> {
-        AnyWorkflowAction { state in
+        AnyWorkflowAction { _, _ in
             nil
         }
     }
@@ -109,12 +124,17 @@ extension AnyWorkflowAction {
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
-    private let _apply: (inout WorkflowType.State) -> WorkflowType.Output?
+    typealias ActionApply = (
+        borrowing ManagedReadWrite<WorkflowType.State>,
+        borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output?
+
+    private let _apply: ActionApply
     let fileID: StaticString
     let line: UInt
 
     init(
-        _apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _apply: @escaping ActionApply,
         fileID: StaticString,
         line: UInt
     ) {
@@ -123,13 +143,55 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
         self.line = line
     }
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        _apply(&state)
+    func apply(
+        toState state: borrowing ManagedReadWrite<WorkflowType.State>,
+        props: borrowing ManagedReadonly<WorkflowType.Props>
+    ) -> WorkflowType.Output? {
+        _apply(state, props)
     }
 }
 
 extension ClosureAction: CustomStringConvertible {
     var description: String {
         "\(Self.self)(fileID: \(fileID), line: \(line))"
+    }
+}
+
+// MARK: - experimental API
+
+final class Storage<Value: ~Copyable> {
+    var value: Value
+
+    init(_ value: consuming Value) {
+        self.value = value
+    }
+}
+
+@dynamicMemberLookup
+public struct ManagedReadonly<Value: ~Copyable>: ~Copyable {
+    private let storage: Storage<Value>
+
+    init(_ value: consuming Value) {
+        self.storage = Storage(value)
+    }
+
+    public subscript<Property>(dynamicMember keyPath: KeyPath<Value, Property>) -> Property {
+        storage.value[keyPath: keyPath]
+    }
+}
+
+@dynamicMemberLookup
+public struct ManagedReadWrite<Value: ~Copyable>: ~Copyable {
+    let storage: Storage<Value>
+
+    init(_ value: consuming Value) {
+        self.storage = Storage(value)
+    }
+
+    public subscript<Property>(
+        dynamicMember keyPath: WritableKeyPath<Value, Property>
+    ) -> Property {
+        get { storage.value[keyPath: keyPath] }
+        nonmutating set { storage.value[keyPath: keyPath] = newValue }
     }
 }

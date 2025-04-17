@@ -17,7 +17,12 @@
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
-    private var state: WorkflowType.State
+    private var state: WorkflowType.State {
+        managedState.storage.value
+    }
+
+    private let managedState: ManagedReadWrite<WorkflowType.State>
+    private let managedProps: ManagedReadonly<WorkflowType.Props>
 
     /// Holds the current `Workflow` managed by this node.
     private var workflow: WorkflowType
@@ -60,7 +65,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         hostContext.observer?.sessionDidBegin(session)
 
-        self.state = workflow.makeInitialState()
+//        self.state = workflow.makeInitialState()
+        self.managedProps = ManagedReadonly(workflow.makeProps())
+        self.managedState = ManagedReadWrite(workflow.makeInitialState())
 
         observer?.workflowDidMakeInitialState(
             workflow,
@@ -160,7 +167,11 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
 
-        workflow.workflowDidChange(from: oldWorkflow, state: &state)
+        // TODO: deal with this
+        var updatedState = state
+        workflow.workflowDidChange(from: oldWorkflow, state: &updatedState)
+        managedState.storage.value = updatedState
+
         self.workflow = workflow
 
         observer?.workflowDidChange(
@@ -218,7 +229,7 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        output = action.apply(toState: managedState, props: managedProps)
 
         return output
     }
