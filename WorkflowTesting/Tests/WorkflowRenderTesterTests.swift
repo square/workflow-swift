@@ -355,7 +355,6 @@ private struct SideEffectWorkflow: Workflow {
             toState state: inout SideEffectWorkflow.State,
             props: ManagedReadonly<WorkflowType.Props>
         ) -> SideEffectWorkflow.Output? {
-            let shouldExplode = props.prop
             switch self {
             case .testAction:
                 state = .success

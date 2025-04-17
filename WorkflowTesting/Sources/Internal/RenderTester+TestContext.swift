@@ -20,7 +20,7 @@ import XCTest
 @testable import Workflow
 
 extension RenderTester {
-    final class TestContext: RenderContextType where WorkflowType.Props == WorkflowType {
+    final class TestContext: RenderContextType {
         var state: WorkflowType.State
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
