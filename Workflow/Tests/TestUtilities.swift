@@ -83,3 +83,15 @@ struct TestDebugger: WorkflowDebugger {
         updateInfo: WorkflowUpdateDebugInfo
     ) {}
 }
+
+// MARK: - ApplyContext
+
+extension ApplyContext {
+    var wrappedConcreteContext: ConcreteApplyContext<WorkflowType>? {
+        wrappedContext as? ConcreteApplyContext<WorkflowType>
+    }
+
+    var concreteStorage: WorkflowType? {
+        wrappedConcreteContext?.storage
+    }
+}
