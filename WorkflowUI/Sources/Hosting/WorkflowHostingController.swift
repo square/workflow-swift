@@ -19,12 +19,13 @@
 import Foundation
 
 private let shouldDeferUpdates: Bool = {
-    ProcessInfo.processInfo.environment["WORKFLOWUI_DEFER_UPDATES"] == "1"
+    let shouldDisable = ProcessInfo.processInfo.environment["WORKFLOWUI_DISABLE_DEFER_UPDATES"] == "1"
+    return shouldDisable == false
 }()
 
 import os
 
-let sp = OSSignposter.init(subsystem: "wfui", category: .pointsOfInterest)
+let sp = OSSignposter(subsystem: "wfui", category: .pointsOfInterest)
 
 import ReactiveSwift
 import UIKit
@@ -119,7 +120,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     func setNeedsUpdate() {
         renderingGeneration &+= 1
-        self.viewIfLoaded?.setNeedsLayout()
+        viewIfLoaded?.setNeedsLayout()
     }
 
     /// Updates the root Workflow in this container.
@@ -172,11 +173,12 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
     }
 
     func updateScreenIfNeeded() {
-        if (shouldDeferUpdates && needsUpdate) || environmentAncestorPath != lastEnvironmentAncestorPath {
+        lazy var currentEnvPath = environmentAncestorPath
+        if (shouldDeferUpdates && needsUpdate) || currentEnvPath != lastEnvironmentAncestorPath {
             // TODO: only read ancestor path once
             update(
                 screen: workflowHost.rendering.value,
-                environmentAncestorPath: environmentAncestorPath
+                environmentAncestorPath: currentEnvPath
             )
         }
     }
