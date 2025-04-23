@@ -89,8 +89,8 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
         where WorkflowType.Props == WorkflowType
     {
         var newState = state
-        let compatProps: ManagedReadonly<WorkflowType> = props.map { .testing($0) } ?? .testingCompatibilityShim()
-        let output = action.apply(toState: &newState, props: compatProps)
+        let compatProps: ActionContext<WorkflowType> = props.map { .testing($0) } ?? .testingCompatibilityShim()
+        let output = action.apply(toState: &newState, context: compatProps)
         return WorkflowActionTester(state: newState, output: output)
     }
 

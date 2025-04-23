@@ -118,7 +118,7 @@ extension AnyWorkflowConvertible {
     public func onOutput<Parent>(
         _ apply: @escaping (
             inout Parent.State,
-            ManagedReadonly<Parent.Props>,
+            ActionContext<Parent.Props>,
             Output
         ) -> Parent.Output?
         // @escaping ((inout Parent.State, Output) -> Parent.Output?)
