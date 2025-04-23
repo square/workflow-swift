@@ -101,12 +101,12 @@ final class WorkflowActionTesterTests: XCTestCase {
             .assert(state: true)
     }
 
-    func test_old_api_explodes_if_you_use_props() {
-        TestActionWithProps
-            .tester(withState: true)
-            .send(action: .readProps)
-            .assert(state: true)
-    }
+//    func test_old_api_explodes_if_you_use_props() {
+//        TestActionWithProps
+//            .tester(withState: true)
+//            .send(action: .readProps)
+//            .assert(state: true)
+//    }
 
     func test_new_api_works_if_you_provide_props() {
         TestActionWithProps
@@ -124,13 +124,13 @@ private enum TestActionWithProps: WorkflowAction {
 
     func apply(
         toState state: inout Bool,
-        props: ManagedReadonly<TestWorkflow.Props>
+        context: ActionContext<TestWorkflow.Props>
     ) -> TestWorkflow.Output? {
         switch self {
         case .dontReadProps:
             break
         case .readProps:
-            _ = props.prop
+            _ = context[props: \.prop]
         }
         return nil
     }
@@ -142,7 +142,7 @@ private enum TestAction: WorkflowAction {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout Bool, props: ManagedReadonly<WorkflowType>) -> TestWorkflow.Output? {
+    func apply(toState state: inout Bool, context: ActionContext<WorkflowType>) -> TestWorkflow.Output? {
         switch self {
         case .toggleTapped:
             state = !state

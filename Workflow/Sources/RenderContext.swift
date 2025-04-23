@@ -183,7 +183,7 @@ extension RenderContext {
         onEvent: @escaping (
             Event,
             inout WorkflowType.State,
-            ManagedReadonly<WorkflowType.Props>
+            ActionContext<WorkflowType.Props>
         ) -> WorkflowType.Output?
         // (Event, inout WorkflowType.State) -> WorkflowType.Output?
     ) -> Sink<Event> {

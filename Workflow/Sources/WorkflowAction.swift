@@ -27,10 +27,9 @@ public protocol WorkflowAction<WorkflowType> {
     ///
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
-//    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output?
     func apply(
         toState state: inout WorkflowType.State,
-        props: ManagedReadonly<WorkflowType.Props>
+        context: ActionContext<WorkflowType.Props>
     ) -> WorkflowType.Output?
 }
 
@@ -40,7 +39,7 @@ public protocol WorkflowAction<WorkflowType> {
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     public typealias ActionApply = (
         inout WorkflowType.State,
-        ManagedReadonly<WorkflowType.Props>
+        ActionContext<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -60,8 +59,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
             return
         }
         self._apply = {
-            base.apply(toState: &$0, props: $1)
-//            base.apply(toState: &$0)
+            base.apply(toState: &$0, context: $1)
         }
         self.base = base
         self.isClosureBased = false
@@ -86,16 +84,16 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
-        self._apply = closureAction.apply(toState:props:)
+        self._apply = closureAction.apply(toState:context:)
         self.base = closureAction
         self.isClosureBased = true
     }
 
     public func apply(
         toState state: inout WorkflowType.State,
-        props: ManagedReadonly<WorkflowType.Props>
+        context: ActionContext<WorkflowType.Props>
     ) -> WorkflowType.Output? {
-        _apply(&state, props)
+        _apply(&state, context)
     }
 }
 
@@ -126,7 +124,7 @@ extension AnyWorkflowAction {
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     typealias ActionApply = (
         inout WorkflowType.State,
-        ManagedReadonly<WorkflowType.Props>
+        ActionContext<WorkflowType.Props>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -145,9 +143,9 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
 
     func apply(
         toState state: inout WorkflowType.State,
-        props: ManagedReadonly<WorkflowType.Props>
+        context: ActionContext<WorkflowType.Props>
     ) -> WorkflowType.Output? {
-        _apply(&state, props)
+        _apply(&state, context)
     }
 }
 
@@ -180,82 +178,90 @@ extension Storage: Hashable where Value: Hashable {
     }
 }
 
-@dynamicMemberLookup
-public struct ManagedReadonly<Value> {
-    let storage: Storage<Value>
-    private let isPoisoned: Bool
+import Foundation
 
-    init(
-        _ value: Value,
-        isPoisoned: Bool = false
-    ) {
-        self.storage = Storage(value)
-        self.isPoisoned = isPoisoned
+private struct OnAccess: Hashable {
+    let id: UUID = .init()
+    let onAccess: (() -> Void)?
+
+    func callAsFunction() { onAccess?() }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.id == rhs.id
     }
 
-    public subscript<Property>(dynamicMember keyPath: KeyPath<Value, Property>) -> Property {
-        guard !isPoisoned else {
-            fatalError("Use correct API")
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+public struct ActionContext<Wrapped: Workflow> {
+    let storage: Storage<Wrapped>
+
+    private let onAccess: OnAccess?
+
+    init(
+        _ value: Wrapped
+    ) {
+        self.storage = Storage(value)
+        self.onAccess = nil
+    }
+
+    init(storage: Storage<Wrapped>) {
+        self.storage = storage
+        self.onAccess = nil
+    }
+
+    init(
+        fakeInstance: Wrapped,
+        fakeContainer: AnyObject,
+        trapOnAccessMessage: String
+    ) {
+        self.storage = Storage(fakeInstance)
+        self.onAccess = OnAccess {
+            defer { withExtendedLifetime(fakeContainer) {} }
+            fatalError(trapOnAccessMessage)
         }
+    }
+
+    public subscript<Property>(
+        props keyPath: KeyPath<Wrapped.Props, Property>
+    ) -> Property {
+        onAccess?()
         return storage.value[keyPath: keyPath]
     }
 }
 
-extension ManagedReadonly: Equatable where Value: Equatable {}
-extension ManagedReadonly: Hashable where Value: Hashable {}
+extension ActionContext: Equatable where Wrapped: Equatable {}
+extension ActionContext: Hashable where Wrapped: Hashable {}
 
-extension ManagedReadonly where Value: Workflow {
-    public static func testing(_ value: Value) -> ManagedReadonly<Value> {
-        ManagedReadonly(value)
+// TODO: should be testing-only API
+extension ActionContext where Wrapped: Workflow {
+    public static func testing(_ value: Wrapped) -> ActionContext<Wrapped> {
+        ActionContext(value)
     }
 
-    public static func testingCompatibilityShim() -> ManagedReadonly<Value> {
-        let buffer: ManagedBuffer<Void, Value> = ManagedBuffer.create(minimumCapacity: 1) { _ in }
+    public static func testingCompatibilityShim() -> ActionContext<Wrapped> {
+        // TODO: double check that this doesn't leak, and is reasonably 'safe'
+        let pointerToFake = UnsafeMutableRawPointer.allocate(
+            byteCount: MemoryLayout<Wrapped>.size,
+            alignment: MemoryLayout<Wrapped>.alignment
+        )
+        let boundUninitializedPtr = pointerToFake.bindMemory(
+            to: Wrapped.self,
+            capacity: 1
+        )
 
-        let bad = buffer.withUnsafeMutablePointerToElements { ptr in
-            ptr.pointee
+        let lifetime = Lifetime()
+        lifetime.onEnded {
+            boundUninitializedPtr.deallocate()
         }
 
-        let managedBad = ManagedReadonly(bad, isPoisoned: true)
-        return managedBad
-    }
-}
-
-@dynamicMemberLookup
-public struct ManagedReadWrite<Value> {
-    let storage: Storage<Value>
-
-    init(_ value: Value) {
-        self.storage = Storage(value)
-    }
-
-    public subscript<Property>(
-        dynamicMember keyPath: WritableKeyPath<Value, Property>
-    ) -> Property {
-        get { storage.value[keyPath: keyPath] }
-        nonmutating set { storage.value[keyPath: keyPath] = newValue }
-    }
-
-    public func replaceWith(_ newValue: Value) {
-        self.storage.value = newValue
-    }
-}
-
-extension ManagedReadWrite: Equatable where Value: Equatable {}
-extension ManagedReadWrite: Hashable where Value: Hashable {}
-
-// testing API
-
-extension ManagedReadWrite {
-    public static func testing(_ value: Value) -> ManagedReadWrite<Value> {
-        ManagedReadWrite(value)
-    }
-}
-
-extension ManagedReadWrite {
-    public func withValue<R>(
-        _ body: (Value) throws -> R
-    ) rethrows -> R {
-        try body(storage.value)
+        let legacyCompatParam = ActionContext(
+            fakeInstance: boundUninitializedPtr.pointee,
+            fakeContainer: lifetime,
+            trapOnAccessMessage: "Trying to access properties in a testing context requires an instance of the underlying Workflow to be provided. Use <some appropriate API> instead."
+        )
+        return legacyCompatParam
     }
 }

@@ -117,8 +117,8 @@ extension RenderTester {
         private func apply<ActionType: WorkflowAction>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
             XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
             appliedAction = AppliedAction(action)
-            let props: ManagedReadonly<WorkflowType> = .testingCompatibilityShim()
-            let output = action.apply(toState: &state, props: props)
+            let props: ActionContext<WorkflowType> = .testingCompatibilityShim()
+            let output = action.apply(toState: &state, context: props)
 
             if let output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)
