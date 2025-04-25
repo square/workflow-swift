@@ -4,6 +4,7 @@
 import CasePaths
 import IdentifiedCollections
 import Perception
+import Workflow
 import WorkflowSwiftUI
 import XCTest
 
@@ -299,9 +300,19 @@ final class ObservableStateTests: XCTestCase {
 
         state.children[0].count += 1
     }
+
+    func testWorkflowRegistrar() {
+        var state = ChildState()
+
+        _ = state.count
+
+        state.count = 1
+
+        print("")
+    }
 }
 
-@ObservableState
+// @ObservableState
 private struct ChildState: Equatable, Identifiable {
     let id = UUID()
     var count = 0
@@ -318,7 +329,7 @@ private struct ChildState: Equatable, Identifiable {
     }
 }
 
-@ObservableState
+// @ObservableState
 private struct ParentState: Equatable {
     var child = ChildState()
     var children: [ChildState] = []

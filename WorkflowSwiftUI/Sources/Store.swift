@@ -3,6 +3,7 @@ import IdentifiedCollections
 import Perception
 import SwiftUI
 import Workflow
+import WorkflowMacrosSupport
 
 /// Provides access to a workflow's state and actions from within an ``ObservableScreen``.
 ///

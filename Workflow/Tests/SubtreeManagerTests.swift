@@ -284,10 +284,17 @@ private struct ParentWorkflow: Workflow {
     }
 }
 
+import WorkflowMacrosSupport
+
 private struct TestWorkflow: Workflow {
-    enum State {
-        case foo
-        case bar
+    @ObservableState
+    struct State {
+        enum Value {
+            case foo
+            case bar
+        }
+
+        var value: Value
     }
 
     enum Event: WorkflowAction {
@@ -299,9 +306,13 @@ private struct TestWorkflow: Workflow {
         func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
             switch self {
             case .changeState:
-                switch state {
-                case .foo: state = .bar
-                case .bar: state = .foo
+                switch state.value {
+                case .foo:
+                    state = .init(value: .bar)
+                // state.value = .bar
+                case .bar:
+                    state = .init(value: .foo)
+                    // state.value = .foo
                 }
                 return nil
             case .sendOutput:
@@ -315,7 +326,8 @@ private struct TestWorkflow: Workflow {
     }
 
     func makeInitialState() -> State {
-        .foo
+        .init(value: .foo)
+//        .foo
     }
 
     func render(state: State, context: RenderContext<TestWorkflow>) -> TestViewModel {

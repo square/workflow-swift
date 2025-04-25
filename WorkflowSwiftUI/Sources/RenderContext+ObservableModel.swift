@@ -1,5 +1,6 @@
 import Foundation
 import Workflow
+import WorkflowMacrosSupport
 
 extension RenderContext where WorkflowType.State: ObservableState {
     /// Creates a ``StateAccessor`` for this workflow's state.

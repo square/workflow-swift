@@ -2,6 +2,9 @@
 // https://github.com/pointfreeco/swift-composable-architecture/blob/1.12.1/Sources/ComposableArchitecture/Observation/ObservationStateRegistrar.swift
 
 #if canImport(Perception)
+
+import Perception
+
 /// Provides storage for tracking and access to data changes.
 public struct ObservationStateRegistrar: Sendable {
     public private(set) var id = ObservableStateID()

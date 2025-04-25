@@ -1,3 +1,5 @@
+import WorkflowMacrosSupport
+
 /// An ``ObservableModel`` for workflows with a single action.
 ///
 /// To create an accessor, use

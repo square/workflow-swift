@@ -67,11 +67,25 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.2.1"),
     ],
     targets: [
+        .target(
+            name: "WorkflowMacrosSupport",
+            dependencies: [
+                "WorkflowSwiftUIMacros",
+                .product(name: "CasePaths", package: "swift-case-paths"),
+                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
+                .product(name: "Perception", package: "swift-perception"),
+            ],
+            path: "WorkflowMacrosSupport/Sources"
+        ),
+
         // MARK: Workflow
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
+            dependencies: [
+                "ReactiveSwift",
+                "WorkflowMacrosSupport",
+            ],
             path: "Workflow/Sources"
         ),
         .testTarget(
@@ -114,10 +128,11 @@ let package = Package(
             dependencies: [
                 "Workflow",
                 "WorkflowUI",
+                "WorkflowMacrosSupport",
                 "WorkflowSwiftUIMacros",
-                .product(name: "CasePaths", package: "swift-case-paths"),
-                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
-                .product(name: "Perception", package: "swift-perception"),
+//                .product(name: "CasePaths", package: "swift-case-paths"),
+//                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
+//                .product(name: "Perception", package: "swift-perception"),
             ],
             path: "WorkflowSwiftUI/Sources"
         ),

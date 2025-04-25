@@ -1,3 +1,5 @@
+import WorkflowMacrosSupport
+
 /// A wrapper around observable state that provides read and write access through unidirectional
 /// channels.
 ///

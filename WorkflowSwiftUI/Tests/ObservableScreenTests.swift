@@ -3,6 +3,7 @@
 import SwiftUI
 import ViewEnvironment
 @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
+import WorkflowMacrosSupport
 import WorkflowSwiftUI
 import XCTest
 

@@ -20,7 +20,8 @@ import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
 public enum ObservableStateMacro {
-    static let moduleName = "WorkflowSwiftUI"
+//    static let moduleName = "WorkflowSwiftUI"
+    static let moduleName = "WorkflowMacrosSupport"
 
     static let conformanceName = "ObservableState"
     static var qualifiedConformanceName: String {
@@ -41,6 +42,13 @@ public enum ObservableStateMacro {
         "\(moduleName).\(registrarTypeName)"
     }
 
+    static var qualifiedWorkflowRegistrarTypeName: String {
+        // TODO: figure out how to disambiguate from `Workflow` protocol type to
+        // `Workflow` module type somehow...
+//        "WorkflowRegistrar"
+        "\(moduleName).WorkflowRegistrar"
+    }
+
     static let idName = "ObservableStateID"
     static var qualifiedIDName: String {
         "\(moduleName).\(idName)"
@@ -50,10 +58,17 @@ public enum ObservableStateMacro {
     static let ignoredMacroName = "ObservationStateIgnored"
 
     static let registrarVariableName = "_$observationRegistrar"
+    static let workflowRegistrarVariableName = "_$workflowRegistrar"
 
     static func registrarVariable(_ observableType: TokenSyntax) -> DeclSyntax {
         """
         @\(raw: ignoredMacroName) var \(raw: registrarVariableName) = \(raw: qualifiedRegistrarTypeName)()
+        """
+    }
+
+    static func workflowRegistrarVariable(_ observableType: TokenSyntax) -> DeclSyntax {
+        """
+        @\(raw: ignoredMacroName) var \(raw: workflowRegistrarVariableName) = \(raw: qualifiedWorkflowRegistrarTypeName)()
         """
     }
 
@@ -69,6 +84,7 @@ public enum ObservableStateMacro {
         """
         public mutating func _$willModify() {
         \(raw: registrarVariableName)._$willModify()
+        \(raw: workflowRegistrarVariableName).mutate()
         }
         """
     }
@@ -251,6 +267,7 @@ extension ObservableStateMacro: MemberMacro {
         declaration.addIfNeeded(
             ObservableStateMacro.registrarVariable(observableType), to: &declarations
         )
+        declaration.addIfNeeded(ObservableStateMacro.workflowRegistrarVariable(observableType), to: &declarations)
         declaration.addIfNeeded(ObservableStateMacro.idVariable(), to: &declarations)
         declaration.addIfNeeded(ObservableStateMacro.willModifyFunction(), to: &declarations)
 
@@ -532,6 +549,7 @@ public struct ObservationStateTrackedMacro: AccessorMacro {
             """
             set {
             \(raw: ObservableStateMacro.registrarVariableName).mutate(self, keyPath: \\.\(identifier), &_\(identifier), newValue, _$isIdentityEqual)
+            \(raw: ObservableStateMacro.workflowRegistrarVariableName).mutate()
             }
             """
         let modifyAccessor: AccessorDeclSyntax = """
@@ -539,6 +557,7 @@ public struct ObservationStateTrackedMacro: AccessorMacro {
           let oldValue = _$observationRegistrar.willModify(self, keyPath: \\.\(identifier), &_\(identifier))
           defer {
             _$observationRegistrar.didModify(self, keyPath: \\.\(identifier), &_\(identifier), oldValue, _$isIdentityEqual)
+            \(raw: ObservableStateMacro.workflowRegistrarVariableName).mutate()
           }
           yield &_\(identifier)
         }

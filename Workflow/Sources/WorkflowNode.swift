@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@_exported import WorkflowMacrosSupport
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
@@ -217,8 +219,18 @@ extension WorkflowNode {
         )
         defer { observerCompletion?(state, output) }
 
+        var writeDetected = false
         /// Apply the action to the current state
-        output = action.apply(toState: &state)
+        output =
+            detectAccesses(accessDetected: &writeDetected) {
+                action.apply(toState: &state)
+            }
+
+        if !writeDetected {
+            // no writes made to state
+        } else {
+            print("write detected!")
+        }
 
         return output
     }

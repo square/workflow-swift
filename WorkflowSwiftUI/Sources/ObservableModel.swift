@@ -1,4 +1,5 @@
 import Workflow
+import WorkflowMacrosSupport
 
 /// A type that can be observed for fine-grained changes and accept updates.
 ///
