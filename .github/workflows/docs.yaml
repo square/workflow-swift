@@ -1,0 +1,40 @@
+name: Generate and publish docs
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  # Xcode 16.3 gets us Swift 6.1, required for docc merge
+  XCODE_VERSION: 16.3
+
+jobs:
+  build:
+    name: Generate API docs and publish to GitHub pages
+    # macos-15 is required for Xcode 16.3
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
+      - uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install dependencies
+        run: tuist install --path Samples
+
+      - name: Generate project
+        run: tuist generate --path Samples --no-open
+
+      - name: Generate Docs
+        run: Scripts/generate_docs.sh
+
+      - name: Deploy to GitHub Pages
+        uses: crazy-max/ghaction-github-pages@df5cc2bfa78282ded844b354faee141f06b41865
+        with:
+          target_branch: gh-pages
+          build_dir: generated_docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
