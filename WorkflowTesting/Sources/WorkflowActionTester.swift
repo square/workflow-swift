@@ -21,9 +21,10 @@ extension WorkflowAction {
     /// Returns a state tester containing `self`.
     public static func tester(
         withState state: WorkflowType.State,
-        props: WorkflowType? = nil
+        props: WorkflowType.Props? = nil
     ) -> WorkflowActionTester<WorkflowType, Self> {
-        WorkflowActionTester(state: state, props: props)
+        let context: ActionContext<WorkflowType.Props> = props.map { .testing($0) } ?? .testingCompatibilityShim()
+        return WorkflowActionTester(state: state, context: context)
     }
 }
 
@@ -66,16 +67,16 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// The current state
     var state: WorkflowType.State
     let output: WorkflowType.Output?
-    let props: WorkflowType?
+    let context: ActionContext<WorkflowType.Props>
 
     /// Initializes a new state tester
     fileprivate init(
         state: WorkflowType.State,
-        props: WorkflowType? = nil,
+        context: ActionContext<WorkflowType.Props>,
         output: WorkflowType.Output? = nil
     ) {
         self.state = state
-        self.props = props
+        self.context = context
         self.output = output
     }
 
@@ -89,9 +90,8 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
         where WorkflowType.Props == WorkflowType
     {
         var newState = state
-        let compatProps: ActionContext<WorkflowType> = props.map { .testing($0) } ?? .testingCompatibilityShim()
-        let output = action.apply(toState: &newState, context: compatProps)
-        return WorkflowActionTester(state: newState, output: output)
+        let output = action.apply(toState: &newState, context: context)
+        return WorkflowActionTester(state: newState, context: context, output: output)
     }
 
     /// Asserts that the action produced no output
