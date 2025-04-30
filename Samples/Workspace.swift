@@ -22,6 +22,19 @@ let workspace = Workspace(
         .workflow("ViewEnvironment"),
         .workflow("ViewEnvironmentUI"),
         .workflow("WorkflowSwiftUIExperimental"),
+        .scheme(
+            name: "Documentation",
+            buildAction: .buildAction(
+                targets: [
+                    .project(path: "..", target: "ViewEnvironment"),
+                    .project(path: "..", target: "ViewEnvironmentUI"),
+                    .project(path: "..", target: "Workflow"),
+                    .project(path: "..", target: "WorkflowSwiftUI"),
+                    .project(path: "..", target: "WorkflowTesting"),
+                    .project(path: "..", target: "WorkflowUI"),
+                ]
+            )
+        ),
     ]
 )
 
