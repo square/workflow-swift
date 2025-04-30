@@ -81,6 +81,19 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         self.init(closureAction: closureAction)
     }
 
+    // TODO: backwards compatible init if you don't use the param?
+    public init(
+        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) {
+        self.init(
+            { state, _ in apply(&state) },
+            fileID: fileID,
+            line: line
+        )
+    }
+
     /// Private initializer forwarded to via `init(_ apply:...)`
     /// - Parameter closureAction: The `ClosureAction` wrapping the underlying `apply` closure.
     fileprivate init(closureAction: ClosureAction<WorkflowType>) {
