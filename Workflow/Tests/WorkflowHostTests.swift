@@ -125,7 +125,7 @@ extension WorkflowHost_EventEmissionTests {
 
             case childChanged
 
-            func apply(toState state: inout Parent.State) -> Never? {
+            func apply(toState state: inout Parent.State, context: ActionContext<WorkflowType.Props>) -> Never? {
                 state.eventCount += 1
                 state.renderFirst.toggle()
                 return nil
@@ -150,7 +150,7 @@ extension WorkflowHost_EventEmissionTests {
 
             case eventOccurred
 
-            func apply(toState state: inout Void) -> Child.Output? {
+            func apply(toState state: inout Void, context: ActionContext<WorkflowType.Props>) -> Child.Output? {
                 .eventOccurred
             }
         }

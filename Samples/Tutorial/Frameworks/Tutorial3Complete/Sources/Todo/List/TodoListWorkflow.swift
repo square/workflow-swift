@@ -73,7 +73,7 @@ extension TodoListWorkflow {
         case discardChanges
         case saveChanges(todo: TodoModel, index: Int)
 
-        func apply(toState state: inout TodoListWorkflow.State) -> TodoListWorkflow.Output? {
+        func apply(toState state: inout TodoListWorkflow.State, context: ActionContext<WorkflowType.Props>) -> TodoListWorkflow.Output? {
             switch self {
             case .onBack:
                 // When a `.onBack` action is received, emit a `.back` output

@@ -37,7 +37,7 @@ extension DemoWorkflow {
 
         let publishedDate: Date
 
-        func apply(toState state: inout DemoWorkflow.State) -> DemoWorkflow.Output? {
+        func apply(toState state: inout DemoWorkflow.State, context: ActionContext<WorkflowType.Props>) -> DemoWorkflow.Output? {
             state.date = publishedDate
             return nil
         }
