@@ -121,12 +121,23 @@ extension AnyWorkflowConvertible {
             ActionContext<Parent.Props>,
             Output
         ) -> Parent.Output?
-        // @escaping ((inout Parent.State, Output) -> Parent.Output?)
     ) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
         asAnyWorkflow()
             .mapOutput { output in
                 AnyWorkflowAction { state, props -> Parent.Output? in
                     apply(&state, props, output)
+                }
+            }
+    }
+
+    // TODO: compatibility shim
+    public func onOutput<Parent>(
+        _ apply: @escaping (inout Parent.State, Output) -> Parent.Output?
+    ) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {
+        asAnyWorkflow()
+            .mapOutput { output in
+                AnyWorkflowAction { state, _ -> Parent.Output? in
+                    apply(&state, output)
                 }
             }
     }
