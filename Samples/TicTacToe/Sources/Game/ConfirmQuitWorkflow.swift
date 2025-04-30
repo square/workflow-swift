@@ -56,7 +56,7 @@ extension ConfirmQuitWorkflow {
 
         typealias WorkflowType = ConfirmQuitWorkflow
 
-        func apply(toState state: inout ConfirmQuitWorkflow.State) -> ConfirmQuitWorkflow.Output? {
+        func apply(toState state: inout ConfirmQuitWorkflow.State, context: ApplyContext<WorkflowType>) -> ConfirmQuitWorkflow.Output? {
             switch self {
             case .cancel:
                 return .cancel
