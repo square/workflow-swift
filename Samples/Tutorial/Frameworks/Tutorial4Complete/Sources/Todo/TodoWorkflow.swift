@@ -71,7 +71,7 @@ extension TodoWorkflow {
         case editTodo(index: Int)
         case newTodo
 
-        func apply(toState state: inout TodoWorkflow.State) -> TodoWorkflow.Output? {
+        func apply(toState state: inout TodoWorkflow.State, context: ActionContext<WorkflowType.Props>) -> TodoWorkflow.Output? {
             switch self {
             case .back:
                 return .back
@@ -97,7 +97,7 @@ extension TodoWorkflow {
         case discardChanges
         case saveChanges(todo: TodoModel, index: Int)
 
-        func apply(toState state: inout TodoWorkflow.State) -> TodoWorkflow.Output? {
+        func apply(toState state: inout TodoWorkflow.State, context: ActionContext<WorkflowType.Props>) -> TodoWorkflow.Output? {
             guard case .edit = state.step else {
                 fatalError("Received edit action when state was not `.edit`.")
             }

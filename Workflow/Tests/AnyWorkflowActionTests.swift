@@ -108,7 +108,7 @@ private struct ExampleWorkflow: Workflow {
 private struct ExampleAction: WorkflowAction, Equatable {
     typealias WorkflowType = ExampleWorkflow
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, context: ActionContext<WorkflowType.Props>) -> WorkflowType.Output? {
         nil
     }
 }
@@ -118,7 +118,7 @@ private struct ObservableExampleAction: WorkflowAction {
 
     var block: () -> Void = {}
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, context: ActionContext<WorkflowType.Props>) -> WorkflowType.Output? {
         block()
         return nil
     }
