@@ -66,7 +66,7 @@ extension TodoEditWorkflow {
         case discardChanges
         case saveChanges
 
-        func apply(toState state: inout TodoEditWorkflow.State) -> TodoEditWorkflow.Output? {
+        func apply(toState state: inout TodoEditWorkflow.State, context: ApplyContext<WorkflowType>) -> TodoEditWorkflow.Output? {
             switch self {
             case .titleChanged(let title):
                 state.todo.title = title

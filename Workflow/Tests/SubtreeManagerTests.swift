@@ -296,7 +296,7 @@ private struct TestWorkflow: Workflow {
         case changeState
         case sendOutput
 
-        func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
+        func apply(toState state: inout TestWorkflow.State, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
             switch self {
             case .changeState:
                 switch state {

@@ -45,7 +45,7 @@ class Rx_ReactiveWorkersTests: XCTestCase {
                 typealias WorkflowType = TestWorkflow
                 case complete
 
-                func apply(toState state: inout State) -> Output? {
+                func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Output? {
                     switch self {
                     case .complete:
                         .finished
@@ -103,7 +103,7 @@ struct CombinedWorkflow: Workflow {
         case rxSwift
         case reactiveSwift
 
-        func apply(toState state: inout CombinedWorkflow.State) -> CombinedWorkflow.State? {
+        func apply(toState state: inout CombinedWorkflow.State, context: ApplyContext<WorkflowType>) -> CombinedWorkflow.State? {
             switch self {
             case .rxSwift:
                 state.rxOutputReceived = true
