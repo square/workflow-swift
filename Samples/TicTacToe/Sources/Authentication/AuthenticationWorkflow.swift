@@ -61,7 +61,7 @@ extension AuthenticationWorkflow {
         case authenticationError(AuthenticationService.AuthenticationError)
         case dismissAuthenticationAlert
 
-        func apply(toState state: inout AuthenticationWorkflow.State, context: ActionContext<WorkflowType>) -> AuthenticationWorkflow.Output? {
+        func apply(toState state: inout AuthenticationWorkflow.State, context: ApplyContext<WorkflowType>) -> AuthenticationWorkflow.Output? {
             switch self {
             case .back:
                 switch state {

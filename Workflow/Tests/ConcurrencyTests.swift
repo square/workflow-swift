@@ -186,7 +186,7 @@ final class ConcurrencyTests: XCTestCase {
 
                 case updated
 
-                func apply(toState state: inout State, context: ActionContext<WorkflowType>) -> Never? {
+                func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Never? {
                     switch self {
                     case .updated:
                         state.count += 1
@@ -279,7 +279,7 @@ final class ConcurrencyTests: XCTestCase {
 
                 case update
 
-                func apply(toState state: inout State, context: ActionContext<WorkflowType>) -> Output? {
+                func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Output? {
                     switch self {
                     case .update:
                         state.count += 10
@@ -378,7 +378,7 @@ final class ConcurrencyTests: XCTestCase {
                 typealias WorkflowType = AnyActionWorkflow
                 case update
 
-                func apply(toState state: inout State, context: ActionContext<WorkflowType>) -> Output? {
+                func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Output? {
                     switch self {
                     case .update:
                         state.count += 1
@@ -391,7 +391,7 @@ final class ConcurrencyTests: XCTestCase {
                 typealias WorkflowType = AnyActionWorkflow
                 case update
 
-                func apply(toState state: inout State, context: ActionContext<WorkflowType>) -> Output? {
+                func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Output? {
                     switch self {
                     case .update:
                         state.count += 10
@@ -494,7 +494,7 @@ final class ConcurrencyTests: XCTestCase {
             case update
             case secondUpdate
 
-            func apply(toState state: inout State, context: ActionContext<WorkflowType>) -> Output? {
+            func apply(toState state: inout State, context: ApplyContext<WorkflowType>) -> Output? {
                 switch self {
                 case .update:
                     state.count += 1

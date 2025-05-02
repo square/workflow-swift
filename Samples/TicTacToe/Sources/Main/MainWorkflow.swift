@@ -48,7 +48,7 @@ extension MainWorkflow {
         case authenticated(sessionToken: String)
         case logout
 
-        func apply(toState state: inout MainWorkflow.State, context: ActionContext<WorkflowType>) -> MainWorkflow.Output? {
+        func apply(toState state: inout MainWorkflow.State, context: ApplyContext<WorkflowType>) -> MainWorkflow.Output? {
             switch self {
             case .authenticated(sessionToken: let sessionToken):
                 state = .runningGame(sessionToken: sessionToken)

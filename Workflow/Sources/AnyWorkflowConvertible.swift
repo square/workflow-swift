@@ -118,7 +118,7 @@ extension AnyWorkflowConvertible {
     public func onOutput<Parent>(
         _ apply: @escaping (
             inout Parent.State,
-            ActionContext<Parent>,
+            ApplyContext<Parent>,
             Output
         ) -> Parent.Output?
     ) -> AnyWorkflow<Rendering, AnyWorkflowAction<Parent>> {

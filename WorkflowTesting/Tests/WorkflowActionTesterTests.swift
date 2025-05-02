@@ -124,7 +124,7 @@ private enum TestActionWithProps: WorkflowAction {
 
     func apply(
         toState state: inout Bool,
-        context: ActionContext<TestWorkflow>
+        context: ApplyContext<TestWorkflow>
     ) -> TestWorkflow.Output? {
         switch self {
         case .dontReadProps:
@@ -142,7 +142,7 @@ private enum TestAction: WorkflowAction {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout Bool, context: ActionContext<WorkflowType>) -> TestWorkflow.Output? {
+    func apply(toState state: inout Bool, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
         switch self {
         case .toggleTapped:
             state = !state

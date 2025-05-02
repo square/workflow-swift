@@ -25,7 +25,7 @@ extension ___VARIABLE_productName___Workflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = ___VARIABLE_productName___Workflow
 
-        func apply(toState state: inout ___VARIABLE_productName___Workflow.State, context: ActionContext<WorkflowType>) -> ___VARIABLE_productName___Workflow.Output? {
+        func applytoState state: inout ___VARIABLE_productName___Workflow.State, context: ApplyContext<WorkflowType> -> ___VARIABLE_productName___Workflow.Output? {
             switch self {
                 // Update state and produce an optional output based on which action was received.
             }

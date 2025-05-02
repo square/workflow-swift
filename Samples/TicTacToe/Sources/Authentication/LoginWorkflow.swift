@@ -49,7 +49,7 @@ extension LoginWorkflow {
         case passwordUpdated(String)
         case login
 
-        func apply(toState state: inout LoginWorkflow.State, context: ActionContext<WorkflowType>) -> LoginWorkflow.Output? {
+        func apply(toState state: inout LoginWorkflow.State, context: ApplyContext<WorkflowType>) -> LoginWorkflow.Output? {
             switch self {
             case .emailUpdated(let email):
                 state.email = email

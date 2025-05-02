@@ -51,7 +51,7 @@ struct SignalProducerWorkflow<Value>: Workflow {
         typealias WorkflowType = SignalProducerWorkflow
         let output: Value
 
-        func apply(toState state: inout Void, context: ActionContext<WorkflowType>) -> Value? {
+        func apply(toState state: inout Void, context: ApplyContext<WorkflowType>) -> Value? {
             output
         }
     }

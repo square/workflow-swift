@@ -183,7 +183,7 @@ extension RenderContext {
         onEvent: @escaping (
             Event,
             inout WorkflowType.State,
-            ActionContext<WorkflowType>
+            ApplyContext<WorkflowType>
         ) -> WorkflowType.Output?
         // (Event, inout WorkflowType.State) -> WorkflowType.Output?
     ) -> Sink<Event> {
