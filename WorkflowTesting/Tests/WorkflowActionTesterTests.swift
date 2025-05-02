@@ -110,7 +110,7 @@ final class WorkflowActionTesterTests: XCTestCase {
 
     func test_new_api_works_if_you_provide_props() {
         TestActionWithProps
-            .tester(withState: true, props: TestWorkflow(prop: 42))
+            .tester(withState: true, workflow: TestWorkflow(prop: 42))
             .send(action: .readProps)
             .assert(state: true)
     }
@@ -124,7 +124,7 @@ private enum TestActionWithProps: WorkflowAction {
 
     func apply(
         toState state: inout Bool,
-        context: ActionContext<TestWorkflow.Props>
+        context: ActionContext<TestWorkflow>
     ) -> TestWorkflow.Output? {
         switch self {
         case .dontReadProps:

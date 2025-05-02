@@ -53,11 +53,6 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     /// Defines the state that is managed by this workflow.
     associatedtype State
 
-    /// Defines the 'Props' which are properties of the workflow that are typically
-    /// inherited from its parent, or ancestor context.
-//    associatedtype Props = Self
-    typealias Props = Self
-
     /// `Output` defines the type that can be emitted as output events.
     associatedtype Output = Never
 
@@ -69,8 +64,6 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     ///
     /// - Returns: The initial state for the workflow.
     func makeInitialState() -> State
-
-//    func makeProps() -> Props
 
     /// Called when a new workflow is passed down from the parent to an existing workflow node.
     ///
@@ -91,10 +84,6 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
 extension Workflow {
     public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
-
-// extension Workflow where Props == Self {
-//    public func makeProps() -> Props { self }
-// }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
