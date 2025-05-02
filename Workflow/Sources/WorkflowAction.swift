@@ -208,73 +208,58 @@ private struct OnAccess: Hashable {
     }
 }
 
-public struct ActionContext<Wrapped: Workflow> {
-    let storage: Storage<Wrapped>
+protocol ActionContextType<WorkflowType> {
+    associatedtype WorkflowType: Workflow
 
-    private let onAccess: OnAccess?
+    subscript<Property>(
+        props keyPath: KeyPath<WorkflowType.Props, Property>
+    ) -> Property { get }
+}
+
+extension ActionContext: ActionContextType {}
+
+struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
+    let storage: Storage<WorkflowType>
 
     init(
-        _ value: Wrapped
+        _ value: WorkflowType
     ) {
         self.storage = Storage(value)
-        self.onAccess = nil
     }
 
-    init(storage: Storage<Wrapped>) {
+    init(storage: Storage<WorkflowType>) {
         self.storage = storage
-        self.onAccess = nil
-    }
-
-    init(
-        fakeInstance: Wrapped,
-        fakeContainer: AnyObject,
-        trapOnAccessMessage: String
-    ) {
-        self.storage = Storage(fakeInstance)
-        self.onAccess = OnAccess {
-            defer { withExtendedLifetime(fakeContainer) {} }
-            fatalError(trapOnAccessMessage)
-        }
     }
 
     public subscript<Property>(
-        props keyPath: KeyPath<Wrapped.Props, Property>
+        props keyPath: KeyPath<WorkflowType.Props, Property>
     ) -> Property {
-        onAccess?()
-        return storage.value[keyPath: keyPath]
+        storage.value[keyPath: keyPath]
     }
 }
 
-extension ActionContext: Equatable where Wrapped: Equatable {}
-extension ActionContext: Hashable where Wrapped: Hashable {}
+// TODO: rename to 'ApplyContext' for `RenderContext` symmetry?
+public struct ActionContext<WorkflowType: Workflow> {
+    let impl: any ActionContextType<WorkflowType>
 
-// TODO: should be testing-only API
-extension ActionContext where Wrapped: Workflow {
-    public static func testing(_ value: Wrapped) -> ActionContext<Wrapped> {
-        ActionContext(value)
+    init<Impl: ActionContextType>(impl: Impl)
+        where Impl.WorkflowType == WorkflowType
+    {
+        self.impl = impl
     }
 
-    public static func testingCompatibilityShim() -> ActionContext<Wrapped> {
-        // TODO: double check that this doesn't leak, and is reasonably 'safe'
-        let pointerToFake = UnsafeMutableRawPointer.allocate(
-            byteCount: MemoryLayout<Wrapped>.size,
-            alignment: MemoryLayout<Wrapped>.alignment
-        )
-        let boundUninitializedPtr = pointerToFake.bindMemory(
-            to: Wrapped.self,
-            capacity: 1
-        )
+    public subscript<Property>(
+        props keyPath: KeyPath<WorkflowType.Props, Property>
+    ) -> Property {
+        impl[props: keyPath]
+    }
+}
 
-        let lifetime = Lifetime()
-        lifetime.onEnded {
-            boundUninitializedPtr.deallocate()
-        }
-
-        let legacyCompatParam = ActionContext(
-            fakeInstance: boundUninitializedPtr.pointee,
-            fakeContainer: lifetime,
-            trapOnAccessMessage: "Trying to access properties in a testing context requires an instance of the underlying Workflow to be provided. Use <some appropriate API> instead."
-        )
-        return legacyCompatParam
+extension ActionContext {
+    static func make<Wrapped: ActionContextType>(
+        implementation: Wrapped
+    ) -> ActionContext<Wrapped.WorkflowType> where Wrapped.WorkflowType == WorkflowType {
+        let ret = ActionContext(impl: implementation)
+        return ret
     }
 }
