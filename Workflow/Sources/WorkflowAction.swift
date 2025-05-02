@@ -29,7 +29,7 @@ public protocol WorkflowAction<WorkflowType> {
     ///            the workflow hierarchy to this workflow's parent.
     func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType>
+        context: ApplyContext<WorkflowType>
     ) -> WorkflowType.Output?
 }
 
@@ -39,7 +39,7 @@ public protocol WorkflowAction<WorkflowType> {
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     public typealias ActionApply = (
         inout WorkflowType.State,
-        ActionContext<WorkflowType>
+        ApplyContext<WorkflowType>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -104,7 +104,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
 
     public func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType>
+        context: ApplyContext<WorkflowType>
     ) -> WorkflowType.Output? {
         _apply(&state, context)
     }
@@ -137,7 +137,7 @@ extension AnyWorkflowAction {
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     typealias ActionApply = (
         inout WorkflowType.State,
-        ActionContext<WorkflowType>
+        ApplyContext<WorkflowType>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -156,7 +156,7 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
 
     func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType>
+        context: ApplyContext<WorkflowType>
     ) -> WorkflowType.Output? {
         _apply(&state, context)
     }
@@ -216,7 +216,7 @@ protocol ActionContextType<WorkflowType> {
     ) -> Property { get }
 }
 
-extension ActionContext: ActionContextType {}
+extension ApplyContext: ActionContextType {}
 
 struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
     let storage: Storage<WorkflowType>
@@ -239,7 +239,7 @@ struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
 }
 
 // TODO: rename to 'ApplyContext' for `RenderContext` symmetry?
-public struct ActionContext<WorkflowType: Workflow> {
+public struct ApplyContext<WorkflowType: Workflow> {
     let impl: any ActionContextType<WorkflowType>
 
     init<Impl: ActionContextType>(impl: Impl)
@@ -255,11 +255,11 @@ public struct ActionContext<WorkflowType: Workflow> {
     }
 }
 
-extension ActionContext {
+extension ApplyContext {
     static func make<Wrapped: ActionContextType>(
         implementation: Wrapped
-    ) -> ActionContext<Wrapped.WorkflowType> where Wrapped.WorkflowType == WorkflowType {
-        let ret = ActionContext(impl: implementation)
+    ) -> ApplyContext<Wrapped.WorkflowType> where Wrapped.WorkflowType == WorkflowType {
+        let ret = ApplyContext(impl: implementation)
         return ret
     }
 }

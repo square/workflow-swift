@@ -218,7 +218,7 @@ extension WorkflowNode {
 
         /// Apply the action to the current state
         let ctx = ConcreteActionContext(workflow)
-        let wrapped = ActionContext.make(implementation: ctx)
+        let wrapped = ApplyContext.make(implementation: ctx)
 
         output = action.apply(toState: &state, context: wrapped)
 

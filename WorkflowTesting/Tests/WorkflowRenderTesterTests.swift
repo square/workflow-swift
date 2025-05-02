@@ -239,7 +239,7 @@ extension TestWorkflow {
         case tapped
         case asyncSuccess
 
-        func apply(toState state: inout TestWorkflow.State, context: ActionContext<WorkflowType>) -> TestWorkflow.Output? {
+        func apply(toState state: inout TestWorkflow.State, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
             switch self {
             case .tapped:
                 state.substate = .waiting
@@ -269,7 +269,7 @@ private struct OutputWorkflow: Workflow {
 
         case emit
 
-        func apply(toState state: inout OutputWorkflow.State, context: ActionContext<WorkflowType>) -> OutputWorkflow.Output? {
+        func apply(toState state: inout OutputWorkflow.State, context: ApplyContext<WorkflowType>) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
                 .success
@@ -353,7 +353,7 @@ private struct SideEffectWorkflow: Workflow {
 
         func apply(
             toState state: inout SideEffectWorkflow.State,
-            context: ActionContext<WorkflowType>
+            context: ApplyContext<WorkflowType>
         ) -> SideEffectWorkflow.Output? {
             switch self {
             case .testAction:
@@ -402,7 +402,7 @@ private struct ParentWorkflow: Workflow {
 
         func apply(
             toState state: inout ParentWorkflow.State,
-            context: ActionContext<WorkflowType>
+            context: ApplyContext<WorkflowType>
         ) -> Never? {
             switch self {
             case .childSuccess:

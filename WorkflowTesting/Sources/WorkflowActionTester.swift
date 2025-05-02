@@ -24,7 +24,7 @@ extension WorkflowAction {
         withState state: WorkflowType.State,
         workflow: WorkflowType? = nil
     ) -> WorkflowActionTester<WorkflowType, Self> {
-        let context: ActionContext<WorkflowType> = workflow.map { .testing($0) } ?? .testingCompatibilityShim()
+        let context: ApplyContext<WorkflowType> = workflow.map { .testing($0) } ?? .testingCompatibilityShim()
         return WorkflowActionTester(state: state, context: context)
     }
 }
@@ -68,12 +68,12 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// The current state
     var state: WorkflowType.State
     let output: WorkflowType.Output?
-    let context: ActionContext<WorkflowType>
+    let context: ApplyContext<WorkflowType>
 
     /// Initializes a new state tester
     fileprivate init(
         state: WorkflowType.State,
-        context: ActionContext<WorkflowType>,
+        context: ApplyContext<WorkflowType>,
         output: WorkflowType.Output? = nil
     ) {
         self.state = state
@@ -215,14 +215,14 @@ struct TestActionContext<Wrapped: Workflow>: ActionContextType {
     }
 }
 
-extension ActionContext {
-    public static func testing(_ value: WorkflowType) -> ActionContext<WorkflowType> {
+extension ApplyContext {
+    public static func testing(_ value: WorkflowType) -> ApplyContext<WorkflowType> {
         let testContext = TestActionContext(storage: .workflow(value))
-        return ActionContext(impl: testContext)
+        return ApplyContext(impl: testContext)
     }
 
-    public static func testingCompatibilityShim() -> ActionContext<WorkflowType> {
+    public static func testingCompatibilityShim() -> ApplyContext<WorkflowType> {
         let erroringTestContext = LazyErroringTestContext<WorkflowType>()
-        return ActionContext(impl: erroringTestContext)
+        return ApplyContext(impl: erroringTestContext)
     }
 }

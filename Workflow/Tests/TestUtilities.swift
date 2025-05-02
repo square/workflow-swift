@@ -47,7 +47,7 @@ struct StateTransitioningWorkflow: Workflow {
 
         typealias WorkflowType = StateTransitioningWorkflow
 
-        func apply(toState state: inout Bool, context: ActionContext<WorkflowType>) -> Never? {
+        func apply(toState state: inout Bool, context: ApplyContext<WorkflowType>) -> Never? {
             switch self {
             case .toggle:
                 state.toggle()

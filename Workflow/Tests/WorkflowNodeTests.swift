@@ -320,7 +320,7 @@ extension CompositeWorkflow {
 
         typealias WorkflowType = CompositeWorkflow<A, B>
 
-        func apply(toState state: inout CompositeWorkflow<A, B>.State, context: ActionContext<WorkflowType>) -> CompositeWorkflow<A, B>.Output? {
+        func apply(toState state: inout CompositeWorkflow<A, B>.State, context: ApplyContext<WorkflowType>) -> CompositeWorkflow<A, B>.Output? {
             switch self {
             case .a(let childOutput):
                 .childADidSomething(childOutput)
@@ -402,7 +402,7 @@ extension EventEmittingWorkflow {
 
         typealias WorkflowType = EventEmittingWorkflow
 
-        func apply(toState state: inout EventEmittingWorkflow.State, context: ActionContext<WorkflowType>) -> EventEmittingWorkflow.Output? {
+        func apply(toState state: inout EventEmittingWorkflow.State, context: ApplyContext<WorkflowType>) -> EventEmittingWorkflow.Output? {
             switch self {
             case .tapped:
                 .helloWorld
