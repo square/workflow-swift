@@ -43,7 +43,7 @@ extension DemoWorkflow {
 
         case viewTapped
 
-        func apply(toState state: inout DemoWorkflow.State, context: ActionContext<WorkflowType.Props>) -> Never? {
+        func apply(toState state: inout DemoWorkflow.State, context: ActionContext<WorkflowType>) -> Never? {
             switch self {
             case .viewTapped:
                 state += 1

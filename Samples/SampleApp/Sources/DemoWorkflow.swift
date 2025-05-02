@@ -76,7 +76,7 @@ extension DemoWorkflow {
         case refreshComplete(String)
         case refreshError(Error)
 
-        func apply(toState state: inout DemoWorkflow.State, context: ActionContext<WorkflowType.Props>) -> DemoWorkflow.Output? {
+        func apply(toState state: inout DemoWorkflow.State, context: ActionContext<WorkflowType>) -> DemoWorkflow.Output? {
             switch self {
             case .titleButtonTapped:
                 switch state.colorState {

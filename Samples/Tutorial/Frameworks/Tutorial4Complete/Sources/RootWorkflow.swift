@@ -54,7 +54,7 @@ extension RootWorkflow {
         case logIn(name: String)
         case logOut
 
-        func apply(toState state: inout RootWorkflow.State, context: ActionContext<WorkflowType.Props>) -> RootWorkflow.Output? {
+        func apply(toState state: inout RootWorkflow.State, context: ActionContext<WorkflowType>) -> RootWorkflow.Output? {
             switch self {
             case .logIn(name: let name):
                 // When the `login` action is received, change the state to `todo`.

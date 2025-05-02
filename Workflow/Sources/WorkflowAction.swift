@@ -29,7 +29,7 @@ public protocol WorkflowAction<WorkflowType> {
     ///            the workflow hierarchy to this workflow's parent.
     func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType.Props>
+        context: ActionContext<WorkflowType>
     ) -> WorkflowType.Output?
 }
 
@@ -39,7 +39,7 @@ public protocol WorkflowAction<WorkflowType> {
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     public typealias ActionApply = (
         inout WorkflowType.State,
-        ActionContext<WorkflowType.Props>
+        ActionContext<WorkflowType>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -104,7 +104,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
 
     public func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType.Props>
+        context: ActionContext<WorkflowType>
     ) -> WorkflowType.Output? {
         _apply(&state, context)
     }
@@ -137,7 +137,7 @@ extension AnyWorkflowAction {
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
     typealias ActionApply = (
         inout WorkflowType.State,
-        ActionContext<WorkflowType.Props>
+        ActionContext<WorkflowType>
     ) -> WorkflowType.Output?
 
     private let _apply: ActionApply
@@ -156,7 +156,7 @@ struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
 
     func apply(
         toState state: inout WorkflowType.State,
-        context: ActionContext<WorkflowType.Props>
+        context: ActionContext<WorkflowType>
     ) -> WorkflowType.Output? {
         _apply(&state, context)
     }

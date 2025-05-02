@@ -47,7 +47,7 @@ extension WelcomeWorkflow {
 
         case nameChanged(name: String)
 
-        func apply(toState state: inout WelcomeWorkflow.State, context: ActionContext<WorkflowType.Props>) -> WelcomeWorkflow.Output? {
+        func apply(toState state: inout WelcomeWorkflow.State, context: ActionContext<WorkflowType>) -> WelcomeWorkflow.Output? {
             switch self {
             case .nameChanged(name: let name):
                 // Update our state with the updated name.
