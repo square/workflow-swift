@@ -212,7 +212,7 @@ protocol ActionContextType<WorkflowType> {
     associatedtype WorkflowType: Workflow
 
     subscript<Property>(
-        props keyPath: KeyPath<WorkflowType.Props, Property>
+        props keyPath: KeyPath<WorkflowType, Property>
     ) -> Property { get }
 }
 
@@ -232,7 +232,7 @@ struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
     }
 
     public subscript<Property>(
-        props keyPath: KeyPath<WorkflowType.Props, Property>
+        props keyPath: KeyPath<WorkflowType, Property>
     ) -> Property {
         storage.value[keyPath: keyPath]
     }
@@ -249,7 +249,7 @@ public struct ActionContext<WorkflowType: Workflow> {
     }
 
     public subscript<Property>(
-        props keyPath: KeyPath<WorkflowType.Props, Property>
+        props keyPath: KeyPath<WorkflowType, Property>
     ) -> Property {
         impl[props: keyPath]
     }

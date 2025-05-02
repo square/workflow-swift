@@ -22,9 +22,9 @@ extension WorkflowAction {
     /// Returns a state tester containing `self`.
     public static func tester(
         withState state: WorkflowType.State,
-        props: WorkflowType.Props? = nil
+        workflow: WorkflowType? = nil
     ) -> WorkflowActionTester<WorkflowType, Self> {
-        let context: ActionContext<WorkflowType> = props.map { .testing($0) } ?? .testingCompatibilityShim()
+        let context: ActionContext<WorkflowType> = workflow.map { .testing($0) } ?? .testingCompatibilityShim()
         return WorkflowActionTester(state: state, context: context)
     }
 }
@@ -88,7 +88,7 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// - returns: A new state tester containing the state and output (if any) after the update.
     @discardableResult
     public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action>
-        where WorkflowType.Props == WorkflowType
+        where Action.WorkflowType == WorkflowType
     {
         var newState = state
         let output = action.apply(toState: &newState, context: context)
@@ -185,7 +185,7 @@ struct LazyErroringTestContext<W: Workflow>: ActionContextType {
     typealias WorkflowType = W
 
     subscript<Property>(
-        props keyPath: KeyPath<W.Props, Property>
+        props keyPath: KeyPath<W, Property>
     ) -> Property {
         fatalError("TODO: instruct clients what went wrong and how to fix")
     }
@@ -200,7 +200,7 @@ struct TestActionContext<Wrapped: Workflow>: ActionContextType {
     var storage: PropertyStorage
 
     subscript<Property>(
-        props keyPath: KeyPath<Wrapped.Props, Property>
+        props keyPath: KeyPath<Wrapped, Property>
     ) -> Property {
         switch storage {
         case .workflow(let wf):
