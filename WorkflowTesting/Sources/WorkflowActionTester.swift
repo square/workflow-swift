@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import Workflow
 import XCTest
+
+@testable import Workflow
 
 extension WorkflowAction {
     /// Returns a state tester containing `self`.
@@ -173,5 +174,55 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
         verifyOutput { actualOutput in
             XCTAssertEqual(actualOutput, expectedOutput, file: file, line: line)
         }
+    }
+}
+
+// MARK: -
+
+// TODO: clean up
+
+struct LazyErroringTestContext<W: Workflow>: ActionContextType {
+    typealias WorkflowType = W
+
+    subscript<Property>(
+        props keyPath: KeyPath<W.Props, Property>
+    ) -> Property {
+        fatalError("TODO: instruct clients what went wrong and how to fix")
+    }
+}
+
+struct TestActionContext<Wrapped: Workflow>: ActionContextType {
+    enum PropertyStorage {
+        case workflow(Wrapped)
+        case expectedReads([AnyHashable: Any])
+    }
+
+    var storage: PropertyStorage
+
+    subscript<Property>(
+        props keyPath: KeyPath<Wrapped.Props, Property>
+    ) -> Property {
+        switch storage {
+        case .workflow(let wf):
+            return wf[keyPath: keyPath]
+        case .expectedReads(var expectedValues):
+            let kp = AnyHashable(keyPath)
+            guard let value = expectedValues.removeValue(forKey: kp) as? Property else {
+                fatalError("Action application attempted to read property \(kp), but no workflow or property expectation was set.")
+            }
+            return value
+        }
+    }
+}
+
+extension ActionContext {
+    public static func testing(_ value: WorkflowType) -> ActionContext<WorkflowType> {
+        let testContext = TestActionContext(storage: .workflow(value))
+        return ActionContext(impl: testContext)
+    }
+
+    public static func testingCompatibilityShim() -> ActionContext<WorkflowType> {
+        let erroringTestContext = LazyErroringTestContext<WorkflowType>()
+        return ActionContext(impl: erroringTestContext)
     }
 }
