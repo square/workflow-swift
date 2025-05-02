@@ -685,7 +685,7 @@ private struct InjectableWorkflow: Workflow {
 
         case forwardedOutput
 
-        func apply(toState state: inout (), context: ActionContext<WorkflowType.Props>) -> InjectableWorkflow.Output? {
+        func apply(toState state: inout (), context: ActionContext<WorkflowType>) -> InjectableWorkflow.Output? {
             .forwardedOutput
         }
     }
@@ -729,7 +729,7 @@ private struct VoidStateWorkflow: Workflow {
 
         case actionValue
 
-        func apply(toState state: inout VoidStateWorkflow.State, context: ActionContext<WorkflowType.Props>) -> VoidStateWorkflow.Output? {
+        func apply(toState state: inout VoidStateWorkflow.State, context: ActionContext<WorkflowType>) -> VoidStateWorkflow.Output? {
             nil
         }
     }

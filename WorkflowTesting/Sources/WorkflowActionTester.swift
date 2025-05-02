@@ -24,7 +24,7 @@ extension WorkflowAction {
         withState state: WorkflowType.State,
         props: WorkflowType.Props? = nil
     ) -> WorkflowActionTester<WorkflowType, Self> {
-        let context: ActionContext<WorkflowType.Props> = props.map { .testing($0) } ?? .testingCompatibilityShim()
+        let context: ActionContext<WorkflowType> = props.map { .testing($0) } ?? .testingCompatibilityShim()
         return WorkflowActionTester(state: state, context: context)
     }
 }
@@ -68,12 +68,12 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// The current state
     var state: WorkflowType.State
     let output: WorkflowType.Output?
-    let context: ActionContext<WorkflowType.Props>
+    let context: ActionContext<WorkflowType>
 
     /// Initializes a new state tester
     fileprivate init(
         state: WorkflowType.State,
-        context: ActionContext<WorkflowType.Props>,
+        context: ActionContext<WorkflowType>,
         output: WorkflowType.Output? = nil
     ) {
         self.state = state

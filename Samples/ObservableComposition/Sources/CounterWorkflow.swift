@@ -49,7 +49,7 @@ struct CounterWorkflow: Workflow {
         case increment
         case decrement
 
-        func apply(toState state: inout CounterWorkflow.State, context: ActionContext<WorkflowType.Props>) -> CounterWorkflow.Output? {
+        func apply(toState state: inout CounterWorkflow.State, context: ActionContext<WorkflowType>) -> CounterWorkflow.Output? {
             switch self {
             case .increment:
                 state.count += state.info.stepSize

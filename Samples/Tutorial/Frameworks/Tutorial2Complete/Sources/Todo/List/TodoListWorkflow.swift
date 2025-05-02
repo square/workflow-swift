@@ -45,7 +45,7 @@ extension TodoListWorkflow {
     enum Action: WorkflowAction {
         typealias WorkflowType = TodoListWorkflow
 
-        func apply(toState state: inout TodoListWorkflow.State, context: ActionContext<WorkflowType.Props>) -> TodoListWorkflow.Output? {
+        func apply(toState state: inout TodoListWorkflow.State, context: ActionContext<WorkflowType>) -> TodoListWorkflow.Output? {
             switch self {
                 // Update state and produce an optional output based on which action was received.
             }
