@@ -82,6 +82,13 @@ public class AnyWorkflowTests: XCTestCase {
 
         XCTAssertNotNil(erased.base as? OnOutputWorkflow)
     }
+
+    func testMapNeverToOtherType() {
+        // test that this `Output = Bool` workflow compiles when mapped from an `Output = Never` workflow
+        let boolOutputWorkflow: AnyWorkflow<String, Bool> = NeverOutputWorkflow().mapOutput(to: Bool.self)
+
+        XCTAssertNotNil(boolOutputWorkflow)
+    }
 }
 
 /// Has no state or output, simply renders a reversed string
@@ -148,5 +155,15 @@ private struct OnOutputChildWorkflow: Workflow {
         DispatchQueue.main.async {
             sink.send(true)
         }
+    }
+}
+
+private struct NeverOutputWorkflow: Workflow {
+    typealias Output = Never
+    typealias Rendering = String
+    typealias State = Void
+
+    func render(state: State, context: RenderContext<NeverOutputWorkflow>) -> String {
+        "Never"
     }
 }
