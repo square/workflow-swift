@@ -181,7 +181,7 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
 
 // TODO: clean up
 
-struct LazyErroringTestContext<W: Workflow>: ActionContextType {
+struct LazyErroringTestContext<W: Workflow>: ApplyContextType {
     typealias WorkflowType = W
 
     subscript<Property>(
@@ -191,7 +191,7 @@ struct LazyErroringTestContext<W: Workflow>: ActionContextType {
     }
 }
 
-struct TestActionContext<Wrapped: Workflow>: ActionContextType {
+struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
     enum PropertyStorage {
         case workflow(Wrapped)
         case expectedReads([AnyHashable: Any])
@@ -217,7 +217,7 @@ struct TestActionContext<Wrapped: Workflow>: ActionContextType {
 
 extension ApplyContext {
     public static func testing(_ value: WorkflowType) -> ApplyContext<WorkflowType> {
-        let testContext = TestActionContext(storage: .workflow(value))
+        let testContext = TestApplyContext(storage: .workflow(value))
         return ApplyContext(impl: testContext)
     }
 

@@ -217,7 +217,7 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        let ctx = ConcreteActionContext(workflow)
+        let ctx = ConcreteApplyContext(workflow)
         let wrapped = ApplyContext.make(implementation: ctx)
 
         output = action.apply(toState: &state, context: wrapped)

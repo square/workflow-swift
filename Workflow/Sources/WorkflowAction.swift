@@ -208,7 +208,7 @@ private struct OnAccess: Hashable {
     }
 }
 
-protocol ActionContextType<WorkflowType> {
+protocol ApplyContextType<WorkflowType> {
     associatedtype WorkflowType: Workflow
 
     subscript<Property>(
@@ -216,9 +216,34 @@ protocol ActionContextType<WorkflowType> {
     ) -> Property { get }
 }
 
-extension ApplyContext: ActionContextType {}
+public struct ApplyContext<WorkflowType: Workflow> {
+    let impl: any ApplyContextType<WorkflowType>
 
-struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
+    init<Impl: ApplyContextType>(impl: Impl)
+        where Impl.WorkflowType == WorkflowType
+    {
+        self.impl = impl
+    }
+
+    public subscript<Property>(
+        props keyPath: KeyPath<WorkflowType, Property>
+    ) -> Property {
+        impl[props: keyPath]
+    }
+}
+
+extension ApplyContext {
+    static func make<Wrapped: ApplyContextType>(
+        implementation: Wrapped
+    ) -> ApplyContext<Wrapped.WorkflowType> where Wrapped.WorkflowType == WorkflowType {
+        let ret = ApplyContext(impl: implementation)
+        return ret
+    }
+}
+
+extension ApplyContext: ApplyContextType {}
+
+struct ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
     let storage: Storage<WorkflowType>
 
     init(
@@ -235,31 +260,5 @@ struct ConcreteActionContext<WorkflowType: Workflow>: ActionContextType {
         props keyPath: KeyPath<WorkflowType, Property>
     ) -> Property {
         storage.value[keyPath: keyPath]
-    }
-}
-
-// TODO: rename to 'ApplyContext' for `RenderContext` symmetry?
-public struct ApplyContext<WorkflowType: Workflow> {
-    let impl: any ActionContextType<WorkflowType>
-
-    init<Impl: ActionContextType>(impl: Impl)
-        where Impl.WorkflowType == WorkflowType
-    {
-        self.impl = impl
-    }
-
-    public subscript<Property>(
-        props keyPath: KeyPath<WorkflowType, Property>
-    ) -> Property {
-        impl[props: keyPath]
-    }
-}
-
-extension ApplyContext {
-    static func make<Wrapped: ActionContextType>(
-        implementation: Wrapped
-    ) -> ApplyContext<Wrapped.WorkflowType> where Wrapped.WorkflowType == WorkflowType {
-        let ret = ApplyContext(impl: implementation)
-        return ret
     }
 }
