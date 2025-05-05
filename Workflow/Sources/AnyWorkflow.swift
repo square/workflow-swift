@@ -195,3 +195,14 @@ extension AnyWorkflowConvertible {
         asAnyWorkflow().mapRendering(transform)
     }
 }
+
+// MARK: -
+
+extension AnyWorkflowConvertible where Output == Never {
+    /// A convenience for workflows that don't produce output but want to change the declared output type.
+    public func mapOutput<NewOutput>(to: NewOutput.Type) -> AnyWorkflow<Rendering, NewOutput> {
+        mapOutput(mapNever(_:))
+    }
+}
+
+private func mapNever<T>(_ input: Never) -> T {}
