@@ -15,6 +15,7 @@
  */
 
 import CustomDump
+import IssueReporting
 import Workflow
 import XCTest
 
@@ -56,7 +57,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
         if let appliedAction {
-            XCTFail("Expected no action, but got \(appliedAction.erasedAction).", file: file, line: line)
+            reportIssue("Expected no action, but got \(appliedAction.erasedAction).", filePath: file, line: line)
         }
         return self
     }
@@ -70,7 +71,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         assertions: (ActionType) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> where ActionType.WorkflowType == WorkflowType {
         guard let appliedAction else {
-            XCTFail("No action was produced", file: file, line: line)
+            reportIssue("No action was produced", filePath: file, line: line)
             return self
         }
         try appliedAction.assert(file: file, line: line, assertions: assertions)
@@ -106,7 +107,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         line: UInt = #line
     ) -> RenderTesterResult<WorkflowType> {
         if let output {
-            XCTFail("Expected no output, but got \(output).", file: file, line: line)
+            reportIssue("Expected no output, but got \(output).", filePath: file, line: line)
         }
         return self
     }
@@ -119,7 +120,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
         assertions: (WorkflowType.Output) throws -> Void
     ) rethrows -> RenderTesterResult<WorkflowType> {
         guard let output else {
-            XCTFail("No output was produced", file: file, line: line)
+            reportIssue("No output was produced", filePath: file, line: line)
             return self
         }
         try assertions(output)

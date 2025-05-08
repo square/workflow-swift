@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import IssueReporting
 import Workflow
 import XCTest
 
@@ -26,7 +27,7 @@ struct AppliedAction<WorkflowType: Workflow> {
 
     func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
         guard let action = erasedAction as? ActionType else {
-            XCTFail("Expected action of type \(ActionType.self), got \(erasedAction)", file: file, line: line)
+            reportIssue("Expected action of type \(ActionType.self), got \(erasedAction)", filePath: file, line: line)
             return
         }
         try assertions(action)

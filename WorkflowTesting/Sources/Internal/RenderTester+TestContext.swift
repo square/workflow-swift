@@ -16,7 +16,9 @@
 
 #if DEBUG
 
+import IssueReporting
 import XCTest
+
 @testable import Workflow
 
 extension RenderTester {
@@ -65,7 +67,7 @@ extension RenderTester {
                     """
                 }
                 let failureMessage = "Attempted to render unexpected Workflow of type \(Child.self) with key \"\(key)\". \(diagnosticMessage)"
-                XCTFail(failureMessage, file: file, line: line)
+                reportIssue(failureMessage, filePath: file, line: line)
 
                 // We can “recover” from missing Void-rendering workflows since there’s only one possible value to return
                 if Child.Rendering.self == Void.self {
@@ -76,7 +78,7 @@ extension RenderTester {
             }
             let (inserted, _) = usedWorkflowKeys.insert(WorkflowKey(type: ObjectIdentifier(Child.self), key: key))
             if !inserted {
-                XCTFail("Multiple Workflows of type \(Child.self) with key \"\(key)\" used in the same render call. Use a unique key to render multiple Workflows of the same type.", file: file, line: line)
+                reportIssue("Multiple Workflows of type \(Child.self) with key \"\(key)\" used in the same render call. Use a unique key to render multiple Workflows of the same type.", filePath: file, line: line)
             }
 
             expectedWorkflows.removeAll(where: { $0 === expectedWorkflow })
@@ -96,7 +98,7 @@ extension RenderTester {
 
         func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
             guard let sideEffect = expectedSideEffects.removeValue(forKey: key) else {
-                XCTFail("Unexpected side-effect with key \"\(key)\"", file: file, line: line)
+                reportIssue("Unexpected side-effect with key \"\(key)\"", filePath: file, line: line)
                 return
             }
 
@@ -106,21 +108,25 @@ extension RenderTester {
         /// Validate the expectations were fulfilled, or fail if not.
         func assertNoLeftOverExpectations() {
             for expectedWorkflow in expectedWorkflows {
-                XCTFail("Expected child workflow of type: \(expectedWorkflow.workflowType), key: \"\(expectedWorkflow.key)\"", file: file, line: expectedWorkflow.line)
+                reportIssue("Expected child workflow of type: \(expectedWorkflow.workflowType), key: \"\(expectedWorkflow.key)\"", filePath: file, line: expectedWorkflow.line)
             }
 
             for (key, expectedSideEffect) in expectedSideEffects {
-                XCTFail("Expected side-effect with key: \"\(key)\"", file: expectedSideEffect.file, line: expectedSideEffect.line)
+                reportIssue("Expected side-effect with key: \"\(key)\"", filePath: expectedSideEffect.file, line: expectedSideEffect.line)
             }
         }
 
         private func apply<ActionType: WorkflowAction>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
-            XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
+            if appliedAction != nil {
+                reportIssue("Received multiple actions in a single render test", filePath: file, line: line)
+            }
             appliedAction = AppliedAction(action)
             let output = action.apply(toState: &state)
 
             if let output {
-                XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)
+                if producedOutput != nil {
+                    reportIssue("Received multiple outputs in a single render test", filePath: file, line: line)
+                }
                 producedOutput = output
             }
         }
