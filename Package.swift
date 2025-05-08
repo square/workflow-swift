@@ -86,7 +86,10 @@ let package = Package(
                 .product(name: "CustomDump", package: "swift-custom-dump"),
             ],
             path: "WorkflowTesting/Sources",
-            linkerSettings: [.linkedFramework("XCTest")]
+            linkerSettings: [
+                .linkedFramework("XCTest"),
+                .linkedFramework("Testing"),
+            ]
         ),
         .testTarget(
             name: "WorkflowTestingTests",
@@ -159,7 +162,10 @@ let package = Package(
             name: "WorkflowReactiveSwiftTesting",
             dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
             path: "WorkflowReactiveSwift/Testing",
-            linkerSettings: [.linkedFramework("XCTest")]
+            linkerSettings: [
+                .linkedFramework("XCTest"),
+                .linkedFramework("Testing"),
+            ]
         ),
         .testTarget(
             name: "WorkflowReactiveSwiftTestingTests",
@@ -183,7 +189,10 @@ let package = Package(
             name: "WorkflowRxSwiftTesting",
             dependencies: ["WorkflowRxSwift", "WorkflowTesting"],
             path: "WorkflowRxSwift/Testing",
-            linkerSettings: [.linkedFramework("XCTest")]
+            linkerSettings: [
+                .linkedFramework("XCTest"),
+                .linkedFramework("Testing"),
+            ]
         ),
         .testTarget(
             name: "WorkflowRxSwiftTestingTests",
@@ -207,7 +216,10 @@ let package = Package(
             name: "WorkflowCombineTesting",
             dependencies: ["WorkflowCombine", "WorkflowTesting"],
             path: "WorkflowCombine/Testing",
-            linkerSettings: [.linkedFramework("XCTest")]
+            linkerSettings: [
+                .linkedFramework("XCTest"),
+                .linkedFramework("Testing"),
+            ]
         ),
         .testTarget(
             name: "WorkflowCombineTestingTests",
@@ -231,7 +243,10 @@ let package = Package(
             name: "WorkflowConcurrencyTesting",
             dependencies: ["WorkflowConcurrency", "WorkflowTesting"],
             path: "WorkflowConcurrency/Testing",
-            linkerSettings: [.linkedFramework("XCTest")]
+            linkerSettings: [
+                .linkedFramework("XCTest"),
+                .linkedFramework("Testing"),
+            ]
         ),
         .testTarget(
             name: "WorkflowConcurrencyTestingTests",
