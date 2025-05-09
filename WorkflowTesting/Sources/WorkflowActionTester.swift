@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import CustomDump
+import IssueReporting
 import Workflow
 import XCTest
 
@@ -91,7 +93,7 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
         line: UInt = #line
     ) -> WorkflowActionTester<WorkflowType, Action> {
         if let output {
-            XCTFail("Expected no output, but got \(output).", file: file, line: line)
+            reportIssue("Expected no output, but got \(output).", filePath: file, line: line)
         }
         return self
     }
@@ -109,7 +111,7 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
         _ assertions: (WorkflowType.Output) throws -> Void
     ) rethrows -> WorkflowActionTester<WorkflowType, Action> {
         guard let output else {
-            XCTFail("No output was produced", file: file, line: line)
+            reportIssue("No output was produced", filePath: file, line: line)
             return self
         }
         try assertions(output)
@@ -143,7 +145,7 @@ extension WorkflowActionTester where WorkflowType.State: Equatable {
     @discardableResult
     public func assert(state expectedState: WorkflowType.State, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         verifyState { actualState in
-            XCTAssertEqual(actualState, expectedState, file: file, line: line)
+            expectNoDifference(actualState, expectedState, filePath: file, line: line)
         }
     }
 }
@@ -157,7 +159,7 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
     @discardableResult
     public func assert(output expectedOutput: WorkflowType.Output, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         verifyOutput { actualOutput in
-            XCTAssertEqual(actualOutput, expectedOutput, file: file, line: line)
+            expectNoDifference(actualOutput, expectedOutput, filePath: file, line: line)
         }
     }
 }
