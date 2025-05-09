@@ -3,7 +3,7 @@ import ProjectDescription
 
 public let workflowBundleIdPrefix = "com.squareup.workflow"
 public let workflowDestinations: ProjectDescription.Destinations = .iOS
-public let workflowDeploymentTargets: DeploymentTargets = .iOS("15.0")
+public let workflowDeploymentTargets: DeploymentTargets = .iOS("16.0")
 
 extension Target {
     public static func app(
