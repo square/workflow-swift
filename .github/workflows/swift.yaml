@@ -32,7 +32,7 @@ jobs:
             simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-18-0"
             # The iOS 18.0 SDK is pre-installed on the macOS 15 image.
             # Attempting to install it will fail with an error.
-            installation_required: false
+            installation_required: true
 
     steps:
     - uses: actions/checkout@v4
