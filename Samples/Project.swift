@@ -230,12 +230,6 @@ let project = Project(
             dependencies: [.external(name: "WorkflowSwiftUI")]
         ),
 
-        .unitTest(
-            for: "WorkflowSwiftUIExperimental",
-            sources: "../WorkflowSwiftUIExperimental/Tests/**",
-            dependencies: [.external(name: "WorkflowSwiftUIExperimental")]
-        ),
-
         // It's not currently possible to create a Tuist target that depends on a macro target. See
         // https://github.com/tuist/tuist/issues/5827, https://github.com/tuist/tuist/issues/6651,
         // and similar issues.
@@ -274,7 +268,6 @@ let project = Project(
                     "WorkflowRxSwift-Tests",
                     "WorkflowRxSwiftTesting-Tests",
                     "WorkflowSwiftUI-Tests",
-                    "WorkflowSwiftUIExperimental-Tests",
                     "WorkflowTesting-Tests",
                     "WorkflowUI-Tests",
                 ]

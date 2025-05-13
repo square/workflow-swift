@@ -51,10 +51,6 @@ let package = Package(
         // MARK: ViewEnvironmentUI
 
         .singleTargetLibrary("ViewEnvironmentUI"),
-
-        // MARK: WorkflowSwiftUIExperimental
-
-        .singleTargetLibrary("WorkflowSwiftUIExperimental"),
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
@@ -252,19 +248,6 @@ let package = Package(
             name: "ViewEnvironmentUI",
             dependencies: ["ViewEnvironment"],
             path: "ViewEnvironmentUI/Sources"
-        ),
-
-        // MARK: WorkflowSwiftUIExperimental
-
-        .target(
-            name: "WorkflowSwiftUIExperimental",
-            dependencies: ["Workflow", "WorkflowUI"],
-            path: "WorkflowSwiftUIExperimental/Sources"
-        ),
-        .testTarget(
-            name: "WorkflowSwiftUIExperimentalTests",
-            dependencies: ["WorkflowSwiftUIExperimental", "Workflow", "WorkflowUI"],
-            path: "WorkflowSwiftUIExperimental/Tests"
         ),
     ],
     swiftLanguageVersions: [.v5]

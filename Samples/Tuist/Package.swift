@@ -33,7 +33,6 @@ let packageSettings = PackageSettings(
         "WorkflowReactiveSwiftTesting": unsuppressedWarningsSettings,
         "WorkflowRxSwift": unsuppressedWarningsSettings,
         "WorkflowRxSwiftTesting": unsuppressedWarningsSettings,
-        "WorkflowSwiftUIExperimental": unsuppressedWarningsSettings,
         "WorkflowTesting": unsuppressedWarningsSettings,
         "WorkflowUI": unsuppressedWarningsSettings,
     ]

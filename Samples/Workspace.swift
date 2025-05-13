@@ -21,7 +21,6 @@ let workspace = Workspace(
         .workflow("WorkflowConcurrencyTesting"),
         .workflow("ViewEnvironment"),
         .workflow("ViewEnvironmentUI"),
-        .workflow("WorkflowSwiftUIExperimental"),
         .scheme(
             name: "Documentation",
             buildAction: .buildAction(
