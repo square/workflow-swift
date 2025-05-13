@@ -65,6 +65,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
         .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.5.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.2.1"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
     ],
     targets: [
         // MARK: Workflow
