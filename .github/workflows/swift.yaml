@@ -7,34 +7,82 @@ on:
   pull_request:
 
 env:
-  XCODE_VERSION: 15.1
-  IOS_DESTINATION: platform=iOS Simulator,OS=17.2,name=iPad (10th generation)
+  XCODE_VERSION: 16.1.0
   TUIST_TEST_DEVICE: iPad (10th generation)
   TUIST_TEST_PLATFORM: iOS
-  TUIST_TEST_OS: 17.2
 
 jobs:
   development-tests:
     runs-on: macos-latest
 
+    name: "development-tests [iOS ${{ matrix.sdk }}]"
+
+    env:
+      TUIST_TEST_SCHEME: UnitTests
+
     strategy:
+      fail-fast: false
       matrix:
-        scheme:
-        - UnitTests
-        - SnapshotTests
+        include:
+          - sdk: "16.4"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-16-4"
+            installation_required: true
+
+          - sdk: "17.5"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-17-5"
+            installation_required: false
+
+          - sdk: "18.1"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-18-1"
+            installation_required: false
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jdx/mise-action@v2
+
+    - name: Switch to Xcode ${{ env.XCODE_VERSION }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+    - name: Install iOS ${{ matrix.sdk }}
+      if: ${{ matrix.installation_required }}
+      run: sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+
+    - name: Ensure sim exists
+      run: |
+        xcrun simctl create \
+          "${{ env.TUIST_TEST_DEVICE }}" \
+          "${{ env.TUIST_TEST_DEVICE }}" \
+          "${{ matrix.simctl_runtime }}"
+
+    - name: Install dependencies
+      run: tuist install --path Samples
+
+    - name: Run Tests
+      run: tuist test --path Samples ${{ matrix.scheme }} --os "${{ matrix.sdk }}"
+
+  # FIXME: these should probably be run with a matrix too
+  snapshot-tests:
+    runs-on: macos-latest
+
+    env:
+      TUIST_TEST_OS: 18.1
+      TUIST_TEST_SCHEME: SnapshotTests
+
+    strategy:
+      fail-fast: false # Don’t fail-fast so that we get all snapshot test changes
 
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
     - name: Install dependencies
       run: tuist install --path Samples
 
-    - name: Test iOS
-      run: tuist test --path Samples ${{ matrix.scheme }}
+    - name: Run Snapshot Tests
+      run: tuist test --path Samples
 
   package-tests:
     runs-on: macos-latest
@@ -43,7 +91,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
     # Command line swift runs on the host platform.
     # On macOS we can run all tests, including macro tests.
@@ -58,7 +106,7 @@ jobs:
     - uses: jdx/mise-action@v2
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
     - name: Install dependencies
       run: tuist install --path Samples/Tutorial
