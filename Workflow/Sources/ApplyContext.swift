@@ -18,9 +18,9 @@
 protocol ApplyContextType<WorkflowType> {
     associatedtype WorkflowType: Workflow
 
-    subscript<Property>(
-        props keyPath: KeyPath<WorkflowType, Property>
-    ) -> Property { get }
+    subscript<Value>(
+        workflowValue keyPath: KeyPath<WorkflowType, Value>
+    ) -> Value { get }
 }
 
 /// Runtime context passed as a parameter to `WorkflowAction`'s `apply()` method
@@ -35,10 +35,10 @@ public struct ApplyContext<WorkflowType: Workflow> {
         self.wrappedContext = context
     }
 
-    public subscript<Property>(
-        props keyPath: KeyPath<WorkflowType, Property>
-    ) -> Property {
-        wrappedContext[props: keyPath]
+    public subscript<Value>(
+        props keyPath: KeyPath<WorkflowType, Value>
+    ) -> Value {
+        wrappedContext[workflowValue: keyPath]
     }
 }
 
@@ -78,9 +78,9 @@ final class ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
         self.storage = storage
     }
 
-    public subscript<Property>(
-        props keyPath: KeyPath<WorkflowType, Property>
-    ) -> Property {
+    public subscript<Value>(
+        workflowValue keyPath: KeyPath<WorkflowType, Value>
+    ) -> Value {
         validatedStorage.value[keyPath: keyPath]
     }
 

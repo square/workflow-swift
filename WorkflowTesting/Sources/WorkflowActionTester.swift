@@ -184,31 +184,31 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
 struct LazyErroringTestContext<W: Workflow>: ApplyContextType {
     typealias WorkflowType = W
 
-    subscript<Property>(
-        props keyPath: KeyPath<W, Property>
-    ) -> Property {
+    subscript<Value>(
+        workflowValue keyPath: KeyPath<W, Value>
+    ) -> Value {
         fatalError("TODO: instruct clients what went wrong and how to fix")
     }
 }
 
 struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
-    enum PropertyStorage {
+    enum ValueStorage {
         case workflow(Wrapped)
         case expectedReads([AnyHashable: Any])
     }
 
-    var storage: PropertyStorage
+    var storage: ValueStorage
 
-    subscript<Property>(
-        props keyPath: KeyPath<Wrapped, Property>
-    ) -> Property {
+    subscript<Value>(
+        workflowValue keyPath: KeyPath<Wrapped, Value>
+    ) -> Value {
         switch storage {
-        case .workflow(let wf):
-            return wf[keyPath: keyPath]
+        case .workflow(let workflow):
+            return workflow[keyPath: keyPath]
         case .expectedReads(var expectedValues):
-            let kp = AnyHashable(keyPath)
-            guard let value = expectedValues.removeValue(forKey: kp) as? Property else {
-                fatalError("Action application attempted to read property \(kp), but no workflow or property expectation was set.")
+            let valueKey = AnyHashable(keyPath)
+            guard let value = expectedValues.removeValue(forKey: valueKey) as? Value else {
+                fatalError("Action application attempted to read property \(valueKey), but no workflow or property expectation was set.")
             }
             return value
         }
