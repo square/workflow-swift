@@ -52,9 +52,21 @@ extension ApplyContext {
     }
 }
 
+// TODO: this is currently a class so that we can zero out the storage
+// when it's invalidated. it'd be nice to instead make the `ApplyContext`
+// type itself `~Escapable` since that's really the behavior that we want
+// to enforce.
+
 /// The `ApplyContext` used by the Workflow runtime when applying actions.
-struct ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
-    private let storage: Storage<WorkflowType>
+final class ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
+    private(set) var storage: Storage<WorkflowType>?
+
+    private var validatedStorage: Storage<WorkflowType> {
+        guard let storage else {
+            fatalError("Attempt to use an action application context for Workflow type '\(WorkflowType.self)' after it was invalidated.")
+        }
+        return storage
+    }
 
     init(
         _ value: WorkflowType
@@ -69,6 +81,12 @@ struct ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
     public subscript<Property>(
         props keyPath: KeyPath<WorkflowType, Property>
     ) -> Property {
-        storage.value[keyPath: keyPath]
+        validatedStorage.value[keyPath: keyPath]
+    }
+
+    // MARK: -
+
+    func invalidate() {
+        storage = nil
     }
 }
