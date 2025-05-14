@@ -7,17 +7,15 @@ import XCTest
 
 final class PreferredContentSizeTests: XCTestCase {
     func test_preferredContentSize() throws {
-        // FIXME: actually solve whatever the problem is here
-        try XCTSkipUnless(UIApplication.shared.delegate != nil)
-
         let maxWidth: CGFloat = 50
         let maxHeight: CGFloat = 50
+
+        // fudged offset to avoid safe area interference
+        let origin = CGPoint(x: 50, y: 50)
 
         func assertPreferredContentSize(in axes: Axis.Set) {
             let screen = TestScreen(model: .constant(state: State(axes: axes)))
             let viewController = screen.buildViewController(in: .empty)
-            viewController.view.frame = CGRect(x: 0, y: 0, width: maxWidth, height: maxHeight)
-            viewController.view.layoutIfNeeded()
 
             func assertContentSize(
                 _ contentSize: CGSize,
@@ -41,16 +39,24 @@ final class PreferredContentSizeTests: XCTestCase {
                 )
             }
 
-            assertContentSize(CGSize(width: 20, height: 20))
-            assertContentSize(CGSize(width: 40, height: 20))
-            assertContentSize(CGSize(width: 20, height: 40))
-            assertContentSize(
-                CGSize(width: 100, height: 100),
-                expected: CGSize(
-                    width: axes.contains(.horizontal) ? maxWidth : 100,
-                    height: axes.contains(.vertical) ? maxHeight : 100
+            show(viewController: viewController) { _ in
+                viewController.view.frame = CGRect(
+                    origin: origin,
+                    size: CGSize(width: maxWidth, height: maxHeight)
                 )
-            )
+                viewController.view.layoutIfNeeded()
+
+                assertContentSize(CGSize(width: 20, height: 20))
+                assertContentSize(CGSize(width: 40, height: 20))
+                assertContentSize(CGSize(width: 20, height: 40))
+                assertContentSize(
+                    CGSize(width: 100, height: 100),
+                    expected: CGSize(
+                        width: axes.contains(.horizontal) ? maxWidth : 100,
+                        height: axes.contains(.vertical) ? maxHeight : 100
+                    )
+                )
+            }
         }
 
         assertPreferredContentSize(in: [])
@@ -116,10 +122,12 @@ private struct TestView: View {
                 }
             }
         }
+        .ignoresSafeArea()
     }
 
     var box: some View {
         Color.red.frame(width: store.width, height: store.height)
+            .ignoresSafeArea()
     }
 }
 
