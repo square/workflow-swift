@@ -218,11 +218,11 @@ struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
 extension ApplyContext {
     public static func testing(_ value: WorkflowType) -> ApplyContext<WorkflowType> {
         let testContext = TestApplyContext(storage: .workflow(value))
-        return ApplyContext(impl: testContext)
+        return ApplyContext(testContext)
     }
 
     public static func testingCompatibilityShim() -> ApplyContext<WorkflowType> {
         let erroringTestContext = LazyErroringTestContext<WorkflowType>()
-        return ApplyContext(impl: erroringTestContext)
+        return ApplyContext(erroringTestContext)
     }
 }

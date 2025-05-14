@@ -20,7 +20,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
     private var state: WorkflowType.State
 
     /// Holds the current `Workflow` managed by this node.
-    private var workflow: WorkflowType
+    private var workflow: WorkflowType { workflowStorage.value }
+
+    private let workflowStorage: Storage<WorkflowType>
 
     /// Reference to the context object for the entity hosting this node.
     let hostContext: HostContext
@@ -46,7 +48,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
         parentSession: WorkflowSession? = nil
     ) {
         /// Get the initial state
-        self.workflow = workflow
+        self.workflowStorage = Storage(workflow)
         self.hostContext = hostContext
         self.session = WorkflowSession(
             workflow: workflow,
@@ -160,7 +162,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     func update(workflow: WorkflowType) {
         let oldWorkflow = self.workflow
         workflow.workflowDidChange(from: oldWorkflow, state: &state)
-        self.workflow = workflow
+        workflowStorage.value = workflow
 
         observer?.workflowDidChange(
             from: oldWorkflow,
@@ -217,10 +219,12 @@ extension WorkflowNode {
         defer { observerCompletion?(state, output) }
 
         /// Apply the action to the current state
-        let ctx = ConcreteApplyContext(workflow)
-        let wrapped = ApplyContext.make(implementation: ctx)
+        let context = ConcreteApplyContext(storage: workflowStorage)
+        let wrappedContext = ApplyContext.make(implementation: context)
 
-        output = action.apply(toState: &state, context: wrapped)
+        output = action.apply(toState: &state, context: wrappedContext)
+
+        // TODO: invalidate context to ensure it doesn't escape
 
         return output
     }
