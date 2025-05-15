@@ -15,6 +15,7 @@
  */
 
 #if DEBUG
+import IssueReporting
 import Workflow
 import WorkflowTesting
 import XCTest
@@ -62,9 +63,9 @@ extension RenderTester {
                 guard !workflow.worker.isEquivalent(to: expectedWorker) else {
                     return
                 }
-                XCTFail(
+                reportIssue(
                     "Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(expectedWorker). Got: \(workflow.worker)",
-                    file: file,
+                    filePath: file,
                     line: line
                 )
             }
