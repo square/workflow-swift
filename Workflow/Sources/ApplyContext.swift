@@ -27,7 +27,7 @@ protocol ApplyContextType<WorkflowType> {
 /// that provides an integration point with the runtime that can be used to read property values
 /// off of the current `Workflow` instance.
 public struct ApplyContext<WorkflowType: Workflow> {
-    private let wrappedContext: any ApplyContextType<WorkflowType>
+    let wrappedContext: any ApplyContextType<WorkflowType>
 
     init<Impl: ApplyContextType>(_ context: Impl)
         where Impl.WorkflowType == WorkflowType
@@ -66,12 +66,6 @@ final class ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
             fatalError("Attempt to use an ApplyContext for Workflow of type '\(WorkflowType.self)' after it was invalidated. The context is only valid during a call to an apply(...) method.")
         }
         return storage
-    }
-
-    init(
-        _ value: WorkflowType
-    ) {
-        self.storage = Storage(value)
     }
 
     init(storage: Storage<WorkflowType>) {

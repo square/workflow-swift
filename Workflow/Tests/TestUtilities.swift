@@ -83,3 +83,25 @@ struct TestDebugger: WorkflowDebugger {
         updateInfo: WorkflowUpdateDebugInfo
     ) {}
 }
+
+// MARK: - ApplyContext
+
+extension ApplyContext {
+    var wrappedConcreteContext: ConcreteApplyContext<WorkflowType>? {
+        wrappedContext as? ConcreteApplyContext<WorkflowType>
+    }
+
+    var concreteStorage: Storage<WorkflowType>? {
+        wrappedConcreteContext?.storage
+    }
+}
+
+// MARK: - ConcreteApplyContext
+
+extension ConcreteApplyContext {
+    convenience init(
+        _ value: WorkflowType
+    ) {
+        self.init(storage: Storage(value))
+    }
+}
