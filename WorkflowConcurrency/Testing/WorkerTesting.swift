@@ -30,7 +30,7 @@ extension RenderTester {
     ///   - producingOutput: The output to be used instead of actually running the worker.
     ///                      If the workflow never tries to run the worker, then this won't be used.
     ///   - key: Key to expect this `Workflow` to be rendered with.
-    @available(*, deprecated, renamed: "expectedWorker(_:mockingOutput:key:file:line:)", message: "Renamed")
+    @available(*, deprecated, renamed: "expectWorker(_:mockingOutput:key:file:line:)", message: "Renamed")
     public func expect<ExpectedWorkerType: Worker>(
         worker: ExpectedWorkerType,
         producingOutput output: ExpectedWorkerType.Output? = nil,
