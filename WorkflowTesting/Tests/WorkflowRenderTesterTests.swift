@@ -191,6 +191,68 @@ final class WorkflowRenderTesterTests: XCTestCase {
     }
 }
 
+// MARK: - ApplyContext Tests
+
+extension WorkflowRenderTesterTests {
+    func test_applyContext_exposesProps() {
+        PropsWorkflow(prop1: "ichi", prop2: 42)
+            .renderTester()
+            .expectSideEffect(
+                key: "effect",
+                producingAction: PropsWorkflow.Action.emit
+            )
+            .render { rendering in
+                XCTAssertEqual(rendering, "")
+            }
+            .verifyAction { (action: PropsWorkflow.Action) in
+                XCTAssertEqual(action, .emit)
+            }
+            .verifyState { newState in
+                XCTAssertEqual(newState, "prop1: ichi, prop2: 42")
+            }
+    }
+}
+
+struct PropsWorkflow: Workflow {
+    typealias State = String
+    typealias Rendering = String
+
+    var prop1 = ""
+    var prop2 = 0
+
+    func makeInitialState() -> String { "" }
+
+    func render(state: State, context: RenderContext<PropsWorkflow>) -> Rendering {
+        let sink = context.makeSink(of: Action.self)
+
+        context.runSideEffect(key: "effect") { _ in
+            sink.send(.emit)
+        }
+
+        return state
+    }
+
+    enum Action: WorkflowAction {
+        typealias WorkflowType = PropsWorkflow
+
+        case emit
+
+        func apply(
+            toState state: inout WorkflowType.State,
+            context: ApplyContext<WorkflowType>
+        ) -> WorkflowType.Output? {
+            let prop1 = context[workflowValue: \.prop1]
+            let prop2 = context[workflowValue: \.prop2]
+
+            state = "prop1: \(prop1), prop2: \(prop2)"
+
+            return nil
+        }
+    }
+}
+
+// MARK: -
+
 private struct TestWorkflow: Workflow {
     /// Input
     var initialText: String

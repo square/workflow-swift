@@ -93,15 +93,31 @@ final class WorkflowActionTesterTests: XCTestCase {
         XCTAssertEqual(state, tester.state)
         XCTAssertNil(tester.output)
     }
+}
 
-    func test_old_api_still_works_if_props_arent_read() {
+// MARK: - ApplyContext Tests
+
+extension WorkflowActionTesterTests {
+    func test_old_api_still_work_if_props_arent_read() {
         TestActionWithProps
             .tester(withState: true)
             .send(action: .dontReadProps)
             .assert(state: true)
+            .assert(output: .value("did not read props"))
     }
 
-    // TODO: ideally an 'exit test' could be used for this...
+    func test_new_api_works_if_you_provide_props() {
+        TestActionWithProps
+            .tester(
+                withState: true,
+                workflow: TestWorkflow(prop: 42)
+            )
+            .send(action: .readProps)
+            .assert(state: true)
+            .assert(output: .value("read props: 42"))
+    }
+
+    // TODO: ideally an 'exit/death test' would be used for this...
     /*
      func test_old_api_explodes_if_you_use_props() {
          XCTExpectFailure("This test should fail")
@@ -112,14 +128,9 @@ final class WorkflowActionTesterTests: XCTestCase {
              .assert(state: true)
      }
       */
-
-    func test_new_api_works_if_you_provide_props() {
-        TestActionWithProps
-            .tester(withState: true, workflow: TestWorkflow(prop: 42))
-            .send(action: .readProps)
-            .assert(state: true)
-    }
 }
+
+// MARK: -
 
 private enum TestActionWithProps: WorkflowAction {
     typealias WorkflowType = TestWorkflow
@@ -133,11 +144,12 @@ private enum TestActionWithProps: WorkflowAction {
     ) -> TestWorkflow.Output? {
         switch self {
         case .dontReadProps:
-            break
+            return .value("did not read props")
+
         case .readProps:
-            _ = context[workflowValue: \.prop]
+            let prop = context[workflowValue: \.prop]
+            return .value("read props: \(prop)")
         }
-        return nil
     }
 }
 
@@ -161,8 +173,9 @@ private enum TestAction: WorkflowAction {
 private struct TestWorkflow: Workflow {
     typealias State = Bool
 
-    enum Output {
+    enum Output: Equatable {
         case finished
+        case value(String)
     }
 
     var prop = 0
