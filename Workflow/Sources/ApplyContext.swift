@@ -36,7 +36,7 @@ public struct ApplyContext<WorkflowType: Workflow> {
     }
 
     public subscript<Value>(
-        props keyPath: KeyPath<WorkflowType, Value>
+        workflowValue keyPath: KeyPath<WorkflowType, Value>
     ) -> Value {
         wrappedContext[workflowValue: keyPath]
     }

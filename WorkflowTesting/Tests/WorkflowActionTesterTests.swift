@@ -135,7 +135,7 @@ private enum TestActionWithProps: WorkflowAction {
         case .dontReadProps:
             break
         case .readProps:
-            _ = context[props: \.prop]
+            _ = context[workflowValue: \.prop]
         }
         return nil
     }
