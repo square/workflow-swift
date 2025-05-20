@@ -33,16 +33,16 @@ public protocol WorkflowAction<WorkflowType> {
     ) -> WorkflowType.Output?
 }
 
+extension WorkflowAction {
+    /// Closure type signature matching `WorkflowAction`'s `apply()` method.
+    public typealias ActionApplyClosure = (inout WorkflowType.State, ApplyContext<WorkflowType>) -> WorkflowType.Output?
+}
+
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
 public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
-    public typealias ActionApply = (
-        inout WorkflowType.State,
-        ApplyContext<WorkflowType>
-    ) -> WorkflowType.Output?
-
-    private let _apply: ActionApply
+    private let _apply: ActionApplyClosure
 
     /// The underlying type-erased `WorkflowAction`
     public let base: Any
@@ -69,7 +69,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     ///
     /// - Parameter apply: the apply function for the resulting action.
     public init(
-        _ apply: @escaping ActionApply,
+        _ apply: @escaping ActionApplyClosure,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -81,7 +81,10 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
         self.init(closureAction: closureAction)
     }
 
-    // TODO: backwards compatible init if you don't use the param?
+    /// Creates a type-erased workflow action with the given `apply` implementation.
+    ///
+    /// - Parameter apply: the apply function for the resulting action.
+    @_disfavoredOverload
     public init(
         _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
         fileID: StaticString = #fileID,
@@ -135,17 +138,12 @@ extension AnyWorkflowAction {
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
 struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
-    typealias ActionApply = (
-        inout WorkflowType.State,
-        ApplyContext<WorkflowType>
-    ) -> WorkflowType.Output?
-
-    private let _apply: ActionApply
+    private let _apply: ActionApplyClosure
     let fileID: StaticString
     let line: UInt
 
     init(
-        _apply: @escaping ActionApply,
+        _apply: @escaping ActionApplyClosure,
         fileID: StaticString,
         line: UInt
     ) {

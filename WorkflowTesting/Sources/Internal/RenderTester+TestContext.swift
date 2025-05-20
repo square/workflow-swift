@@ -25,6 +25,7 @@ extension RenderTester {
         var expectedWorkflows: [AnyExpectedWorkflow]
         var expectedSideEffects: [AnyHashable: ExpectedSideEffect]
         var appliedAction: AppliedAction<WorkflowType>?
+        var applyContext: TestApplyContext<WorkflowType>
         var producedOutput: WorkflowType.Output?
         let file: StaticString
         let line: UInt
@@ -35,6 +36,7 @@ extension RenderTester {
             state: WorkflowType.State,
             expectedWorkflows: [AnyExpectedWorkflow],
             expectedSideEffects: [AnyHashable: ExpectedSideEffect],
+            applyContext: TestApplyContext<WorkflowType>,
             file: StaticString,
             line: UInt
         ) {
@@ -43,6 +45,7 @@ extension RenderTester {
             self.expectedSideEffects = expectedSideEffects
             self.file = file
             self.line = line
+            self.applyContext = applyContext
         }
 
         func render<Child: Workflow, Action: WorkflowAction>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
@@ -117,8 +120,8 @@ extension RenderTester {
         private func apply<ActionType: WorkflowAction>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
             XCTAssertNil(appliedAction, "Received multiple actions in a single render test", file: file, line: line)
             appliedAction = AppliedAction(action)
-            let context: ApplyContext<WorkflowType> = .testingCompatibilityShim()
-            let output = action.apply(toState: &state, context: context)
+            let wrappedContext = ApplyContext(applyContext)
+            let output = action.apply(toState: &state, context: wrappedContext)
 
             if let output {
                 XCTAssertNil(producedOutput, "Received multiple outputs in a single render test", file: file, line: line)

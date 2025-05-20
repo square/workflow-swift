@@ -24,8 +24,12 @@ extension WorkflowAction {
         withState state: WorkflowType.State,
         workflow: WorkflowType? = nil
     ) -> WorkflowActionTester<WorkflowType, Self> {
-        let context: ApplyContext<WorkflowType> = workflow.map { .testing($0) } ?? .testingCompatibilityShim()
-        return WorkflowActionTester(state: state, context: context)
+        WorkflowActionTester(
+            state: state,
+            context: TestApplyContext(
+                kind: workflow.map { .workflow($0) } ?? .expectations([:])
+            )
+        )
     }
 }
 
@@ -68,12 +72,12 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// The current state
     var state: WorkflowType.State
     let output: WorkflowType.Output?
-    let context: ApplyContext<WorkflowType>
+    let context: TestApplyContext<WorkflowType>
 
     /// Initializes a new state tester
     fileprivate init(
         state: WorkflowType.State,
-        context: ApplyContext<WorkflowType>,
+        context: TestApplyContext<WorkflowType>,
         output: WorkflowType.Output? = nil
     ) {
         self.state = state
@@ -91,7 +95,9 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
         where Action.WorkflowType == WorkflowType
     {
         var newState = state
-        let output = action.apply(toState: &newState, context: context)
+        let wrappedContext = ApplyContext.make(implementation: context)
+        let output = action.apply(toState: &newState, context: wrappedContext)
+
         return WorkflowActionTester(state: newState, context: context, output: output)
     }
 
@@ -181,34 +187,27 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
 
 // TODO: clean up
 
-struct LazyErroringTestContext<W: Workflow>: ApplyContextType {
-    typealias WorkflowType = W
-
-    subscript<Value>(
-        workflowValue keyPath: KeyPath<W, Value>
-    ) -> Value {
-        fatalError("TODO: instruct clients what went wrong and how to fix")
-    }
-}
-
 struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
-    enum ValueStorage {
+    enum TestContextKind {
         case workflow(Wrapped)
-        case expectedReads([AnyHashable: Any])
+        case expectations([AnyKeyPath: Any])
     }
 
-    var storage: ValueStorage
+    let storage: Storage<TestContextKind>
+
+    init(kind: TestContextKind) {
+        self.storage = Storage(kind)
+    }
 
     subscript<Value>(
         workflowValue keyPath: KeyPath<Wrapped, Value>
     ) -> Value {
-        switch storage {
+        switch storage.value {
         case .workflow(let workflow):
             return workflow[keyPath: keyPath]
-        case .expectedReads(var expectedValues):
-            let valueKey = AnyHashable(keyPath)
-            guard let value = expectedValues.removeValue(forKey: valueKey) as? Value else {
-                fatalError("Action application attempted to read property \(valueKey), but no workflow or property expectation was set.")
+        case .expectations(var expectedValues):
+            guard let value = expectedValues.removeValue(forKey: keyPath) as? Value else {
+                fatalError("Action application attempted to read value \(keyPath as AnyKeyPath), but no workflow or property expectation was set.")
             }
             return value
         }
@@ -216,13 +215,13 @@ struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
 }
 
 extension ApplyContext {
-    public static func testing(_ value: WorkflowType) -> ApplyContext<WorkflowType> {
-        let testContext = TestApplyContext(storage: .workflow(value))
+    static func testing(_ value: WorkflowType) -> ApplyContext<WorkflowType> {
+        let testContext = TestApplyContext(kind: .workflow(value))
         return ApplyContext(testContext)
     }
 
-    public static func testingCompatibilityShim() -> ApplyContext<WorkflowType> {
-        let erroringTestContext = LazyErroringTestContext<WorkflowType>()
-        return ApplyContext(erroringTestContext)
+    static func testingCompatibilityShim() -> ApplyContext<WorkflowType> {
+        let testContext = TestApplyContext<WorkflowType>(kind: .expectations([:]))
+        return ApplyContext(testContext)
     }
 }

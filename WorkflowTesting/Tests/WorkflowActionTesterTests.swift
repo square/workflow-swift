@@ -94,19 +94,24 @@ final class WorkflowActionTesterTests: XCTestCase {
         XCTAssertNil(tester.output)
     }
 
-    func test_old_api_still_works() {
+    func test_old_api_still_works_if_props_arent_read() {
         TestActionWithProps
             .tester(withState: true)
             .send(action: .dontReadProps)
             .assert(state: true)
     }
 
-//    func test_old_api_explodes_if_you_use_props() {
-//        TestActionWithProps
-//            .tester(withState: true)
-//            .send(action: .readProps)
-//            .assert(state: true)
-//    }
+    // TODO: ideally an 'exit test' could be used for this...
+    /*
+     func test_old_api_explodes_if_you_use_props() {
+         XCTExpectFailure("This test should fail")
+
+         TestActionWithProps
+             .tester(withState: true)
+             .send(action: .readProps)
+             .assert(state: true)
+     }
+      */
 
     func test_new_api_works_if_you_provide_props() {
         TestActionWithProps

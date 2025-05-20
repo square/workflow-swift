@@ -52,8 +52,8 @@ extension ApplyContext {
     }
 }
 
-// TODO: this is currently a class so that we can zero out the storage
-// when it's invalidated. it'd be nice to instead make the `ApplyContext`
+// FIXME: this is currently a class so that we can zero out the storage
+// when it's invalidated. it'd be nice to eventually make the `ApplyContext`
 // type itself `~Escapable` since that's really the behavior that we want
 // to enforce.
 
@@ -63,7 +63,7 @@ final class ConcreteApplyContext<WorkflowType: Workflow>: ApplyContextType {
 
     private var validatedStorage: Storage<WorkflowType> {
         guard let storage else {
-            fatalError("Attempt to use an action application context for Workflow type '\(WorkflowType.self)' after it was invalidated.")
+            fatalError("Attempt to use an ApplyContext for Workflow of type '\(WorkflowType.self)' after it was invalidated. The context is only valid during a call to an apply(...) method.")
         }
         return storage
     }
