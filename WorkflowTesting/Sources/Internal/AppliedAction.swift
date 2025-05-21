@@ -21,11 +21,11 @@ import XCTest
 struct AppliedAction<WorkflowType: Workflow> {
     let erasedAction: Any
 
-    init<ActionType: WorkflowAction>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
+    init<ActionType: WorkflowActionBase>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
         self.erasedAction = action
     }
 
-    func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
+    func assert<ActionType: WorkflowActionBase>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
         guard let action = erasedAction as? ActionType else {
             reportIssue("Expected action of type \(ActionType.self), got \(erasedAction)", filePath: file, line: line)
             return

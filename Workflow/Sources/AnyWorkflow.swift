@@ -95,7 +95,7 @@ extension AnyWorkflow {
     /// That type information *is* present in our storage object, however, so we
     /// pass the context down to that storage object which will ultimately call
     /// through to `context.render(workflow:key:reducer:)`.
-    func render<Parent, Action: WorkflowAction>(
+    func render<Parent, Action: WorkflowActionBase>(
         context: RenderContext<Parent>,
         key: String,
         outputMap: @escaping (Output) -> Action
@@ -111,7 +111,7 @@ extension AnyWorkflow {
     fileprivate class AnyStorage {
         var base: Any { fatalError() }
 
-        func render<Parent, Action: WorkflowAction>(
+        func render<Parent, Action: WorkflowActionBase>(
             context: RenderContext<Parent>,
             key: String,
             outputMap: @escaping (Output) -> Action
@@ -152,7 +152,7 @@ extension AnyWorkflow {
             T.self
         }
 
-        override func render<Parent, Action: WorkflowAction>(
+        override func render<Parent, Action: WorkflowActionBase>(
             context: RenderContext<Parent>,
             key: String,
             outputMap: @escaping (Output) -> Action

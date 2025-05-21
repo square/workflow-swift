@@ -62,7 +62,7 @@ extension RenderTester {
         func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {}
     }
 
-    final class ExpectedSideEffectWithAction<ActionType: WorkflowAction>: ExpectedSideEffect where ActionType.WorkflowType == WorkflowType {
+    final class ExpectedSideEffectWithAction<ActionType: WorkflowActionBase>: ExpectedSideEffect where ActionType.WorkflowType == WorkflowType {
         let action: ActionType
 
         init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {

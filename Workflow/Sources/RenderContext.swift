@@ -63,7 +63,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameter key: A string that uniquely identifies this child.
     ///
     /// - Returns: The `Rendering` result of the child's `render` method.
-    func render<Child: Workflow, Action: WorkflowAction>(
+    func render<Child: Workflow, Action: WorkflowActionBase>(
         workflow: Child,
         key: String,
         outputMap: @escaping (Child.Output) -> Action
@@ -81,7 +81,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     ///
     /// - Parameter actionType: The type of Action this Sink may process
     /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
-    public func makeSink<Action: WorkflowAction>(
+    public func makeSink<Action: WorkflowActionBase>(
         of actionType: Action.Type
     ) -> Sink<Action> where Action.WorkflowType == WorkflowType {
         fatalError()
@@ -124,7 +124,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             super.init()
         }
 
-        override func render<Child: Workflow, Action: WorkflowAction>(
+        override func render<Child: Workflow, Action: WorkflowActionBase>(
             workflow: Child,
             key: String,
             outputMap: @escaping (Child.Output) -> Action
@@ -135,7 +135,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
         }
 
-        override func makeSink<Action: WorkflowAction>(
+        override func makeSink<Action: WorkflowActionBase>(
             of actionType: Action.Type
         ) -> Sink<Action>
             where WorkflowType == Action.WorkflowType
@@ -161,13 +161,13 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
-    func render<Child: Workflow, Action: WorkflowAction>(
+    func render<Child: Workflow, Action: WorkflowActionBase>(
         workflow: Child,
         key: String,
         outputMap: @escaping (Child.Output) -> Action
     ) -> Child.Rendering where Action.WorkflowType == WorkflowType
 
-    func makeSink<Action: WorkflowAction>(
+    func makeSink<Action: WorkflowActionBase>(
         of actionType: Action.Type
     ) -> Sink<Action> where Action.WorkflowType == WorkflowType
 

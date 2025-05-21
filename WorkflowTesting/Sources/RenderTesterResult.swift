@@ -64,7 +64,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
 
     /// Allows for assertions agains the resulting action
     @discardableResult
-    public func verifyAction<ActionType: WorkflowAction>(
+    public func verifyAction<ActionType: WorkflowActionBase>(
         type: ActionType.Type = ActionType.self,
         file: StaticString = #file,
         line: UInt = #line,
@@ -80,7 +80,7 @@ public struct RenderTesterResult<WorkflowType: Workflow> {
 
     /// Asserts that the resulting action is equal to the given action.
     @discardableResult
-    public func assert<ActionType: WorkflowAction>(
+    public func assert<ActionType: WorkflowActionBase>(
         action: ActionType,
         file: StaticString = #file,
         fileID: StaticString = #fileID,

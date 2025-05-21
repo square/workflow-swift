@@ -156,7 +156,7 @@ enum EventSource: Equatable {
 
 extension WorkflowNode.SubtreeManager {
     enum Output {
-        case update(any WorkflowAction<WorkflowType>, source: EventSource)
+        case update(any WorkflowActionBase<WorkflowType>, source: EventSource)
         case childDidUpdate(WorkflowUpdateDebugInfo?)
     }
 }
@@ -203,7 +203,7 @@ extension WorkflowNode.SubtreeManager {
             self.session = session
         }
 
-        func render<Child: Workflow, Action: WorkflowAction>(
+        func render<Child: Workflow, Action: WorkflowActionBase>(
             workflow: Child,
             key: String,
             outputMap: @escaping (Child.Output) -> Action
@@ -258,7 +258,7 @@ extension WorkflowNode.SubtreeManager {
             return child.render()
         }
 
-        func makeSink<Action: WorkflowAction>(
+        func makeSink<Action: WorkflowActionBase>(
             of actionType: Action.Type
         ) -> Sink<Action> where WorkflowType == Action.WorkflowType {
             let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
@@ -300,7 +300,7 @@ extension WorkflowNode.SubtreeManager {
             self.usedSinks = [:]
         }
 
-        mutating func findOrCreate<Action: WorkflowAction>(actionType: Action.Type) -> ReusableSink<Action> {
+        mutating func findOrCreate<Action: WorkflowActionBase>(actionType: Action.Type) -> ReusableSink<Action> {
             let key = ObjectIdentifier(actionType)
 
             let reusableSink: ReusableSink<Action>
@@ -332,7 +332,7 @@ extension WorkflowNode.SubtreeManager {
         }
     }
 
-    fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+    fileprivate final class ReusableSink<Action: WorkflowActionBase>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
             let output = Output.update(action, source: .external)
 
@@ -468,11 +468,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
-        private var outputMap: (W.Output) -> any WorkflowAction<WorkflowType>
+        private var outputMap: (W.Output) -> any WorkflowActionBase<WorkflowType>
 
         init(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping (W.Output) -> any WorkflowActionBase<WorkflowType>,
             eventPipe: EventPipe,
             key: String,
             hostContext: HostContext,
@@ -503,7 +503,7 @@ extension WorkflowNode.SubtreeManager {
 
         func update(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping (W.Output) -> any WorkflowActionBase<WorkflowType>,
             eventPipe: EventPipe
         ) {
             self.outputMap = outputMap

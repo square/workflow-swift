@@ -50,7 +50,7 @@ extension RenderTester {
             self.applyContext = applyContext
         }
 
-        func render<Child: Workflow, Action: WorkflowAction>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
+        func render<Child: Workflow, Action: WorkflowActionBase>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
             let matchingTypes = expectedWorkflows.compactMap { $0 as? ExpectedWorkflow<Child> }
             guard let expectedWorkflow = matchingTypes.first(where: { $0.key == key }) else {
                 let sameTypeDifferentKeys = matchingTypes.map(\.key)
@@ -93,7 +93,7 @@ extension RenderTester {
             return expectedWorkflow.rendering
         }
 
-        func makeSink<ActionType: WorkflowAction>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType.WorkflowType == WorkflowType {
+        func makeSink<ActionType: WorkflowActionBase>(of actionType: ActionType.Type) -> Sink<ActionType> where ActionType.WorkflowType == WorkflowType {
             Sink<ActionType> { action in
                 self.apply(action: action)
             }
@@ -119,7 +119,7 @@ extension RenderTester {
             }
         }
 
-        private func apply<ActionType: WorkflowAction>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
+        private func apply<ActionType: WorkflowActionBase>(action: ActionType) where ActionType.WorkflowType == WorkflowType {
             if appliedAction != nil {
                 reportIssue("Received multiple actions in a single render test", filePath: file, line: line)
             }

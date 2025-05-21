@@ -112,6 +112,10 @@ private struct ExampleAction: WorkflowAction, Equatable {
     func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
         nil
     }
+
+    func apply(toState state: inout Void, context: ApplyContext<ExampleWorkflow>) -> Never? {
+        nil
+    }
 }
 
 private struct ObservableExampleAction: WorkflowAction {

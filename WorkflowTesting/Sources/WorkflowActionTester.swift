@@ -20,7 +20,7 @@ import XCTest
 
 @testable import Workflow
 
-extension WorkflowAction {
+extension WorkflowActionBase {
     /// Returns a state tester containing `self`.
     public static func tester(
         withState state: WorkflowType.State,
@@ -70,7 +70,7 @@ extension WorkflowAction {
 ///     .assert(output: .finished)
 ///     .assert(state: .differentState)
 /// ```
-public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where Action.WorkflowType == WorkflowType {
+public struct WorkflowActionTester<WorkflowType, Action: WorkflowActionBase> where Action.WorkflowType == WorkflowType {
     /// The current state
     let state: WorkflowType.State
     let output: WorkflowType.Output?

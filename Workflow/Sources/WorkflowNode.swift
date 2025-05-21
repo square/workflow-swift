@@ -193,7 +193,7 @@ extension WorkflowNode {
     ///   - action: The `WorkflowAction` to apply
     ///   - isExternal: Whether the handled action came from the 'outside world' vs being bubbled up from a child node
     /// - Returns: An optional `Output` produced by the action application
-    private func openAndApply<A: WorkflowAction>(
+    private func openAndApply<A: WorkflowActionBase>(
         _ action: A,
         isExternal: Bool
     ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {

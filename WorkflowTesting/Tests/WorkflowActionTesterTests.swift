@@ -132,7 +132,7 @@ extension WorkflowActionTesterTests {
 
 // MARK: -
 
-private enum TestActionWithProps: WorkflowAction {
+private enum TestActionWithProps: WorkflowActionBase {
     typealias WorkflowType = TestWorkflow
 
     case readProps
@@ -153,7 +153,7 @@ private enum TestActionWithProps: WorkflowAction {
     }
 }
 
-private enum TestAction: WorkflowAction {
+private enum TestAction: WorkflowActionBase {
     case toggleTapped
     case exitTapped
 

@@ -449,7 +449,7 @@ private enum TestAction: WorkflowAction, Equatable {
 
     typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout TestWorkflow.State, context: ApplyContext<TestWorkflow>) -> TestWorkflow.Output? {
+    func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
         switch self {
         case .noop:
             nil

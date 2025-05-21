@@ -16,9 +16,18 @@
 
 /// Conforming types represent an action that advances a workflow. When applied, an action emits the next
 /// state and / or output for the workflow.
-public protocol WorkflowAction<WorkflowType> {
-    /// The type of workflow that this action can be applied to.
+public protocol WorkflowActionBase<WorkflowType> {
     associatedtype WorkflowType: Workflow
+
+    func apply(
+        toState state: inout WorkflowType.State,
+        context: ApplyContext<WorkflowType>
+    ) -> WorkflowType.Output?
+}
+
+public protocol WorkflowAction<WorkflowType>: WorkflowActionBase {
+    /// The type of workflow that this action can be applied to.
+//    associatedtype WorkflowType: Workflow
 
     /// Applies this action to a given state of the workflow, optionally returning an output event.
     ///
@@ -28,12 +37,20 @@ public protocol WorkflowAction<WorkflowType> {
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
     func apply(
-        toState state: inout WorkflowType.State,
-        context: ApplyContext<WorkflowType>
+        toState state: inout WorkflowType.State
     ) -> WorkflowType.Output?
 }
 
 extension WorkflowAction {
+    public func apply(
+        toState state: inout WorkflowType.State,
+        context: ApplyContext<WorkflowType>
+    ) -> WorkflowType.Output? {
+        apply(toState: &state)
+    }
+}
+
+extension WorkflowActionBase {
     /// Closure type signature matching `WorkflowAction`'s `apply()` method.
     public typealias ActionApplyClosure = (inout WorkflowType.State, ApplyContext<WorkflowType>) -> WorkflowType.Output?
 }
@@ -41,7 +58,7 @@ extension WorkflowAction {
 /// A type-erased workflow action.
 ///
 /// The `AnyWorkflowAction` type forwards `apply` to an underlying workflow action, hiding its specific underlying type.
-public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
+public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowActionBase {
     private let _apply: ActionApplyClosure
 
     /// The underlying type-erased `WorkflowAction`
@@ -53,7 +70,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
     /// - Parameter base: A workflow action to wrap.
-    public init<E: WorkflowAction>(_ base: E) where E.WorkflowType == WorkflowType {
+    public init<E: WorkflowActionBase>(_ base: E) where E.WorkflowType == WorkflowType {
         if let anyEvent = base as? AnyWorkflowAction<WorkflowType> {
             self = anyEvent
             return
@@ -137,7 +154,7 @@ extension AnyWorkflowAction {
 /// A `WorkflowAction` that wraps an `apply(...)` implementation defined by a closure.
 /// Mainly used to provide more useful debugging/telemetry information for `AnyWorkflow` instances
 /// defined via a closure.
-struct ClosureAction<WorkflowType: Workflow>: WorkflowAction {
+struct ClosureAction<WorkflowType: Workflow>: WorkflowActionBase {
     private let _apply: ActionApplyClosure
     let fileID: StaticString
     let line: UInt

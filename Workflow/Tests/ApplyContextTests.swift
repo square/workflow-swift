@@ -63,7 +63,7 @@ private struct EscapingContextWorkflow: Workflow {
         return { sink.send(action) }
     }
 
-    struct EscapingAction: WorkflowAction {
+    struct EscapingAction: WorkflowActionBase {
         typealias WorkflowType = EscapingContextWorkflow
 
         var onApply: ((ApplyContext<WorkflowType>) -> Void)?

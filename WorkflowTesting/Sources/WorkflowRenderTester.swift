@@ -228,7 +228,7 @@ public struct RenderTester<WorkflowType: Workflow> {
     /// - Parameters:
     ///   - key: The key to expect.
     ///   - action: The action to produce when this side-effect is requested.
-    public func expectSideEffect<ActionType: WorkflowAction>(
+    public func expectSideEffect<ActionType: WorkflowActionBase>(
         key: AnyHashable,
         producingAction action: ActionType,
         file: StaticString = #file, line: UInt = #line

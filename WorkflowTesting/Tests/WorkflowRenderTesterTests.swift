@@ -232,7 +232,7 @@ struct PropsWorkflow: Workflow {
         return state
     }
 
-    enum Action: WorkflowAction {
+    enum Action: WorkflowActionBase {
         typealias WorkflowType = PropsWorkflow
 
         case emit
@@ -301,7 +301,7 @@ extension TestWorkflow {
         case tapped
         case asyncSuccess
 
-        func apply(toState state: inout TestWorkflow.State, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
+        func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
             switch self {
             case .tapped:
                 state.substate = .waiting
@@ -331,7 +331,7 @@ private struct OutputWorkflow: Workflow {
 
         case emit
 
-        func apply(toState state: inout OutputWorkflow.State, context: ApplyContext<WorkflowType>) -> OutputWorkflow.Output? {
+        func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
             switch self {
             case .emit:
                 .success
@@ -412,8 +412,7 @@ private struct SideEffectWorkflow: Workflow {
         typealias WorkflowType = SideEffectWorkflow
 
         func apply(
-            toState state: inout SideEffectWorkflow.State,
-            context: ApplyContext<WorkflowType>
+            toState state: inout SideEffectWorkflow.State
         ) -> SideEffectWorkflow.Output? {
             switch self {
             case .testAction:
@@ -461,8 +460,7 @@ private struct ParentWorkflow: Workflow {
         case childFailure
 
         func apply(
-            toState state: inout ParentWorkflow.State,
-            context: ApplyContext<WorkflowType>
+            toState state: inout ParentWorkflow.State
         ) -> Never? {
             switch self {
             case .childSuccess:

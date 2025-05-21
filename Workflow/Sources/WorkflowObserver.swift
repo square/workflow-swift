@@ -73,7 +73,7 @@ public protocol WorkflowObserver {
     /// - Parameters:
     ///   - action: The action that was received.
     ///   - session: The `WorkflowSession` corresponding to the backing `WorkflowNode`.
-    func workflowDidReceiveAction<Action: WorkflowAction>(
+    func workflowDidReceiveAction<Action: WorkflowActionBase>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
@@ -86,7 +86,7 @@ public protocol WorkflowObserver {
     ///   - state: The state to which the action will be applied.
     ///   - session: The `WorkflowSession` corresponding to the backing `WorkflowNode`.
     /// - Returns: An optional closure to be called immediately after the action is applied to the `State`, and an optional `Output` has been produced. The closure takes the updated state and optional output as its arguments.
-    func workflowWillApplyAction<Action: WorkflowAction>(
+    func workflowWillApplyAction<Action: WorkflowActionBase>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
@@ -193,13 +193,13 @@ extension WorkflowObserver {
         session: WorkflowSession
     ) {}
 
-    public func workflowDidReceiveAction<Action: WorkflowAction>(
+    public func workflowDidReceiveAction<Action: WorkflowActionBase>(
         _ action: Action,
         workflow: Action.WorkflowType,
         session: WorkflowSession
     ) {}
 
-    public func workflowWillApplyAction<Action: WorkflowAction>(
+    public func workflowWillApplyAction<Action: WorkflowActionBase>(
         _ action: Action,
         workflow: Action.WorkflowType,
         state: Action.WorkflowType.State,
