@@ -123,3 +123,10 @@ private struct ObservableExampleAction: WorkflowAction {
         return nil
     }
 }
+
+import Testing
+
+@Test
+func canary() {
+    #expect(Bool(false))
+}
