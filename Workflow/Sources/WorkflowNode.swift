@@ -219,7 +219,7 @@ extension WorkflowNode {
 
         /// Apply the action to the current state
         do {
-            // TODO: can we avoid instantiating a class here somehow?
+            // FIXME: can we avoid instantiating a class here somehow?
             let context = ConcreteApplyContext(storage: workflow)
             defer { context.invalidate() }
 
