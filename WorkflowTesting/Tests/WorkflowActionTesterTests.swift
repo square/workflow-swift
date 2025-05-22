@@ -117,7 +117,7 @@ extension WorkflowActionTesterTests {
             .assert(output: .value("read props: 42"))
     }
 
-    // TODO: ideally an 'exit/death test' would be used for this...
+    // FIXME: ideally an 'exit/death test' would somehow be used for this...
     /*
      func test_old_api_explodes_if_you_use_props() {
          XCTExpectFailure("This test should fail")

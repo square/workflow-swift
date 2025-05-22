@@ -190,8 +190,9 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
 struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
     enum TestContextKind {
         case workflow(Wrapped)
-        // TODO: flesh this out to support 'just in time' values
+        // FIXME: flesh this out to support 'just in time' values
         // rather than requiring a full Workflow instance to be provided
+        // https://github.com/square/workflow-swift/issues/351
         case expectations([AnyKeyPath: Any])
     }
 

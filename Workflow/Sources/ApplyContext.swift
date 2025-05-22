@@ -24,8 +24,39 @@ protocol ApplyContextType<WorkflowType> {
 }
 
 /// Runtime context passed as a parameter to `WorkflowAction`'s `apply()` method
-/// that provides an integration point with the runtime that can be used to read property values
-/// off of the current `Workflow` instance.
+/// that provides an integration point with the runtime that can be used to read values from
+/// the current `Workflow` instance.
+///
+/// Read-only access to `Workflow` values is exposed via the `subscript[workflowValue:]` API,
+/// which accepts a read-only `KeyPath` to a `Workflow`'s value.
+///
+/// Usage example:
+///
+/// ```swift
+///     struct MyWorkflow: Workflow {
+///         let shouldSuppressOutput: Bool
+///
+///         // ... implementation ...
+///     }
+///
+///     enum MyAction: WorkflowAction {
+///         typealias WorkflowType = MyWorkflow
+///
+///         case one
+///         case two
+///
+///         func apply(toState state: inout WorkflowType.State, context: ApplyContext<WorkflowType>) -> WorkflowType.Output? {
+///             // Make conditional choices based on the `Workflow`'s instance values
+///             let shouldSuppressOutput = context[workflowValue: \.shouldSuppressOutput]
+///             if shouldSuppressOutput { return nil }
+///
+///             // ... implementation ...
+///         }
+///     }
+/// ```
+///
+/// > Warning: The instance of this type passed to the `apply()` method should not escape from that method.
+/// Attempting to access the instance after the `apply()` method has returned is a client error and will crash.
 public struct ApplyContext<WorkflowType: Workflow> {
     let wrappedContext: any ApplyContextType<WorkflowType>
 

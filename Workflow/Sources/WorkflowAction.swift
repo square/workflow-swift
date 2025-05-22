@@ -24,9 +24,12 @@ public protocol WorkflowAction<WorkflowType> {
     ///
     /// - Parameter state: The current state of the workflow. The state is passed as an `inout` param, allowing actions
     ///                    to modify state during application.
+    /// - Parameter context: A context object provided by the runtime that enables reading values of the underlying `Workflow` instance.
     ///
     /// - Returns: An optional output event for the workflow. If an output event is returned, it will be passed up
     ///            the workflow hierarchy to this workflow's parent.
+    /// > Warning: The `context` parameter should not escape from implementations of this requirement.
+    /// Attempting to access the instance after `apply()` has returned is a client error and will crash.
     func apply(
         toState state: inout WorkflowType.State,
         context: ApplyContext<WorkflowType>
