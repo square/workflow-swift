@@ -43,7 +43,7 @@ public protocol ObservableScreen: Screen {
     /// Defaults to `false`
     func prefersStatusBarHidden(in context: ObservableScreenContext) -> Bool
 
-    /// The preferred animation style when the status bar appearance changes when this screen is is
+    /// The preferred animation style when the status bar appearance changes when this screen is in
     /// control of the status bar appearance.
     ///
     /// Defaults to `.fade`
