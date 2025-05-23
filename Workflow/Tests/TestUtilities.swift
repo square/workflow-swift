@@ -47,7 +47,7 @@ struct StateTransitioningWorkflow: Workflow {
 
         typealias WorkflowType = StateTransitioningWorkflow
 
-        func apply(toState state: inout Bool) -> Never? {
+        func apply(toState state: inout Bool, context: ApplyContext<WorkflowType>) -> Never? {
             switch self {
             case .toggle:
                 state.toggle()
@@ -82,4 +82,16 @@ struct TestDebugger: WorkflowDebugger {
         snapshot: WorkflowHierarchyDebugSnapshot,
         updateInfo: WorkflowUpdateDebugInfo
     ) {}
+}
+
+// MARK: - ApplyContext
+
+extension ApplyContext {
+    var wrappedConcreteContext: ConcreteApplyContext<WorkflowType>? {
+        wrappedContext as? ConcreteApplyContext<WorkflowType>
+    }
+
+    var concreteStorage: WorkflowType? {
+        wrappedConcreteContext?.storage
+    }
 }
