@@ -48,7 +48,7 @@ private enum TestAction: WorkflowAction {
 
     case change(Bool)
 
-    func apply(toState state: inout Bool) -> TestWorkflow.Output? {
+    func apply(toState state: inout Bool, context: ApplyContext<WorkflowType>) -> TestWorkflow.Output? {
         if case .change(let newState) = self {
             state = newState
         }

@@ -83,7 +83,8 @@ final class AnyWorkflowActionTests: XCTestCase {
         XCTAssertEqual(log, [])
 
         var state: Void = ()
-        _ = erased.apply(toState: &state)
+        let ctx = ApplyContext(ConcreteApplyContext(storage: ExampleWorkflow()))
+        _ = erased.apply(toState: &state, context: ctx)
 
         XCTAssertEqual(log, ["action invoked"])
     }
@@ -108,7 +109,7 @@ private struct ExampleWorkflow: Workflow {
 private struct ExampleAction: WorkflowAction, Equatable {
     typealias WorkflowType = ExampleWorkflow
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, context: ApplyContext<WorkflowType>) -> WorkflowType.Output? {
         nil
     }
 }
@@ -118,7 +119,7 @@ private struct ObservableExampleAction: WorkflowAction {
 
     var block: () -> Void = {}
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+    func apply(toState state: inout WorkflowType.State, context: ApplyContext<WorkflowType>) -> WorkflowType.Output? {
         block()
         return nil
     }

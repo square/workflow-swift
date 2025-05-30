@@ -16,13 +16,22 @@
 
 import CustomDump
 import IssueReporting
-import Workflow
 import XCTest
+
+@testable import Workflow
 
 extension WorkflowAction {
     /// Returns a state tester containing `self`.
-    public static func tester(withState state: WorkflowType.State) -> WorkflowActionTester<WorkflowType, Self> {
-        WorkflowActionTester(state: state)
+    public static func tester(
+        withState state: WorkflowType.State,
+        workflow: WorkflowType? = nil
+    ) -> WorkflowActionTester<WorkflowType, Self> {
+        WorkflowActionTester(
+            state: state,
+            context: TestApplyContext(
+                kind: workflow.map { .workflow($0) } ?? .expectations([:])
+            )
+        )
     }
 }
 
@@ -65,10 +74,16 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     /// The current state
     let state: WorkflowType.State
     let output: WorkflowType.Output?
+    let context: TestApplyContext<WorkflowType>
 
     /// Initializes a new state tester
-    fileprivate init(state: WorkflowType.State, output: WorkflowType.Output? = nil) {
+    fileprivate init(
+        state: WorkflowType.State,
+        context: TestApplyContext<WorkflowType>,
+        output: WorkflowType.Output? = nil
+    ) {
         self.state = state
+        self.context = context
         self.output = output
     }
 
@@ -78,10 +93,14 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     ///
     /// - returns: A new state tester containing the state and output (if any) after the update.
     @discardableResult
-    public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action> {
+    public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action>
+        where Action.WorkflowType == WorkflowType
+    {
         var newState = state
-        let output = action.apply(toState: &newState)
-        return WorkflowActionTester(state: newState, output: output)
+        let wrappedContext = ApplyContext.make(implementation: context)
+        let output = action.apply(toState: &newState, context: wrappedContext)
+
+        return WorkflowActionTester(state: newState, context: context, output: output)
     }
 
     /// Asserts that the action produced no output
@@ -124,7 +143,9 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     ///
     /// - returns: A tester containing the current state and output.
     @discardableResult
-    public func verifyState(_ assertions: (WorkflowType.State) throws -> Void) rethrows -> WorkflowActionTester<WorkflowType, Action> {
+    public func verifyState(
+        _ assertions: (WorkflowType.State) throws -> Void
+    ) rethrows -> WorkflowActionTester<WorkflowType, Action> {
         try assertions(state)
         return self
     }
@@ -160,6 +181,38 @@ extension WorkflowActionTester where WorkflowType.Output: Equatable {
     public func assert(output expectedOutput: WorkflowType.Output, file: StaticString = #file, line: UInt = #line) -> WorkflowActionTester<WorkflowType, Action> {
         verifyOutput { actualOutput in
             expectNoDifference(actualOutput, expectedOutput, filePath: file, line: line)
+        }
+    }
+}
+
+// MARK: - ApplyContext
+
+struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
+    enum TestContextKind {
+        case workflow(Wrapped)
+        // FIXME: flesh this out to support 'just in time' values
+        // rather than requiring a full Workflow instance to be provided
+        // https://github.com/square/workflow-swift/issues/351
+        case expectations([AnyKeyPath: Any])
+    }
+
+    var storage: TestContextKind
+
+    init(kind: TestContextKind) {
+        self.storage = kind
+    }
+
+    subscript<Value>(
+        workflowValue keyPath: KeyPath<Wrapped, Value>
+    ) -> Value {
+        switch storage {
+        case .workflow(let workflow):
+            return workflow[keyPath: keyPath]
+        case .expectations(var expectedValues):
+            guard let value = expectedValues.removeValue(forKey: keyPath) as? Value else {
+                fatalError("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
+            }
+            return value
         }
     }
 }

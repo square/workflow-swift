@@ -184,7 +184,7 @@ extension RenderContext {
     ) -> Sink<Event> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { event in
-                AnyWorkflowAction<WorkflowType> { state in
+                AnyWorkflowAction<WorkflowType> { state, _ in
                     onEvent(event, &state)
                 }
             }
