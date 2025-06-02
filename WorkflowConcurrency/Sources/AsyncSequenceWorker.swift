@@ -55,7 +55,9 @@ struct AsyncSequenceWorkerWorkflow<WorkerType: AsyncSequenceWorker>: Workflow {
                     guard let output = output as? Output else {
                         fatalError("Unexpected output type \(type(of: output)) from worker \(worker)")
                     }
-                    await sendAction(output: output, sink: sink)
+                    await MainActor.run {
+                        sink.send(AnyWorkflowAction(sendingOutput: output))
+                    }
                 }
             }
 
@@ -63,10 +65,5 @@ struct AsyncSequenceWorkerWorkflow<WorkerType: AsyncSequenceWorker>: Workflow {
                 task.cancel()
             }
         }
-    }
-
-    @MainActor
-    func sendAction(output: Output, sink: Sink<AnyWorkflowAction<AsyncSequenceWorkerWorkflow<WorkerType>>>) {
-        sink.send(AnyWorkflowAction(sendingOutput: output))
     }
 }
