@@ -92,6 +92,11 @@ extension Runtime {
         /// Whether action handling should be delegated to the `SinkEventHandler` type.
         /// This is expected to eventually be removed and become the default behavior.
         public var useSinkEventHandler: Bool = false
+
+        /// When `true`, supported nodes in the tree can cache their rendering
+        /// and track invalidation such that it will re-use the cached rendering
+        /// in some circumstances rather than performing a full re-render.
+        public var renderCachingEnabled: Bool = true
     }
 
     struct BootstrappableConfiguration {

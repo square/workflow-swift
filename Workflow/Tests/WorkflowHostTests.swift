@@ -31,14 +31,15 @@ final class WorkflowHostTests: XCTestCase {
         XCTAssertEqual(2, host.rendering.value)
     }
 
-    fileprivate struct TestWorkflow: Workflow {
+    fileprivate struct TestWorkflow: Workflow, Equatable {
         var step: Step
         enum Step {
             case first
             case second
+            case third
         }
 
-        struct State {}
+        struct State: Equatable {}
         func makeInitialState() -> State {
             State()
         }
@@ -48,9 +49,17 @@ final class WorkflowHostTests: XCTestCase {
         func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
             switch step {
             case .first:
-                1
+                _ = TestWorkflow(step: .third)
+                    .asAnyWorkflow()
+                    .rendered(in: context)
+                return 1
             case .second:
-                2
+                _ = TestWorkflow(step: .third)
+                    .asAnyWorkflow()
+                    .rendered(in: context)
+                return 2
+            case .third:
+                return 3
             }
         }
     }

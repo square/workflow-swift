@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Perception
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
@@ -38,6 +40,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
     var observer: WorkflowObserver? {
         hostContext.observer
     }
+
+    var cachedRendering: WorkflowType.Rendering?
+    var isInvalidated: Bool = true
+    var skipNextEnableEvents = false
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
 
@@ -99,6 +105,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
                 subtreeInvalidated: subtreeInvalidated
             )
 
+            isInvalidated = result.shouldInvalidate
+
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
                 outputEvent: result.output,
@@ -108,10 +116,16 @@ final class WorkflowNode<WorkflowType: Workflow> {
                         kind: .didUpdate(source: source.toDebugInfoSource())
                     )
                 },
-                subtreeInvalidated: subtreeInvalidated || result.stateChanged
+                subtreeInvalidated: subtreeInvalidated || result.shouldInvalidate
             )
 
         case .childDidUpdate(let debugInfo, let subtreeInvalidated):
+
+            // TODO: double check this logic
+            let shouldInvalidate = subtreeInvalidated || isInvalidated
+            isInvalidated = shouldInvalidate
+            if shouldInvalidate { cachedRendering = nil }
+
             output = Output(
                 outputEvent: nil,
                 debugInfo: hostContext.ifDebuggerEnabled {
@@ -139,35 +153,120 @@ final class WorkflowNode<WorkflowType: Workflow> {
             session: session
         )
 
-        let rendering: WorkflowType.Rendering
+        let newRendering: WorkflowType.Rendering
 
         defer {
-            renderObserverCompletion?(rendering)
+            renderObserverCompletion?(newRendering)
 
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        let config = hostContext.runtimeConfig
+
+        // We will reuse an existing cached rendering in cases where:
+        //  1. We have a cached rendering
+        //  2. The runtime config supports caching
+        //  3. The node has not been invalidated
+        if
+            let cachedRendering,
+            config.renderCachingEnabled,
+            !isInvalidated
+        {
+            newRendering = cachedRendering
+            // We have to do something like this otherwise we violate
+            // an invariant that event pipes are invalid until a new
+            // rendering is produced.
+            skipNextEnableEvents = true
+        } else {
+            // Otherwise, produce a new rendering, cache it if
+            // supported, and update the node validation info.
+            newRendering = subtreeManager.render { context in
+                workflow.render(state: state, context: context)
+            }
+
+            if config.renderCachingEnabled {
+                cachedRendering = newRendering
+            }
+
+            // Reset the invalidation bit since we have a fresh rendering.
+            isInvalidated = false
         }
 
-        return rendering
+        return newRendering
     }
 
     func enableEvents() {
+        // TODO: can we model this better?
+        if skipNextEnableEvents {
+            skipNextEnableEvents = false
+            return
+        }
         subtreeManager.enableEvents()
     }
 
-    /// Updates the workflow.
-    func update(workflow: WorkflowType) {
-        let oldWorkflow = self.workflow
+    /// Updates the existing workflow. Responsible for calling `workflowDidChange()`
+    /// - Parameters:
+    ///   - newWorkflow: The new `Workflow` instance to use for future renders.
+    ///   - isInvalidation: `true` iff the node should be considered 'invalid' (only relevant when render caching is supported).
+    func update(
+        workflow newWorkflow: WorkflowType,
+        isInvalidation: Bool
+    ) {
+        let oldWorkflow = workflow
 
-        workflow.workflowDidChange(from: oldWorkflow, state: &state)
-        self.workflow = workflow
+        if !hostContext.runtimeConfig.renderCachingEnabled {
+            // If we don't support render caching don't
+            // bother with any of the additional work.
+            newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+            isInvalidated = isInvalidation || true
+        } else {
+            let initiallyInvalidated = isInvalidation || isInvalidated
+            let invalidatedByUpdate: Bool
+
+            if initiallyInvalidated {
+                // If we were already invalidated (perhaps by an action), no need
+                // to do any extra checking; just update the workflow.
+                invalidatedByUpdate = true
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+            } else if let cacheableWorkflow = workflow as? (any CacheableWorkflow) {
+                func areWorkflowsEquivalent<CWF: CacheableWorkflow>(
+                    _ oldTypedWorkflow: CWF
+                ) -> Bool {
+                    let newTypedWF = newWorkflow as! CWF
+                    return CWF.isWorkflowEquivalent(oldTypedWorkflow, to: newTypedWF)
+                }
+
+                // First check if workflow instances have changed.
+                if !areWorkflowsEquivalent(cacheableWorkflow) {
+                    // If they did, we're done – no need to check the state.
+                    // Update the Workflow instance and invalidate the node.
+                    invalidatedByUpdate = true
+                    newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+                } else {
+                    // Otherwise we have to snapshot the state to check if it changed
+                    // during the update and invalidate the node if it did.
+                    let oldState = state
+                    newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+
+                    func areStatesEquivalent<CWF: CacheableWorkflow>(
+                        _ cwf: CWF
+                    ) -> Bool {
+                        let oldTypedState = oldState as! CWF.State
+                        let newTypedState = state as! CWF.State
+                        return CWF.isStateEquivalent(oldTypedState, to: newTypedState)
+                    }
+
+                    invalidatedByUpdate = areStatesEquivalent(cacheableWorkflow)
+                }
+            } else {
+                // Default behavior is to treat all updates as invalidating
+                invalidatedByUpdate = true
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+            }
+
+            isInvalidated = initiallyInvalidated || invalidatedByUpdate
+        }
+        workflow = newWorkflow
 
         observer?.workflowDidChange(
             from: oldWorkflow,
@@ -206,12 +305,10 @@ extension WorkflowNode {
         /// This will be propagated up the workflow hierarchy if present.
         var output: WorkflowType.Output?
 
-        /// Indicates whether the node's state was modified during action application.
+        /// Indicates whether the node should be invalidated by the action application.
         /// This is used to determine if the node needs to be re-rendered and to
-        /// track invalidation through the workflow hierarchy. Note that currently this
-        /// value does not definitively indicate if the state actually changed, but should
-        /// be treated as a 'dirty bit' flag – if it's set, the node should be re-rendered.
-        var stateChanged: Bool
+        /// track invalidation through the workflow hierarchy.
+        var shouldInvalidate: Bool
     }
 
     /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
@@ -247,7 +344,6 @@ extension WorkflowNode {
         defer { observerCompletion?(state, result.output) }
 
         do {
-            // FIXME: can we avoid instantiating a class here somehow?
             let context = ConcreteApplyContext(storage: workflow)
             let wrappedContext = ApplyContext.make(implementation: context)
 
@@ -261,7 +357,7 @@ extension WorkflowNode {
             ) -> ActionApplicationResult {
                 ActionApplicationResult(
                     output: action.apply(toState: &state, context: wrappedContext),
-                    stateChanged: markStateAsChanged
+                    shouldInvalidate: markStateAsChanged
                 )
             }
 
@@ -286,7 +382,7 @@ extension WorkflowNode {
                             let stateChanged = (state as! EquatableState) != initialState
                             return ActionApplicationResult(
                                 output: output,
-                                stateChanged: stateChanged
+                                shouldInvalidate: stateChanged
                             )
                         }
                         result = applyEquatableState(equatableState)
