@@ -39,6 +39,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
         hostContext.observer
     }
 
+    lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
+
     init(
         workflow: WorkflowType,
         key: String = "",
@@ -85,26 +87,28 @@ final class WorkflowNode<WorkflowType: Workflow> {
         let output: Output
 
         switch subtreeOutput {
-        case .update(let action, let source):
+        case .update(let action, let source, let subtreeInvalidated):
             /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
             /// allowing the underlying conformance to be applied to the Workflow's State
-            let outputEvent = openAndApply(
+            let result = applyAction(
                 action,
-                isExternal: source == .external
+                isExternal: source == .external,
+                subtreeInvalidated: subtreeInvalidated
             )
 
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
-                outputEvent: outputEvent,
+                outputEvent: result.output,
                 debugInfo: hostContext.ifDebuggerEnabled {
                     WorkflowUpdateDebugInfo(
                         workflowType: "\(WorkflowType.self)",
                         kind: .didUpdate(source: source.toDebugInfoSource())
                     )
-                }
+                },
+                subtreeInvalidated: subtreeInvalidated || result.stateChanged
             )
 
-        case .childDidUpdate(let debugInfo):
+        case .childDidUpdate(let debugInfo, let subtreeInvalidated):
             output = Output(
                 outputEvent: nil,
                 debugInfo: hostContext.ifDebuggerEnabled {
@@ -112,7 +116,8 @@ final class WorkflowNode<WorkflowType: Workflow> {
                         workflowType: "\(WorkflowType.self)",
                         kind: .childDidUpdate(debugInfo.unwrappedOrErrorDefault)
                     )
-                }
+                },
+                subtreeInvalidated: subtreeInvalidated
             )
         }
 
@@ -184,20 +189,29 @@ extension WorkflowNode {
     struct Output {
         var outputEvent: WorkflowType.Output?
         var debugInfo: WorkflowUpdateDebugInfo?
+        var subtreeInvalidated: Bool
     }
 }
 
 extension WorkflowNode {
+    struct ActionApplicationResult {
+        var output: WorkflowType.Output?
+        var stateChanged: Bool
+    }
+
     /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
     /// - Parameters:
     ///   - action: The `WorkflowAction` to apply
     ///   - isExternal: Whether the handled action came from the 'outside world' vs being bubbled up from a child node
     /// - Returns: An optional `Output` produced by the action application
-    private func openAndApply<A: WorkflowAction>(
+    private func applyAction<A: WorkflowAction>(
         _ action: A,
-        isExternal: Bool
-    ) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
-        let output: WorkflowType.Output?
+        isExternal: Bool,
+        subtreeInvalidated: Bool
+    ) -> ActionApplicationResult
+        where A.WorkflowType == WorkflowType
+    {
+        let result: ActionApplicationResult
 
         // handle specific observation call if this is the first node
         // processing this 'action cascade'
@@ -215,20 +229,75 @@ extension WorkflowNode {
             state: state,
             session: session
         )
-        defer { observerCompletion?(state, output) }
+        defer { observerCompletion?(state, result.output) }
 
-        /// Apply the action to the current state
+        // FIXME: can we avoid instantiating a class here somehow?
         do {
-            // FIXME: can we avoid instantiating a class here somehow?
             let context = ConcreteApplyContext(storage: workflow)
             defer { context.invalidate() }
-
             let wrappedContext = ApplyContext.make(implementation: context)
-            output = action.apply(toState: &state, context: wrappedContext)
+
+            let renderOnlyIfStateChanged = hostContext.runtimeConfig.renderOnlyIfStateChanged
+
+            // Local helper that just applies the action without
+            func performSimpleActionApplication(
+                markStateAsChanged: Bool
+            ) -> ActionApplicationResult {
+                ActionApplicationResult(
+                    output: action.apply(toState: &state, context: wrappedContext),
+                    stateChanged: markStateAsChanged // just assume something changed
+                )
+            }
+
+            // Take this path only if no known state has yet been invalidated
+            // while handling this chain of action applications. We'll handle
+            // some cases in which we can reasonably infer if state actually
+            // changed during the action application.
+            if renderOnlyIfStateChanged {
+                // Some child state already changed, so just apply the action
+                // and say our state changed as well.
+                if subtreeInvalidated {
+                    result = performSimpleActionApplication(markStateAsChanged: true)
+                } else {
+                    if let equatableState = state as? (any Equatable) {
+                        // If we can recover an Equatable conformance, then
+                        // compare before & after to see if something changed.
+                        func applyEquatableState<EquatableState: Equatable>(
+                            _ equatableState: EquatableState
+                        ) -> ActionApplicationResult {
+                            let initialState = equatableState
+                            // TODO: how does CoW work here?
+                            let output = action.apply(toState: &state, context: wrappedContext)
+                            let stateChanged = state as! EquatableState != initialState
+                            return ActionApplicationResult(
+                                output: output,
+                                stateChanged: stateChanged
+                            )
+                        }
+                        result = applyEquatableState(equatableState)
+                    } else if hasVoidState {
+                        // State is Void, so treat as no change
+                        result = performSimpleActionApplication(markStateAsChanged: false)
+                    } else {
+                        // Otherwise, assume something changed
+                        result = performSimpleActionApplication(markStateAsChanged: true)
+                    }
+                }
+            } else {
+                result = performSimpleActionApplication(markStateAsChanged: true)
+            }
         }
 
-        return output
+        return result
     }
+}
+
+// MARK: - Action Application Output
+
+struct ActionApplicationResult<Action: WorkflowAction> {
+    var output: Action.WorkflowType.Output?
+    var stateInvalidated: Bool = false
+    var subtreeInvalidated: Bool = false
 }
 
 // MARK: - Utility
@@ -238,3 +307,7 @@ extension WorkflowNode {
         session.parent == nil
     }
 }
+
+// for breakpoints
+@inline(never)
+func __debug_onRenderSkipped() {}
