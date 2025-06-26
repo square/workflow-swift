@@ -289,12 +289,14 @@ class AsyncSequenceWorkerTests: XCTestCase {
             }
 
             struct ExpectingWorker: AsyncSequenceWorker {
+                typealias Sequence = AsyncStream<Void>
+
                 typealias Output = Void
 
                 let startExpectation: XCTestExpectation
                 let endExpectation: XCTestExpectation
 
-                func run() -> any AsyncSequence {
+                func run() -> Sequence {
                     startExpectation.fulfill()
                     return AsyncStream<Output> {
                         if Task.isCancelled {
@@ -376,9 +378,11 @@ class AsyncSequenceWorkerTests: XCTestCase {
     }
 
     private struct IntWorker: AsyncSequenceWorker {
+        typealias Sequence = AsyncStream<Int>
+
         let isEquivalent: Bool
 
-        func run() -> any AsyncSequence {
+        func run() -> Sequence {
             AsyncStream<Int>(Int.self) { continuation in
                 continuation.yield(1)
                 continuation.finish()
@@ -415,7 +419,9 @@ class AsyncSequenceWorkerTests: XCTestCase {
     }
 
     private struct ContinuousIntWorker: AsyncSequenceWorker {
-        func run() -> any AsyncSequence {
+        typealias Sequence = AsyncStream<Int>
+
+        func run() -> Sequence {
             var i = 0
             return AsyncStream<Int> {
                 i += 1
