@@ -156,8 +156,16 @@ enum EventSource: Equatable {
 
 extension WorkflowNode.SubtreeManager {
     enum Output {
-        case update(any WorkflowAction<WorkflowType>, source: EventSource)
-        case childDidUpdate(WorkflowUpdateDebugInfo?)
+        case update(
+            any WorkflowAction<WorkflowType>,
+            source: EventSource,
+            subtreeInvalidated: Bool
+        )
+
+        case childDidUpdate(
+            WorkflowUpdateDebugInfo?,
+            subtreeInvalidated: Bool
+        )
     }
 }
 
@@ -334,7 +342,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
-            let output = Output.update(action, source: .external)
+            let output = Output.update(
+                action,
+                source: .external,
+                subtreeInvalidated: false // initial state
+            )
 
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.
@@ -515,10 +527,14 @@ extension WorkflowNode.SubtreeManager {
             let output = if let outputEvent = workflowOutput.outputEvent {
                 Output.update(
                     outputMap(outputEvent),
-                    source: .subtree(workflowOutput.debugInfo)
+                    source: .subtree(workflowOutput.debugInfo),
+                    subtreeInvalidated: false
                 )
             } else {
-                Output.childDidUpdate(workflowOutput.debugInfo)
+                Output.childDidUpdate(
+                    workflowOutput.debugInfo,
+                    subtreeInvalidated: false
+                )
             }
 
             eventPipe.handle(event: output)

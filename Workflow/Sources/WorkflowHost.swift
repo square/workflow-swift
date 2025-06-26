@@ -101,14 +101,23 @@ public final class WorkflowHost<WorkflowType: Workflow> {
                     workflowType: "\(WorkflowType.self)",
                     kind: .didUpdate(source: .external)
                 )
-            }
+            },
+            subtreeInvalidated: true // treat as an invalidation
         )
         handle(output: output)
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        mutableRendering.value = rootNode.render()
+        let skipRootRender = context.runtimeConfig.renderOnlyIfStateChanged
+            && !output.subtreeInvalidated
+        if skipRootRender {
+            // skip rendering – nothing changed
+            __debug_onRenderSkipped()
+        } else {
+            mutableRendering.value = rootNode.render()
+        }
 
+        // Always emit output, regardless of whether render was skipped
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
         }
@@ -118,7 +127,9 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             updateInfo: output.debugInfo.unwrappedOrErrorDefault
         )
 
-        rootNode.enableEvents()
+        if !skipRootRender {
+            rootNode.enableEvents()
+        }
     }
 
     /// A signal containing output events emitted by the root workflow in the hierarchy.
