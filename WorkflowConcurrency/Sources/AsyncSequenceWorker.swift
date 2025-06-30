@@ -51,8 +51,12 @@ struct AsyncSequenceWorkerWorkflow<WorkerType: AsyncSequenceWorker>: Workflow {
         context.runSideEffect(key: state) { lifetime in
             let sequence = worker.run()
             let task = Task { @MainActor in
-                for try await output in sequence {
-                    sink.send(AnyWorkflowAction(sendingOutput: output))
+                do {
+                    for try await output in sequence {
+                        sink.send(AnyWorkflowAction(sendingOutput: output))
+                    }
+                } catch {
+                    fatalError("AsyncSequenceWorker implementations should not throw errors on iteration: \(error)")
                 }
             }
 
