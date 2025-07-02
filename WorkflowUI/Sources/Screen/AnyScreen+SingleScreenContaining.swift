@@ -16,34 +16,6 @@
 
 #if canImport(UIKit)
 
-import UIKit
-
-public struct AnyScreen: Screen {
-    /// The original screen, retained for debugging
-    public let wrappedScreen: Screen
-
-    public init(_ screen: some Screen) {
-        if let anyScreen = screen as? AnyScreen {
-            self = anyScreen
-            return
-        }
-        self.wrappedScreen = screen
-    }
-
-    public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        wrappedScreen.viewControllerDescription(environment: environment)
-    }
-}
-
-extension Screen {
-    /// Wraps the screen in an AnyScreen
-    public func asAnyScreen() -> AnyScreen {
-        AnyScreen(self)
-    }
-}
-
-// MARK: SingleScreenContaining
-
 extension AnyScreen: SingleScreenContaining {
     public var primaryScreen: any Screen {
         wrappedScreen

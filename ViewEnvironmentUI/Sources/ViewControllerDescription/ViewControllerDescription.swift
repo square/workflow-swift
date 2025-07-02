@@ -18,7 +18,6 @@
 
 import UIKit
 import ViewEnvironment
-@_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 
 /// A ViewControllerDescription acts as a "recipe" for building and updating a specific `UIViewController`.
 /// It describes how to _create_ and later _update_ a given view controller instance, without creating one
