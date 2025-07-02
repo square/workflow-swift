@@ -17,6 +17,7 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
 
 extension UpdateChildScreenViewController where Self: UIViewController {
     /// Updates the view controller at the given `child` key path with the
