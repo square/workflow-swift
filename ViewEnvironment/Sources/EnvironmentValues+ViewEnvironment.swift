@@ -29,6 +29,23 @@ extension EnvironmentValues {
     }
 }
 
+@_spi(ViewEnvironmentWiring)
+public struct ViewEnvironmentWrapper {
+    public var viewEnvironment: ViewEnvironment
+
+    public init(_ viewEnvironment: ViewEnvironment) {
+        self.viewEnvironment = viewEnvironment
+    }
+}
+
+extension EnvironmentValues {
+    @_spi(ViewEnvironmentWiring)
+    public var viewEnvironmentWrapper: ViewEnvironmentWrapper {
+        get { ViewEnvironmentWrapper(self[ViewEnvironmentKey.self]) }
+        set { self[ViewEnvironmentKey.self] = newValue.viewEnvironment }
+    }
+}
+
 extension Environment where Value == ViewEnvironment {
     @available(
         *,
