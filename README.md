@@ -9,13 +9,6 @@ A unidirectional data flow library for Swift and [Kotlin](https://github.com/squ
 * Composition and scaling.
 * Effortless separation of business and UI concerns.
 
-_**This project is currently in development and the API subject to breaking changes without notice.**
-Follow Square's engineering blog, [The Corner](https://developer.squareup.com/blog/), to see when
-this project becomes stable._
-
-While the API is not yet stable, this code is in heavy production use in Android and iOS
-apps with millions of users.
-
 ## Using Workflows in your project
 
 ### Swift Package Manager
@@ -36,6 +29,7 @@ In Xcode 11+, add Workflow directly as a dependency to your project with
 
 ## Resources
 
+* [API Reference](https://square.github.io/workflow-swift/documentation/)
 * [Documentation](https://square.github.io/workflow/)
 
 ## Local Development
