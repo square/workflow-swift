@@ -17,8 +17,9 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
+import ViewEnvironmentUI
 import XCTest
-@testable import WorkflowUI
 
 class AdaptedEnvironmentScreenTests: XCTestCase {
     func test_wrapping() {
@@ -53,10 +54,12 @@ fileprivate struct TestScreen: Screen {
     func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
         read(environment)
 
-        return ViewController.description(for: self, environment: environment)
+        return ViewControllerDescription(
+            environment: environment,
+            build: UIViewController.init,
+            update: { _ in }
+        )
     }
-
-    private class ViewController: ScreenViewController<TestScreen> {}
 }
 
 #endif
