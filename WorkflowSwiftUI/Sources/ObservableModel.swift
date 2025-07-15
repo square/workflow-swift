@@ -147,4 +147,9 @@ extension ObservableModel {
             accessor.sendValue { $0[keyPath: keyPath] = newValue }
         }
     }
+
+    /// Allows dynamic member lookup to read state through the accessor.
+    public subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
+        accessor.state[keyPath: keyPath]
+    }
 }
