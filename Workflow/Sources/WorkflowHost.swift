@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
+import Combine
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
 public protocol WorkflowDebugger {
@@ -30,18 +30,30 @@ public protocol WorkflowDebugger {
     func didUpdate(snapshot: WorkflowHierarchyDebugSnapshot, updateInfo: WorkflowUpdateDebugInfo)
 }
 
-/// Manages an active workflow hierarchy.
-public final class WorkflowHost<WorkflowType: Workflow> {
-    private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
+public protocol WorkflowOutputPublisher {
+    associatedtype Output
 
+    var outputPublisher: AnyPublisher<Output, Never> { get }
+}
+
+/// Manages an active workflow hierarchy.
+public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher {
     // @testable
     let rootNode: WorkflowNode<WorkflowType>
 
-    private let mutableRendering: MutableProperty<WorkflowType.Rendering>
+    private let renderingSubject: CurrentValueSubject<WorkflowType.Rendering, Never>
+    private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
     /// as state transitions occur within the hierarchy.
-    public let rendering: Property<WorkflowType.Rendering>
+    public var rendering: WorkflowType.Rendering {
+        renderingSubject.value
+    }
+
+    /// A Publisher containing rendering events produced by the root workflow in the hierarchy.
+    public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
+        renderingSubject.eraseToAnyPublisher()
+    }
 
     /// Context object to pass down to descendant nodes in the tree.
     let context: HostContext
@@ -78,8 +90,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             parentSession: nil
         )
 
-        self.mutableRendering = MutableProperty(rootNode.render())
-        self.rendering = Property(mutableRendering)
+        self.renderingSubject = CurrentValueSubject(rootNode.render())
+
         rootNode.enableEvents()
 
         debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
@@ -110,12 +122,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
         let shouldRender = !shouldSkipRenderForOutput(output)
         if shouldRender {
-            mutableRendering.value = rootNode.render()
+            renderingSubject.send(rootNode.render())
         }
 
         // Always emit an output, regardless of whether a render occurs
         if let outputEvent = output.outputEvent {
-            outputEventObserver.send(value: outputEvent)
+            outputSubject.send(outputEvent)
         }
 
         debugger?.didUpdate(
@@ -129,9 +141,9 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         }
     }
 
-    /// A signal containing output events emitted by the root workflow in the hierarchy.
-    public var output: Signal<WorkflowType.Output, Never> {
-        outputEvent
+    /// A publisher containing output events emitted by the root workflow in the hierarchy.
+    public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
+        outputSubject.eraseToAnyPublisher()
     }
 }
 
