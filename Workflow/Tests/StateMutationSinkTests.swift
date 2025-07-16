@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Combine
 import ReactiveSwift
 import Workflow
 import XCTest
@@ -28,14 +29,14 @@ final class StateMutationSinkTests: XCTestCase {
 
     func test_initialValue() {
         let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
     }
 
     func test_singleUpdate() {
         let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
 
         let gotValueExpectation = expectation(description: "Got expected value")
-        host.rendering.producer.startWithValues { val in
+        let cancellable = host.renderingPublisher.sink { val in
             if val == 100 {
                 gotValueExpectation.fulfill()
             }
@@ -43,6 +44,7 @@ final class StateMutationSinkTests: XCTestCase {
 
         input.send(value: 100)
         waitForExpectations(timeout: 1, handler: nil)
+        cancellable.cancel()
     }
 
     func test_multipleUpdates() {
@@ -51,7 +53,7 @@ final class StateMutationSinkTests: XCTestCase {
         let gotValueExpectation = expectation(description: "Got expected value")
 
         var values: [Int] = []
-        host.rendering.producer.startWithValues { val in
+        let cancellable = host.renderingPublisher.sink { val in
             values.append(val)
             if val == 300 {
                 gotValueExpectation.fulfill()
@@ -63,6 +65,7 @@ final class StateMutationSinkTests: XCTestCase {
         input.send(value: 300)
         XCTAssertEqual(values, [0, 100, 200, 300])
         waitForExpectations(timeout: 1, handler: nil)
+        cancellable.cancel()
     }
 
     fileprivate struct TestWorkflow: Workflow {

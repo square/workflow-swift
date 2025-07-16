@@ -24,11 +24,11 @@ final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         host.update(workflow: TestWorkflow(step: .second))
 
-        XCTAssertEqual(2, host.rendering.value)
+        XCTAssertEqual(2, host.rendering)
     }
 
     fileprivate struct TestWorkflow: Workflow {
@@ -62,18 +62,15 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
     // Previous versions of Workflow would fatalError under this scenario
     func test_event_sent_to_invalidated_sink_during_action_handling() {
         let host = WorkflowHost(workflow: Parent())
-        let (lifetime, token) = ReactiveSwift.Lifetime.make()
-        defer { _ = token }
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
         var observedRenderCount = 0
 
         XCTAssertEqual(initialRendering.eventCount, 0)
 
-        host
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { rendering in
+        let cancelable = host
+            .renderingPublisher
+            .dropFirst()
+            .sink { rendering in
                 XCTAssertEqual(rendering.eventCount, 1)
 
                 // emit another event using an old rendering
@@ -95,9 +92,10 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         drainMainQueueBySpinningRunLoop()
 
         // Ensure the invalidated sink doesn't process the event
-        let nextRendering = host.rendering.value
+        let nextRendering = host.rendering
         XCTAssertEqual(nextRendering.eventCount, 1)
         XCTAssertEqual(observedRenderCount, 1)
+        cancelable.cancel()
     }
 
     func test_reentrant_event_during_render() {
@@ -108,20 +106,17 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
             WorkflowHost(workflow: ReentrancyWorkflow())
         }
 
-        let (lifetime, token) = ReactiveSwift.Lifetime.make()
-        defer { _ = token }
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
 
         var emitReentrantEvent = false
 
         let renderExpectation = expectation(description: "render")
         renderExpectation.expectedFulfillmentCount = 2
 
-        host
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { val in
+        let cancelable = host
+            .renderingPublisher
+            .dropFirst()
+            .sink { val in
                 defer { renderExpectation.fulfill() }
                 defer { emitReentrantEvent = true }
                 guard !emitReentrantEvent else { return }
@@ -145,6 +140,8 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         initialRendering.sink.send(.event)
 
         waitForExpectations(timeout: 1)
+
+        cancelable.cancel()
     }
 }
 
@@ -205,7 +202,7 @@ struct WorkflowHost_SinkEventHandlerTests {
             )
         }
 
-        let rendering = host.rendering.value
+        let rendering = host.rendering
 
         let eventHandler = host.sinkEventHandler
         #expect(eventHandler.state == .ready)
@@ -254,7 +251,7 @@ struct WorkflowHost_SinkEventHandlerTests {
             )
         }
 
-        let rendering = host.rendering.value
+        let rendering = host.rendering
         let eventHandler = host.sinkEventHandler
 
         var didEmit = false

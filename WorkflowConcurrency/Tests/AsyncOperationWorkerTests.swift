@@ -26,16 +26,16 @@ final class AsyncOperationWorkerTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.renderingPublisher.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testAsyncWorkerRunsOnlyOnce() {
@@ -44,19 +44,19 @@ final class AsyncOperationWorkerTests: XCTestCase {
         )
 
         var expectation = XCTestExpectation()
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.renderingPublisher.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
 
         expectation = XCTestExpectation()
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.renderingPublisher.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -66,9 +66,9 @@ final class AsyncOperationWorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         // If the render value is 1 then the state has not been incremented
         // by running the worker's async operation again.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testCancelAsyncOperationWorker() {

@@ -71,10 +71,10 @@ let package = Package(
             name: "Workflow",
             dependencies: [
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
-                .product(name: "ReactiveSwift", package: "ReactiveSwift"),
             ],
             path: "Workflow/Sources"
         ),
+
         .target(
             name: "WorkflowTesting",
             dependencies: [
