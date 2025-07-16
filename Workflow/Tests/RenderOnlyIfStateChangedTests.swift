@@ -33,8 +33,8 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let disposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { disposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(host.rendering.value.count, 0)
@@ -50,8 +50,8 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
             let host = WorkflowHost(workflow: CounterWorkflow())
 
             var renderCount = 0
-            let disposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-            defer { disposable?.dispose() }
+            let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+            defer { cancellable.cancel() }
 
             XCTAssertEqual(renderCount, 0)
             XCTAssertEqual(host.rendering.value.count, 0)
@@ -67,8 +67,8 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let disposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { disposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(host.rendering.value.count, 0)
@@ -85,11 +85,11 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputs: [Int] = []
 
-        let renderDisposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { renderDisposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
-        let outputDisposable = host.output.observeValues { outputs.append($0) }
-        defer { outputDisposable?.dispose() }
+        let outputCancellable = host.outputPublisher.sink(receiveValue: { outputs.append($0) })
+        defer { outputCancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputs, [])
@@ -104,8 +104,8 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: ParentWorkflow())
 
         var renderCount = 0
-        let disposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { disposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
 
@@ -118,8 +118,8 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let disposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { disposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
 
@@ -134,11 +134,11 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputCount = 0
 
-        let renderDisposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        defer { renderDisposable?.dispose() }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        defer { cancellable.cancel() }
 
-        let outputDisposable = host.output.observeValues { _ in outputCount += 1 }
-        defer { outputDisposable?.dispose() }
+        let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
+        defer { outputCancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputCount, 0)
@@ -156,12 +156,12 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputCount = 0
 
-        let renderDisposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        let outputDisposable = host.output.observeValues { _ in outputCount += 1 }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
 
         defer {
-            renderDisposable?.dispose()
-            outputDisposable?.dispose()
+            cancellable.cancel()
+            outputCancellable.cancel()
         }
 
         XCTAssertEqual(outputCount, 0)
@@ -185,12 +185,12 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputCount = 0
 
-        let renderDisposable = host.rendering.signal.observeValues { _ in renderCount += 1 }
-        let outputDisposable = host.output.observeValues { _ in outputCount += 1 }
+        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
 
         defer {
-            renderDisposable?.dispose()
-            outputDisposable?.dispose()
+            cancellable.cancel()
+            outputCancellable.cancel()
         }
 
         XCTAssertEqual(outputCount, 0)
