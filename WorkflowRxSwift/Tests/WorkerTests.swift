@@ -44,16 +44,16 @@ class WorkerTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.renderingPublisher.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     // A worker declared on a first `render` pass that is not on a subsequent should have the work cancelled.

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
 import XCTest
 @testable import Workflow
 
