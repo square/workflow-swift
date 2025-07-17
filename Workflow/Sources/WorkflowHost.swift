@@ -68,7 +68,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         self.context = HostContext(
             observer: observer,
-            debugger: debugger
+            debugger: debugger,
+            runtimeConfig: Runtime.configuration
         )
 
         self.rootNode = WorkflowNode(
@@ -130,16 +131,19 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
 /// A context object to expose certain root-level information to each node
 /// in the Workflow tree.
-final class HostContext {
+struct HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
+    let runtimeConfig: Runtime.Configuration
 
     init(
         observer: WorkflowObserver?,
-        debugger: WorkflowDebugger?
+        debugger: WorkflowDebugger?,
+        runtimeConfig: Runtime.Configuration
     ) {
         self.observer = observer
         self.debugger = debugger
+        self.runtimeConfig = runtimeConfig
     }
 }
 
