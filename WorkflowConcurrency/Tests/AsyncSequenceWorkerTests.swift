@@ -10,7 +10,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -19,7 +19,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testNotEquivalentWorker() {
@@ -32,7 +32,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Set to observe renderings.
         // This expectation should be called after the IntWorker runs
         // and updates the state.
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -44,11 +44,11 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering after the worker runs is correct.
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         expectation = XCTestExpectation()
         // Set to observe renderings.
         // This expectation should be called after the add one action is sent.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -60,12 +60,12 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering equals 2 now that the action has run.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         expectation = XCTestExpectation()
         // Set to observe renderings
         // Since isEquivalent is set to false in the worker
         // the worker should run again and update the rendering.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -74,7 +74,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Verify the rendering changed after the worker is run.
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testEquivalentWorker() {
@@ -87,7 +87,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Set to observe renderings.
         // This expectation should be called after the IntWorker runs
         // and updates the state.
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -99,11 +99,11 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering after the worker runs is correct.
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         expectation = XCTestExpectation()
         // Set to observe renderings.
         // This expectation should be called after the add one action is sent.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -115,13 +115,13 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering equals 2 now that the action has run.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         // Set to observe renderings
         // This expectation should be called after the workflow is updated.
         // After the host is updated with a new workflow instance the
         // initial state should be 2.
         expectation = XCTestExpectation()
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -132,13 +132,13 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering matches the existing state.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         // The workflow should not produce another rendering.
         expectation = XCTestExpectation()
         // The expectation is inverted because there should not be another rendering
         // since the worker returned isEquivalent is true.
         expectation.isInverted = true
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             // This should not be called!
             expectation.fulfill()
         }
@@ -148,7 +148,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Verify the rendering didn't change and is still 2.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testChangingIsEquivalent() {
@@ -161,7 +161,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Set to observe renderings.
         // This expectation should be called after the IntWorker runs and
         // updates the state.
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -173,11 +173,11 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering after the worker runs is correct.
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         expectation = XCTestExpectation()
         // Set to observe renderings.
         // This expectation should be called after the add one action is sent.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -189,13 +189,13 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering equals 2 now that the action has run.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         // Set to observe renderings.
         // This expectation should be called after the workflow is updated.
         // After the host is updated with a new workflow instance the
         // initial state should be 2.
         expectation = XCTestExpectation()
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -206,12 +206,12 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Test to make sure the rendering matches the existing state.
         XCTAssertEqual(2, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
         expectation = XCTestExpectation()
         // Set to observe renderings
         // Since isEquivalent is set to false in the worker
         // the worker should run again and update the rendering.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.rendering.dropFirst().sink { _ in
             expectation.fulfill()
         }
 
@@ -220,7 +220,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         // Verify the rendering changed after the worker is run.
         XCTAssertEqual(1, host.rendering.value.intValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testContinuousIntWorker() {
@@ -231,7 +231,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         let expectation = XCTestExpectation()
         expectation.expectedFulfillmentCount = 5
         var expectedInt = 0
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { rendering in
             expectedInt += 1
             XCTAssertEqual(expectedInt, rendering)
             expectation.fulfill()
@@ -242,7 +242,7 @@ class AsyncSequenceWorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         XCTAssertEqual(expectedInt, host.rendering.value)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testExpectedWorker() {

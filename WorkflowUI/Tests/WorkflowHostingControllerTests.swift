@@ -86,7 +86,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         let expectation = XCTestExpectation(description: "Output")
 
-        let disposable = container.output.observeValues { value in
+        let cancellable = container.outputPublisher.sink { value in
             XCTAssertEqual(3, value)
             expectation.fulfill()
         }
@@ -95,7 +95,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         wait(for: [expectation], timeout: 1.0)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_container_with_anyworkflow() {
@@ -105,7 +105,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         let expectation = XCTestExpectation(description: "Output")
 
-        let disposable = container.output.observeValues { value in
+        let cancellable = container.outputPublisher.sink { value in
             XCTAssertEqual(3, value)
             expectation.fulfill()
         }
@@ -114,7 +114,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         wait(for: [expectation], timeout: 1.0)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_container_update_causes_rerender() {
@@ -148,7 +148,7 @@ class WorkflowHostingControllerTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Second output")
 
         // First output comes before we subscribe
-        let disposable = container.output.observeValues { value in
+        let cancellable = container.outputPublisher.sink { value in
             XCTAssertEqual(3, value)
             expectation.fulfill()
         }
@@ -158,7 +158,7 @@ class WorkflowHostingControllerTests: XCTestCase {
 
         wait(for: [expectation], timeout: 1.0)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_environment_bridging() throws {
