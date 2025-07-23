@@ -34,7 +34,7 @@ extension WorkflowAction {
         WorkflowActionTester(
             state: state,
             context: TestApplyContext(
-                kind: workflow.map { .workflow($0) } ?? .expectations([:])
+                kind: workflow.map { .workflow($0) } ?? .unsupported
             )
         )
     }
@@ -211,7 +211,10 @@ struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
         // FIXME: flesh this out to support 'just in time' values
         // rather than requiring a full Workflow instance to be provided
         // https://github.com/square/workflow-swift/issues/351
-        case expectations([AnyKeyPath: Any])
+        // case expectations([AnyKeyPath: Any])
+
+        /// The client provided no means to resolve values at runtime, and lookups will fail with a runtime error
+        case unsupported
     }
 
     var storage: TestContextKind
@@ -226,23 +229,18 @@ struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
         switch storage {
         case .workflow(let workflow):
             return workflow[keyPath: keyPath]
-        case .expectations(var expectedValues):
-            guard
-                // We have an expected value
-                let value = expectedValues.removeValue(forKey: keyPath),
-                // And it's the right type
-                let value = value as? Value
-            else {
-                // We're expecting a value of optional type. Error, but don't crash
-                // since we can just return nil.
-                if Value.self is OptionalProtocol.Type {
-                    reportIssue("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
-                    return Any?.none as! Value
-                } else {
-                    fatalError("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
-                }
+        // TODO: implement https://github.com/square/workflow-swift/issues/351
+//        case .expectations:
+//            fatalError("Not yet supported")
+        case .unsupported:
+            // If we're expecting a value of optional type. Error, but don't crash
+            // since we can just return nil.
+            if Value.self is OptionalProtocol.Type {
+                reportIssue("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
+                return Any?.none as! Value
+            } else {
+                fatalError("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
             }
-            return value
         }
     }
 }
