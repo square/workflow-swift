@@ -17,7 +17,7 @@
 /// System for managing configuration options for Workflow runtime behaviors.
 /// - important: These interfaces are subject to breaking changes without corresponding semantic
 /// versioning changes.
-@_spi(RuntimeConfig)
+@_spi(WorkflowRuntimeConfig)
 public enum Runtime {
     @TaskLocal
     static var _currentConfiguration: Configuration?

@@ -16,7 +16,7 @@
 
 import Foundation
 
-@_spi(RuntimeConfig) @testable import Workflow
+@_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 /// Renders to a model that contains a callback, which in turn sends an output event.
 struct StateTransitioningWorkflow: Workflow {

@@ -15,7 +15,7 @@
  */
 
 import XCTest
-@_spi(RuntimeConfig) @testable import Workflow
+@_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {

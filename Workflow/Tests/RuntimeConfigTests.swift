@@ -16,7 +16,7 @@
 
 import Testing
 
-@_spi(RuntimeConfig) @testable import Workflow
+@_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 @MainActor
 struct RuntimeConfigTests {
