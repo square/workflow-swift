@@ -21,7 +21,12 @@ import XCTest
 @testable import Workflow
 
 extension WorkflowAction {
-    /// Returns a state tester containing `self`.
+    /// Returns a `WorkflowActionTester` with the given state before the `WorkflowAction` has been applied to it.
+    ///
+    /// - Parameters:
+    ///   - state: The `WorkflowType.State` instance that specifies the state before the `WorkflowAction` has been applied.
+    ///   - workflow: An optional `WorkflowType` instance to be used if the `WorkflowAction` needs to read workflow properties off of the `ApplyContext` parameter during action application. If this parameter is unspecified, attempts to access the `WorkflowType`'s properties will error in the testing runtime.
+    /// - Returns: An appropriately-configured `WorkflowActionTester`.
     public static func tester(
         withState state: WorkflowType.State,
         workflow: WorkflowType? = nil
@@ -69,6 +74,19 @@ extension WorkflowAction {
 ///     .send(action: .exampleAction)
 ///     .assert(output: .finished)
 ///     .assert(state: .differentState)
+/// ```
+///
+/// If the `Action` under test uses the runtime's `ApplyContext` to read values from the
+/// current `Workflow` instance, then an instance of the `Workflow` with the expected
+/// properties that will be read during `send(action:)` must be supplied like:
+/// ```
+/// MyWorkflow.Action
+///     .tester(
+///         withState: .firstState,
+///         workflow: MyWorkflow(prop: 42)
+///     )
+///     .send(action: .exampleActionThatReadsWorkflowProp)
+///     .assert(...)
 /// ```
 public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where Action.WorkflowType == WorkflowType {
     /// The current state
@@ -209,10 +227,25 @@ struct TestApplyContext<Wrapped: Workflow>: ApplyContextType {
         case .workflow(let workflow):
             return workflow[keyPath: keyPath]
         case .expectations(var expectedValues):
-            guard let value = expectedValues.removeValue(forKey: keyPath) as? Value else {
-                fatalError("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
+            guard
+                // We have an expected value
+                let value = expectedValues.removeValue(forKey: keyPath),
+                // And it's the right type
+                let value = value as? Value
+            else {
+                // We're expecting a value of optional type. Error, but don't crash
+                // since we can just return nil.
+                if Value.self is OptionalProtocol.Type {
+                    reportIssue("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
+                    return Any?.none as! Value
+                } else {
+                    fatalError("Attempted to read value \(keyPath as AnyKeyPath), when applying an action, but no value was present. Pass an instance of the Workflow to the ActionTester to enable this functionality.")
+                }
             }
             return value
         }
     }
 }
+
+private protocol OptionalProtocol {}
+extension Optional: OptionalProtocol {}

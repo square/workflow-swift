@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import IssueReporting
 import Workflow
 import XCTest
+
 @testable import WorkflowTesting
 
 final class WorkflowActionTesterTests: XCTestCase {
@@ -112,14 +114,34 @@ extension WorkflowActionTesterTests {
                 withState: true,
                 workflow: TestWorkflow(prop: 42)
             )
-            .send(action: .readProps)
+            .send(action: .readProp)
             .assert(state: true)
-            .assert(output: .value("read props: 42"))
+            .assert(output: .value("read prop: 42"))
+    }
+
+    func test_new_api_works_with_optional_props() {
+        TestActionWithProps
+            .tester(
+                withState: true,
+                workflow: TestWorkflow(prop: 42, optionalProp: 22)
+            )
+            .send(action: .readOptionalProp)
+            .assert(state: true)
+            .assert(output: .value("read optional prop: 22"))
+
+        TestActionWithProps
+            .tester(
+                withState: true,
+                workflow: TestWorkflow(prop: 42, optionalProp: nil)
+            )
+            .send(action: .readOptionalProp)
+            .assert(state: true)
+            .assert(output: .value("read optional prop: <nil>"))
     }
 
     // FIXME: ideally an 'exit/death test' would somehow be used for this...
     /*
-     func test_old_api_explodes_if_you_use_props() {
+     func test_old_api_explodes_if_accessing_through_apply_context() {
          XCTExpectFailure("This test should fail")
 
          TestActionWithProps
@@ -128,6 +150,15 @@ extension WorkflowActionTesterTests {
              .assert(state: true)
      }
       */
+
+    func test_old_api_errors_accessing_optional_through_apply_context_without_proper_setup() {
+        withExpectedIssue("reading optional value through context without workflow should fail but not crash") {
+            TestActionWithProps
+                .tester(withState: true)
+                .send(action: .readOptionalProp)
+                .assert(state: true)
+        }
+    }
 }
 
 // MARK: -
@@ -135,7 +166,8 @@ extension WorkflowActionTesterTests {
 private enum TestActionWithProps: WorkflowAction {
     typealias WorkflowType = TestWorkflow
 
-    case readProps
+    case readProp
+    case readOptionalProp
     case dontReadProps
 
     func apply(
@@ -146,9 +178,13 @@ private enum TestActionWithProps: WorkflowAction {
         case .dontReadProps:
             return .value("did not read props")
 
-        case .readProps:
+        case .readProp:
             let prop = context[workflowValue: \.prop]
-            return .value("read props: \(prop)")
+            return .value("read prop: \(prop)")
+
+        case .readOptionalProp:
+            let optionalProp = context[workflowValue: \.optionalProp]
+            return .value("read optional prop: \(optionalProp?.description ?? "<nil>")")
         }
     }
 }
@@ -179,6 +215,7 @@ private struct TestWorkflow: Workflow {
     }
 
     var prop = 0
+    var optionalProp: Int? = 42
 
     func makeInitialState() -> Bool {
         true
