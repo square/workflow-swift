@@ -16,7 +16,7 @@
 
 import Foundation
 
-@testable import Workflow
+@_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 /// Renders to a model that contains a callback, which in turn sends an output event.
 struct StateTransitioningWorkflow: Workflow {
@@ -62,11 +62,13 @@ struct StateTransitioningWorkflow: Workflow {
 extension HostContext {
     static func testing(
         observer: WorkflowObserver? = nil,
-        debugger: WorkflowDebugger? = nil
+        debugger: WorkflowDebugger? = nil,
+        runtimeConfig: Runtime.Configuration = Runtime.configuration
     ) -> HostContext {
         HostContext(
             observer: observer,
-            debugger: debugger
+            debugger: debugger,
+            runtimeConfig: runtimeConfig
         )
     }
 }
@@ -93,5 +95,13 @@ extension ApplyContext {
 
     var concreteStorage: WorkflowType? {
         wrappedConcreteContext?.storage
+    }
+}
+
+// MARK: - Runtime.Config
+
+extension Runtime {
+    static func resetConfig() {
+        Runtime._bootstrapConfiguration = .init()
     }
 }

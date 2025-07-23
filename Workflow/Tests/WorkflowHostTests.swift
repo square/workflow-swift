@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import Workflow
 import XCTest
+@_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
@@ -84,6 +84,32 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         initialRendering.eventHandler()
 
         XCTAssertEqual(observedRenderCount, 1)
+    }
+}
+
+// MARK: Runtime Configuration
+
+extension WorkflowHostTests {
+    func test_inherits_default_runtime_config() {
+        let host = WorkflowHost(
+            workflow: TestWorkflow(step: .first)
+        )
+
+        XCTAssertEqual(host.context.runtimeConfig, .default)
+    }
+
+    func test_inherits_custom_runtime_config() {
+        var customConfig = Runtime.configuration
+        XCTAssertFalse(customConfig.renderOnlyIfStateChanged)
+
+        customConfig.renderOnlyIfStateChanged = true
+        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
+            WorkflowHost(
+                workflow: TestWorkflow(step: .first)
+            )
+        }
+
+        XCTAssertEqual(host.context.runtimeConfig.renderOnlyIfStateChanged, true)
     }
 }
 
