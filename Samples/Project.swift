@@ -159,7 +159,10 @@ let project = Project(
         .unitTest(
             for: "Workflow",
             sources: "../Workflow/Tests/**",
-            dependencies: [.external(name: "Workflow")]
+            dependencies: [
+                .external(name: "ReactiveSwift"),
+                .external(name: "Workflow"),
+            ]
         ),
         .unitTest(
             for: "WorkflowTesting",
@@ -247,6 +250,17 @@ let project = Project(
             for: "WorkflowUI",
             sources: "../WorkflowUI/Tests/**",
             dependencies: [
+                .external(name: "WorkflowUI"),
+                .external(name: "WorkflowReactiveSwift"),
+                .target(name: "TestAppHost"),
+            ]
+        ),
+
+        .unitTest(
+            for: "WorkflowUIReactiveSwift",
+            sources: "../WorkflowUIReactiveSwift/Tests/**",
+            dependencies: [
+                .external(name: "WorkflowUIReactiveSwift"),
                 .external(name: "WorkflowUI"),
                 .external(name: "WorkflowReactiveSwift"),
                 .target(name: "TestAppHost"),

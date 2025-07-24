@@ -29,7 +29,7 @@ final class ConcurrencyTests: XCTestCase {
         var first = true
         var observedScreen: TestScreen?
 
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.sink { rendering in
             if first {
                 expectation.fulfill()
                 first = false
@@ -47,12 +47,10 @@ final class ConcurrencyTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         guard let screen = observedScreen else {
             XCTFail("Screen was not updated.")
-            disposable?.dispose()
             return
         }
         XCTAssertEqual(1, screen.count)
-
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     // Events emitted between `render` on a workflow and `enableEvents` are queued and will be delivered asynchronously after rendering is updated.
@@ -62,7 +60,7 @@ final class ConcurrencyTests: XCTestCase {
         let renderingExpectation = expectation(description: "Waiting on rendering values.")
         var first = true
 
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { rendering in
             if first {
                 first = false
                 // Emit an event when the rendering is first received.
@@ -81,8 +79,7 @@ final class ConcurrencyTests: XCTestCase {
         waitForExpectations(timeout: 1)
 
         XCTAssertEqual(2, host.rendering.value.count)
-
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_multipleQueuedEvents() {
@@ -91,7 +88,7 @@ final class ConcurrencyTests: XCTestCase {
         let renderingExpectation = expectation(description: "Waiting on rendering values.")
         var renderingValuesCount = 0
 
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { rendering in
             if renderingValuesCount == 0 {
                 // Emit two events.
                 rendering.update()
@@ -116,8 +113,7 @@ final class ConcurrencyTests: XCTestCase {
         waitForExpectations(timeout: 1)
 
         XCTAssertEqual(3, host.rendering.value.count)
-
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     // A `sink` is invalidated after a single action has been received. However, if the next `render` pass uses a sink
@@ -232,7 +228,7 @@ final class ConcurrencyTests: XCTestCase {
         var first = true
 
         let renderingsComplete = expectation(description: "Waiting for renderings")
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { rendering in
             if first {
                 first = false
                 rendering.update()
@@ -249,8 +245,7 @@ final class ConcurrencyTests: XCTestCase {
         XCTAssertEqual(2, debugger.snapshots.count)
         XCTAssertEqual("1", debugger.snapshots[0].stateDescription)
         XCTAssertEqual("2", debugger.snapshots[1].stateDescription)
-
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_childWorkflowsAreSynchronous() {
@@ -318,11 +313,11 @@ final class ConcurrencyTests: XCTestCase {
 
         let renderingExpectation = XCTestExpectation()
         let outputExpectation = XCTestExpectation()
-        let outDisposable = host.output.signal.observeValues { output in
+        let outputCancellable = host.outputPublisher.sink { output in
             outputExpectation.fulfill()
         }
 
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.sink { rendering in
             renderingExpectation.fulfill()
         }
 
@@ -337,8 +332,8 @@ final class ConcurrencyTests: XCTestCase {
 
         XCTAssertEqual(101, host.rendering.value.count)
 
-        disposable?.dispose()
-        outDisposable?.dispose()
+        cancellable.cancel()
+        outputCancellable.cancel()
     }
 
     // Since event pipes are reused for the same type, validate that the `AnyWorkflowAction`

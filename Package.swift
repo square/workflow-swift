@@ -24,6 +24,10 @@ let package = Package(
         .singleTargetLibrary("WorkflowUI"),
         .singleTargetLibrary("WorkflowSwiftUI"),
 
+        // MARK: WorkflowUIReactiveSwift
+
+        .singleTargetLibrary("WorkflowUIReactiveSwift"),
+
         // MARK: WorkflowReactiveSwift
 
         .singleTargetLibrary("WorkflowReactiveSwift"),
@@ -68,12 +72,11 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
             path: "Workflow/Sources"
         ),
         .testTarget(
             name: "WorkflowTests",
-            dependencies: ["Workflow"],
+            dependencies: ["ReactiveSwift", "Workflow"],
             path: "Workflow/Tests"
         ),
         .target(
@@ -102,6 +105,19 @@ let package = Package(
             name: "WorkflowUITests",
             dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
             path: "WorkflowUI/Tests"
+        ),
+
+        // MARK: WorkflowUIReactiveSwift
+
+        .target(
+            name: "WorkflowUIReactiveSwift",
+            dependencies: ["ReactiveSwift", "Workflow", "WorkflowUI", "ViewEnvironment", "ViewEnvironmentUI"],
+            path: "WorkflowUIReactiveSwift/Sources"
+        ),
+        .testTarget(
+            name: "WorkflowUIReactiveSwiftTests",
+            dependencies: ["WorkflowUIReactiveSwift", "WorkflowReactiveSwift"],
+            path: "WorkflowUIReactiveSwift/Tests"
         ),
 
         // MARK: WorkflowSwiftUI

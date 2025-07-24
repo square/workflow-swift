@@ -9,6 +9,7 @@ let workspace = Workspace(
         .workflow("Workflow"),
         .workflow("WorkflowTesting"),
         .workflow("WorkflowUI"),
+        .workflow("WorkflowUIReactiveSwift"),
         .workflow("WorkflowSwiftUI"),
         .workflow("WorkflowSwiftUIMacros"),
         .workflow("WorkflowReactiveSwift"),
