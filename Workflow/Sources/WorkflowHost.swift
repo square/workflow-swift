@@ -108,16 +108,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        let skipRootRender = context.runtimeConfig.renderOnlyIfStateChanged
-            && !output.subtreeInvalidated
-        if skipRootRender {
-            // skip rendering – nothing changed
-            __debug_onRenderSkipped()
-        } else {
+        let shouldRender = !shouldSkipRenderForOutput(output)
+        if shouldRender {
             mutableRendering.value = rootNode.render()
         }
 
-        // Always emit output, regardless of whether render was skipped
+        // Always emit an output, regardless of whether a render occurs
         if let outputEvent = output.outputEvent {
             outputEventObserver.send(value: outputEvent)
         }
@@ -127,7 +123,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             updateInfo: output.debugInfo.unwrappedOrErrorDefault
         )
 
-        if !skipRootRender {
+        // If we rendered, the event pipes must be re-enabled
+        if shouldRender {
             rootNode.enableEvents()
         }
     }
@@ -135,6 +132,20 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// A signal containing output events emitted by the root workflow in the hierarchy.
     public var output: Signal<WorkflowType.Output, Never> {
         outputEvent
+    }
+}
+
+// MARK: - Conditional Rendering Utilities
+
+extension WorkflowHost {
+    private func shouldSkipRenderForOutput(
+        _ output: WorkflowNode<WorkflowType>.Output
+    ) -> Bool {
+        // We can skip the render pass if:
+        //  1. The runtime config supports this behavior.
+        //  2. No subtree invalidation occurred during action processing.
+        context.runtimeConfig.renderOnlyIfStateChanged
+            && !output.subtreeInvalidated
     }
 }
 

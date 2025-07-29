@@ -86,6 +86,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
     private func handle(subtreeOutput: SubtreeManager.Output) {
         let output: Output
 
+        // In all cases, propagate subtree invalidation. We should go from
+        // `false` -> `true` if the action application result indicates
+        // that a child node's state changed.
         switch subtreeOutput {
         case .update(let action, let source, let subtreeInvalidated):
             /// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
@@ -189,6 +192,9 @@ extension WorkflowNode {
     struct Output {
         var outputEvent: WorkflowType.Output?
         var debugInfo: WorkflowUpdateDebugInfo?
+        /// Indicates whether a node in the subtree of the current node (self-inclusive)
+        /// should be considered by the runtime to have changed, and thus be invalid
+        /// from the perspective of needing to be re-rendered.
         var subtreeInvalidated: Bool
     }
 }
@@ -241,9 +247,9 @@ extension WorkflowNode {
 
             let renderOnlyIfStateChanged = hostContext.runtimeConfig.renderOnlyIfStateChanged
 
-            // Local helper that just applies the action without any extra logic,
-            // and allows the caller to decide whether the state should be marked
-            // as having changed.
+            // Local helper that applies the action without any extra logic, and
+            // allows the caller to decide whether the state should be marked as
+            // having changed.
             func performSimpleActionApplication(
                 markStateAsChanged: Bool
             ) -> ActionApplicationResult {
@@ -269,7 +275,7 @@ extension WorkflowNode {
                         func applyEquatableState<EquatableState: Equatable>(
                             _ initialState: EquatableState
                         ) -> ActionApplicationResult {
-                            // TODO: is there a CoW tax here?
+                            // TODO: is there a CoW tax (that matters) here?
                             let output = action.apply(toState: &state, context: wrappedContext)
                             let stateChanged = (state as! EquatableState) != initialState
                             return ActionApplicationResult(
@@ -295,14 +301,6 @@ extension WorkflowNode {
     }
 }
 
-// MARK: - Action Application Output
-
-struct ActionApplicationResult<Action: WorkflowAction> {
-    var output: Action.WorkflowType.Output?
-    var stateInvalidated: Bool = false
-    var subtreeInvalidated: Bool = false
-}
-
 // MARK: - Utility
 
 extension WorkflowNode {
@@ -310,7 +308,3 @@ extension WorkflowNode {
         session.parent == nil
     }
 }
-
-// for breakpoints
-@inline(never)
-func __debug_onRenderSkipped() {}

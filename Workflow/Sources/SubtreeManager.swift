@@ -155,13 +155,25 @@ enum EventSource: Equatable {
 }
 
 extension WorkflowNode.SubtreeManager {
+    /// The possible output types that a SubtreeManager can produce.
     enum Output {
+        /// Indicates that an event produced a `WorkflowAction` to apply to the node.
+        ///
+        /// - Parameters:
+        ///   - action: The `WorkflowAction` to be applied to the node.
+        ///   - source: The event source that triggered this update. This is primarily used to differentiate between 'external' events and events that originate from the subtree itself.
+        ///   - subtreeInvalidated: A boolean indicating whether at least one descendant workflow has been invalidated during this update.
         case update(
             any WorkflowAction<WorkflowType>,
             source: EventSource,
             subtreeInvalidated: Bool
         )
 
+        /// Indicates that a child workflow within the subtree handled an event and was updated. This informs the parent node about the change and propagates the update 'up' the tree.
+        ///
+        /// - Parameters:
+        ///   - debugInfo: Optional debug information about the workflow update.
+        ///   - subtreeInvalidated: A boolean indicating whether at least one descendant workflow has been invalidated during this update.
         case childDidUpdate(
             WorkflowUpdateDebugInfo?,
             subtreeInvalidated: Bool
