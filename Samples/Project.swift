@@ -255,17 +255,6 @@ let project = Project(
                 .target(name: "TestAppHost"),
             ]
         ),
-
-        .unitTest(
-            for: "WorkflowUIReactiveSwift",
-            sources: "../WorkflowUIReactiveSwift/Tests/**",
-            dependencies: [
-                .external(name: "WorkflowUIReactiveSwift"),
-                .external(name: "WorkflowUI"),
-                .external(name: "WorkflowReactiveSwift"),
-                .target(name: "TestAppHost"),
-            ]
-        ),
     ],
     schemes: [
         .scheme(

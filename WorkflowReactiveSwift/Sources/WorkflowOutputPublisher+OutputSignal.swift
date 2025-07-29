@@ -2,8 +2,8 @@ import Combine
 import ReactiveSwift
 import Workflow
 
-extension WorkflowHost {
-    public var output: Signal<WorkflowType.Output, Never> {
+extension WorkflowOutputPublisher {
+    public var output: Signal<Output, Never> {
         Signal.unserialized { observer, lifetime in
             let cancellable = outputPublisher.sink(
                 receiveCompletion: { completion in

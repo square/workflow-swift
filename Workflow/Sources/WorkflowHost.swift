@@ -30,8 +30,14 @@ public protocol WorkflowDebugger {
     func didUpdate(snapshot: WorkflowHierarchyDebugSnapshot, updateInfo: WorkflowUpdateDebugInfo)
 }
 
+public protocol WorkflowOutputPublisher {
+    associatedtype Output
+
+    var outputPublisher: AnyPublisher<Output, Never> { get }
+}
+
 /// Manages an active workflow hierarchy.
-public final class WorkflowHost<WorkflowType: Workflow> {
+public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher {
     // @testable
     let rootNode: WorkflowNode<WorkflowType>
 

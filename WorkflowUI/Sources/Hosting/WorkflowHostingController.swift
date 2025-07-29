@@ -22,7 +22,7 @@ import UIKit
 import Workflow
 
 /// Drives view controllers from a root Workflow.
-public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIViewController where ScreenType: Screen {
+public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIViewController, WorkflowOutputPublisher where ScreenType: Screen {
     public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
 
     /// Emits output events from the bound workflow.
