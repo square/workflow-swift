@@ -20,9 +20,11 @@ import XCTest
 
 import ReactiveSwift
 import Workflow
-@testable import WorkflowUI
+@_spi(DynamicControllerTypes) @testable import WorkflowUI
 
 fileprivate class BlankViewController: UIViewController {}
+fileprivate class BlankViewControllerSubclass: BlankViewController {}
+fileprivate class SecondBlankViewController: UIViewController {}
 
 @objc fileprivate protocol MyProtocol {
     func update()
@@ -202,6 +204,53 @@ class ViewControllerDescriptionTests: XCTestCase {
 
         let viewControllerAgain = description.buildViewController()
         XCTAssertFalse(viewController === viewControllerAgain)
+    }
+
+    func test_dynamicTypeInspection() {
+        func obfuscatedController() -> UIViewController { BlankViewController() }
+        let controller = obfuscatedController()
+
+        // kind.viewControllerType == BlankViewController.self.
+        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
+        let descriptionWithDynamicType = ViewControllerDescription(
+            dynamicType: type(of: controller),
+            environment: .empty,
+            build: { controller },
+            update: { _ in }
+        )
+        XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: obfuscatedController()))
+        XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: BlankViewController()))
+        XCTAssertFalse(descriptionWithDynamicType.canUpdate(viewController: UIViewController()))
+        XCTAssertFalse(descriptionWithDynamicType.canUpdate(viewController: SecondBlankViewController()))
+        XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: BlankViewControllerSubclass()))
+
+        // kind.viewControllerType == UIViewController.self.
+        // canUpdate(viewController:) evaluates to true for any UIViewController type.
+        let descriptionWithStaticSupertype = ViewControllerDescription(
+            type: type(of: controller),
+            environment: .empty,
+            build: { controller },
+            update: { _ in }
+        )
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: obfuscatedController()))
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: BlankViewController()))
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: UIViewController()))
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: SecondBlankViewController()))
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: BlankViewControllerSubclass()))
+
+        // kind.viewControllerType == BlankViewController.self.
+        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
+        let descriptionWithStaticSubtype = ViewControllerDescription(
+            type: BlankViewController.self,
+            environment: .empty,
+            build: { BlankViewController() },
+            update: { _ in }
+        )
+        XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: obfuscatedController()))
+        XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: BlankViewController()))
+        XCTAssertFalse(descriptionWithStaticSubtype.canUpdate(viewController: UIViewController()))
+        XCTAssertFalse(descriptionWithStaticSubtype.canUpdate(viewController: SecondBlankViewController()))
+        XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: BlankViewControllerSubclass()))
     }
 }
 
