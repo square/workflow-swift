@@ -540,12 +540,12 @@ extension WorkflowNode.SubtreeManager {
                 Output.update(
                     outputMap(outputEvent),
                     source: .subtree(workflowOutput.debugInfo),
-                    subtreeInvalidated: false
+                    subtreeInvalidated: workflowOutput.subtreeInvalidated
                 )
             } else {
                 Output.childDidUpdate(
                     workflowOutput.debugInfo,
-                    subtreeInvalidated: false
+                    subtreeInvalidated: workflowOutput.subtreeInvalidated
                 )
             }
 
