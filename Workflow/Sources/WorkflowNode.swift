@@ -202,8 +202,17 @@ extension WorkflowNode {
 // MARK: - Action Application
 
 extension WorkflowNode {
+    /// Represents the result of applying a `WorkflowAction` to a workflow's state.
     struct ActionApplicationResult {
+        /// An optional output event produced by the action application.
+        /// This will be propagated up the workflow hierarchy if present.
         var output: WorkflowType.Output?
+
+        /// Indicates whether the node's state was modified during action application.
+        /// This is used to determine if the node needs to be re-rendered and to
+        /// track invalidation through the workflow hierarchy. Note that currently this
+        /// value does not definitively indicate if the state actually changed, but should
+        /// be treated as a 'dirty bit' flag – if it's set, the node should be re-rendered.
         var stateChanged: Bool
     }
 
