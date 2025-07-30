@@ -15,266 +15,271 @@
  */
 
 import ReactiveSwift
-import XCTest
-@_spi(WorkflowRuntimeConfig) @testable import Workflow
+import Testing
 
-final class RenderOnlyIfStateChangedTests: XCTestCase {
-    override func setUp() {
-        super.setUp()
-        // Reset runtime config before each test
-        Runtime.resetConfig()
+@_spi(WorkflowRuntimeConfig)
+@testable
+import Workflow
+
+@Suite(renderOnlyIfStateChanged)
+@MainActor
+struct RenderOnlyIfStateChangedEnabledTests {
+    // MARK: - Render Skipping Tests
+
+    @Test
+    func skipsRenderWhenNoStateChangeAndRenderOnlyIfStateChangedEnabled() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
+
+        var renderCount = 0
+        let disposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { disposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+        #expect(host.rendering.value.count == 0)
+
+        // Trigger action that doesn't change state
+        host.rendering.value.noOpAction()
+
+        // Should not render since state didn't change
+        #expect(renderCount == 0)
+        #expect(host.rendering.value.count == 0)
     }
 
-    // MARK: - Basic Functionality Tests
+    @Test(renderOnlyIfStateChangedDisabled)
+    func reRendersWhenNoStateChangeAndRenderOnlyIfStateChangedDisabled() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
 
-    func test_renderOnlyIfStateChanged_disabled_by_default() {
-        let workflow = CounterWorkflow()
-        let host = WorkflowHost(workflow: workflow)
+        var renderCount = 0
+        let disposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { disposable?.dispose() }
 
-        XCTAssertFalse(host.context.runtimeConfig.renderOnlyIfStateChanged)
+        // Initial render
+        #expect(renderCount == 0)
+        #expect(host.rendering.value.count == 0)
+
+        // Trigger action that doesn't change state
+        host.rendering.value.noOpAction()
+
+        // Should render again since the skipping config is off
+        #expect(renderCount == 1)
+        #expect(host.rendering.value.count == 0)
     }
 
-//    func test_renderOnlyIfStateChanged_enabled_via_bootstrap() {
-//        Runtime.bootstrap { config in
-//            config.renderOnlyIfStateChanged = true
-//        }
-//
-//        let workflow = CounterWorkflow()
-//        let host = WorkflowHost(workflow: workflow)
-//
-//        XCTAssertTrue(host.context.runtimeConfig.renderOnlyIfStateChanged)
-//    }
-//
-//    func test_renderOnlyIfStateChanged_with_task_local_override() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        XCTAssertTrue(host.context.runtimeConfig.renderOnlyIfStateChanged)
-//    }
-//
-//    // MARK: - Render Skipping Tests
-//
-//    func test_renders_always_when_renderOnlyIfStateChanged_disabled() {
-//        let workflow = CounterWorkflow()
-//        let host = WorkflowHost(workflow: workflow)
-//        var renderCount = 0
-//
-//        let disposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { disposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(host.rendering.value, 0)
-//
-//        // Trigger action that doesn't change state
-//        host.rendering.value.noOpAction()
-//
-//        // Should still render even though state didn't change
-//        XCTAssertEqual(renderCount, 2)
-//        XCTAssertEqual(host.rendering.value, 0)
-//    }
-//
-//    func test_skips_render_when_no_state_change_and_renderOnlyIfStateChanged_enabled() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        var renderCount = 0
-//        let disposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { disposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(host.rendering.value, 0)
-//
-//        // Trigger action that doesn't change state
-//        host.rendering.value.noOpAction()
-//
-//        // Should not render since state didn't change
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(host.rendering.value, 0)
-//    }
-//
-//    func test_renders_when_state_changes_and_renderOnlyIfStateChanged_enabled() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        var renderCount = 0
-//        let disposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { disposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(host.rendering.value, 0)
-//
-//        // Trigger action that changes state
-//        host.rendering.value.incrementAction()
-//
-//        // Should render since state changed
-//        XCTAssertEqual(renderCount, 2)
-//        XCTAssertEqual(host.rendering.value, 1)
-//    }
-//
-//    // MARK: - Subtree Invalidation Tests
-//
-//    func test_renders_when_subtree_invalidated_regardless_of_state_change() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = ParentWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        var renderCount = 0
-//        let disposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { disposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//
-//        // Trigger child action that invalidates subtree
-//        host.rendering.value.childAction()
-//
-//        // Should render due to subtree invalidation even if parent state doesn't change
-//        XCTAssertEqual(renderCount, 2)
-//    }
-//
-//    // MARK: - External Update Tests
-//
-//    func test_external_update_always_renders_due_to_subtree_invalidation() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        var renderCount = 0
-//        let disposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { disposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//
-//        // External update (always marks subtree as invalidated)
-//        host.update(workflow: CounterWorkflow())
-//
-//        // Should render due to external update marking subtree as invalidated
-//        XCTAssertEqual(renderCount, 2)
-//    }
-//
-//    // MARK: - Output Event Tests
-//
-//    func test_output_events_emitted_even_when_render_skipped() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = OutputWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        var renderCount = 0
-//        var outputCount = 0
-//
-//        let renderDisposable = host.rendering.signal.observeValues { _ in
-//            renderCount += 1
-//        }
-//        defer { renderDisposable?.dispose() }
-//
-//        let outputDisposable = host.output.observeValues { _ in
-//            outputCount += 1
-//        }
-//        defer { outputDisposable?.dispose() }
-//
-//        // Initial render
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(outputCount, 0)
-//
-//        // Trigger action that emits output but doesn't change state
-//        host.rendering.value.emitOutputAction()
-//
-//        // Should not render but should emit output
-//        XCTAssertEqual(renderCount, 1)
-//        XCTAssertEqual(outputCount, 1)
-//    }
-//
-//    // MARK: - Event Pipe Re-enabling Tests
-//
-//    func test_event_pipes_not_re_enabled_when_render_skipped() {
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.withConfiguration { config in
-//            config.renderOnlyIfStateChanged = true
-//        } operation: {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        // Track the initial rendering reference
-//        let initialRendering = host.rendering.value
-//
-//        // Trigger action that doesn't change state
-//        initialRendering.noOpAction()
-//
-//        // The rendering reference should be the same since no render occurred
-//        XCTAssertTrue(host.rendering.value === initialRendering)
-//    }
-//
-//    func test_event_pipes_re_enabled_when_render_occurs() {
-//        var customConfig = Runtime.configuration
-//        customConfig.renderOnlyIfStateChanged = true
-//
-//        let workflow = CounterWorkflow()
-//        let host = Runtime.$_currentConfiguration.withValue(customConfig) {
-//            WorkflowHost(workflow: workflow)
-//        }
-//
-//        // Track the initial rendering reference
-//        let initialRendering = host.rendering.value
-//
-//        // Trigger action that changes state
-//        initialRendering.incrementAction()
-//
-//        // The rendering reference should be different since a render occurred
-//        XCTAssertFalse(host.rendering.value === initialRendering)
-//    }
+    @Test
+    func rendersWhenStateChangesAndRenderOnlyIfStateChangedEnabled() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
+
+        var renderCount = 0
+        let disposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { disposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+        #expect(host.rendering.value.count == 0)
+
+        // Trigger action that changes state
+        host.rendering.value.incrementAction()
+
+        // Should render since state changed
+        #expect(renderCount == 1)
+        #expect(host.rendering.value.count == 1)
+    }
+
+    @Test
+    func skipsRenderWithVoidStateAndPropertyAccess() {
+        let host = WorkflowHost(workflow: VoidStateWorkflow(prop: 42))
+
+        var renderCount = 0
+        var outputs: [Int] = []
+
+        let renderDisposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { renderDisposable?.dispose() }
+
+        let outputDisposable = host.output.observeValues {
+            outputs.append($0)
+        }
+        defer { outputDisposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+        #expect(outputs == [])
+
+        // Trigger action that reads from props (state is Void)
+        host.rendering.value.action()
+
+        // Should not render since the State is Void
+        #expect(renderCount == 0)
+        #expect(outputs == [42])
+    }
+
+    // MARK: - Subtree Invalidation Tests
+
+    @Test
+    func rendersWhenSubtreeInvalidatedRegardlessOfStateChange() {
+        let host = WorkflowHost(workflow: ParentWorkflow())
+
+        var renderCount = 0
+        let disposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { disposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+
+        // Trigger child action that invalidates subtree
+        host.rendering.value.childAction()
+
+        // Should render due to subtree invalidation even if parent state doesn't change
+        #expect(renderCount == 1)
+    }
+
+    // MARK: - External Update Tests
+
+    @Test
+    func externalUpdateAlwaysRendersDueToSubtreeInvalidation() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
+
+        var renderCount = 0
+        let disposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { disposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+
+        // External update (always marks subtree as invalidated)
+        host.update(workflow: CounterWorkflow())
+
+        // Should render due to external update marking subtree as invalidated
+        #expect(renderCount == 1)
+    }
+
+    // MARK: - Output Event Tests
+
+    @Test
+    func outputEventsEmittedEvenWhenRenderSkipped() {
+        let host = WorkflowHost(workflow: OutputWorkflow())
+
+        var renderCount = 0
+        var outputCount = 0
+
+        let renderDisposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer { renderDisposable?.dispose() }
+
+        let outputDisposable = host.output.observeValues { _ in
+            outputCount += 1
+        }
+        defer { outputDisposable?.dispose() }
+
+        // Initial render
+        #expect(renderCount == 0)
+        #expect(outputCount == 0)
+
+        // Trigger action that emits output but doesn't change state
+        host.rendering.value.emitOutputAction()
+
+        // Should not render but should emit output
+        #expect(renderCount == 0)
+        #expect(outputCount == 1)
+    }
+
+    // MARK: - Event Pipes
+
+    @Test
+    func eventPipesWorkWhenRenderSkipped() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
+
+        // Track the initial rendering reference
+        let initialRendering = host.rendering.value
+
+        var outputCount = 0
+        let outputDisposable = host.output.observeValues { _ in
+            outputCount += 1
+        }
+        var renderCount = 0
+        let renderDisposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer {
+            outputDisposable?.dispose()
+            renderDisposable?.dispose()
+        }
+
+        #expect(outputCount == 0)
+        #expect(renderCount == 0)
+
+        // Trigger action that doesn't change state
+        initialRendering.noOpAction()
+
+        #expect(outputCount == 1)
+        #expect(renderCount == 0)
+
+        // The event pipes should have been left alone (not invalidated), so
+        // emitting another event still works.
+        initialRendering.incrementAction()
+
+        #expect(outputCount == 2)
+        #expect(renderCount == 1)
+    }
+
+    @Test
+    func eventPipesWorkWhenRenderNotSkipped() {
+        let host = WorkflowHost(workflow: CounterWorkflow())
+
+        // Track the initial rendering reference
+        let initialRendering = host.rendering.value
+
+        var outputCount = 0
+        let outputDisposable = host.output.observeValues { _ in
+            outputCount += 1
+        }
+        var renderCount = 0
+        let renderDisposable = host.rendering.signal.observeValues { _ in
+            renderCount += 1
+        }
+        defer {
+            outputDisposable?.dispose()
+            renderDisposable?.dispose()
+        }
+
+        #expect(outputCount == 0)
+        #expect(renderCount == 0)
+
+        // Trigger action that causes a re-render
+        initialRendering.incrementAction()
+
+        #expect(outputCount == 1)
+        #expect(renderCount == 1)
+
+        // The event pipes should have been re-enabled, so
+        // emitting another event still works. If we forgot
+        // to do so, the runtime should trap.
+        initialRendering.noOpAction()
+
+        #expect(outputCount == 2)
+        #expect(renderCount == 1)
+    }
 }
 
 // MARK: - Test Workflows
 
-extension RenderOnlyIfStateChangedTests {
+extension RenderOnlyIfStateChangedEnabledTests {
     fileprivate struct CounterWorkflow: Workflow {
-        struct State {
+        struct State: Equatable {
             var count = 0
-        }
-
-        func makeInitialState() -> State {
-            State()
         }
 
         struct Rendering {
@@ -283,42 +288,50 @@ extension RenderOnlyIfStateChangedTests {
             let noOpAction: () -> Void
         }
 
+        typealias Output = Void
+
+        func makeInitialState() -> State {
+            State()
+        }
+
         func render(state: State, context: RenderContext<CounterWorkflow>) -> Rendering {
             let incrementSink = context.makeSink(of: IncrementAction.self)
             let noOpSink = context.makeSink(of: NoOpAction.self)
 
             return Rendering(
                 count: state.count,
-                incrementAction: { incrementSink.send(IncrementAction()) },
-                noOpAction: { noOpSink.send(NoOpAction()) }
+                incrementAction: { incrementSink.send(.increment) },
+                noOpAction: { noOpSink.send(.noOp) }
             )
         }
 
         enum IncrementAction: WorkflowAction {
             case increment
 
-            init() { self = .increment }
-
-            func apply(toState state: inout CounterWorkflow.State, context: ApplyContext<CounterWorkflow>) -> Never? {
+            func apply(
+                toState state: inout CounterWorkflow.State,
+                context: ApplyContext<CounterWorkflow>
+            ) -> Output? {
                 state.count += 1
-                return nil
+                return ()
             }
         }
 
         enum NoOpAction: WorkflowAction {
             case noOp
 
-            init() { self = .noOp }
-
-            func apply(toState state: inout CounterWorkflow.State, context: ApplyContext<CounterWorkflow>) -> Never? {
+            func apply(
+                toState state: inout CounterWorkflow.State,
+                context: ApplyContext<CounterWorkflow>
+            ) -> Output? {
                 // Don't change state
-                nil
+                ()
             }
         }
     }
 
     fileprivate struct OutputWorkflow: Workflow {
-        struct State {}
+        struct State: Equatable {}
 
         func makeInitialState() -> State {
             State()
@@ -336,16 +349,17 @@ extension RenderOnlyIfStateChangedTests {
             let sink = context.makeSink(of: EmitOutputAction.self)
 
             return Rendering(
-                emitOutputAction: { sink.send(EmitOutputAction()) }
+                emitOutputAction: { sink.send(.emit) }
             )
         }
 
         enum EmitOutputAction: WorkflowAction {
             case emit
 
-            init() { self = .emit }
-
-            func apply(toState state: inout OutputWorkflow.State, context: ApplyContext<OutputWorkflow>) -> OutputWorkflow.Output? {
+            func apply(
+                toState state: inout OutputWorkflow.State,
+                context: ApplyContext<OutputWorkflow>
+            ) -> OutputWorkflow.Output? {
                 // Don't change state but emit output
                 .emitted
             }
@@ -353,7 +367,7 @@ extension RenderOnlyIfStateChangedTests {
     }
 
     fileprivate struct ParentWorkflow: Workflow {
-        struct State {}
+        struct State: Equatable {}
 
         func makeInitialState() -> State {
             State()
@@ -376,8 +390,11 @@ extension RenderOnlyIfStateChangedTests {
         enum ParentAction: WorkflowAction {
             case childUpdated
 
-            func apply(toState state: inout ParentWorkflow.State, context: ApplyContext<ParentWorkflow>) -> Never? {
-                // Don't change parent state
+            func apply(
+                toState state: inout ParentWorkflow.State,
+                context: ApplyContext<ParentWorkflow>
+            ) -> Never? {
+                // Don't change state
                 nil
             }
         }
@@ -404,27 +421,88 @@ extension RenderOnlyIfStateChangedTests {
             let sink = context.makeSink(of: UpdateAction.self)
 
             return Rendering(
-                action: { sink.send(UpdateAction()) }
+                action: { sink.send(.update) }
             )
         }
 
         enum UpdateAction: WorkflowAction {
             case update
 
-            init() { self = .update }
-
-            func apply(toState state: inout ChildWorkflow.State, context: ApplyContext<ChildWorkflow>) -> ChildWorkflow.Output? {
+            func apply(
+                toState state: inout ChildWorkflow.State,
+                context: ApplyContext<ChildWorkflow>
+            ) -> ChildWorkflow.Output? {
                 state.value += 1
                 return .updated
             }
         }
     }
+
+    fileprivate struct VoidStateWorkflow: Workflow {
+        typealias State = Void
+
+        struct Rendering {
+            let action: () -> Void
+        }
+
+        typealias Output = Int
+
+        var prop: Int
+
+        func makeInitialState() -> State {
+            State()
+        }
+
+        func render(state: State, context: RenderContext<Self>) -> Rendering {
+            let readPropSink = context.makeSink(of: ReadPropAction.self)
+
+            return Rendering(
+                action: { readPropSink.send(.readProp) }
+            )
+        }
+
+        enum ReadPropAction: WorkflowAction {
+            case readProp
+
+            func apply(
+                toState state: inout State,
+                context: ApplyContext<VoidStateWorkflow>
+            ) -> Output? {
+                context[workflowValue: \.prop]
+            }
+        }
+    }
 }
 
-// MARK: - Utility Extensions
+// MARK: - Traits
 
-extension RenderOnlyIfStateChangedTests.CounterWorkflow.Rendering: Equatable {
-    fileprivate static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.count == rhs.count
+private struct RenderOnlyIfStateChangedTrait: SuiteTrait, TestTrait {
+    var enabled = true
+
+    struct TestScopeProvider: TestScoping {
+        var enabled: Bool
+
+        func provideScope(
+            for test: Test,
+            testCase: Test.Case?,
+            performing function: @Sendable () async throws -> Void
+        ) async throws {
+            var config = Runtime.configuration
+            config.renderOnlyIfStateChanged = enabled
+
+            try await Runtime.$_currentConfiguration.withValue(config, operation: function)
+        }
     }
+
+    func scopeProvider(for test: Test, testCase: Test.Case?) -> TestScopeProvider? {
+        TestScopeProvider(enabled: enabled)
+    }
+}
+
+private var renderOnlyIfStateChanged: some SuiteTrait & TestTrait {
+    RenderOnlyIfStateChangedTrait()
+}
+
+private var renderOnlyIfStateChangedDisabled: some SuiteTrait & TestTrait {
+    RenderOnlyIfStateChangedTrait(enabled: false)
 }
