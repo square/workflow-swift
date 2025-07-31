@@ -41,7 +41,7 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
     // @testable
     let rootNode: WorkflowNode<WorkflowType>
 
-    private let muableRendering: CurrentValueSubject<WorkflowType.Rendering, Never>
+    private let mutableRendering: CurrentValueSubject<WorkflowType.Rendering, Never>
     private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
@@ -82,7 +82,7 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
             parentSession: nil
         )
 
-        (self.rendering, self.muableRendering) = ReadOnlyCurrentValueSubject.publisher(value: rootNode.render())
+        (self.rendering, self.mutableRendering) = ReadOnlyCurrentValueSubject.publisher(value: rootNode.render())
 
         rootNode.enableEvents()
 
@@ -111,7 +111,7 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
-        muableRendering.send(rootNode.render())
+        mutableRendering.send(rootNode.render())
 
         if let outputEvent = output.outputEvent {
             outputSubject.send(outputEvent)

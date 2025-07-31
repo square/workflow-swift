@@ -82,7 +82,6 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         self.cancellable = workflowHost
             .rendering
             .dropFirst()
-            .receive(on: DispatchQueue.main)
             .sink(receiveValue: { [weak self] screen in
                 guard let self else { return }
 
