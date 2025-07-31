@@ -17,8 +17,9 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
+import ViewEnvironmentUI
 import XCTest
-@testable import WorkflowUI
 
 class UIViewControllerExtensionTests: XCTestCase {
     func test_update_viewNotLoaded() {
