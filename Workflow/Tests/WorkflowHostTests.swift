@@ -65,7 +65,7 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
 
         XCTAssertEqual(initialRendering.eventCount, 0)
 
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.rendering.dropFirst().sink { rendering in
             XCTAssertEqual(rendering.eventCount, 1)
 
             // emit another event using an old rendering
@@ -78,7 +78,8 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
 
             observedRenderCount += 1
         }
-        defer { disposable?.dispose() }
+
+        defer { cancellable.cancel() }
 
         // send an event and cause a re-render
         initialRendering.eventHandler()

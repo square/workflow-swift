@@ -68,12 +68,11 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
             path: "Workflow/Sources"
         ),
         .testTarget(
             name: "WorkflowTests",
-            dependencies: ["Workflow"],
+            dependencies: ["ReactiveSwift", "Workflow"],
             path: "Workflow/Tests"
         ),
         .target(

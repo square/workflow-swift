@@ -16,18 +16,18 @@
 
 #if canImport(UIKit)
 
-import ReactiveSwift
+import Combine
 import UIKit
 @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 import Workflow
 
 /// Drives view controllers from a root Workflow.
-public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIViewController where ScreenType: Screen {
+public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIViewController, WorkflowOutputPublisher where ScreenType: Screen {
     public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
 
     /// Emits output events from the bound workflow.
-    public var output: Signal<Output, Never> {
-        workflowHost.output
+    public var outputPublisher: AnyPublisher<Output, Never> {
+        workflowHost.outputPublisher
     }
 
     /// An environment customization that will be applied to the environment of the root screen.
@@ -44,7 +44,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>
 
-    private let (lifetime, token) = Lifetime.make()
+    private var cancellable: AnyCancellable?
 
     private var lastEnvironmentAncestorPath: EnvironmentAncestorPath?
 
@@ -79,18 +79,17 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         addChild(rootViewController)
         rootViewController.didMove(toParent: self)
 
-        workflowHost
+        self.cancellable = workflowHost
             .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { [weak self] screen in
+            .dropFirst()
+            .sink(receiveValue: { [weak self] screen in
                 guard let self else { return }
 
                 update(
                     screen: screen,
                     environmentAncestorPath: environmentAncestorPath
                 )
-            }
+            })
     }
 
     /// Updates the root Workflow in this container.
