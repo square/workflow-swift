@@ -6,14 +6,16 @@ on:
       - main
   pull_request:
 
+# TODO: revert to macos-latest when Xcode 16.3 is available by end of August 2025
+
 env:
-  XCODE_VERSION: 16.1.0
+  XCODE_VERSION: 16.3
   TUIST_TEST_DEVICE: iPad (10th generation)
   TUIST_TEST_PLATFORM: iOS
 
 jobs:
   development-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     name: "development-tests [iOS ${{ matrix.sdk }}]"
 
@@ -30,10 +32,10 @@ jobs:
 
           - sdk: "17.5"
             simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-17-5"
-            installation_required: false
+            installation_required: true
 
-          - sdk: "18.1"
-            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-18-1"
+          - sdk: "18.4"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-18-4"
             installation_required: false
 
     steps:
@@ -62,7 +64,7 @@ jobs:
 
   # FIXME: these should probably be run with a matrix too
   snapshot-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     env:
       TUIST_TEST_OS: 18.1
@@ -85,7 +87,7 @@ jobs:
       run: tuist test --path Samples
 
   package-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
@@ -99,7 +101,7 @@ jobs:
       run: swift test
 
   tutorial:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
