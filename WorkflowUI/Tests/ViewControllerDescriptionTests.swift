@@ -206,47 +206,50 @@ class ViewControllerDescriptionTests: XCTestCase {
         XCTAssertFalse(viewController === viewControllerAgain)
     }
 
-    func test_dynamicTypeInspection() {
-        func obfuscatedController() -> UIViewController { BlankViewController() }
-        let controller = obfuscatedController()
+    func test_viewControllerTypes() {
+        func polymorphicController() -> UIViewController { BlankViewController() }
+        let controller = polymorphicController()
 
+        // Case 1: Dynamic type inspection.
         // kind.viewControllerType == BlankViewController.self.
-        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
         let descriptionWithDynamicType = ViewControllerDescription(
             dynamicType: type(of: controller),
             environment: .empty,
             build: { controller },
             update: { _ in }
         )
-        XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: obfuscatedController()))
+        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
+        XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: polymorphicController()))
         XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: BlankViewController()))
         XCTAssertFalse(descriptionWithDynamicType.canUpdate(viewController: UIViewController()))
         XCTAssertFalse(descriptionWithDynamicType.canUpdate(viewController: SecondBlankViewController()))
         XCTAssertTrue(descriptionWithDynamicType.canUpdate(viewController: BlankViewControllerSubclass()))
 
+        // Case 2: Example of static types losing granularity when supplying a superclass type.
         // kind.viewControllerType == UIViewController.self.
-        // canUpdate(viewController:) evaluates to true for any UIViewController type.
         let descriptionWithStaticSupertype = ViewControllerDescription(
             type: type(of: controller),
             environment: .empty,
             build: { controller },
             update: { _ in }
         )
-        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: obfuscatedController()))
+        // canUpdate(viewController:) evaluates to true for any UIViewController type.
+        XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: polymorphicController()))
         XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: BlankViewController()))
         XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: UIViewController()))
         XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: SecondBlankViewController()))
         XCTAssertTrue(descriptionWithStaticSupertype.canUpdate(viewController: BlankViewControllerSubclass()))
 
+        // Case 3: Common/standard Workflow use case with static types.
         // kind.viewControllerType == BlankViewController.self.
-        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
         let descriptionWithStaticSubtype = ViewControllerDescription(
             type: BlankViewController.self,
             environment: .empty,
             build: { BlankViewController() },
             update: { _ in }
         )
-        XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: obfuscatedController()))
+        // canUpdate(viewController:) will evaluate to true for matching UIViewController types or subclasses.
+        XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: polymorphicController()))
         XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: BlankViewController()))
         XCTAssertFalse(descriptionWithStaticSubtype.canUpdate(viewController: UIViewController()))
         XCTAssertFalse(descriptionWithStaticSubtype.canUpdate(viewController: SecondBlankViewController()))
