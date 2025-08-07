@@ -270,7 +270,7 @@ public struct RenderTester<WorkflowType: Workflow> {
             file: file,
             line: line
         )
-        let context = RenderContext.make(implementation: contextImplementation)
+        let context = RenderContext.make(implementation: contextImplementation, strictInvalidation: true)
         let rendering = workflow.render(state: contextImplementation.state, context: context)
 
         contextImplementation.assertNoLeftOverExpectations()

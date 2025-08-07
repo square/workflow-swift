@@ -107,20 +107,35 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 
     final func invalidate() {
         isValid = false
+        onInvalidate()
     }
 
+    // For subclasses to override. Use to release internal storage, etc upon invalidation.
+    func onInvalidate() {}
+
     // API to allow custom context implementations to power a render context
-    static func make<T: RenderContextType>(implementation: T) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
-        ConcreteRenderContext(implementation)
+    static func make<T: RenderContextType>(
+        implementation: T,
+        strictInvalidation: Bool
+    ) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
+        ConcreteRenderContext(implementation, strictInvalidation: strictInvalidation)
     }
 
     // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
     // that is ever instantiated.
     private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
-        let implementation: T
+        var implementation: T!
 
-        init(_ implementation: T) {
+        // When `true`, the `implementation` storage is cleared when
+        // the context is invalidated, and subsequent use is a fatal error.
+        let strictInvalidation: Bool
+
+        init(
+            _ implementation: T,
+            strictInvalidation: Bool
+        ) {
             self.implementation = implementation
+            self.strictInvalidation = strictInvalidation
             super.init()
         }
 
@@ -152,8 +167,18 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             implementation.runSideEffect(key: key, action: action)
         }
 
+        override func onInvalidate() {
+            implementation = nil
+        }
+
         private func assertStillValid() {
             assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+            if !isValid, strictInvalidation {
+                fatalError("""
+                BUG IN CLIENT OF WORKFLOW: Detected use of a RenderContext after
+                it was invalidated from Workflow type: \(WorkflowType.self)
+                """)
+            }
         }
     }
 }

@@ -88,6 +88,14 @@ extension Runtime {
 
         /// Note: this doesn't control anything yet, but is here as a placeholder
         public var renderOnlyIfStateChanged: Bool = false
+
+        /// If `true`, the `RenderContext` will be invalidated more 'strictly' than it was
+        /// in previous runtime implementations. Specifically, if the context escapes from the
+        /// `render()` method, it will no longer keep any internal storage alive, and any
+        /// subsequent use of its public API will result in a fatal error.
+        ///
+        /// By default this is `false` but will likely be `true` in a future version.
+        public var strictRenderContextInvalidation: Bool = false
     }
 
     struct BootstrappableConfiguration {

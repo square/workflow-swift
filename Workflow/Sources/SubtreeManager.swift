@@ -69,7 +69,10 @@ extension WorkflowNode {
                 session: session
             )
 
-            let wrapped = RenderContext.make(implementation: context)
+            let wrapped = RenderContext.make(
+                implementation: context,
+                strictInvalidation: hostContext.runtimeConfig.strictRenderContextInvalidation
+            )
 
             /// Pass the context into the closure to allow a render to take place
             let rendering = actions(wrapped)
