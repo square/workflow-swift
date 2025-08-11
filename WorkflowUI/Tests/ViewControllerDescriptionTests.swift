@@ -255,6 +255,26 @@ class ViewControllerDescriptionTests: XCTestCase {
         XCTAssertFalse(descriptionWithStaticSubtype.canUpdate(viewController: SecondBlankViewController()))
         XCTAssertTrue(descriptionWithStaticSubtype.canUpdate(viewController: BlankViewControllerSubclass()))
     }
+
+    func test_buildingWithDynamicType() {
+        let descriptionWithSuperclassType = ViewControllerDescription(
+            dynamicType: BlankViewController.self,
+            environment: .empty,
+            build: { BlankViewControllerSubclass() },
+            update: { _ in }
+        )
+        XCTAssertTrue(descriptionWithSuperclassType.buildViewController().isKind(of: BlankViewController.self))
+        XCTAssertTrue(descriptionWithSuperclassType.buildViewController().isKind(of: BlankViewControllerSubclass.self))
+
+        let descriptionWithExactType = ViewControllerDescription(
+            dynamicType: BlankViewController.self,
+            environment: .empty,
+            build: { BlankViewController() },
+            update: { _ in }
+        )
+        XCTAssertTrue(descriptionWithExactType.buildViewController().isKind(of: BlankViewController.self))
+        XCTAssertFalse(descriptionWithExactType.buildViewController().isKind(of: BlankViewControllerSubclass.self))
+    }
 }
 
 class ViewControllerDescription_KindIdentifierTests: XCTestCase {

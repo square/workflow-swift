@@ -133,7 +133,13 @@ public struct ViewControllerDescription {
 
         self.environment = environment
 
-        self.build = build
+        self.build = {
+            let viewController = build()
+            guard viewController.isKind(of: dynamicType) else {
+                fatalError("Error creating \(viewController), expecting a \(dynamicType)")
+            }
+            return viewController
+        }
 
         self.update = { untypedViewController in
             guard untypedViewController.isKind(of: dynamicType) else {
