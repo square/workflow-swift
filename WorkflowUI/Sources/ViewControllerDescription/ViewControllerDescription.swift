@@ -99,6 +99,45 @@ public struct ViewControllerDescription {
         }
     }
 
+    /// Constructs a view controller description by providing closures used to
+    /// build and update a specific view controller type. This initializer allows
+    /// clients to configure which types of UIViewControllers the description can
+    /// use for updating.
+    ///
+    /// - Parameters:
+    ///   - performInitialUpdate: If an initial call to `update(viewController:)`
+    ///     will be performed when the view controller is created. Defaults to `true`.
+    ///
+    ///   - environment: The `ViewEnvironment` that should be injected above the
+    ///     described view controller for ViewEnvironmentUI environment propagation.
+    ///     This is typically passed in from a `Screen` in its
+    ///     `viewControllerDescription(environment:)` method.
+    ///
+    ///   - build: Closure that produces a new instance of the view controller.
+    ///
+    ///   - canUpdate: Closure that controls when `update` can succssfully update the
+    ///     given view controller. This can be useful for inspecting the dynamic type
+    ///     of the given view controller.
+    ///
+    ///   - update: Closure that updates the given view controller.
+    public init(
+        performInitialUpdate: Bool = true,
+        environment: ViewEnvironment,
+        build: @escaping () -> UIViewController,
+        canUpdate: @escaping (UIViewController) -> Bool,
+        update: @escaping (UIViewController) -> Void
+    ) {
+        self.performInitialUpdate = performInitialUpdate
+
+        self.kind = .init(UIViewController.self, checkViewControllerType: canUpdate)
+
+        self.environment = environment
+
+        self.build = build
+
+        self.update = update
+    }
+
     /// Construct and update a new view controller as described by this view controller description.
     /// The view controller will be updated before it is returned, so it is fully configured and prepared for display.
     public func buildViewController() -> UIViewController {
@@ -191,10 +230,9 @@ extension ViewControllerDescription {
         private let checkViewControllerType: (UIViewController) -> Bool
 
         /// Creates a new kind for the given view controller type.
-        public init<VC: UIViewController>(_ kind: VC.Type) {
+        public init<VC: UIViewController>(_ kind: VC.Type, checkViewControllerType: @escaping ((UIViewController) -> Bool) = { $0 is VC }) {
             self.viewControllerType = VC.self
-
-            self.checkViewControllerType = { $0 is VC }
+            self.checkViewControllerType = checkViewControllerType
         }
 
         /// If the given view controller is of the correct type to be updated by this view controller description.
