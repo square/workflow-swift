@@ -71,7 +71,7 @@ final class SubtreeManagerTests: XCTestCase {
 
         manager.onUpdate = {
             switch $0 {
-            case .update(let event, _):
+            case .update(let event, _, _):
                 events.append(AnyWorkflowAction(event))
             default:
                 break
