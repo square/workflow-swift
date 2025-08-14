@@ -155,9 +155,29 @@ enum EventSource: Equatable {
 }
 
 extension WorkflowNode.SubtreeManager {
+    /// The possible output types that a SubtreeManager can produce.
     enum Output {
-        case update(any WorkflowAction<WorkflowType>, source: EventSource)
-        case childDidUpdate(WorkflowUpdateDebugInfo?)
+        /// Indicates that an event produced a `WorkflowAction` to apply to the node.
+        ///
+        /// - Parameters:
+        ///   - action: The `WorkflowAction` to be applied to the node.
+        ///   - source: The event source that triggered this update. This is primarily used to differentiate between 'external' events and events that originate from the subtree itself.
+        ///   - subtreeInvalidated: A boolean indicating whether at least one descendant workflow has been invalidated during this update.
+        case update(
+            any WorkflowAction<WorkflowType>,
+            source: EventSource,
+            subtreeInvalidated: Bool
+        )
+
+        /// Indicates that a child workflow within the subtree handled an event and was updated. This informs the parent node about the change and propagates the update 'up' the tree.
+        ///
+        /// - Parameters:
+        ///   - debugInfo: Optional debug information about the workflow update.
+        ///   - subtreeInvalidated: A boolean indicating whether at least one descendant workflow has been invalidated during this update.
+        case childDidUpdate(
+            WorkflowUpdateDebugInfo?,
+            subtreeInvalidated: Bool
+        )
     }
 }
 
@@ -334,7 +354,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
-            let output = Output.update(action, source: .external)
+            let output = Output.update(
+                action,
+                source: .external,
+                subtreeInvalidated: false // initial state
+            )
 
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.
@@ -515,10 +539,14 @@ extension WorkflowNode.SubtreeManager {
             let output = if let outputEvent = workflowOutput.outputEvent {
                 Output.update(
                     outputMap(outputEvent),
-                    source: .subtree(workflowOutput.debugInfo)
+                    source: .subtree(workflowOutput.debugInfo),
+                    subtreeInvalidated: workflowOutput.subtreeInvalidated
                 )
             } else {
-                Output.childDidUpdate(workflowOutput.debugInfo)
+                Output.childDidUpdate(
+                    workflowOutput.debugInfo,
+                    subtreeInvalidated: workflowOutput.subtreeInvalidated
+                )
             }
 
             eventPipe.handle(event: output)
