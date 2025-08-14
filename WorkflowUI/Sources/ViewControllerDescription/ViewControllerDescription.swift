@@ -99,6 +99,55 @@ public struct ViewControllerDescription {
         }
     }
 
+    /// Constructs a view controller description by providing closures used to
+    /// build and update a specific view controller type. This initializer supports
+    /// implementations that cannot rely on static types.
+    ///
+    /// - Parameters:
+    ///   - performInitialUpdate: If an initial call to `update(viewController:)`
+    ///     will be performed when the view controller is created. Defaults to `true`.
+    ///
+    ///   - dynamicType: The type of view controller produced by this description.
+    ///     This type is used by `KindIdentifier` and its `checkViewControllerType`
+    ///     closure to inspect view controller types at runtime.
+    ///
+    ///   - environment: The `ViewEnvironment` that should be injected above the
+    ///     described view controller for ViewEnvironmentUI environment propagation.
+    ///     This is typically passed in from a `Screen` in its
+    ///     `viewControllerDescription(environment:)` method.
+    ///
+    ///   - build: Closure that produces a new instance of the view controller
+    ///
+    ///   - update: Closure that updates the given view controller
+    public init(
+        performInitialUpdate: Bool = true,
+        dynamicType: UIViewController.Type,
+        environment: ViewEnvironment,
+        build: @escaping () -> UIViewController,
+        update: @escaping (UIViewController) -> Void
+    ) {
+        self.performInitialUpdate = performInitialUpdate
+
+        self.kind = .init(dynamicType: dynamicType)
+
+        self.environment = environment
+
+        self.build = {
+            let viewController = build()
+            guard viewController.isKind(of: dynamicType) else {
+                fatalError("Error creating \(viewController), expecting a \(dynamicType)")
+            }
+            return viewController
+        }
+
+        self.update = { untypedViewController in
+            guard untypedViewController.isKind(of: dynamicType) else {
+                fatalError("Unable to update \(untypedViewController), expecting a \(dynamicType)")
+            }
+            update(untypedViewController)
+        }
+    }
+
     /// Construct and update a new view controller as described by this view controller description.
     /// The view controller will be updated before it is returned, so it is fully configured and prepared for display.
     public func buildViewController() -> UIViewController {
@@ -195,6 +244,12 @@ extension ViewControllerDescription {
             self.viewControllerType = VC.self
 
             self.checkViewControllerType = { $0 is VC }
+        }
+
+        /// This initializer uses dynamic type inspection in `checkViewControllerType`.
+        fileprivate init(dynamicType: UIViewController.Type) {
+            self.viewControllerType = dynamicType
+            self.checkViewControllerType = { $0.isKind(of: dynamicType) }
         }
 
         /// If the given view controller is of the correct type to be updated by this view controller description.
