@@ -119,7 +119,6 @@ public struct ViewControllerDescription {
     ///   - build: Closure that produces a new instance of the view controller
     ///
     ///   - update: Closure that updates the given view controller
-    @_spi(DynamicControllerTypes)
     public init(
         performInitialUpdate: Bool = true,
         dynamicType: UIViewController.Type,

@@ -20,7 +20,7 @@ import XCTest
 
 import ReactiveSwift
 import Workflow
-@_spi(DynamicControllerTypes) @testable import WorkflowUI
+@testable import WorkflowUI
 
 fileprivate class BlankViewController: UIViewController {}
 fileprivate class BlankViewControllerSubclass: BlankViewController {}
