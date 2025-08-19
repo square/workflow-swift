@@ -37,7 +37,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     /// The currently displayed screen - the most recent rendering from the hosted workflow
     public var screen: ScreenType {
-        workflowHost.rendering.value
+        workflowHost.rendering
     }
 
     private(set) var rootViewController: UIViewController
@@ -65,7 +65,6 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
         self.rootViewController = workflowHost
             .rendering
-            .value
             .viewControllerDescription(environment: customizedEnvironment)
             .buildViewController()
 
@@ -80,7 +79,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         rootViewController.didMove(toParent: self)
 
         self.cancellable = workflowHost
-            .rendering
+            .renderingPublisher
             .dropFirst()
             .sink(receiveValue: { [weak self] screen in
                 guard let self else { return }
@@ -137,7 +136,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         let environmentAncestorPath = environmentAncestorPath
         if environmentAncestorPath != lastEnvironmentAncestorPath {
             update(
-                screen: workflowHost.rendering.value,
+                screen: workflowHost.rendering,
                 environmentAncestorPath: environmentAncestorPath
             )
         }
@@ -202,7 +201,7 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
 
     public func environmentDidChange() {
         update(
-            screen: workflowHost.rendering.value,
+            screen: workflowHost.rendering,
             environmentAncestorPath: environmentAncestorPath
         )
     }
@@ -212,7 +211,7 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
 
 extension WorkflowHostingController: SingleScreenContaining {
     public var primaryScreen: any Screen {
-        workflowHost.rendering.value
+        workflowHost.rendering
     }
 }
 

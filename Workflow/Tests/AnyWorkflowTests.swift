@@ -40,7 +40,7 @@ public class AnyWorkflowTests: XCTestCase {
         let host = WorkflowHost(workflow: OnOutputWorkflow())
 
         let renderingExpectation = expectation(description: "Waiting for rendering")
-        let cancellable = host.rendering.sink { rendering in
+        let cancellable = host.renderingPublisher.sink { rendering in
             if rendering {
                 renderingExpectation.fulfill()
             }

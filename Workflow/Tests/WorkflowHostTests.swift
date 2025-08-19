@@ -21,11 +21,11 @@ final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         host.update(workflow: TestWorkflow(step: .second))
 
-        XCTAssertEqual(2, host.rendering.value)
+        XCTAssertEqual(2, host.rendering)
     }
 
     fileprivate struct TestWorkflow: Workflow {
@@ -60,12 +60,12 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
     func test_event_sent_to_invalidated_sink_during_action_handling() {
         let root = Parent()
         let host = WorkflowHost(workflow: root)
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
         var observedRenderCount = 0
 
         XCTAssertEqual(initialRendering.eventCount, 0)
 
-        let cancellable = host.rendering.dropFirst().sink { rendering in
+        let cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             XCTAssertEqual(rendering.eventCount, 1)
 
             // emit another event using an old rendering

@@ -41,12 +41,14 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
     // @testable
     let rootNode: WorkflowNode<WorkflowType>
 
-    private let mutableRendering: CurrentValueSubject<WorkflowType.Rendering, Never>
     private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
     /// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
     /// as state transitions occur within the hierarchy.
-    public let rendering: ReadOnlyCurrentValueSubject<WorkflowType.Rendering, Never>
+    @Published public private(set) var rendering: WorkflowType.Rendering
+    public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
+        $rendering.eraseToAnyPublisher()
+    }
 
     /// Context object to pass down to descendant nodes in the tree.
     let context: HostContext
@@ -83,7 +85,7 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
             parentSession: nil
         )
 
-        (self.rendering, self.mutableRendering) = ReadOnlyCurrentValueSubject.publisher(value: rootNode.render())
+        self.rendering = rootNode.render()
 
         rootNode.enableEvents()
 
@@ -115,7 +117,7 @@ public final class WorkflowHost<WorkflowType: Workflow>: WorkflowOutputPublisher
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
         let shouldRender = !shouldSkipRenderForOutput(output)
         if shouldRender {
-            mutableRendering.send(rootNode.render())
+            rendering = rootNode.render()
         }
 
         // Always emit an output, regardless of whether a render occurs

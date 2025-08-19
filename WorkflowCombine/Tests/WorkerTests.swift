@@ -43,14 +43,14 @@ class WorkerTests: XCTestCase {
 
         let expectation = XCTestExpectation()
 
-        let cancellable = host.rendering.dropFirst().sink { rendering in
+        let cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         cancellable.cancel()
     }

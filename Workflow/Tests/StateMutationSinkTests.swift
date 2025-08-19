@@ -29,14 +29,14 @@ final class StateMutationSinkTests: XCTestCase {
 
     func test_initialValue() {
         let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
     }
 
     func test_singleUpdate() {
         let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
 
         let gotValueExpectation = expectation(description: "Got expected value")
-        let cancellable = host.rendering.sink { val in
+        let cancellable = host.renderingPublisher.sink { val in
             if val == 100 {
                 gotValueExpectation.fulfill()
             }
@@ -53,7 +53,7 @@ final class StateMutationSinkTests: XCTestCase {
         let gotValueExpectation = expectation(description: "Got expected value")
 
         var values: [Int] = []
-        let cancellable = host.rendering.sink { val in
+        let cancellable = host.renderingPublisher.sink { val in
             values.append(val)
             if val == 300 {
                 gotValueExpectation.fulfill()

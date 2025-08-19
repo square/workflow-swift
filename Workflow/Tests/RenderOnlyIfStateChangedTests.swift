@@ -33,16 +33,16 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
-        XCTAssertEqual(host.rendering.value.count, 0)
+        XCTAssertEqual(host.rendering.count, 0)
 
-        host.rendering.value.noOpAction()
+        host.rendering.noOpAction()
 
         XCTAssertEqual(renderCount, 0)
-        XCTAssertEqual(host.rendering.value.count, 0)
+        XCTAssertEqual(host.rendering.count, 0)
     }
 
     func test_reRendersWhenNoStateChangeAndRenderOnlyIfStateChangedDisabled() {
@@ -50,16 +50,16 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
             let host = WorkflowHost(workflow: CounterWorkflow())
 
             var renderCount = 0
-            let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+            let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
             defer { cancellable.cancel() }
 
             XCTAssertEqual(renderCount, 0)
-            XCTAssertEqual(host.rendering.value.count, 0)
+            XCTAssertEqual(host.rendering.count, 0)
 
-            host.rendering.value.noOpAction()
+            host.rendering.noOpAction()
 
             XCTAssertEqual(renderCount, 1)
-            XCTAssertEqual(host.rendering.value.count, 0)
+            XCTAssertEqual(host.rendering.count, 0)
         }
     }
 
@@ -67,16 +67,16 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
-        XCTAssertEqual(host.rendering.value.count, 0)
+        XCTAssertEqual(host.rendering.count, 0)
 
-        host.rendering.value.incrementAction()
+        host.rendering.incrementAction()
 
         XCTAssertEqual(renderCount, 1)
-        XCTAssertEqual(host.rendering.value.count, 1)
+        XCTAssertEqual(host.rendering.count, 1)
     }
 
     func test_skipsRenderWithVoidStateAndPropertyAccess() {
@@ -85,7 +85,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputs: [Int] = []
 
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         let outputCancellable = host.outputPublisher.sink(receiveValue: { outputs.append($0) })
@@ -94,7 +94,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputs, [])
 
-        host.rendering.value.action()
+        host.rendering.action()
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputs, [42])
@@ -104,12 +104,12 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: ParentWorkflow())
 
         var renderCount = 0
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
 
-        host.rendering.value.childAction()
+        host.rendering.childAction()
 
         XCTAssertEqual(renderCount, 1)
     }
@@ -118,7 +118,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         let host = WorkflowHost(workflow: CounterWorkflow())
 
         var renderCount = 0
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         XCTAssertEqual(renderCount, 0)
@@ -134,7 +134,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         var renderCount = 0
         var outputCount = 0
 
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         defer { cancellable.cancel() }
 
         let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
@@ -143,7 +143,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputCount, 0)
 
-        host.rendering.value.emitOutputAction()
+        host.rendering.emitOutputAction()
 
         XCTAssertEqual(renderCount, 0)
         XCTAssertEqual(outputCount, 1)
@@ -151,12 +151,12 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
 
     func test_eventPipesWorkWhenRenderSkipped() {
         let host = WorkflowHost(workflow: CounterWorkflow())
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
 
         var renderCount = 0
         var outputCount = 0
 
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
 
         defer {
@@ -180,12 +180,12 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
 
     func test_eventPipesWorkWhenRenderNotSkipped() {
         let host = WorkflowHost(workflow: CounterWorkflow())
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
 
         var renderCount = 0
         var outputCount = 0
 
-        let cancellable = host.rendering.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
+        let cancellable = host.renderingPublisher.dropFirst().sink(receiveValue: { _ in renderCount += 1 })
         let outputCancellable = host.outputPublisher.sink(receiveValue: { _ in outputCount += 1 })
 
         defer {
