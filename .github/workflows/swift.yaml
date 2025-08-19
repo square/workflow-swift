@@ -22,7 +22,7 @@ env:
 
 jobs:
   development-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     name: "development-tests [iOS ${{ matrix.sdk }}]"
 
@@ -71,7 +71,7 @@ jobs:
 
   # FIXME: these should probably be run with a matrix too
   snapshot-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     env:
       TUIST_TEST_OS: 18.5
@@ -94,21 +94,21 @@ jobs:
       run: tuist test --path Samples
 
   package-tests:
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_16.1.app
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
     # Command line swift runs on the host platform.
-    # On macOS we can run all tests, including macro tests.
+    # On macOS we can run macro tests.
     - name: Test macOS
       run: swift test
 
   tutorial:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
@@ -124,7 +124,7 @@ jobs:
       run: tuist test --path Samples/Tutorial TutorialTests
 
   swiftformat:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
