@@ -11,6 +11,11 @@ env:
   TUIST_TEST_DEVICE: iPad (10th generation)
   TUIST_TEST_PLATFORM: iOS
 
+# NOTE: When modifying jobs, you'll likely need to update the required status checks in GitHub repo settings.
+# At time of writing, this can be found via (requires admin access):
+# Settings → Branches → Edit "main" rule → "Require status checks to pass before merging"
+# E.g. if the sdk version in the matrix below was bumped from 18.1 to 18.5, you would add 'development-tests [iOS 18.5]' to the required status checks, and remove 'development-tests [iOS 18.1]'.
+
 jobs:
   development-tests:
     runs-on: macos-latest
