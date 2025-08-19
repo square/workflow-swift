@@ -71,11 +71,6 @@ let package = Package(
             dependencies: ["ReactiveSwift"],
             path: "Workflow/Sources"
         ),
-        .testTarget(
-            name: "WorkflowTests",
-            dependencies: ["Workflow"],
-            path: "Workflow/Tests"
-        ),
         .target(
             name: "WorkflowTesting",
             dependencies: [
@@ -85,11 +80,6 @@ let package = Package(
             path: "WorkflowTesting/Sources",
             linkerSettings: [.linkedFramework("XCTest")]
         ),
-        .testTarget(
-            name: "WorkflowTestingTests",
-            dependencies: ["WorkflowTesting"],
-            path: "WorkflowTesting/Tests"
-        ),
 
         // MARK: WorkflowUI
 
@@ -97,11 +87,6 @@ let package = Package(
             name: "WorkflowUI",
             dependencies: ["Workflow", "ViewEnvironment", "ViewEnvironmentUI"],
             path: "WorkflowUI/Sources"
-        ),
-        .testTarget(
-            name: "WorkflowUITests",
-            dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
-            path: "WorkflowUI/Tests"
         ),
 
         // MARK: WorkflowSwiftUI
@@ -118,11 +103,6 @@ let package = Package(
             ],
             path: "WorkflowSwiftUI/Sources"
         ),
-        .testTarget(
-            name: "WorkflowSwiftUITests",
-            dependencies: ["WorkflowSwiftUI"],
-            path: "WorkflowSwiftUI/Tests"
-        ),
         .macro(
             name: "WorkflowSwiftUIMacros",
             dependencies: [
@@ -131,6 +111,7 @@ let package = Package(
             ],
             path: "WorkflowSwiftUIMacros/Sources"
         ),
+        // Macro test targets are not yet supported in Tuist, see note in Project.swift
         .testTarget(
             name: "WorkflowSwiftUIMacrosTests",
             dependencies: [
@@ -147,21 +128,11 @@ let package = Package(
             dependencies: ["ReactiveSwift", "Workflow"],
             path: "WorkflowReactiveSwift/Sources"
         ),
-        .testTarget(
-            name: "WorkflowReactiveSwiftTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
-            path: "WorkflowReactiveSwift/Tests"
-        ),
         .target(
             name: "WorkflowReactiveSwiftTesting",
             dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
             path: "WorkflowReactiveSwift/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
-        ),
-        .testTarget(
-            name: "WorkflowReactiveSwiftTestingTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
-            path: "WorkflowReactiveSwift/TestingTests"
         ),
 
         // MARK: WorkflowRxSwift
@@ -171,21 +142,11 @@ let package = Package(
             dependencies: ["RxSwift", "Workflow"],
             path: "WorkflowRxSwift/Sources"
         ),
-        .testTarget(
-            name: "WorkflowRxSwiftTests",
-            dependencies: ["WorkflowRxSwiftTesting", "WorkflowReactiveSwift"],
-            path: "WorkflowRxSwift/Tests"
-        ),
         .target(
             name: "WorkflowRxSwiftTesting",
             dependencies: ["WorkflowRxSwift", "WorkflowTesting"],
             path: "WorkflowRxSwift/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
-        ),
-        .testTarget(
-            name: "WorkflowRxSwiftTestingTests",
-            dependencies: ["WorkflowRxSwiftTesting"],
-            path: "WorkflowRxSwift/TestingTests"
         ),
 
         // MARK: WorkflowCombine
@@ -195,21 +156,11 @@ let package = Package(
             dependencies: ["Workflow"],
             path: "WorkflowCombine/Sources"
         ),
-        .testTarget(
-            name: "WorkflowCombineTests",
-            dependencies: ["WorkflowCombineTesting"],
-            path: "WorkflowCombine/Tests"
-        ),
         .target(
             name: "WorkflowCombineTesting",
             dependencies: ["WorkflowCombine", "WorkflowTesting"],
             path: "WorkflowCombine/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
-        ),
-        .testTarget(
-            name: "WorkflowCombineTestingTests",
-            dependencies: ["WorkflowCombineTesting"],
-            path: "WorkflowCombine/TestingTests"
         ),
 
         // MARK: WorkflowConcurrency
@@ -219,21 +170,11 @@ let package = Package(
             dependencies: ["Workflow"],
             path: "WorkflowConcurrency/Sources"
         ),
-        .testTarget(
-            name: "WorkflowConcurrencyTests",
-            dependencies: ["WorkflowConcurrency", "Workflow", "WorkflowTesting"],
-            path: "WorkflowConcurrency/Tests"
-        ),
         .target(
             name: "WorkflowConcurrencyTesting",
             dependencies: ["WorkflowConcurrency", "WorkflowTesting"],
             path: "WorkflowConcurrency/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
-        ),
-        .testTarget(
-            name: "WorkflowConcurrencyTestingTests",
-            dependencies: ["WorkflowConcurrencyTesting"],
-            path: "WorkflowConcurrency/TestingTests"
         ),
 
         // MARK: ViewEnvironment
