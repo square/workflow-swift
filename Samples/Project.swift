@@ -158,7 +158,10 @@ let project = Project(
         .unitTest(
             for: "Workflow",
             sources: "../Workflow/Tests/**",
-            dependencies: [.external(name: "Workflow")]
+            dependencies: [
+                .external(name: "ReactiveSwift"),
+                .external(name: "Workflow"),
+            ]
         ),
         .unitTest(
             for: "WorkflowTesting",
