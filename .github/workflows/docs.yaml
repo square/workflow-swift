@@ -1,5 +1,8 @@
 name: Generate and publish docs
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -13,6 +16,10 @@ jobs:
     name: Generate API docs and publish to GitHub pages
     # macos-15 is required for Xcode 16.3
     runs-on: macos-15
+
+    permissions:
+      # Needed to push to gh-pages branch
+      contents: write
 
     steps:
       - name: Checkout

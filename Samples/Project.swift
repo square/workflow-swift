@@ -138,9 +138,8 @@ let project = Project(
 
         // MARK: - Workflow Tests
 
-        // Some of these tests are duplicates of the test definitions in the root Package.swift, but Tuist
-        // does not currently support creating targets for tests in SwiftPM dependencies. See
-        // https://github.com/tuist/tuist/issues/5912
+        // Tests that run in iOS are defined here, tests that run in macOS (macros) are defined in
+        // Package.swift.
 
         .app(
             name: "TestAppHost",

@@ -1,5 +1,9 @@
 name: Swift CI
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   push:
     branches:
@@ -11,9 +15,14 @@ env:
   TUIST_TEST_DEVICE: iPad (10th generation)
   TUIST_TEST_PLATFORM: iOS
 
+# NOTE: When modifying jobs, you'll likely need to update the required status checks in GitHub repo settings.
+# At time of writing, this can be found via (requires admin access):
+# Settings → Branches → Edit "main" rule → "Require status checks to pass before merging"
+# E.g. if the sdk version in the matrix below was bumped from 18.1 to 18.5, you would add 'development-tests [iOS 18.5]' to the required status checks, and remove 'development-tests [iOS 18.1]'.
+
 jobs:
   development-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     name: "development-tests [iOS ${{ matrix.sdk }}]"
 
@@ -62,7 +71,7 @@ jobs:
 
   # FIXME: these should probably be run with a matrix too
   snapshot-tests:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     env:
       TUIST_TEST_OS: 18.5
@@ -85,21 +94,21 @@ jobs:
       run: tuist test --path Samples
 
   package-tests:
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Switch Xcode
-      run: sudo xcode-select -s /Applications/Xcode_16.1.app
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
     # Command line swift runs on the host platform.
-    # On macOS we can run all tests, including macro tests.
+    # On macOS we can run macro tests.
     - name: Test macOS
       run: swift test
 
   tutorial:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
@@ -115,7 +124,7 @@ jobs:
       run: tuist test --path Samples/Tutorial TutorialTests
 
   swiftformat:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
