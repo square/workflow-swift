@@ -79,6 +79,34 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     ///                      workflow, instantiate it based on the current state, then call `rendered(in:key:outputMap:)`.
     ///                      This will return the child's `Rendering` type after creating or updating the nested workflow.
     func render(state: State, context: RenderContext<Self>) -> Rendering
+
+    // MARK: - Equivalence Testing (Render Caching Support)
+
+    static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool
+
+    static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool
+}
+
+extension Workflow {
+    public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
+        false
+    }
+
+    public static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool {
+        false
+    }
+}
+
+extension Workflow where Self: Equatable {
+    public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
+        workflow == otherWorkflow
+    }
+}
+
+extension Workflow where State: Equatable {
+    public static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool {
+        state == otherState
+    }
 }
 
 extension Workflow {

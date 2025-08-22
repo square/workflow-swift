@@ -125,6 +125,8 @@ extension SimpleWorkflow {
     }
 }
 
+extension OnOutputWorkflow: Equatable {}
+
 private struct OnOutputWorkflow: Workflow {
     typealias State = Bool
     typealias Rendering = Bool

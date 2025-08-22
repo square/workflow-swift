@@ -88,6 +88,11 @@ extension Runtime {
 
         /// Note: this doesn't control anything yet, but is here as a placeholder
         public var renderOnlyIfStateChanged: Bool = false
+
+        /// When `true`, each node in the tree will cache its last rendering
+        /// and track invalidation such that it will re-use the cached rendering
+        /// in some circumstances rather than performing a full re-render.
+        public var partialTreeRendering: Bool = true
     }
 
     struct BootstrappableConfiguration {

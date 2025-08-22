@@ -131,6 +131,9 @@ final class WorkflowObserverTests: XCTestCase {
 
         XCTAssertEqual(didChangeCallCount, 0)
 
+        // TODO: is there a better way to do this?
+        // Need to manually flip the dirty bit to avoid render skipping
+        node.invalidationState.subtreeInvalidated = true
         _ = node.render()
 
         XCTAssertEqual(didChangeCallCount, 1)

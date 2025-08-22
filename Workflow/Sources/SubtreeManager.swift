@@ -532,7 +532,7 @@ extension WorkflowNode.SubtreeManager {
         ) {
             self.outputMap = outputMap
             self.eventPipe = eventPipe
-            node.update(workflow: workflow)
+            node.update(workflow: workflow, isInvalidation: false)
         }
 
         private func handle(workflowOutput: WorkflowNode<W>.Output) {

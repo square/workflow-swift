@@ -14,6 +14,39 @@
  * limitations under the License.
  */
 
+@_spi(WorkflowExperimental)
+public protocol ComparableWorkflow: Workflow {
+    static func isWorkflowEquivalent(
+        _ workflow: Self,
+        to otherWorkflow: Self
+    ) -> Bool
+
+    static func isStateEquivalent(
+        _ state: Self.State,
+        to otherState: Self.State
+    ) -> Bool
+}
+
+@_spi(WorkflowExperimental)
+extension ComparableWorkflow where Self: Equatable {
+    static func isWorkflowEquivalent(
+        _ workflow: Self,
+        to otherWorkflow: Self
+    ) -> Bool {
+        workflow == otherWorkflow
+    }
+}
+
+@_spi(WorkflowExperimental)
+extension ComparableWorkflow where State: Equatable {
+    static func isStateEquivalent(
+        _ state: Self.State,
+        to otherState: Self.State
+    ) -> Bool {
+        state == otherState
+    }
+}
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
@@ -38,6 +71,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
     var observer: WorkflowObserver? {
         hostContext.observer
     }
+
+    var cachedRendering: WorkflowType.Rendering?
+    var invalidationState = NodeInvalidationState()
+    var skipNextEnableEvents = false
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
 
@@ -99,6 +136,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
                 subtreeInvalidated: subtreeInvalidated
             )
 
+            invalidationState.selfInvalidated = result.selfInvalidated
+            invalidationState.subtreeInvalidated = result.subtreeInvalidated
+
             /// Finally, we tell the outside world that our state has changed (including an output event if it exists).
             output = Output(
                 outputEvent: result.output,
@@ -108,10 +148,13 @@ final class WorkflowNode<WorkflowType: Workflow> {
                         kind: .didUpdate(source: source.toDebugInfoSource())
                     )
                 },
-                subtreeInvalidated: subtreeInvalidated || result.stateChanged
+                subtreeInvalidated: result.selfInvalidated || result.subtreeInvalidated
             )
 
         case .childDidUpdate(let debugInfo, let subtreeInvalidated):
+
+            invalidationState.subtreeInvalidated = subtreeInvalidated || invalidationState.subtreeInvalidated
+
             output = Output(
                 outputEvent: nil,
                 debugInfo: hostContext.ifDebuggerEnabled {
@@ -149,27 +192,77 @@ final class WorkflowNode<WorkflowType: Workflow> {
             WorkflowLogger.logWorkflowFinishedRendering(ref: self)
         }
 
-        rendering = subtreeManager.render { context in
-            workflow
-                .render(
-                    state: state,
-                    context: context
-                )
+        let config = hostContext.runtimeConfig
+        let invalidationState = invalidationState
+        print("[JQ]: rendering, invalidation state: \(invalidationState)")
+
+        if
+            let cachedRendering,
+            config.partialTreeRendering,
+            !invalidationState.selfInvalidated,
+            !invalidationState.subtreeInvalidated
+        {
+            rendering = cachedRendering
+            skipNextEnableEvents = true
+        } else {
+            rendering = subtreeManager.render { context in
+                workflow.render(state: state, context: context)
+            }
+            cachedRendering = rendering
+            self.invalidationState = NodeInvalidationState(
+                selfInvalidated: false,
+                subtreeInvalidated: false
+            )
         }
 
         return rendering
     }
 
     func enableEvents() {
+        // TODO: can we model this better?
+        if skipNextEnableEvents {
+            print("[JQ]: skipping enableEvents due to flag")
+            skipNextEnableEvents = false
+            return
+        }
         subtreeManager.enableEvents()
     }
 
     /// Updates the workflow.
-    func update(workflow: WorkflowType) {
-        let oldWorkflow = self.workflow
+    func update(
+        workflow newWorkflow: WorkflowType,
+        isInvalidation: Bool
+    ) {
+        let oldWorkflow = workflow
 
-        workflow.workflowDidChange(from: oldWorkflow, state: &state)
-        self.workflow = workflow
+        if !hostContext.runtimeConfig.partialTreeRendering {
+            // If we don't support render caching & partial re-renders
+            // don't bother with any of the additional work.
+            newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+        } else {
+            let initiallyInvalidated = isInvalidation || invalidationState.hasAnyInvalidation
+
+            let invalidatedByUpdate: Bool
+            if initiallyInvalidated {
+                // If we were already invalidated, no need to do any extra
+                // checking; just update the workflow.
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+                invalidatedByUpdate = true
+            } else if !WorkflowType.isWorkflowEquivalent(oldWorkflow, to: newWorkflow) {
+                // If the Workflow's 'props' changed, invalidate the node.
+                invalidatedByUpdate = true
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+            } else {
+                // Otherwise we have to snapshot the state to check if it is changed
+                // during the update and invalidate the node if it is.
+                let stateSnapshot = state
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+                invalidatedByUpdate = !WorkflowType.isStateEquivalent(stateSnapshot, to: state)
+            }
+
+            invalidationState.selfInvalidated = initiallyInvalidated || invalidatedByUpdate
+        }
+        workflow = newWorkflow
 
         observer?.workflowDidChange(
             from: oldWorkflow,
@@ -199,6 +292,15 @@ extension WorkflowNode {
     }
 }
 
+struct NodeInvalidationState {
+    var selfInvalidated: Bool = true
+    var subtreeInvalidated: Bool = true
+
+    var hasAnyInvalidation: Bool {
+        selfInvalidated || subtreeInvalidated
+    }
+}
+
 // MARK: - Action Application
 
 extension WorkflowNode {
@@ -213,7 +315,11 @@ extension WorkflowNode {
         /// track invalidation through the workflow hierarchy. Note that currently this
         /// value does not definitively indicate if the state actually changed, but should
         /// be treated as a 'dirty bit' flag – if it's set, the node should be re-rendered.
-        var stateChanged: Bool
+//        var stateChanged: Bool
+
+        var selfInvalidated: Bool
+
+        var subtreeInvalidated: Bool
     }
 
     /// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
@@ -264,7 +370,8 @@ extension WorkflowNode {
             ) -> ActionApplicationResult {
                 ActionApplicationResult(
                     output: action.apply(toState: &state, context: wrappedContext),
-                    stateChanged: markStateAsChanged
+                    selfInvalidated: markStateAsChanged,
+                    subtreeInvalidated: markStateAsChanged
                 )
             }
 
@@ -289,7 +396,8 @@ extension WorkflowNode {
                             let stateChanged = (state as! EquatableState) != initialState
                             return ActionApplicationResult(
                                 output: output,
-                                stateChanged: stateChanged
+                                selfInvalidated: stateChanged,
+                                subtreeInvalidated: stateChanged || subtreeInvalidated
                             )
                         }
                         result = applyEquatableState(equatableState)

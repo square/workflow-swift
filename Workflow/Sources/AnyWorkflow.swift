@@ -60,6 +60,19 @@ extension AnyWorkflow: Workflow {
     }
 }
 
+// TODO: do we need to forward stuff here, or not?
+// extension AnyWorkflow {
+//    public static func isWorkflowEquivalent(_ workflow: AnyWorkflow<Rendering, Output>, to otherWorkflow: AnyWorkflow<Rendering, Output>) -> Bool {
+//        // TODO: what to do here?
+//        false
+//    }
+//
+//    public static func isStateEquivalent(_ state: Void, to otherState: Void) -> Bool {
+//        // TODO: what to do here?
+//        false
+//    }
+// }
+
 extension AnyWorkflow {
     /// Returns a new AnyWorkflow whose `Output` type has been transformed into the given type.
     ///
