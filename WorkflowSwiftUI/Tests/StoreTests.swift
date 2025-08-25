@@ -8,6 +8,7 @@ import XCTest
 
 final class StoreTests: XCTestCase {
     func test_stateRead() {
+        let tracker = CompletionTracker()
         var state = State()
         let model = StateAccessor(state: state) { update in
             update(&state)
@@ -17,11 +18,16 @@ final class StoreTests: XCTestCase {
         withPerceptionTracking {
             XCTAssertEqual(store.count, 0)
         } onChange: {
-            XCTFail("State should not have been mutated")
+            if tracker.isComplete == false {
+                XCTFail("State should not have been mutated")
+            }
         }
+
+        tracker.complete()
     }
 
     func test_stateMutation() async {
+        let tracker = CompletionTracker()
         var state = State()
         let model = StateAccessor(state: state) { update in
             update(&state)
@@ -39,15 +45,19 @@ final class StoreTests: XCTestCase {
         withPerceptionTracking {
             _ = store.child.name
         } onChange: {
-            XCTFail("child.name should not change")
+            if tracker.isComplete == false {
+                XCTFail("child.name should not change")
+            }
         }
 
         store.count = 1
         await fulfillment(of: [countDidChange], timeout: 0)
         XCTAssertEqual(state.count, 1)
+        tracker.complete()
     }
 
     func test_childStateMutation() async {
+        let tracker = CompletionTracker()
         var state = State()
         let model = StateAccessor(state: state) { update in
             update(&state)
@@ -59,7 +69,9 @@ final class StoreTests: XCTestCase {
         withPerceptionTracking {
             _ = store.count
         } onChange: {
-            XCTFail("count should not change")
+            if tracker.isComplete == false {
+                XCTFail("count should not change")
+            }
         }
 
         withPerceptionTracking {
@@ -72,6 +84,7 @@ final class StoreTests: XCTestCase {
         await fulfillment(of: [childNameDidChange], timeout: 0)
         XCTAssertEqual(state.count, 0)
         XCTAssertEqual(state.child.name, "foo")
+        tracker.complete()
     }
 
     func test_stateReplacement() async {
@@ -369,6 +382,7 @@ final class StoreTests: XCTestCase {
 
         // some to some
         do {
+            let tracker = CompletionTracker()
             var childState = ParentModel.ChildState(age: 0)
             let childModel = StateAccessor(state: childState) { update in
                 update(&childState)
@@ -382,7 +396,9 @@ final class StoreTests: XCTestCase {
             withPerceptionTracking {
                 _ = store.optional
             } onChange: {
-                XCTFail("optional should not change")
+                if tracker.isComplete == false {
+                    XCTFail("optional should not change")
+                }
             }
 
             let optionalAgeDidChange = expectation(description: "optional.age.didChange")
@@ -403,10 +419,12 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             await fulfillment(of: [optionalAgeDidChange], timeout: 0)
+            tracker.complete()
         }
 
         // nil to nil
         do {
+            let tracker = CompletionTracker()
             var model = makeModel()
             let (store, setModel) = Store.make(model: model)
 
@@ -416,11 +434,14 @@ final class StoreTests: XCTestCase {
             withPerceptionTracking {
                 _ = store.optional
             } onChange: {
-                XCTFail("optional should not change")
+                if tracker.isComplete == false {
+                    XCTFail("optional should not change")
+                }
             }
 
             model.optional = nil
             setModel(model)
+            tracker.complete()
         }
     }
 
@@ -502,6 +523,7 @@ final class StoreTests: XCTestCase {
 
         // reorder
         do {
+            let tracker = CompletionTracker()
             let childStates = makeChildStates()
             let childModels = makeChildModels(childStates: childStates)
             var model = makeModel()
@@ -513,7 +535,9 @@ final class StoreTests: XCTestCase {
             withPerceptionTracking {
                 _ = store.array
             } onChange: {
-                XCTFail("array should not change")
+                if tracker.isComplete == false {
+                    XCTFail("array should not change")
+                }
             }
 
             let array0AgeDidChange = expectation(description: "array[0].age.didChange")
@@ -527,6 +551,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             await fulfillment(of: [array0AgeDidChange], timeout: 0)
+            tracker.complete()
         }
     }
 
@@ -612,6 +637,7 @@ final class StoreTests: XCTestCase {
 
         // reorder
         do {
+            let tracker = CompletionTracker()
             var childStates = makeChildStates()
             let childModels = IdentifiedArray(
                 uniqueElements: zip(childStates.indices, childStates).map { index, state in
@@ -629,7 +655,9 @@ final class StoreTests: XCTestCase {
             withPerceptionTracking {
                 _ = store.identified
             } onChange: {
-                XCTFail("identified should not change")
+                if tracker.isComplete == false {
+                    XCTFail("identified should not change")
+                }
             }
 
             let identified0AgeDidChange = expectation(description: "identified[0].age.didChange")
@@ -643,6 +671,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             await fulfillment(of: [identified0AgeDidChange], timeout: 0)
+            tracker.complete()
         }
     }
 

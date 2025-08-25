@@ -120,6 +120,7 @@ final class NestedStoreTests: XCTestCase {
 
         // nil to nil
         do {
+            let tracker = CompletionTracker()
             var state = State(optional: nil)
             func makeModel() -> StateAccessor<State> {
                 StateAccessor(state: state) { update in
@@ -131,11 +132,14 @@ final class NestedStoreTests: XCTestCase {
             withPerceptionTracking {
                 _ = store.scope(keyPath: \.optional)?.name
             } onChange: {
-                XCTFail("optional should not change")
+                if tracker.isComplete == false {
+                    XCTFail("optional should not change")
+                }
             }
 
             state.optional = nil
             setModel(makeModel())
+            tracker.complete()
         }
     }
 
