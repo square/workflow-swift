@@ -24,6 +24,7 @@ final class ObservableStateTests: XCTestCase {
     }
 
     func testChildCountMutation() async {
+        let tracker = CompletionTracker()
         var state = ParentState()
         let childCountDidChange = expectation(description: "child.count.didChange")
 
@@ -35,15 +36,19 @@ final class ObservableStateTests: XCTestCase {
         withPerceptionTracking {
             _ = state.child
         } onChange: {
-            XCTFail("state.child should not change.")
+            if tracker.isComplete == false {
+                XCTFail("state.child should not change.")
+            }
         }
 
         state.child.count += 1
         await fulfillment(of: [childCountDidChange], timeout: 0)
         XCTAssertEqual(state.child.count, 1)
+        tracker.complete()
     }
 
     func testChildReset() async {
+        let tracker = CompletionTracker()
         var state = ParentState()
         let childDidChange = expectation(description: "child.didChange")
 
@@ -51,7 +56,9 @@ final class ObservableStateTests: XCTestCase {
         withPerceptionTracking {
             _ = child.count
         } onChange: {
-            XCTFail("child.count should not change.")
+            if tracker.isComplete == false {
+                XCTFail("child.count should not change.")
+            }
         }
         withPerceptionTracking {
             _ = state.child
@@ -62,6 +69,7 @@ final class ObservableStateTests: XCTestCase {
         state.child = ChildState(count: 42)
         await fulfillment(of: [childDidChange], timeout: 0)
         XCTAssertEqual(state.child.count, 42)
+        tracker.complete()
     }
 
     func testReplaceChild() async {
@@ -139,16 +147,20 @@ final class ObservableStateTests: XCTestCase {
 
         // nil -> nil
         do {
+            let tracker = CompletionTracker()
             var state = ParentState(optional: nil)
 
             withPerceptionTracking {
                 _ = state.optional
             } onChange: {
-                XCTFail("Optional should not change")
+                if tracker.isComplete == false {
+                    XCTFail("Optional should not change")
+                }
             }
 
             state.optional = nil
             XCTAssertNil(state.optional)
+            tracker.complete()
         }
 
         // value -> nil
@@ -169,13 +181,16 @@ final class ObservableStateTests: XCTestCase {
     }
 
     func testMutateOptional() async {
+        let tracker = CompletionTracker()
         var state = ParentState(optional: ChildState())
         let optionalCountDidChange = expectation(description: "optional.count.didChange")
 
         withPerceptionTracking {
             _ = state.optional
         } onChange: {
-            XCTFail("Optional should not change")
+            if tracker.isComplete == false {
+                XCTFail("Optional should not change")
+            }
         }
         let optional = state.optional
         withPerceptionTracking {
@@ -187,6 +202,7 @@ final class ObservableStateTests: XCTestCase {
         state.optional?.count += 1
         await fulfillment(of: [optionalCountDidChange], timeout: 0)
         XCTAssertEqual(state.optional?.count, 1)
+        tracker.complete()
     }
 
     func testReplaceWithCopy() async {
@@ -225,6 +241,7 @@ final class ObservableStateTests: XCTestCase {
     }
 
     func testIdentifiedArray_MutateElement() {
+        let tracker = CompletionTracker()
         var state = ParentState(rows: [
             ChildState(),
             ChildState(),
@@ -234,12 +251,16 @@ final class ObservableStateTests: XCTestCase {
         withPerceptionTracking {
             _ = state.rows
         } onChange: {
-            XCTFail("rows should not change")
+            if tracker.isComplete == false {
+                XCTFail("rows should not change")
+            }
         }
         withPerceptionTracking {
             _ = state.rows[0]
         } onChange: {
-            XCTFail("rows[0] should not change")
+            if tracker.isComplete == false {
+                XCTFail("rows[0] should not change")
+            }
         }
         withPerceptionTracking {
             _ = state.rows[0].count
@@ -249,12 +270,15 @@ final class ObservableStateTests: XCTestCase {
         withPerceptionTracking {
             _ = state.rows[1].count
         } onChange: {
-            XCTFail("rows[1].count should not change")
+            if tracker.isComplete == false {
+                XCTFail("rows[1].count should not change")
+            }
         }
 
         state.rows[0].count += 1
         XCTAssertEqual(state.rows[0].count, 1)
         wait(for: [firstRowCountDidChange], timeout: 0)
+        tracker.complete()
     }
 
     func testCopy() {
@@ -289,15 +313,19 @@ final class ObservableStateTests: XCTestCase {
     }
 
     func testArrayMutate() {
+        let tracker = CompletionTracker()
         var state = ParentState(children: [ChildState()])
 
         withPerceptionTracking {
             _ = state.children
         } onChange: {
-            XCTFail("children should not change")
+            if tracker.isComplete == false {
+                XCTFail("children should not change")
+            }
         }
 
         state.children[0].count += 1
+        tracker.complete()
     }
 }
 
