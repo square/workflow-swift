@@ -16,16 +16,20 @@
 
 /// A type-erased wrapper that contains a workflow with the given Rendering and Output types.
 public struct AnyWorkflow<Rendering, Output> {
-    private let storage: AnyStorage
+    @usableFromInline
+    let storage: AnyStorage
 
     /// The underlying erased workflow instance
+    @inlinable
     public var base: Any { storage.base }
 
-    private init(storage: AnyStorage) {
+    @usableFromInline
+    init(storage: AnyStorage) {
         self.storage = storage
     }
 
     /// Initializes a new type-erased wrapper for the given workflow.
+    @inlinable
     public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
         if let workflow = workflow as? AnyWorkflow<Rendering, Output> {
             self = workflow
@@ -66,6 +70,7 @@ extension AnyWorkflow {
     /// - Parameter transform: An escaping closure that maps the original output type into the new output type.
     ///
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
+    @inlinable
     public func mapOutput<NewOutput>(
         _ transform: @escaping (Output) -> NewOutput
     ) -> AnyWorkflow<Rendering, NewOutput> {
@@ -78,6 +83,7 @@ extension AnyWorkflow {
     /// - Parameter transform: An escaping closure that maps the original rendering type into the new rendering type.
     ///
     /// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
+    @inlinable
     public func mapRendering<NewRendering>(
         _ transform: @escaping (Rendering) -> NewRendering
     ) -> AnyWorkflow<NewRendering, Output> {
@@ -95,6 +101,7 @@ extension AnyWorkflow {
     /// That type information *is* present in our storage object, however, so we
     /// pass the context down to that storage object which will ultimately call
     /// through to `context.render(workflow:key:reducer:)`.
+    @inlinable
     func render<Parent, Action: WorkflowAction>(
         context: RenderContext<Parent>,
         key: String,
@@ -108,9 +115,12 @@ extension AnyWorkflow {
     /// This is the type erased outer API (referenced by the containing AnyWorkflow).
     ///
     /// This type is never used directly.
-    fileprivate class AnyStorage {
+    @usableFromInline
+    class AnyStorage {
+        @usableFromInline
         var base: Any { fatalError() }
 
+        @inlinable
         func render<Parent, Action: WorkflowAction>(
             context: RenderContext<Parent>,
             key: String,
@@ -119,14 +129,17 @@ extension AnyWorkflow {
             fatalError()
         }
 
+        @inlinable
         func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
             fatalError()
         }
 
+        @inlinable
         func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             fatalError()
         }
 
+        @inlinable
         var workflowType: Any.Type {
             fatalError()
         }
@@ -135,23 +148,31 @@ extension AnyWorkflow {
     /// Subclass that adds type information about the underlying workflow implementation.
     ///
     /// This is the only type that is ever actually used by AnyWorkflow as storage.
-    fileprivate final class Storage<T: Workflow>: AnyStorage {
+    @usableFromInline
+    final class Storage<T: Workflow>: AnyStorage {
+        @usableFromInline
         let workflow: T
+        @usableFromInline
         let renderingTransform: (T.Rendering) -> Rendering
+        @usableFromInline
         let outputTransform: (T.Output) -> Output
 
+        @usableFromInline
         init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping (T.Output) -> Output) {
             self.workflow = workflow
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
         }
 
+        @usableFromInline
         override var base: Any { workflow }
 
+        @usableFromInline
         override var workflowType: Any.Type {
             T.self
         }
 
+        @inlinable
         override func render<Parent, Action: WorkflowAction>(
             context: RenderContext<Parent>,
             key: String,
@@ -164,6 +185,7 @@ extension AnyWorkflow {
             return renderingTransform(rendering)
         }
 
+        @inlinable
         override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             AnyWorkflow<Rendering, NewOutput>.Storage<T>(
                 workflow: workflow,
@@ -174,6 +196,7 @@ extension AnyWorkflow {
             )
         }
 
+        @inlinable
         override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
             AnyWorkflow<NewRendering, Output>.Storage<T>(
                 workflow: workflow,
@@ -187,10 +210,12 @@ extension AnyWorkflow {
 }
 
 extension AnyWorkflowConvertible {
+    @inlinable
     public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
         asAnyWorkflow().mapOutput(transform)
     }
 
+    @inlinable
     public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
         asAnyWorkflow().mapRendering(transform)
     }

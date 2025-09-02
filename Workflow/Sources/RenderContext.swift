@@ -49,9 +49,6 @@ import Foundation
 public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     private(set) var isValid = true
 
-    // Ensure that this class can never be initialized externally
-    private init() {}
-
     /// Creates or updates a child workflow of the given type, performs a render
     /// pass, and returns the result.
     ///
@@ -63,6 +60,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameter key: A string that uniquely identifies this child.
     ///
     /// - Returns: The `Rendering` result of the child's `render` method.
+    @inlinable
     func render<Child: Workflow, Action: WorkflowAction>(
         workflow: Child,
         key: String,
@@ -81,6 +79,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     ///
     /// - Parameter actionType: The type of Action this Sink may process
     /// - Returns: A Sink capable of relaying `Action` instances to the Workflow runtime
+    @inlinable
     public func makeSink<Action: WorkflowAction>(
         of actionType: Action.Type
     ) -> Sink<Action> where Action.WorkflowType == WorkflowType {
@@ -101,6 +100,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     /// - Parameters:
     ///   - key: represents the block of work that needs to be executed.
     ///   - action: a block of work that will be executed.
+    @inlinable
     public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
         fatalError()
     }
@@ -110,20 +110,25 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 
     // API to allow custom context implementations to power a render context
+    @inlinable
     static func make<T: RenderContextType>(implementation: T) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
         ConcreteRenderContext(implementation)
     }
 
     // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
     // that is ever instantiated.
-    private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
+    @usableFromInline
+    final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
+        @usableFromInline
         let implementation: T
 
+        @usableFromInline
         init(_ implementation: T) {
             self.implementation = implementation
             super.init()
         }
 
+        @inlinable
         override func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
@@ -135,6 +140,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
         }
 
+        @inlinable
         override func makeSink<Action: WorkflowAction>(
             of actionType: Action.Type
         ) -> Sink<Action>
@@ -144,6 +150,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             return implementation.makeSink(of: actionType)
         }
 
+        @inlinable
         override func runSideEffect(
             key: AnyHashable,
             action: (_ lifetime: Lifetime) -> Void
@@ -152,12 +159,14 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
             implementation.runSideEffect(key: key, action: action)
         }
 
-        private func assertStillValid() {
+        @usableFromInline
+        func assertStillValid() {
             assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
         }
     }
 }
 
+@usableFromInline
 protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
@@ -178,6 +187,7 @@ protocol RenderContextType: AnyObject {
 }
 
 extension RenderContext {
+    @inlinable
     public func makeSink<Event>(
         of eventType: Event.Type,
         onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?
@@ -192,6 +202,7 @@ extension RenderContext {
 
     /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
     /// intermediate action.
+    @inlinable
     public func makeOutputSink() -> Sink<WorkflowType.Output> {
         makeSink(of: AnyWorkflowAction.self)
             .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
