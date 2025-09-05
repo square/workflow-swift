@@ -59,7 +59,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.5.5"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
-        .package(url: "https://github.com/pointfreeco/swift-perception", from: "2.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-perception", "1.5.0"..<"3.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
     ],
