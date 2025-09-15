@@ -211,7 +211,10 @@ extension WorkflowNode.SubtreeManager {
             session: WorkflowSession
         ) {
             self.eventPipes = []
-            self.sinkStore = SinkStore(previousSinks: previousSinks)
+            self.sinkStore = SinkStore(
+                previousSinks: previousSinks,
+                onSinkEvent: hostContext.onSinkEvent
+            )
 
             self.originalChildWorkflows = originalChildWorkflows
             self.usedChildWorkflows = [:]
@@ -315,9 +318,15 @@ extension WorkflowNode.SubtreeManager {
         private var previousSinks: [ObjectIdentifier: AnyReusableSink]
         private(set) var usedSinks: [ObjectIdentifier: AnyReusableSink]
 
-        init(previousSinks: [ObjectIdentifier: AnyReusableSink]) {
+        let onSinkEvent: OnSinkEvent
+
+        init(
+            previousSinks: [ObjectIdentifier: AnyReusableSink],
+            onSinkEvent: @escaping OnSinkEvent
+        ) {
             self.previousSinks = previousSinks
             self.usedSinks = [:]
+            self.onSinkEvent = onSinkEvent
         }
 
         mutating func findOrCreate<Action: WorkflowAction>(actionType: Action.Type) -> ReusableSink<Action> {
@@ -334,7 +343,7 @@ extension WorkflowNode.SubtreeManager {
                 reusableSink = usedSink
             } else {
                 // Create a new reusable sink.
-                reusableSink = ReusableSink<Action>()
+                reusableSink = ReusableSink<Action>(onSinkEvent: onSinkEvent)
             }
 
             usedSinks[key] = reusableSink
@@ -345,44 +354,128 @@ extension WorkflowNode.SubtreeManager {
 
     /// Type-erased base class for reusable sinks.
     fileprivate class AnyReusableSink {
-        var eventPipe: EventPipe
+        var eventPipe: EventPipe {
+            didSet {
+                print("sink event pipe changed to \(eventPipe)")
+            }
+        }
 
-        init() {
+        let onSinkEvent: OnSinkEvent
+
+        init(onSinkEvent: @escaping OnSinkEvent) {
             self.eventPipe = EventPipe()
+            self.onSinkEvent = onSinkEvent
         }
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
+            if case .pending = eventPipe.validationState {
+                // Workflow is currently processing an `event`.
+                // Scheduling it to be processed after.
+                DispatchQueue.workflowExecution.async { [weak self] in
+                    self?.handle(action: action)
+//                    self?.eventPipe.handle(event: output)
+                }
+                return
+            }
+
             let output = Output.update(
                 action,
                 source: .external,
                 subtreeInvalidated: false // initial state
             )
 
-            if case .pending = eventPipe.validationState {
-                // Workflow is currently processing an `event`.
-                // Scheduling it to be processed after.
-                DispatchQueue.workflowExecution.async { [weak self] in
-                    self?.eventPipe.handle(event: output)
-                }
-                return
-            }
             eventPipe.handle(event: output)
+            return
+
+            let perform = {
+                let output = Output.update(
+                    action,
+                    source: .external,
+                    subtreeInvalidated: false // initial state
+                )
+
+                self.eventPipe.handle(event: output)
+            }
+
+            let enqueue: () -> Void = { [weak self] in
+                self?.handle(action: action)
+            }
+
+            onSinkEvent(perform, enqueue)
+
+            //            // Check local state
+//            if case .pending = eventPipe.validationState {
+//                // Workflow is currently processing an `event`.
+//                // Scheduling it to be processed after.
+//                DispatchQueue.workflowExecution.async { [weak self] in
+//                    self?.handle(action: action)
+//                }
+//                return
+//            }
+//
+//            // Check host state
+//            switch onSinkEvent() {
+//            case .performNow(let onComplete):
+//                defer { onComplete() }
+//
+//                let output = Output.update(
+//                    action,
+//                    source: .external,
+//                    subtreeInvalidated: false // initial state
+//                )
+//
+//                self.eventPipe.handle(event: output)
+//
+//            case .mustEnqueue:
+//                DispatchQueue.workflowExecution.async { [weak self] in
+//                    self?.handle(action: action)
+//                }
+//            }
+
+//            onSinkEvent { [weak self] in
+//                self?.eventPipe.handle(event: output)
+//            }
         }
     }
 }
 
 // MARK: - EventPipe
 
+enum AnyEventPipeValidationState {
+    case preparing
+    case pending
+    case valid
+    case invalid
+}
+
 extension WorkflowNode.SubtreeManager {
     final class EventPipe {
-        var validationState: ValidationState
+        var validationState: ValidationState {
+            didSet {
+                print("pipe: \(self) changed validation state to \(validationState)")
+            }
+        }
+
         enum ValidationState {
             case preparing
             case pending
             case valid(handler: (Output) -> Void)
             case invalid
+
+            func eraseToAnyEventPipeValidationState() -> AnyEventPipeValidationState {
+                switch self {
+                case .preparing:
+                    .preparing
+                case .pending:
+                    .pending
+                case .valid:
+                    .valid
+                case .invalid:
+                    .invalid
+                }
+            }
         }
 
         /// Utility to detect reentrancy in `handle()`

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import ReactiveSwift
 import XCTest
+
 @_spi(WorkflowRuntimeConfig) @testable import Workflow
 
 final class WorkflowHostTests: XCTestCase {
@@ -85,6 +87,102 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
 
         XCTAssertEqual(observedRenderCount, 1)
     }
+
+    func test_reentrant_event_emission_in_update() {
+        let root = Parent()
+        let host = WorkflowHost(workflow: root)
+        let (lt, token) = ReactiveSwift.Lifetime.make()
+        defer { withExtendedLifetime(token) {} }
+        let initialRendering = host.rendering.value
+        var observedRenderCount = 0
+
+        XCTAssertEqual(initialRendering.eventCount, 0)
+
+        let queuedEvent = expectation(description: "queued event")
+
+        let disposable = host.rendering.signal
+            .take(during: lt)
+//            .on(value: { rendering in
+            .observeValues { rendering in
+                XCTAssertEqual(rendering.eventCount, 1)
+
+                // Force an update synchronously in render
+                if observedRenderCount == 0 {
+                    host.update(workflow: Parent())
+                    let newRendering = host.rendering.value
+
+                    // Queue an update into the new rendering, but spin
+                    // the RunLoop to force it to be handled 'synchronously'
+                    DispatchQueue.main.async {
+                        newRendering.eventHandler()
+                        queuedEvent.fulfill()
+                    }
+
+                    // spin the run loop manually
+                    self.wait(for: [queuedEvent], timeout: 1)
+                }
+
+                observedRenderCount += 1
+            }
+//            })
+//            .observeValues { _ in }
+        defer { disposable?.dispose() }
+
+        // send an event and cause a re-render
+        initialRendering.eventHandler()
+
+        XCTAssertEqual(observedRenderCount, 1)
+    }
+
+    func test_reentrant_event_emission_in_update2() {
+        let root = ReentrancyWorkflow()
+        let host = WorkflowHost(workflow: root)
+        let (lt, token) = ReactiveSwift.Lifetime.make()
+        defer { withExtendedLifetime(token) {} }
+        let initialRendering = host.rendering.value
+
+        var emitReentrantEvent = false
+
+        host
+            .rendering
+            .signal
+            .take(during: lt)
+            .observeValues { val in
+                defer { emitReentrantEvent = true }
+                guard !emitReentrantEvent else { return }
+
+                // In a prior implementation, this would check state local
+                // to the underlying EventPipe and defer event handling
+                // into the future. If the RunLoop was spun after that
+                // point, the action would attempt to be handled and an
+                // invariant about sending a sink an action in an invalid
+                // state would be hit.
+                //
+                // 'Real world' code can hit this case as there are some
+                // UI bindings that fire when a rendering/output is updated
+                // that call into system API that do sometimes spin the
+                // RunLoop manually (e.g. stuff calling into WebKit).
+                initialRendering.sink2?.send(.two)
+                spinRunLoopFn()
+            }
+
+        // send an event and cause a re-render
+        initialRendering.sink1?.send(.one)
+
+        XCTAssert(emitReentrantEvent)
+    }
+}
+
+func spinRunLoopFn() {
+    var done = false
+
+    DispatchQueue.main.async {
+        done = true
+    }
+
+    while !done {
+        RunLoop.current.run(until: .now.addingTimeInterval(0.01))
+    }
 }
 
 // MARK: Runtime Configuration
@@ -114,6 +212,56 @@ extension WorkflowHostTests {
 }
 
 // MARK: Utility Types
+
+extension WorkflowHost_EventEmissionTests {
+    struct ReentrancyWorkflow: Workflow {
+        struct Rendering {
+            var sink1: Sink<Action1>?
+            var sink2: Sink<Action2>?
+        }
+
+        typealias State = Void
+        typealias Output = String
+
+        var spinRunLoop: Bool = false
+
+        func render(state: Void, context: RenderContext<Self>) -> Rendering {
+            let sink1 = context.makeSink(of: Action1.self)
+            let sink2 = context.makeSink(of: Action2.self)
+
+//            if spinRunLoop {
+//                spinRunLoopFn()
+//            }
+
+            return Rendering(sink1: sink1, sink2: sink2)
+        }
+    }
+
+    enum Action1: WorkflowAction {
+        typealias WorkflowType = ReentrancyWorkflow
+        case one
+
+        func apply(
+            toState state: inout WorkflowType.State,
+            context: ApplyContext<WorkflowType>
+        ) -> WorkflowType.Output? {
+            "one"
+        }
+    }
+
+    enum Action2: WorkflowAction {
+        typealias WorkflowType = ReentrancyWorkflow
+        case two
+
+        func apply(
+            toState state: inout WorkflowType.State,
+            context: ApplyContext<WorkflowType>
+        ) -> WorkflowType.Output? {
+//            "two"
+            nil
+        }
+    }
+}
 
 extension WorkflowHost_EventEmissionTests {
     struct Parent: Workflow {

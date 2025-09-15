@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Dispatch
+import IssueReporting
 import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
@@ -28,6 +30,49 @@ public protocol WorkflowDebugger {
     /// - Parameter snapshot: Debug information about the workflow hierarchy *after* the update.
     /// - Parameter updateInfo: Information about the update.
     func didUpdate(snapshot: WorkflowHierarchyDebugSnapshot, updateInfo: WorkflowUpdateDebugInfo)
+}
+
+final class EventHandler {
+    enum State {
+        case initializing
+        case processingEvent
+        case ready
+    }
+
+    var state: State = .initializing
+
+    init() {}
+
+    func performOrEnqueueEvent(
+        perform: () -> Void,
+        enqueue: @escaping () -> Void
+    ) {
+        switch state {
+        case .initializing:
+            fatalError("Tried to handle event before finishing initialization.")
+
+        case .processingEvent:
+            DispatchQueue.workflowExecution.async(execute: enqueue)
+
+        case .ready:
+            state = .processingEvent
+            defer { self.state = .ready }
+            perform()
+        }
+    }
+
+    func makeOnSinkEventCallback() -> OnSinkEvent {
+        // TODO: do we need the weak ref?
+        let onSinkEvent: OnSinkEvent = { [weak self] perform, enqueue in
+            guard let self else {
+                return // TODO: what's the appropriate handling?
+            }
+
+            performOrEnqueueEvent(perform: perform, enqueue: enqueue)
+        }
+
+        return onSinkEvent
+    }
 }
 
 /// Manages an active workflow hierarchy.
@@ -50,6 +95,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         context.debugger
     }
 
+    let eventHandler: EventHandler
+
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
@@ -61,6 +108,13 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         observers: [WorkflowObserver] = [],
         debugger: WorkflowDebugger? = nil
     ) {
+        self.eventHandler = EventHandler()
+        assert(
+            eventHandler.state == .initializing,
+            "EventHandler must begin in the `.initializing` state"
+        )
+        defer { eventHandler.state = .ready }
+
         let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
@@ -69,7 +123,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         self.context = HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: Runtime.configuration
+            runtimeConfig: Runtime.configuration,
+            onSinkEvent: eventHandler.makeOnSinkEventCallback()
         )
 
         self.rootNode = WorkflowNode(
@@ -151,21 +206,33 @@ extension WorkflowHost {
 
 // MARK: - HostContext
 
+typealias OnSinkEvent = PerformOrEnqueue
+
+typealias PerformOrEnqueue = (
+    _ perform: () -> Void,
+    _ enqueue: @escaping () -> Void
+) -> Void
+
+// Check host-level info to try an perform event
+
 /// A context object to expose certain root-level information to each node
 /// in the Workflow tree.
 struct HostContext {
     let observer: WorkflowObserver?
     let debugger: WorkflowDebugger?
     let runtimeConfig: Runtime.Configuration
+    let onSinkEvent: OnSinkEvent
 
     init(
         observer: WorkflowObserver?,
         debugger: WorkflowDebugger?,
-        runtimeConfig: Runtime.Configuration
+        runtimeConfig: Runtime.Configuration,
+        onSinkEvent: @escaping OnSinkEvent
     ) {
         self.observer = observer
         self.debugger = debugger
         self.runtimeConfig = runtimeConfig
+        self.onSinkEvent = onSinkEvent
     }
 }
 
