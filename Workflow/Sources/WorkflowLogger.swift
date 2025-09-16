@@ -15,6 +15,7 @@
  */
 
 import Foundation
+import Logging
 import os.signpost
 
 extension OSLog {
@@ -206,4 +207,34 @@ enum WorkflowLogger {
             return true
         }
     }
+}
+
+// MARK: - External Logging
+
+typealias ExternalLogger = Logging.Logger
+
+extension WorkflowLogger {
+    static func logExternal(
+        as level: ExternalLogger.Level,
+        _ message: @autoclosure () -> ExternalLogger.Message,
+        metadata: @autoclosure () -> ExternalLogger.Metadata? = nil,
+        source: @autoclosure () -> String? = nil,
+        file: String = #fileID,
+        function: String = #function,
+        line: UInt = #line
+    ) {
+        ExternalLogger.workflow.log(
+            level: level,
+            message(),
+            metadata: metadata(),
+            source: source(),
+            file: file,
+            function: function,
+            line: line
+        )
+    }
+}
+
+extension ExternalLogger {
+    static let workflow = Logger(label: "com.squareup.workflow")
 }

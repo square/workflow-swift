@@ -153,7 +153,10 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         }
 
         private func assertStillValid() {
-            assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+            if !isValid {
+                WorkflowLogger.logExternal(as: .error, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+                assertionFailure("A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+            }
         }
     }
 }
