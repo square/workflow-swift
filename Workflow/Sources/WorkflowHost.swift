@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Dispatch
 import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
@@ -50,6 +51,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         context.debugger
     }
 
+    let eventHandler: SinkEventHandler
+
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
@@ -61,6 +64,13 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         observers: [WorkflowObserver] = [],
         debugger: WorkflowDebugger? = nil
     ) {
+        self.eventHandler = SinkEventHandler()
+        assert(
+            eventHandler.state == .initializing,
+            "EventHandler must begin in the `.initializing` state"
+        )
+        defer { eventHandler.state = .ready }
+
         let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
@@ -69,7 +79,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         self.context = HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: Runtime.configuration
+            runtimeConfig: Runtime.configuration,
+            onSinkEvent: eventHandler.makeOnSinkEventCallback()
         )
 
         self.rootNode = WorkflowNode(
@@ -158,14 +169,19 @@ struct HostContext {
     let debugger: WorkflowDebugger?
     let runtimeConfig: Runtime.Configuration
 
+    /// Event handler to be plumbed through the runtime down to the Sinks
+    let onSinkEvent: OnSinkEvent
+
     init(
         observer: WorkflowObserver?,
         debugger: WorkflowDebugger?,
-        runtimeConfig: Runtime.Configuration
+        runtimeConfig: Runtime.Configuration,
+        onSinkEvent: @escaping OnSinkEvent
     ) {
         self.observer = observer
         self.debugger = debugger
         self.runtimeConfig = runtimeConfig
+        self.onSinkEvent = onSinkEvent
     }
 }
 
@@ -174,5 +190,74 @@ extension HostContext {
         _ perform: () -> T
     ) -> T? {
         debugger != nil ? perform() : nil
+    }
+}
+
+// MARK: - EventHandler
+
+/// Callback signature for the internal `ReusableSink` types to invoke when
+/// they receive an event from the 'outside world'.
+/// - Parameter perform: The event handler to invoke if the event can be processed immediately.
+/// - Parameter enqueue: The event handler to invoke in the future if the event cannot currently be processed.
+typealias OnSinkEvent = (
+    _ perform: () -> Void,
+    _ enqueue: @escaping () -> Void
+) -> Void
+
+/// Handles events from 'Sinks' such that runtime-level event handling state is appropriately
+/// managed, and attempts to perform reentrant action handling can be detected and dealt with.
+final class SinkEventHandler {
+    enum State {
+        /// The handler (and related components) are being
+        /// initialized, and are not yet ready to process events.
+        /// Attempts to do so in this state will fail with a fatal error.
+        case initializing
+
+        /// An event is currently being processed.
+        case processingEvent
+
+        /// Ready to handle an event.
+        case ready
+    }
+
+    fileprivate(set) var state: State = .initializing
+
+    /// Synchronously performs or enqueues the specified event handlers based on the current
+    /// event handler state.
+    /// - Parameters:
+    ///   - perform: The event handling action to perform immediately if possible.
+    ///   - enqueue: The event handling action to enqueue if the event handler is already processing an event.
+    func performOrEnqueueEvent(
+        perform: () -> Void,
+        enqueue: @escaping () -> Void
+    ) {
+        switch state {
+        case .initializing:
+            fatalError("Tried to handle event before finishing initialization.")
+
+        case .processingEvent:
+            DispatchQueue.workflowExecution.async(execute: enqueue)
+
+        case .ready:
+            state = .processingEvent
+            defer { state = .ready }
+            perform()
+        }
+    }
+
+    /// Creates the callback that should be invoked by Sinks to handle their event appropriately
+    /// given the `EventHandler`'s current state.
+    /// - Returns: The callback that should be invoked.
+    func makeOnSinkEventCallback() -> OnSinkEvent {
+        // TODO: do we need the weak ref?
+        let onSinkEvent: OnSinkEvent = { [weak self] perform, enqueue in
+            guard let self else {
+                return // TODO: what's the appropriate handling?
+            }
+
+            performOrEnqueueEvent(perform: perform, enqueue: enqueue)
+        }
+
+        return onSinkEvent
     }
 }

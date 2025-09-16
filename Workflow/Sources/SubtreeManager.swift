@@ -281,7 +281,10 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action: WorkflowAction>(
             of actionType: Action.Type
         ) -> Sink<Action> where WorkflowType == Action.WorkflowType {
-            let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
+            let reusableSink = sinkStore.findOrCreate(
+                actionType: Action.self,
+                onSinkEvent: hostContext.onSinkEvent
+            )
 
             let sink = Sink<Action> { [weak reusableSink] action in
                 WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
@@ -320,7 +323,10 @@ extension WorkflowNode.SubtreeManager {
             self.usedSinks = [:]
         }
 
-        mutating func findOrCreate<Action: WorkflowAction>(actionType: Action.Type) -> ReusableSink<Action> {
+        mutating func findOrCreate<Action: WorkflowAction>(
+            actionType: Action.Type,
+            onSinkEvent: @escaping OnSinkEvent
+        ) -> ReusableSink<Action> {
             let key = ObjectIdentifier(actionType)
 
             let reusableSink: ReusableSink<Action>
@@ -334,7 +340,7 @@ extension WorkflowNode.SubtreeManager {
                 reusableSink = usedSink
             } else {
                 // Create a new reusable sink.
-                reusableSink = ReusableSink<Action>()
+                reusableSink = ReusableSink<Action>(onSinkEvent: onSinkEvent)
             }
 
             usedSinks[key] = reusableSink
@@ -345,30 +351,33 @@ extension WorkflowNode.SubtreeManager {
 
     /// Type-erased base class for reusable sinks.
     fileprivate class AnyReusableSink {
+        /// The callback to invoke when an event is to be handled.
+        let onSinkEvent: OnSinkEvent
         var eventPipe: EventPipe
 
-        init() {
+        init(onSinkEvent: @escaping OnSinkEvent) {
+            self.onSinkEvent = onSinkEvent
             self.eventPipe = EventPipe()
         }
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
-            let output = Output.update(
-                action,
-                source: .external,
-                subtreeInvalidated: false // initial state
-            )
+            let perform: () -> Void = {
+                let output = Output.update(
+                    action,
+                    source: .external,
+                    subtreeInvalidated: false // initial state
+                )
 
-            if case .pending = eventPipe.validationState {
-                // Workflow is currently processing an `event`.
-                // Scheduling it to be processed after.
-                DispatchQueue.workflowExecution.async { [weak self] in
-                    self?.eventPipe.handle(event: output)
-                }
-                return
+                self.eventPipe.handle(event: output)
             }
-            eventPipe.handle(event: output)
+
+            let enqueue: () -> Void = { [weak self] in
+                self?.handle(action: action)
+            }
+
+            onSinkEvent(perform, enqueue)
         }
     }
 }
