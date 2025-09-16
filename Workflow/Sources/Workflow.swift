@@ -130,3 +130,11 @@ extension CacheableWorkflow where State: Equatable {
         state == otherState
     }
 }
+
+// MARK: - Observation + Cacheable
+
+// import Observation
+import Perception
+
+@_spi(Experimental)
+public protocol ObservableWorkflow: Workflow {}

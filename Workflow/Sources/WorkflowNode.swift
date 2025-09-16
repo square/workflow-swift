@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Perception
+
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
@@ -178,9 +180,18 @@ final class WorkflowNode<WorkflowType: Workflow> {
         } else {
             // Otherwise, produce a new rendering, cache it if
             // supported, and update the node validation info.
-            newRendering = subtreeManager.render { context in
-                workflow.render(state: state, context: context)
-            }
+
+            newRendering = withPerceptionTracking({
+                subtreeManager.render { context in
+                    workflow.render(state: state, context: context)
+                }
+            }, onChange: { [weak self] in
+                self?.isInvalidated = true
+            })
+
+//            newRendering = subtreeManager.render { context in
+//                workflow.render(state: state, context: context)
+//            }
             if config.partialTreeRendering {
                 cachedRendering = newRendering
             }
