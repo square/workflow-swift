@@ -15,6 +15,7 @@
  */
 
 import Dispatch
+import Foundation
 
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
@@ -353,21 +354,34 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
-        func handle(action: Action) {
+        func handle(action: Action, deferralCount: Int = 0) {
+            assert(
+                Thread.isMainThread,
+                "Attempt to handle \(String(describing: action)) on a background thread. Actions should be sent on the main thread."
+            )
+            assert(
+                deferralCount < 1000,
+                "Anomalous number of repeated deferrals (\(deferralCount)) when handling action: \(String(describing: action))"
+            )
+
+            if case .pending = eventPipe.validationState {
+                // Workflow is currently processing an `event`.
+                // Enqueue a future attempt to handle this action.
+                DispatchQueue.workflowExecution.async { [weak self] in
+                    self?.handle(
+                        action: action,
+                        deferralCount: deferralCount + 1
+                    )
+                }
+                return
+            }
+
             let output = Output.update(
                 action,
                 source: .external,
                 subtreeInvalidated: false // initial state
             )
 
-            if case .pending = eventPipe.validationState {
-                // Workflow is currently processing an `event`.
-                // Scheduling it to be processed after.
-                DispatchQueue.workflowExecution.async { [weak self] in
-                    self?.eventPipe.handle(event: output)
-                }
-                return
-            }
             eventPipe.handle(event: output)
         }
     }
