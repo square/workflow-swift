@@ -16,6 +16,10 @@
 
 import Dispatch
 
+#if DEBUG
+import IssueReporting
+#endif
+
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
     /// the lifecycle of nested workflows across multiple render passes.
@@ -75,6 +79,16 @@ extension WorkflowNode {
             let rendering = actions(wrapped)
 
             wrapped.invalidate()
+
+            #if DEBUG
+            // Try to ensure it didn't escape from the invocation.
+            diagnoseEscapedReference(to: consume wrapped) { objectID in
+                "Detected escape of a RenderContext<\(WorkflowType.self)> instance from a `render()` method. A RenderContext is only valid to use within render(); allowing it to escape may lead to incorrect behavior. Search for the address of '\(objectID)' in the memory graph debugger to determine why it may have escaped."
+            }
+            #else
+            // For binding lifetime consistency
+            _ = consume wrapped
+            #endif
 
             /// After the render is complete, assign children using *only the children that were used during the render
             /// pass.* This means that any pre-existing children that were *not* used during the render pass are removed

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import IssueReporting
 import Testing
 
 @testable import Workflow
@@ -38,7 +39,10 @@ struct ApplyContextTests {
         let emitEvent = node.render()
         node.enableEvents()
 
-        emitEvent()
+        // We're intentionally escaping the context
+        withExpectedIssue {
+            emitEvent()
+        }
 
         #expect(escapedContext != nil)
         #expect(escapedContext?.concreteStorage == nil)
