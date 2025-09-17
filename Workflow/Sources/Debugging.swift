@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if DEBUG
+import IssueReporting
+#endif
+
 public struct WorkflowUpdateDebugInfo: Codable, Equatable {
     public var workflowType: String
     public var kind: Kind
@@ -168,3 +172,30 @@ extension WorkflowUpdateDebugInfo {
         )
     }()
 }
+
+// MARK: - Runtime Debugging Utilities
+
+#if DEBUG
+/// Debug facility that checks if an instance of a reference type may have 'escaped' from a function.
+/// - Parameters:
+///   - object: The instance to test.
+///   - message: The message to log if not uniquely referenced. The ObjectIdentifier of the instance will be supplied as an argument.
+///
+/// If the instance is **not** known to be uniquely referenced it will:
+///   - Trigger a test failure if running in a testing context.
+///   - Cause an assertion failure otherwise.
+func diagnoseEscapedReference(
+    to object: consuming some AnyObject,
+    _ message: (ObjectIdentifier) -> String
+) {
+    var maybeUniqueReference = consume object
+    if !isKnownUniquelyReferenced(&maybeUniqueReference) {
+        if let _ = TestContext.current {
+            reportIssue(message(ObjectIdentifier(maybeUniqueReference)))
+        } else {
+            assertionFailure(message(ObjectIdentifier(maybeUniqueReference)))
+        }
+    }
+    _ = consume maybeUniqueReference
+}
+#endif
