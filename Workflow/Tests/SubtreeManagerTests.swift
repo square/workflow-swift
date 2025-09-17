@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import IssueReporting
 import ReactiveSwift
 import XCTest
+
 @testable import Workflow
 
 final class SubtreeManagerTests: XCTestCase {
@@ -126,14 +128,17 @@ final class SubtreeManagerTests: XCTestCase {
 
         var escapingContext: RenderContext<ParentWorkflow>!
 
-        _ = manager.render { context -> TestViewModel in
-            XCTAssertTrue(context.isValid)
-            escapingContext = context
-            return context.render(
-                workflow: TestWorkflow(),
-                key: "",
-                outputMap: { _ in AnyWorkflowAction.noAction }
-            )
+        // We expect the context escape check to detect this
+        withExpectedIssue {
+            _ = manager.render { context -> TestViewModel in
+                XCTAssertTrue(context.isValid)
+                escapingContext = context
+                return context.render(
+                    workflow: TestWorkflow(),
+                    key: "",
+                    outputMap: { _ in AnyWorkflowAction.noAction }
+                )
+            }
         }
         manager.enableEvents()
 

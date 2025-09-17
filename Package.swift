@@ -61,6 +61,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
         .package(url: "https://github.com/pointfreeco/swift-perception", "1.5.0" ..< "3.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
+        // 'xctest-dynamic-overlay' is actually for "IssueReporting"
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
     ],
     targets: [
@@ -68,7 +69,10 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
+            dependencies: [
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+                .product(name: "ReactiveSwift", package: "ReactiveSwift"),
+            ],
             path: "Workflow/Sources"
         ),
         .target(
@@ -76,6 +80,7 @@ let package = Package(
             dependencies: [
                 "Workflow",
                 .product(name: "CustomDump", package: "swift-custom-dump"),
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
             ],
             path: "WorkflowTesting/Sources",
             linkerSettings: [.linkedFramework("XCTest")]
@@ -125,7 +130,10 @@ let package = Package(
 
         .target(
             name: "WorkflowReactiveSwift",
-            dependencies: ["ReactiveSwift", "Workflow"],
+            dependencies: [
+                "Workflow",
+                .product(name: "ReactiveSwift", package: "ReactiveSwift"),
+            ],
             path: "WorkflowReactiveSwift/Sources"
         ),
         .target(
@@ -139,7 +147,10 @@ let package = Package(
 
         .target(
             name: "WorkflowRxSwift",
-            dependencies: ["RxSwift", "Workflow"],
+            dependencies: [
+                "Workflow",
+                .product(name: "RxSwift", package: "RxSwift"),
+            ],
             path: "WorkflowRxSwift/Sources"
         ),
         .target(
