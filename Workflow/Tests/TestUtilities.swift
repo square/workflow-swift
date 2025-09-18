@@ -68,7 +68,8 @@ extension HostContext {
         HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: runtimeConfig
+            runtimeConfig: runtimeConfig,
+            onSinkEvent: { perform, _ in perform() }
         )
     }
 }
