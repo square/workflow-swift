@@ -1,5 +1,5 @@
 // Derived from
-// https://github.com/pointfreeco/swift-composable-architecture/blob/1.12.1/Sources/ComposableArchitectureMacros/Extensions.swift
+// https://github.com/pointfreeco/swift-composable-architecture/blob/1.22.3/Sources/ComposableArchitectureMacros/Extensions.swift
 
 //===----------------------------------------------------------------------===//
 //
@@ -43,53 +43,40 @@ extension VariableDeclSyntax {
     }
 
     func accessorsMatching(_ predicate: (TokenKind) -> Bool) -> [AccessorDeclSyntax] {
-        let patternBindings = bindings.compactMap { binding in
-            binding.as(PatternBindingSyntax.self)
-        }
-        let accessors: [AccessorDeclListSyntax.Element] = patternBindings.compactMap { patternBinding in
+        let accessors: [AccessorDeclListSyntax.Element] = bindings.compactMap { patternBinding in
             switch patternBinding.accessorBlock?.accessors {
-            case .accessors(let accessors):
-                accessors
+            case let .accessors(accessors):
+                return accessors
             default:
-                nil
+                return nil
             }
         }.flatMap { $0 }
-        return accessors.compactMap { accessor in
-            guard let decl = accessor.as(AccessorDeclSyntax.self) else {
-                return nil
-            }
-            if predicate(decl.accessorSpecifier.tokenKind) {
-                return decl
-            } else {
-                return nil
-            }
-        }
+        return accessors.compactMap { predicate($0.accessorSpecifier.tokenKind) ? $0 : nil }
     }
 
     var willSetAccessors: [AccessorDeclSyntax] {
         accessorsMatching { $0 == .keyword(.willSet) }
     }
-
     var didSetAccessors: [AccessorDeclSyntax] {
         accessorsMatching { $0 == .keyword(.didSet) }
     }
 
     var isComputed: Bool {
         if accessorsMatching({ $0 == .keyword(.get) }).count > 0 {
-            true
+            return true
         } else {
-            bindings.contains { binding in
+            return bindings.contains { binding in
                 if case .getter = binding.accessorBlock?.accessors {
-                    true
+                    return true
                 } else {
-                    false
+                    return false
                 }
             }
         }
     }
 
     var isImmutable: Bool {
-        bindingSpecifier.tokenKind == .keyword(.let)
+        return bindingSpecifier.tokenKind == .keyword(.let)
     }
 
     func isEquivalent(to other: VariableDeclSyntax) -> Bool {
@@ -107,7 +94,7 @@ extension VariableDeclSyntax {
         for attribute in attributes {
             switch attribute {
             case .attribute(let attr):
-                if attr.attributeName.tokens(viewMode: .all).map(\.tokenKind) == [.identifier(name)] {
+                if attr.attributeName.tokens(viewMode: .all).map({ $0.tokenKind }) == [.identifier(name)] {
                     return true
                 }
             default:
@@ -121,7 +108,7 @@ extension VariableDeclSyntax {
         for attribute in attributes {
             switch attribute {
             case .attribute(let attr):
-                if attr.attributeName.tokens(viewMode: .all).map(\.tokenKind) == [.identifier(name)] {
+                if attr.attributeName.tokens(viewMode: .all).map({ $0.tokenKind }) == [.identifier(name)] {
                     return attr
                 }
             default:
@@ -152,7 +139,7 @@ extension TypeSyntax {
                 genericParameters[parameter.name.text] = parameter.inheritedType
             }
         }
-        var iterator = asProtocol(TypeSyntaxProtocol.self).tokens(viewMode: .sourceAccurate)
+        var iterator = self.asProtocol((any TypeSyntaxProtocol).self).tokens(viewMode: .sourceAccurate)
             .makeIterator()
         guard let base = iterator.next() else {
             return nil
@@ -181,6 +168,7 @@ extension TypeSyntax {
                     return nil
                 }
                 substituted += substituedType
+                break
             default:
                 // ignore?
                 break
@@ -215,17 +203,16 @@ extension FunctionDeclSyntax {
         for parameter in signature.parameterClause.parameters {
             parameters.append(
                 parameter.firstName.text + ":"
-                    + (parameter.type.genericSubstitution(genericParameterClause?.parameters) ?? ""))
+                + (parameter.type.genericSubstitution(genericParameterClause?.parameters) ?? ""))
         }
         let returnType =
-            signature.returnClause?.type.genericSubstitution(genericParameterClause?.parameters) ?? "Void"
+        signature.returnClause?.type.genericSubstitution(genericParameterClause?.parameters) ?? "Void"
         return SignatureStandin(
-            isInstance: isInstance, identifier: name.text, parameters: parameters, returnType: returnType
-        )
+            isInstance: isInstance, identifier: name.text, parameters: parameters, returnType: returnType)
     }
 
     func isEquivalent(to other: FunctionDeclSyntax) -> Bool {
-        signatureStandin == other.signatureStandin
+        return signatureStandin == other.signatureStandin
     }
 }
 
@@ -233,7 +220,7 @@ extension DeclGroupSyntax {
     var memberFunctionStandins: [FunctionDeclSyntax.SignatureStandin] {
         var standins = [FunctionDeclSyntax.SignatureStandin]()
         for member in memberBlock.members {
-            if let function = member.as(MemberBlockItemSyntax.self)?.decl.as(FunctionDeclSyntax.self) {
+            if let function = member.decl.as(FunctionDeclSyntax.self) {
                 standins.append(function.signatureStandin)
             }
         }
@@ -242,7 +229,7 @@ extension DeclGroupSyntax {
 
     func hasMemberFunction(equvalentTo other: FunctionDeclSyntax) -> Bool {
         for member in memberBlock.members {
-            if let function = member.as(MemberBlockItemSyntax.self)?.decl.as(FunctionDeclSyntax.self) {
+            if let function = member.decl.as(FunctionDeclSyntax.self) {
                 if function.isEquivalent(to: other) {
                     return true
                 }
@@ -253,7 +240,7 @@ extension DeclGroupSyntax {
 
     func hasMemberProperty(equivalentTo other: VariableDeclSyntax) -> Bool {
         for member in memberBlock.members {
-            if let variable = member.as(MemberBlockItemSyntax.self)?.decl.as(VariableDeclSyntax.self) {
+            if let variable = member.decl.as(VariableDeclSyntax.self) {
                 if variable.isEquivalent(to: other) {
                     return true
                 }
@@ -264,7 +251,7 @@ extension DeclGroupSyntax {
 
     var definedVariables: [VariableDeclSyntax] {
         memberBlock.members.compactMap { member in
-            if let variableDecl = member.as(MemberBlockItemSyntax.self)?.decl.as(VariableDeclSyntax.self) {
+            if let variableDecl = member.decl.as(VariableDeclSyntax.self) {
                 return variableDecl
             }
             return nil
@@ -285,18 +272,30 @@ extension DeclGroupSyntax {
     }
 
     var isClass: Bool {
-        self.is(ClassDeclSyntax.self)
+        return self.is(ClassDeclSyntax.self)
     }
 
     var isActor: Bool {
-        self.is(ActorDeclSyntax.self)
+        return self.is(ActorDeclSyntax.self)
     }
 
     var isEnum: Bool {
-        self.is(EnumDeclSyntax.self)
+        return self.is(EnumDeclSyntax.self)
     }
 
     var isStruct: Bool {
-        self.is(StructDeclSyntax.self)
+        return self.is(StructDeclSyntax.self)
+    }
+}
+
+extension AttributedTypeSyntax {
+    var isInout: Bool {
+#if canImport(SwiftSyntax600)
+        self.specifiers.contains(
+            where: { $0.as(SimpleTypeSpecifierSyntax.self)?.specifier.tokenKind == .keyword(.inout) }
+        ) == true
+#else
+        self.specifier?.tokenKind == .keyword(.inout)
+#endif
     }
 }
