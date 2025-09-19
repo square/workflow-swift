@@ -76,6 +76,7 @@ let package = Package(
             dependencies: [
                 "Workflow",
                 .product(name: "CustomDump", package: "swift-custom-dump"),
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "WorkflowTesting/Sources",
             linkerSettings: [.linkedFramework("XCTest")]
@@ -144,7 +145,11 @@ let package = Package(
         ),
         .target(
             name: "WorkflowRxSwiftTesting",
-            dependencies: ["WorkflowRxSwift", "WorkflowTesting"],
+            dependencies: [
+                "WorkflowRxSwift",
+                "WorkflowTesting",
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+            ],
             path: "WorkflowRxSwift/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
         ),
@@ -158,7 +163,11 @@ let package = Package(
         ),
         .target(
             name: "WorkflowCombineTesting",
-            dependencies: ["WorkflowCombine", "WorkflowTesting"],
+            dependencies: [
+                "WorkflowCombine",
+                "WorkflowTesting",
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+            ],
             path: "WorkflowCombine/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
         ),
@@ -172,7 +181,11 @@ let package = Package(
         ),
         .target(
             name: "WorkflowConcurrencyTesting",
-            dependencies: ["WorkflowConcurrency", "WorkflowTesting"],
+            dependencies: [
+                "WorkflowConcurrency",
+                "WorkflowTesting",
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+            ],
             path: "WorkflowConcurrency/Testing",
             linkerSettings: [.linkedFramework("XCTest")]
         ),
