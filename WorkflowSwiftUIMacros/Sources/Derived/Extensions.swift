@@ -1,5 +1,5 @@
 // Derived from
-// https://github.com/pointfreeco/swift-composable-architecture/blob/1.12.1/Sources/ComposableArchitectureMacros/Extensions.swift
+// https://github.com/pointfreeco/swift-composable-architecture/blob/1.22.3/Sources/ComposableArchitectureMacros/Extensions.swift
 
 //===----------------------------------------------------------------------===//
 //
@@ -43,10 +43,7 @@ extension VariableDeclSyntax {
     }
 
     func accessorsMatching(_ predicate: (TokenKind) -> Bool) -> [AccessorDeclSyntax] {
-        let patternBindings = bindings.compactMap { binding in
-            binding.as(PatternBindingSyntax.self)
-        }
-        let accessors: [AccessorDeclListSyntax.Element] = patternBindings.compactMap { patternBinding in
+        let accessors: [AccessorDeclListSyntax.Element] = bindings.compactMap { patternBinding in
             switch patternBinding.accessorBlock?.accessors {
             case .accessors(let accessors):
                 accessors
@@ -54,16 +51,7 @@ extension VariableDeclSyntax {
                 nil
             }
         }.flatMap { $0 }
-        return accessors.compactMap { accessor in
-            guard let decl = accessor.as(AccessorDeclSyntax.self) else {
-                return nil
-            }
-            if predicate(decl.accessorSpecifier.tokenKind) {
-                return decl
-            } else {
-                return nil
-            }
-        }
+        return accessors.compactMap { predicate($0.accessorSpecifier.tokenKind) ? $0 : nil }
     }
 
     var willSetAccessors: [AccessorDeclSyntax] {
@@ -152,7 +140,7 @@ extension TypeSyntax {
                 genericParameters[parameter.name.text] = parameter.inheritedType
             }
         }
-        var iterator = asProtocol(TypeSyntaxProtocol.self).tokens(viewMode: .sourceAccurate)
+        var iterator = asProtocol((any TypeSyntaxProtocol).self).tokens(viewMode: .sourceAccurate)
             .makeIterator()
         guard let base = iterator.next() else {
             return nil
@@ -233,7 +221,7 @@ extension DeclGroupSyntax {
     var memberFunctionStandins: [FunctionDeclSyntax.SignatureStandin] {
         var standins = [FunctionDeclSyntax.SignatureStandin]()
         for member in memberBlock.members {
-            if let function = member.as(MemberBlockItemSyntax.self)?.decl.as(FunctionDeclSyntax.self) {
+            if let function = member.decl.as(FunctionDeclSyntax.self) {
                 standins.append(function.signatureStandin)
             }
         }
@@ -242,7 +230,7 @@ extension DeclGroupSyntax {
 
     func hasMemberFunction(equvalentTo other: FunctionDeclSyntax) -> Bool {
         for member in memberBlock.members {
-            if let function = member.as(MemberBlockItemSyntax.self)?.decl.as(FunctionDeclSyntax.self) {
+            if let function = member.decl.as(FunctionDeclSyntax.self) {
                 if function.isEquivalent(to: other) {
                     return true
                 }
@@ -253,7 +241,7 @@ extension DeclGroupSyntax {
 
     func hasMemberProperty(equivalentTo other: VariableDeclSyntax) -> Bool {
         for member in memberBlock.members {
-            if let variable = member.as(MemberBlockItemSyntax.self)?.decl.as(VariableDeclSyntax.self) {
+            if let variable = member.decl.as(VariableDeclSyntax.self) {
                 if variable.isEquivalent(to: other) {
                     return true
                 }
@@ -264,7 +252,7 @@ extension DeclGroupSyntax {
 
     var definedVariables: [VariableDeclSyntax] {
         memberBlock.members.compactMap { member in
-            if let variableDecl = member.as(MemberBlockItemSyntax.self)?.decl.as(VariableDeclSyntax.self) {
+            if let variableDecl = member.decl.as(VariableDeclSyntax.self) {
                 return variableDecl
             }
             return nil
@@ -298,5 +286,17 @@ extension DeclGroupSyntax {
 
     var isStruct: Bool {
         self.is(StructDeclSyntax.self)
+    }
+}
+
+extension AttributedTypeSyntax {
+    var isInout: Bool {
+        #if canImport(SwiftSyntax600)
+        specifiers.contains(
+            where: { $0.as(SimpleTypeSpecifierSyntax.self)?.specifier.tokenKind == .keyword(.inout) }
+        ) == true
+        #else
+        specifier?.tokenKind == .keyword(.inout)
+        #endif
     }
 }
