@@ -68,7 +68,7 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
+            dependencies: [.product(name: "ReactiveSwift", package: "ReactiveSwift")],
             path: "Workflow/Sources"
         ),
         .target(
@@ -126,7 +126,7 @@ let package = Package(
 
         .target(
             name: "WorkflowReactiveSwift",
-            dependencies: ["ReactiveSwift", "Workflow"],
+            dependencies: ["Workflow", .product(name: "ReactiveSwift", package: "ReactiveSwift")],
             path: "WorkflowReactiveSwift/Sources"
         ),
         .target(
@@ -140,7 +140,7 @@ let package = Package(
 
         .target(
             name: "WorkflowRxSwift",
-            dependencies: ["RxSwift", "Workflow"],
+            dependencies: ["Workflow", .product(name: "RxSwift", package: "RxSwift")],
             path: "WorkflowRxSwift/Sources"
         ),
         .target(
