@@ -409,27 +409,25 @@ extension WorkflowNode.SubtreeManager {
             case .valid(let handler):
                 handler(event)
 
-            case .invalid:
-                #if DEBUG
+            #if DEBUG
+            case .invalid where isReentrantCall:
                 // Reentrancy seems to often be due to UIKit behaviors over
                 // which we have little control (e.g. synchronous resignation
                 // of first responder after a new Rendering is assigned). Emit
                 // some debug info in these cases.
-                if isReentrantCall {
-                    print("[\(WorkflowType.self)]: ℹ️ Sink sent another action after it was invalidated but before its original action handling was resolved. This new action will be ignored. If this is unexpected, set a Swift error breakpoint on `\(InvalidSinkSentAction.self)` to debug.")
-                }
+                WorkflowLogger.logExternal(as: .info, "[\(WorkflowType.self)]: ℹ️ Sink sent another action after it was invalidated but before its original action handling was resolved. This new action will be ignored. If this is unexpected, set a Swift error breakpoint on `\(InvalidSinkSentAction.self)` to debug.")
+                do { throw InvalidSinkSentAction() } catch {}
+            #endif
 
-                do {
-                    throw InvalidSinkSentAction()
-                } catch {}
-                #endif
+            case .invalid where !isReentrantCall:
+                // If we've already been invalidated when `handle()` is initially
+                // called, then it's likely we've somehow been inadvertently retained
+                // from the 'outside world'. Fail more loudly in this case.
+                WorkflowLogger.logExternal(as: .warning, "[\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored.")
+                assertionFailure("[\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored.")
 
-                // If we're invalid and this is the first time `handle()` has
-                // been called, then it's likely we've somehow been inadvertently
-                // retained from the 'outside world'. Fail more loudly in this case.
-                assert(isReentrantCall, """
-                    [\(WorkflowType.self)]: Sink sent an action after it was invalidated. This action will be ignored.
-                """)
+            case .invalid:
+                break
             }
         }
 

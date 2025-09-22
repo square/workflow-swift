@@ -62,13 +62,17 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-perception", "1.5.0" ..< "3.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
     targets: [
         // MARK: Workflow
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
+            dependencies: [
+                .product(name: "Logging", package: "swift-log"),
+                "ReactiveSwift",
+            ],
             path: "Workflow/Sources"
         ),
         .target(
