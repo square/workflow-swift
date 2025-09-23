@@ -15,18 +15,17 @@
  */
 
 import IssueReporting
-import Testing
+import XCTest
 
 @testable import Workflow
 
 @MainActor
-struct ApplyContextTests {
-    @Test
-    func concreteApplyContextInvalidatedAfterUse() async throws {
+final class ApplyContextTests: XCTestCase {
+    func testConcreteApplyContextInvalidatedAfterUse() async throws {
         var escapedContext: ApplyContext<EscapingContextWorkflow>?
         let onApply = { (context: ApplyContext<EscapingContextWorkflow>) in
-            #expect(context[workflowValue: \.property] == 42)
-            #expect(context.concreteStorage != nil)
+            XCTAssert(context[workflowValue: \.property] == 42)
+            XCTAssert(context.concreteStorage != nil)
             escapedContext = context
         }
 
@@ -44,8 +43,8 @@ struct ApplyContextTests {
             emitEvent()
         }
 
-        #expect(escapedContext != nil)
-        #expect(escapedContext?.concreteStorage == nil)
+        XCTAssert(escapedContext != nil)
+        XCTAssert(escapedContext?.concreteStorage == nil)
     }
 }
 
