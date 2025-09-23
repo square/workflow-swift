@@ -249,7 +249,6 @@ extension WorkflowNode {
         do {
             // FIXME: can we avoid instantiating a class here somehow?
             let context = ConcreteApplyContext(storage: workflow)
-            defer { context.invalidate() }
             let wrappedContext = ApplyContext.make(implementation: context)
 
             let renderOnlyIfStateChanged = hostContext.runtimeConfig.renderOnlyIfStateChanged
@@ -302,6 +301,21 @@ extension WorkflowNode {
             } else {
                 result = performSimpleActionApplication(markStateAsChanged: true)
             }
+
+            // N.B. This logic would perhaps be nicer to put in a defer
+            // statement, but that seems to mess with the precise control
+            // we need over binding lifetimes to perform these checks.
+            _ = consume wrappedContext
+            context.invalidate()
+            #if DEBUG
+            // Try to ensure it didn't escape from the invocation.
+            diagnoseEscapedReference(to: consume context) { objectID in
+                "Detected escaped reference to an ApplyContext<\(A.WorkflowType.self)> when applying action '\(action)'. An ApplyContext is only valid for the duration of its associated action application, and should not escape. Search for the address of '\(objectID)' in the memory graph debugger to investigate."
+            }
+            #else
+            // For binding lifetime consistency
+            _ = consume context
+            #endif
         }
 
         return result

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import Testing
+import IssueReporting
+import XCTest
 
 @testable import Workflow
 
 @MainActor
-struct ApplyContextTests {
-    @Test
-    func concreteApplyContextInvalidatedAfterUse() async throws {
+final class ApplyContextTests: XCTestCase {
+    func testConcreteApplyContextInvalidatedAfterUse() async throws {
         var escapedContext: ApplyContext<EscapingContextWorkflow>?
         let onApply = { (context: ApplyContext<EscapingContextWorkflow>) in
-            #expect(context[workflowValue: \.property] == 42)
-            #expect(context.concreteStorage != nil)
+            XCTAssert(context[workflowValue: \.property] == 42)
+            XCTAssert(context.concreteStorage != nil)
             escapedContext = context
         }
 
@@ -38,10 +38,13 @@ struct ApplyContextTests {
         let emitEvent = node.render()
         node.enableEvents()
 
-        emitEvent()
+        // We're intentionally escaping the context
+        withExpectedIssue {
+            emitEvent()
+        }
 
-        #expect(escapedContext != nil)
-        #expect(escapedContext?.concreteStorage == nil)
+        XCTAssert(escapedContext != nil)
+        XCTAssert(escapedContext?.concreteStorage == nil)
     }
 }
 
