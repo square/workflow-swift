@@ -609,53 +609,6 @@ extension WorkflowObserverTests {
 
 // MARK: - Utilities
 
-private final class TestObserver: WorkflowObserver {
-    var onSessionBegan: ((WorkflowSession) -> Void)?
-    var onSessionEnded: ((WorkflowSession) -> Void)?
-    /// (Workflow, State, Session) -> Void
-    var onDidMakeInitialState: ((Any, Any, WorkflowSession) -> Void)?
-    /// (Workflow, State, Session) -> ((Rendering) -> Void)?
-    var onWillRender: ((Any, Any, WorkflowSession) -> ((Any) -> Void)?)?
-    /// (Workflow [old], Workflow [new], State, Session) -> Void
-    var onDidChange: ((Any, Any, Any, WorkflowSession) -> Void)?
-    /// (Action, Workflow, Session) -> Void
-    var onDidReceiveAction: ((Any, Any, WorkflowSession) -> Void)?
-    /// (Action, Workflow, State, Session) -> ((State, Output?) -> Void)?
-    var onApplyAction: ((Any, Any, Any, WorkflowSession) -> ((Any, Any) -> Void)?)?
-
-    func sessionDidBegin(_ session: WorkflowSession) {
-        onSessionBegan?(session)
-    }
-
-    func sessionDidEnd(_ session: WorkflowSession) {
-        onSessionEnded?(session)
-    }
-
-    func workflowDidMakeInitialState<WorkflowType>(
-        _ workflow: WorkflowType,
-        initialState: WorkflowType.State,
-        session: WorkflowSession
-    ) where WorkflowType: Workflow {
-        onDidMakeInitialState?(workflow, initialState, session)
-    }
-
-    func workflowWillRender<WorkflowType>(_ workflow: WorkflowType, state: WorkflowType.State, session: WorkflowSession) -> ((WorkflowType.Rendering) -> Void)? where WorkflowType: Workflow {
-        onWillRender?(workflow, state, session)
-    }
-
-    func workflowDidChange<WorkflowType>(from oldWorkflow: WorkflowType, to newWorkflow: WorkflowType, state: WorkflowType.State, session: WorkflowSession) where WorkflowType: Workflow {
-        onDidChange?(oldWorkflow, newWorkflow, state, session)
-    }
-
-    func workflowDidReceiveAction<Action: WorkflowAction>(_ action: Action, workflow: Action.WorkflowType, session: WorkflowSession) {
-        onDidReceiveAction?(action, workflow, session)
-    }
-
-    func workflowWillApplyAction<Action: WorkflowAction>(_ action: Action, workflow: Action.WorkflowType, state: Action.WorkflowType.State, session: WorkflowSession) -> ((Action.WorkflowType.State, Action.WorkflowType.Output?) -> Void)? {
-        onApplyAction?(action, workflow, state, session)
-    }
-}
-
 private struct Child: Workflow {
     var prop: String
 

@@ -15,6 +15,7 @@
  */
 
 import ReactiveSwift
+import Testing
 import XCTest
 
 @_spi(WorkflowRuntimeConfig) @testable import Workflow
@@ -167,6 +168,122 @@ extension WorkflowHostTests {
     }
 }
 
+// MARK: SinkEventHandler
+
+@MainActor
+@Suite
+struct WorkflowHost_SinkEventHandlerTests {
+    @Test
+    func correctStateAfterInit() {
+        let workflow = StateTransitioningWorkflow()
+        let host = WorkflowHost(workflow: workflow)
+
+        #expect(host.sinkEventHandler.state == .ready)
+    }
+
+    @Test
+    func enqueuesEventsDuringUpdate() async throws {
+        let observer = TestObserver()
+
+        var receivedActionCount = 0
+        observer.onDidReceiveAction = { _, _, _ in
+            receivedActionCount += 1
+        }
+
+        let host = WorkflowHost(
+            workflow: StateTransitioningWorkflow(),
+            observers: [observer]
+        )
+
+        let rendering = host.rendering.value
+
+        let eventHandler = host.sinkEventHandler
+        #expect(eventHandler.state == .ready)
+
+        var handlerStatesDuringUpdate: [SinkEventHandler.State] = []
+        observer.onDidChange = { _, _, _, _ in
+            handlerStatesDuringUpdate.append(eventHandler.state)
+        }
+
+        var handlerStatesDuringRender: [SinkEventHandler.State] = []
+        var emitOnce: (() -> Void)? = { rendering.toggle() }
+        observer.onWillRender = { _, _, _ in
+            handlerStatesDuringRender.append(eventHandler.state)
+            if let emit = emitOnce.take() {
+                // emit an event once – we expect it to be enqueued
+                emit()
+            }
+            return nil
+        }
+
+        host.update(workflow: StateTransitioningWorkflow())
+
+        #expect(handlerStatesDuringUpdate == [.busy])
+        #expect(handlerStatesDuringRender == [.busy])
+
+        // reentrant event should have been sent & queued
+        #expect(emitOnce == nil)
+        #expect(receivedActionCount == 0)
+
+        await drainMainQueue()
+
+        // reentrant event should have been handled
+        #expect(receivedActionCount == 1)
+    }
+
+    @Test
+    func enqueuesEventsDuringEventHandling() async throws {
+        let observer = TestObserver()
+
+        let host = WorkflowHost(
+            workflow: StateTransitioningWorkflow(),
+            observers: [observer]
+        )
+
+        let rendering = host.rendering.value
+        let eventHandler = host.sinkEventHandler
+
+        var didEmit = false
+        let emitActionOnce = {
+            var emitToggle: (() -> Void)? = { rendering.toggle() }
+            return {
+                guard let emit = emitToggle.take() else { return }
+                didEmit = true
+                emit()
+            }
+        }()
+
+        var receivedActionCount = 0
+        var handlerStatesOnExternalAction: [SinkEventHandler.State] = []
+        observer.onDidReceiveAction = { _, _, _ in
+            receivedActionCount += 1
+            handlerStatesOnExternalAction.append(eventHandler.state)
+        }
+
+        // emit a reentrant action during action
+        observer.onApplyAction = { _, _, _, _ in
+            emitActionOnce()
+            return nil
+        }
+
+        #expect(eventHandler.state == .ready)
+
+        // emit a 'normal' event, which the observer will
+        // see and emit a second one
+        rendering.toggle()
+
+        #expect(didEmit == true)
+        #expect(receivedActionCount == 1) // only the first processed so far
+        #expect(handlerStatesOnExternalAction == [.busy])
+
+        await drainMainQueue()
+
+        // reentrant event should have been handled
+        #expect(receivedActionCount == 2)
+        #expect(handlerStatesOnExternalAction == [.busy, .busy])
+    }
+}
+
 // MARK: Utility Types
 
 extension WorkflowHost_EventEmissionTests {
@@ -263,15 +380,5 @@ extension WorkflowHost_EventEmissionTests {
                 .eventOccurred
             }
         }
-    }
-}
-
-private func drainMainQueueBySpinningRunLoop(timeoutSeconds: UInt = 1) {
-    var done = false
-    DispatchQueue.main.async { done = true }
-
-    let deadline = ContinuousClock.now + .seconds(timeoutSeconds)
-    while !done, ContinuousClock.now < deadline {
-        RunLoop.current.run(until: .now.addingTimeInterval(0.01))
     }
 }

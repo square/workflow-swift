@@ -363,7 +363,8 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
-            let perform: () -> Void = {
+            // If we can process now, forward through the `EventPipe`
+            let immediatePerform: () -> Void = {
                 let output = Output.update(
                     action,
                     source: .external,
@@ -373,11 +374,12 @@ extension WorkflowNode.SubtreeManager {
                 self.eventPipe.handle(event: output)
             }
 
-            let enqueue: () -> Void = { [weak self] in
+            // Otherwise, try to recurse again in the future
+            let deferredPerform: () -> Void = { [weak self] in
                 self?.handle(action: action)
             }
 
-            onSinkEvent(perform, enqueue)
+            onSinkEvent(immediatePerform, deferredPerform)
         }
     }
 }

@@ -51,7 +51,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         context.debugger
     }
 
-    let eventHandler: SinkEventHandler
+    let sinkEventHandler: SinkEventHandler
 
     /// Initializes a new host with the given workflow at the root.
     ///
@@ -64,12 +64,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         observers: [WorkflowObserver] = [],
         debugger: WorkflowDebugger? = nil
     ) {
-        self.eventHandler = SinkEventHandler()
-        assert(
-            eventHandler.state == .initializing,
-            "EventHandler must begin in the `.initializing` state"
-        )
-        defer { eventHandler.state = .ready }
+        self.sinkEventHandler = SinkEventHandler()
+        defer { sinkEventHandler.state = .ready }
 
         let observer = WorkflowObservation
             .sharedObserversInterceptor
@@ -80,7 +76,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             observer: observer,
             debugger: debugger,
             runtimeConfig: Runtime.configuration,
-            onSinkEvent: eventHandler.makeOnSinkEventCallback()
+            onSinkEvent: sinkEventHandler.makeOnSinkEventCallback()
         )
 
         self.rootNode = WorkflowNode(
@@ -102,6 +98,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
+        sinkEventHandler.withEventHandlingSuspended {
+            _update(workflow: workflow)
+        }
+    }
+
+    private func _update(workflow: WorkflowType) {
         rootNode.update(workflow: workflow)
 
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
@@ -193,69 +195,85 @@ extension HostContext {
     }
 }
 
-// MARK: - EventHandler
+// MARK: - SinkEventHandler
 
 /// Callback signature for the internal `ReusableSink` types to invoke when
 /// they receive an event from the 'outside world'.
-/// - Parameter perform: The event handler to invoke if the event can be processed immediately.
-/// - Parameter enqueue: The event handler to invoke in the future if the event cannot currently be processed.
+/// - Parameter immediatePerform: The event handler to invoke if the event can be processed immediately.
+/// - Parameter deferredPerform: The event handler to invoke in the future if the event cannot currently be processed.
 typealias OnSinkEvent = (
-    _ perform: () -> Void,
-    _ enqueue: @escaping () -> Void
+    _ immediatePerform: () -> Void,
+    _ deferredPerform: @escaping () -> Void
 ) -> Void
 
 /// Handles events from 'Sinks' such that runtime-level event handling state is appropriately
 /// managed, and attempts to perform reentrant action handling can be detected and dealt with.
 final class SinkEventHandler {
     enum State {
-        /// The handler (and related components) are being
-        /// initialized, and are not yet ready to process events.
-        /// Attempts to do so in this state will fail with a fatal error.
-        case initializing
-
-        /// An event is currently being processed.
-        case processingEvent
-
         /// Ready to handle an event.
         case ready
+
+        /// The event handler is busy. Usually this indicates another event is being
+        /// processed, but it may also be set when some other condition prevents
+        /// event handling (e.g. a `WorkflowHost` was told to update its root node).
+        case busy
     }
 
-    fileprivate(set) var state: State = .initializing
+    fileprivate(set) var state: State
+
+    init(state: State = .busy) {
+        self.state = state
+    }
 
     /// Synchronously performs or enqueues the specified event handlers based on the current
     /// event handler state.
     /// - Parameters:
-    ///   - perform: The event handling action to perform immediately if possible.
-    ///   - enqueue: The event handling action to enqueue if the event handler is already processing an event.
+    ///   - immediate: The event handling action to perform immediately if possible.
+    ///   - deferred: The event handling action to enqueue if the event handler is already processing an event.
     func performOrEnqueueEvent(
-        perform: () -> Void,
-        enqueue: @escaping () -> Void
+        immediate: () -> Void,
+        deferred: @escaping () -> Void
     ) {
         switch state {
-        case .initializing:
-            fatalError("Tried to handle event before finishing initialization.")
-
-        case .processingEvent:
-            DispatchQueue.workflowExecution.async(execute: enqueue)
-
         case .ready:
-            state = .processingEvent
+            withEventHandlingSuspended(immediate)
+
+        case .busy:
+            DispatchQueue.workflowExecution.async(execute: deferred)
+        }
+    }
+
+    /// Invokes the given closure with event handling explicitly set to the `busy` state, so
+    /// any incoming events produced while executing the closure's body will be enqueued.
+    /// - Parameter body: The closure to invoke.
+    func withEventHandlingSuspended(_ body: () -> Void) {
+        switch state {
+        case .ready:
+            state = .busy
             defer { state = .ready }
-            perform()
+            body()
+
+        case .busy:
+            body()
         }
     }
 
     /// Creates the callback that should be invoked by Sinks to handle their event appropriately
-    /// given the `EventHandler`'s current state.
+    /// given the `SinkEventHandler`'s current state.
     /// - Returns: The callback that should be invoked.
     func makeOnSinkEventCallback() -> OnSinkEvent {
-        // TODO: do we need the weak ref?
-        let onSinkEvent: OnSinkEvent = { [weak self] perform, enqueue in
+        // We may not actually need the weak ref, but it's more defensive to keep it.
+        let onSinkEvent: OnSinkEvent = { [weak self] immediate, deferred in
             guard let self else {
-                return // TODO: what's the appropriate handling?
+                // We just drop the events here. Should we signal this somehow?
+                // Maybe as a debug-only thing? Or is it just noise?
+                return
             }
 
-            performOrEnqueueEvent(perform: perform, enqueue: enqueue)
+            performOrEnqueueEvent(
+                immediate: immediate,
+                deferred: deferred
+            )
         }
 
         return onSinkEvent
