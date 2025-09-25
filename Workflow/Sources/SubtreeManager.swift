@@ -325,7 +325,7 @@ extension WorkflowNode.SubtreeManager {
 
         mutating func findOrCreate<Action: WorkflowAction>(
             actionType: Action.Type,
-            onSinkEvent: @escaping OnSinkEvent
+            onSinkEvent: OnSinkEvent?
         ) -> ReusableSink<Action> {
             let key = ObjectIdentifier(actionType)
 
@@ -352,10 +352,10 @@ extension WorkflowNode.SubtreeManager {
     /// Type-erased base class for reusable sinks.
     fileprivate class AnyReusableSink {
         /// The callback to invoke when an event is to be handled.
-        let onSinkEvent: OnSinkEvent
+        let onSinkEvent: OnSinkEvent?
         var eventPipe: EventPipe
 
-        init(onSinkEvent: @escaping OnSinkEvent) {
+        init(onSinkEvent: OnSinkEvent?) {
             self.onSinkEvent = onSinkEvent
             self.eventPipe = EventPipe()
         }
@@ -363,6 +363,36 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
+            if let onSinkEvent {
+                handleWithSinkEventHandler(action: action, onSinkEvent: onSinkEvent)
+                return
+            }
+
+            // Prior logic
+            let output = Output.update(
+                action,
+                source: .external,
+                subtreeInvalidated: false // initial state
+            )
+
+            if case .pending = eventPipe.validationState {
+                // Workflow is currently processing an `event`.
+                // Scheduling it to be processed after.
+                DispatchQueue.workflowExecution.async { [weak self] in
+                    self?.eventPipe.handle(event: output)
+                }
+                return
+            }
+            eventPipe.handle(event: output)
+        }
+
+        private func handleWithSinkEventHandler(
+            action: Action,
+            onSinkEvent: OnSinkEvent
+        ) {
+            // new `SinkEventHandler` logic
+            dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
+
             // If we can process now, forward through the `EventPipe`
             let immediatePerform: () -> Void = {
                 let output = Output.update(

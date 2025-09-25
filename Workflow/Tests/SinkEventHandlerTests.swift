@@ -118,7 +118,8 @@ struct SinkEventHandlerTests {
         let callback: OnSinkEvent
         let subject = SinkEventHandler(state: .ready)
         weakRef = subject
-        callback = consume subject.makeOnSinkEventCallback()
+        callback = subject.makeOnSinkEventCallback()
+        _ = consume subject
 
         // should not invoke anything because event handler deinited
         callback( /* immediatePerform */ {

@@ -88,6 +88,10 @@ extension Runtime {
 
         /// Note: this doesn't control anything yet, but is here as a placeholder
         public var renderOnlyIfStateChanged: Bool = false
+
+        /// Whether action handling should be delegated to the `SinkEventHandler` type.
+        /// This is expected to eventually be removed and become the default behavior.
+        public var useSinkEventHandler: Bool = false
     }
 
     struct BootstrappableConfiguration {

@@ -101,7 +101,13 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
     }
 
     func test_reentrant_event_during_render() {
-        let host = WorkflowHost(workflow: ReentrancyWorkflow())
+        let host = Runtime.withConfiguration { cfg in
+            // Test will only pass with the 'SinkEventHandler' enabled
+            cfg.useSinkEventHandler = true
+        } operation: {
+            WorkflowHost(workflow: ReentrancyWorkflow())
+        }
+
         let (lifetime, token) = ReactiveSwift.Lifetime.make()
         defer { _ = token }
         let initialRendering = host.rendering.value
@@ -190,10 +196,14 @@ struct WorkflowHost_SinkEventHandlerTests {
             receivedActionCount += 1
         }
 
-        let host = WorkflowHost(
-            workflow: StateTransitioningWorkflow(),
-            observers: [observer]
-        )
+        let host = Runtime.withConfiguration { cfg in
+            cfg.useSinkEventHandler = true
+        } operation: {
+            WorkflowHost(
+                workflow: StateTransitioningWorkflow(),
+                observers: [observer]
+            )
+        }
 
         let rendering = host.rendering.value
 
@@ -235,10 +245,14 @@ struct WorkflowHost_SinkEventHandlerTests {
     func enqueuesEventsDuringEventHandling() async throws {
         let observer = TestObserver()
 
-        let host = WorkflowHost(
-            workflow: StateTransitioningWorkflow(),
-            observers: [observer]
-        )
+        let host = Runtime.withConfiguration { cfg in
+            cfg.useSinkEventHandler = true
+        } operation: {
+            WorkflowHost(
+                workflow: StateTransitioningWorkflow(),
+                observers: [observer]
+            )
+        }
 
         let rendering = host.rendering.value
         let eventHandler = host.sinkEventHandler

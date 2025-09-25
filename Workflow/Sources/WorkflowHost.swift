@@ -72,11 +72,14 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             .workflowObservers(for: observers)
             .chained()
 
+        let config = Runtime.configuration
+        let sinkEventCallback = config.useSinkEventHandler ? sinkEventHandler.makeOnSinkEventCallback() : nil
+
         self.context = HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: Runtime.configuration,
-            onSinkEvent: sinkEventHandler.makeOnSinkEventCallback()
+            runtimeConfig: config,
+            onSinkEvent: sinkEventCallback
         )
 
         self.rootNode = WorkflowNode(
@@ -98,12 +101,16 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
-        sinkEventHandler.withEventHandlingSuspended {
-            _update(workflow: workflow)
+        if context.runtimeConfig.useSinkEventHandler {
+            sinkEventHandler.withEventHandlingSuspended {
+                updateRootNode(workflow: workflow)
+            }
+        } else {
+            updateRootNode(workflow: workflow)
         }
     }
 
-    private func _update(workflow: WorkflowType) {
+    private func updateRootNode(workflow: WorkflowType) {
         rootNode.update(workflow: workflow)
 
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
@@ -171,14 +178,14 @@ struct HostContext {
     let debugger: WorkflowDebugger?
     let runtimeConfig: Runtime.Configuration
 
-    /// Event handler to be plumbed through the runtime down to the Sinks
-    let onSinkEvent: OnSinkEvent
+    /// Event handler to be plumbed through the runtime down to the (reusable) Sinks.
+    let onSinkEvent: OnSinkEvent?
 
     init(
         observer: WorkflowObserver?,
         debugger: WorkflowDebugger?,
         runtimeConfig: Runtime.Configuration,
-        onSinkEvent: @escaping OnSinkEvent
+        onSinkEvent: OnSinkEvent?
     ) {
         self.observer = observer
         self.debugger = debugger
