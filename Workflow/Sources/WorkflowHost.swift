@@ -89,6 +89,27 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         }
     }
 
+    /// When `true`, the host will not render its `rootNode` unless using the
+    /// `managedUpdate(workflow:)` function.
+    ///
+    /// This property can be used when fine-grained control over the rendering
+    /// of a `WorkflowHost` is needed, like cases where a container maintains
+    /// its hosts and propagates their output & renderings to the main Workflow
+    /// tree. Without this mechanism, detached hosts may render extra times:
+    /// once for the applied action and again when the main tree renders.
+    @_spi(WorkflowHostManagement)
+    public var managedRenderings: Bool = false
+
+    /// Executes `update(workflow:)` when `managedRenderings` is `true`, and
+    /// temporarily allows the `rootNode` to be rendered.
+    @_spi(WorkflowHostManagement)
+    public func managedUpdate(workflow: WorkflowType) {
+        let previousValue = managedRenderings
+        managedRenderings = false
+        update(workflow: workflow)
+        managedRenderings = previousValue
+    }
+
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
         rootNode.update(workflow: workflow)
@@ -144,8 +165,9 @@ extension WorkflowHost {
         // We can skip the render pass if:
         //  1. The runtime config supports this behavior.
         //  2. No subtree invalidation occurred during action processing.
-        context.runtimeConfig.renderOnlyIfStateChanged
-            && !output.subtreeInvalidated
+        //  3. Alternatively, if the host's rendering is managed externally.
+        (context.runtimeConfig.renderOnlyIfStateChanged
+            && !output.subtreeInvalidated) || managedRenderings
     }
 }
 
