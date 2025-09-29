@@ -16,6 +16,7 @@
 
 import XCTest
 @_spi(WorkflowRuntimeConfig) @testable import Workflow
+@_spi(WorkflowHostManagement) import Workflow
 
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
@@ -84,6 +85,28 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         initialRendering.eventHandler()
 
         XCTAssertEqual(observedRenderCount, 1)
+    }
+}
+
+// MARK: Host Management
+
+extension WorkflowHostTests {
+    func test_managed_renderings() {
+        let host = WorkflowHost(
+            workflow: TestWorkflow(step: .first)
+        )
+        host.managedRenderings = true
+        XCTAssertEqual(host.rendering.value, 1)
+
+        // Example of a traditional render pass not rendering the underlying
+        // workflow when its renderings are managed. This render pass may also
+        // come from an action applied to the workflow.
+        host.update(workflow: TestWorkflow(step: .second))
+        XCTAssertEqual(host.rendering.value, 1)
+
+        // A managed update will render the workflow.
+        host.managedUpdate(workflow: TestWorkflow(step: .second))
+        XCTAssertEqual(host.rendering.value, 2)
     }
 }
 
