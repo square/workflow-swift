@@ -98,15 +98,32 @@ extension WorkflowHostTests {
         host.managedRenderings = true
         XCTAssertEqual(host.rendering.value, 1)
 
-        // Example of a traditional render pass not rendering the underlying
-        // workflow when its renderings are managed. This render pass may also
+        // Example of a standard render pass. This will not render the hosted
+        // workflow when renderings are managed. This render pass could also
         // come from an action applied to the workflow.
         host.update(workflow: TestWorkflow(step: .second))
         XCTAssertEqual(host.rendering.value, 1)
 
-        // A managed update will render the workflow.
+        // A managed update will always render the workflow.
         host.managedUpdate(workflow: TestWorkflow(step: .second))
         XCTAssertEqual(host.rendering.value, 2)
+
+        // Ensure that the flag is still enabled.
+        XCTAssertTrue(host.managedRenderings)
+    }
+
+    func test_managed_renderings_when_not_set() {
+        let host = WorkflowHost(
+            workflow: TestWorkflow(step: .first)
+        )
+        XCTAssertEqual(host.rendering.value, 1)
+
+        // A managed update will always render the workflow.
+        host.managedUpdate(workflow: TestWorkflow(step: .second))
+        XCTAssertEqual(host.rendering.value, 2)
+
+        // Ensure that the flag wasn't inadvertently enabled.
+        XCTAssertFalse(host.managedRenderings)
     }
 }
 

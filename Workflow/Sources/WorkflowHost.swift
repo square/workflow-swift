@@ -94,14 +94,14 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     ///
     /// This property can be used when fine-grained control over the rendering
     /// of a `WorkflowHost` is needed, like cases where a container maintains
-    /// its hosts and propagates their output & renderings to the main Workflow
+    /// hosts and propagates their output & renderings to the main Workflow
     /// tree. Without this mechanism, detached hosts may render extra times:
     /// once for the applied action and again when the main tree renders.
     @_spi(WorkflowHostManagement)
     public var managedRenderings: Bool = false
 
-    /// Executes `update(workflow:)` when `managedRenderings` is `true`, and
-    /// temporarily allows the `rootNode` to be rendered.
+    /// Executes `update(workflow:)`, temporarily allowing the `rootNode` to be
+    /// rendered when `managedRenderings` is `true`.
     @_spi(WorkflowHostManagement)
     public func managedUpdate(workflow: WorkflowType) {
         let previousValue = managedRenderings
