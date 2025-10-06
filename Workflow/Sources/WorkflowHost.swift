@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Dispatch
 import ReactiveSwift
 
 /// Defines a type that receives debug information about a running workflow hierarchy.
@@ -50,6 +51,8 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         context.debugger
     }
 
+    let sinkEventHandler: SinkEventHandler
+
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
@@ -61,15 +64,22 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         observers: [WorkflowObserver] = [],
         debugger: WorkflowDebugger? = nil
     ) {
+        self.sinkEventHandler = SinkEventHandler()
+        defer { sinkEventHandler.state = .ready }
+
         let observer = WorkflowObservation
             .sharedObserversInterceptor
             .workflowObservers(for: observers)
             .chained()
 
+        let config = Runtime.configuration
+        let sinkEventCallback = config.useSinkEventHandler ? sinkEventHandler.makeOnSinkEventCallback() : nil
+
         self.context = HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: Runtime.configuration
+            runtimeConfig: config,
+            onSinkEvent: sinkEventCallback
         )
 
         self.rootNode = WorkflowNode(
@@ -91,6 +101,16 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
+        if context.runtimeConfig.useSinkEventHandler {
+            sinkEventHandler.withEventHandlingSuspended {
+                updateRootNode(workflow: workflow)
+            }
+        } else {
+            updateRootNode(workflow: workflow)
+        }
+    }
+
+    private func updateRootNode(workflow: WorkflowType) {
         rootNode.update(workflow: workflow)
 
         // Treat the update as an "output" from the workflow originating from an external event to force a render pass.
@@ -158,14 +178,19 @@ struct HostContext {
     let debugger: WorkflowDebugger?
     let runtimeConfig: Runtime.Configuration
 
+    /// Event handler to be plumbed through the runtime down to the (reusable) Sinks.
+    let onSinkEvent: OnSinkEvent?
+
     init(
         observer: WorkflowObserver?,
         debugger: WorkflowDebugger?,
-        runtimeConfig: Runtime.Configuration
+        runtimeConfig: Runtime.Configuration,
+        onSinkEvent: OnSinkEvent?
     ) {
         self.observer = observer
         self.debugger = debugger
         self.runtimeConfig = runtimeConfig
+        self.onSinkEvent = onSinkEvent
     }
 }
 
@@ -174,5 +199,90 @@ extension HostContext {
         _ perform: () -> T
     ) -> T? {
         debugger != nil ? perform() : nil
+    }
+}
+
+// MARK: - SinkEventHandler
+
+/// Callback signature for the internal `ReusableSink` types to invoke when
+/// they receive an event from the 'outside world'.
+/// - Parameter immediatePerform: The event handler to invoke if the event can be processed immediately.
+/// - Parameter deferredPerform: The event handler to invoke in the future if the event cannot currently be processed.
+typealias OnSinkEvent = (
+    _ immediatePerform: () -> Void,
+    _ deferredPerform: @escaping () -> Void
+) -> Void
+
+/// Handles events from 'Sinks' such that runtime-level event handling state is appropriately
+/// managed, and attempts to perform reentrant action handling can be detected and dealt with.
+final class SinkEventHandler {
+    enum State {
+        /// Ready to handle an event.
+        case ready
+
+        /// The event handler is busy. Usually this indicates another event is being
+        /// processed, but it may also be set when some other condition prevents
+        /// event handling (e.g. a `WorkflowHost` was told to update its root node).
+        case busy
+    }
+
+    fileprivate(set) var state: State
+
+    init(state: State = .busy) {
+        self.state = state
+    }
+
+    /// Synchronously performs or enqueues the specified event handlers based on the current
+    /// event handler state.
+    /// - Parameters:
+    ///   - immediate: The event handling action to perform immediately if possible.
+    ///   - deferred: The event handling action to enqueue if the event handler is already processing an event.
+    func performOrEnqueueEvent(
+        immediate: () -> Void,
+        deferred: @escaping () -> Void
+    ) {
+        switch state {
+        case .ready:
+            withEventHandlingSuspended(immediate)
+
+        case .busy:
+            DispatchQueue.workflowExecution.async(execute: deferred)
+        }
+    }
+
+    /// Invokes the given closure with event handling explicitly set to the `busy` state, so
+    /// any incoming events produced while executing the closure's body will be enqueued.
+    /// - Parameter body: The closure to invoke.
+    func withEventHandlingSuspended(_ body: () -> Void) {
+        switch state {
+        case .ready:
+            state = .busy
+            defer { state = .ready }
+            body()
+
+        case .busy:
+            body()
+        }
+    }
+
+    /// Creates the callback that should be invoked by Sinks to handle their event appropriately
+    /// given the `SinkEventHandler`'s current state.
+    /// - Returns: The callback that should be invoked.
+    func makeOnSinkEventCallback() -> OnSinkEvent {
+        // We may not actually need the weak ref, but it's more defensive to keep it.
+        let onSinkEvent: OnSinkEvent = { [weak self] immediate, deferred in
+            guard let self else {
+                // We just drop the events here. Should we signal this somehow?
+                // Maybe as a debug-only thing? Or is it just noise?
+                return
+            }
+
+            performOrEnqueueEvent(
+                immediate: immediate,
+                deferred: deferred
+            )
+        }
+
+        return onSinkEvent
     }
 }

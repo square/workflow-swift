@@ -295,7 +295,10 @@ extension WorkflowNode.SubtreeManager {
         func makeSink<Action: WorkflowAction>(
             of actionType: Action.Type
         ) -> Sink<Action> where WorkflowType == Action.WorkflowType {
-            let reusableSink = sinkStore.findOrCreate(actionType: Action.self)
+            let reusableSink = sinkStore.findOrCreate(
+                actionType: Action.self,
+                onSinkEvent: hostContext.onSinkEvent
+            )
 
             let sink = Sink<Action> { [weak reusableSink] action in
                 WorkflowLogger.logSinkEvent(ref: SignpostRef(), action: action)
@@ -334,7 +337,10 @@ extension WorkflowNode.SubtreeManager {
             self.usedSinks = [:]
         }
 
-        mutating func findOrCreate<Action: WorkflowAction>(actionType: Action.Type) -> ReusableSink<Action> {
+        mutating func findOrCreate<Action: WorkflowAction>(
+            actionType: Action.Type,
+            onSinkEvent: OnSinkEvent?
+        ) -> ReusableSink<Action> {
             let key = ObjectIdentifier(actionType)
 
             let reusableSink: ReusableSink<Action>
@@ -348,7 +354,7 @@ extension WorkflowNode.SubtreeManager {
                 reusableSink = usedSink
             } else {
                 // Create a new reusable sink.
-                reusableSink = ReusableSink<Action>()
+                reusableSink = ReusableSink<Action>(onSinkEvent: onSinkEvent)
             }
 
             usedSinks[key] = reusableSink
@@ -359,15 +365,24 @@ extension WorkflowNode.SubtreeManager {
 
     /// Type-erased base class for reusable sinks.
     fileprivate class AnyReusableSink {
+        /// The callback to invoke when an event is to be handled.
+        let onSinkEvent: OnSinkEvent?
         var eventPipe: EventPipe
 
-        init() {
+        init(onSinkEvent: OnSinkEvent?) {
+            self.onSinkEvent = onSinkEvent
             self.eventPipe = EventPipe()
         }
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
         func handle(action: Action) {
+            if let onSinkEvent {
+                handleWithSinkEventHandler(action: action, onSinkEvent: onSinkEvent)
+                return
+            }
+
+            // Prior logic
             let output = Output.update(
                 action,
                 source: .external,
@@ -383,6 +398,32 @@ extension WorkflowNode.SubtreeManager {
                 return
             }
             eventPipe.handle(event: output)
+        }
+
+        private func handleWithSinkEventHandler(
+            action: Action,
+            onSinkEvent: OnSinkEvent
+        ) {
+            // new `SinkEventHandler` logic
+            dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
+
+            // If we can process now, forward through the `EventPipe`
+            let immediatePerform: () -> Void = {
+                let output = Output.update(
+                    action,
+                    source: .external,
+                    subtreeInvalidated: false // initial state
+                )
+
+                self.eventPipe.handle(event: output)
+            }
+
+            // Otherwise, try to recurse again in the future
+            let deferredPerform: () -> Void = { [weak self] in
+                self?.handle(action: action)
+            }
+
+            onSinkEvent(immediatePerform, deferredPerform)
         }
     }
 }
