@@ -42,7 +42,14 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     var cachedRendering: WorkflowType.Rendering?
-    var isInvalidated: Bool = true
+    var isInvalidated: Bool = true {
+        didSet {
+            print("oldValue: \(oldValue)")
+            print("newValue: \(isInvalidated)")
+            print("\(session.workflowType), \(session.sessionID):: invalidation state: \(isInvalidated)")
+        }
+    }
+
     var skipNextEnableEvents = false
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
@@ -163,6 +170,13 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         let config = hostContext.runtimeConfig
 
+        let hasCache = cachedRendering != nil
+        let configSupportsCaching = config.partialTreeRendering
+        let isCacheValid = !isInvalidated
+        print("hasCache: \(hasCache)")
+        print("configSupportsCaching: \(configSupportsCaching)")
+        print("isCacheValid: \(isCacheValid)")
+
         // We will reuse an existing cached rendering in cases where:
         //  1. We have a cached rendering
         //  2. The runtime config supports caching
@@ -180,18 +194,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
         } else {
             // Otherwise, produce a new rendering, cache it if
             // supported, and update the node validation info.
-
-            newRendering = withPerceptionTracking({
+            newRendering = withPerceptionTracking {
                 subtreeManager.render { context in
                     workflow.render(state: state, context: context)
                 }
-            }, onChange: { [weak self] in
+            } onChange: { [weak self, session] in
+                print("invalidated WF session: \(session.sessionID.rawIdentifier)")
                 self?.isInvalidated = true
-            })
+            }
 
-//            newRendering = subtreeManager.render { context in
-//                workflow.render(state: state, context: context)
-//            }
             if config.partialTreeRendering {
                 cachedRendering = newRendering
             }
@@ -264,6 +275,13 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
                     invalidatedByUpdate = areStatesEquivalent(cacheableWorkflow)
                 }
+            } else if workflow is any ObservableWorkflow {
+                // if observable, don't mess with invalidation here – it is inferred
+                // from observation tracking
+                newWorkflow.workflowDidChange(from: oldWorkflow, state: &state)
+                // TODO: this check is kind of pointless...
+                invalidatedByUpdate = initiallyInvalidated != isInvalidated
+                print("[JQ]: obs wf invalidated by update: \(invalidatedByUpdate)")
             } else {
                 // Default behavior is to treat all updates as invalidating
                 invalidatedByUpdate = true

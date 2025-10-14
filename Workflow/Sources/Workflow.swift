@@ -108,6 +108,39 @@ public protocol CacheableWorkflow: Workflow {
     static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool
 }
 
+@_spi(Experimental)
+public protocol RenderCaching {
+    associatedtype WorkflowType: Workflow
+
+    static func shouldInvalidateRenderCacheDuringUpdate(
+        from oldWorkflow: WorkflowType,
+        to newWorkflow: WorkflowType
+    ) -> Bool
+
+    static func shouldInvalidateRenderCacheDuringStateChange(
+        from oldState: WorkflowType.State,
+        to newState: WorkflowType.State
+    ) -> Bool
+}
+
+extension RenderCaching where WorkflowType: Equatable {
+    static func shouldInvalidateRenderCacheDuringUpdate(
+        from oldWorkflow: WorkflowType,
+        to newWorkflow: WorkflowType
+    ) -> Bool {
+        oldWorkflow != newWorkflow
+    }
+}
+
+extension RenderCaching where WorkflowType.State: Equatable {
+    static func shouldInvalidateRenderCacheDuringStateChange(
+        from oldState: WorkflowType.State,
+        to newState: WorkflowType.State
+    ) -> Bool {
+        oldState != newState
+    }
+}
+
 // TODO: look into this
 // extension Workflow {
 //    public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
@@ -137,4 +170,14 @@ extension CacheableWorkflow where State: Equatable {
 import Perception
 
 @_spi(Experimental)
-public protocol ObservableWorkflow: Workflow {}
+public protocol ObservableWorkflow: CacheableWorkflow, Perceptible {}
+
+extension ObservableWorkflow {
+    public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
+        true
+    }
+
+    public static func isStateEquivalent(_ state: State, to otherState: State) -> Bool {
+        true
+    }
+}

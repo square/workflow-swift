@@ -485,3 +485,133 @@ private struct State {
         var name = ""
     }
 }
+
+// MARK: - Caching Tests
+
+// import Observation
+import Perception
+
+@Perceptible
+final class ObservableDeps {
+    var input1 = 0
+    var input2 = 42
+}
+
+@_spi(Experimental) import Workflow
+
+struct Parent: ObservableWorkflow {
+//    @ObservableState
+//    struct State {
+//        var costly: Int = 0
+//        var cheap: Int = 0
+//    }
+    typealias State = Void
+
+    struct Rendering {
+        var stuff: String
+        var renderTrigger: () -> Void
+    }
+
+    let props: ObservableDeps
+
+//    func makeInitialState() -> State { State() }
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        let sink = context.makeSink(of: Action.self)
+
+        let costly = ExpensiveChild(props: { props.input1 })
+            .rendered(in: context)
+        let cheap = InexpensiveChild(props: { props.input2 })
+            .rendered(in: context)
+
+        return Rendering(
+            stuff: "(\(costly), \(cheap))",
+            renderTrigger: {
+                print("render trigger!")
+                sink.send(.doit)
+            }
+        )
+    }
+
+    enum Action: WorkflowAction {
+        typealias WorkflowType = Parent
+
+        case doit
+
+        func apply(toState state: inout Parent.State, context: ApplyContext<Parent>) -> Never? {
+            nil
+        }
+    }
+}
+
+// @ObservableState
+struct ExpensiveChild: ObservableWorkflow {
+//    @ObservableState
+//    struct Props {
+//        var counter = 0
+//    }
+//
+//    let props: Props
+    let props: () -> Int
+
+    typealias State = Void
+    typealias Rendering = Int
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        print("rendering expensive child")
+        sleep(1)
+        return props()
+    }
+}
+
+// @ObservableState
+struct InexpensiveChild: ObservableWorkflow {
+//    @ObservableState
+//    struct Props {
+//        var counter = 0
+//    }
+
+//    let props: Props
+    let props: () -> Int
+
+    typealias State = Int
+    typealias Rendering = Int
+
+    func makeInitialState() -> Int { 0 }
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        print("rendering inexpensive child")
+//        return props.counter
+        return props()
+    }
+
+//    enum Action: WorkflowAction {
+//        typealias WorkflowType = InexpensiveChild
+//
+//        case increment(Int)
+//
+//        func apply(toState state: inout Void, context: ApplyContext<InexpensiveChild>) -> Never? {
+//
+//        }
+//    }
+}
+
+import Testing
+
+@MainActor
+@Test
+func testObsWF() {
+    let deps = ObservableDeps()
+    let wf = Parent(props: deps)
+    let host = WorkflowHost(workflow: wf)
+
+    let rendering1 = host.rendering.value
+    #expect(rendering1.stuff == "(0, 42)")
+
+    deps.input1 += 1
+
+    rendering1.renderTrigger()
+
+    let rendering2 = host.rendering.value
+    #expect(rendering2.stuff == "(1, 42)")
+}

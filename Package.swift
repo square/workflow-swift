@@ -68,7 +68,10 @@ let package = Package(
 
         .target(
             name: "Workflow",
-            dependencies: ["ReactiveSwift"],
+            dependencies: [
+                "ReactiveSwift",
+                .product(name: "Perception", package: "swift-perception"),
+            ],
             path: "Workflow/Sources"
         ),
         .testTarget(
