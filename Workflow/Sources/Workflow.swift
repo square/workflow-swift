@@ -139,7 +139,7 @@ extension CacheableWorkflow where Self.State == Void {
 extension AnyWorkflowConvertible {
     /// Returns a type-erased `Workflow` that will cache the underlying `Rendering`
     /// until an event in the subtree rooted at this node is received.
-    public func asCacheableWorkflow() -> some CacheableWorkflow {
+    public func asCacheableWorkflow() -> some AnyWorkflowConvertible<Rendering, Output> {
         if let alreadyCacheable = self as? AnyCacheableWorkflow<Rendering, Output> {
             alreadyCacheable
         } else {

@@ -42,7 +42,25 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     var cachedRendering: WorkflowType.Rendering?
+//    {
+//        didSet {
+//            if cachedRendering != nil {
+//                print("caching rendering for: \(session.sessionID.rawIdentifier)")
+//            } else {
+//                print("removed cached rendering for: \(session.sessionID.rawIdentifier)")
+//            }
+//        }
+//    }
     var isInvalidated: Bool = true
+//    {
+//        didSet {
+//            if isInvalidated {
+//                print("cache marked invalid for: \(session.sessionID.rawIdentifier)")
+//            } else {
+//                print("cache marked valid for: \(session.sessionID.rawIdentifier)")
+//            }
+//        }
+//    }
     var skipNextEnableEvents = false
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
@@ -61,6 +79,9 @@ final class WorkflowNode<WorkflowType: Workflow> {
             renderKey: key,
             parent: parentSession
         )
+//        print("instantiating node: \(session.sessionID.rawIdentifier)")
+//        print("    type: \(type(of: workflow))")
+//        print("    parent: ", parentSession?.sessionID.rawIdentifier.description ?? "(none)")
         self.subtreeManager = SubtreeManager(
             session: session,
             hostContext: hostContext
@@ -163,6 +184,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         let config = hostContext.runtimeConfig
 
+//        let hasCache = cachedRendering != nil
+//        let cachingOn = config.renderCachingEnabled
+//        let cacheValid = !isInvalidated
+//        print("rendering node: \(session.sessionID.rawIdentifier)")
+//        print("hasCache: \(hasCache)")
+//        print("cachingOn: \(cachingOn)")
+//        print("cacheValid: \(cacheValid)")
+//        print("\n====\n")
+
         // We will reuse an existing cached rendering in cases where:
         //  1. We have a cached rendering
         //  2. The runtime config supports caching
@@ -256,7 +286,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
                         return CWF.isStateEquivalent(oldTypedState, to: newTypedState)
                     }
 
-                    invalidatedByUpdate = areStatesEquivalent(cacheableWorkflow)
+                    invalidatedByUpdate = !areStatesEquivalent(cacheableWorkflow)
                 }
             } else {
                 // Default behavior is to treat all updates as invalidating

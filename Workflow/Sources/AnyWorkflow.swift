@@ -60,8 +60,9 @@ extension AnyWorkflow: Workflow {
     }
 }
 
-// TODO: do we need to forward stuff here, or not?
-// extension AnyWorkflow {
+// TODO: can/should we forward stuff here, or not?
+// @_spi(Experimental)
+// extension AnyWorkflow: CacheableWorkflow {
 //    public static func isWorkflowEquivalent(_ workflow: AnyWorkflow<Rendering, Output>, to otherWorkflow: AnyWorkflow<Rendering, Output>) -> Bool {
 //        // TODO: what to do here?
 //        false

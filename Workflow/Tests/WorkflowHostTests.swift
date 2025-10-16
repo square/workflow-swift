@@ -18,7 +18,9 @@ import ReactiveSwift
 import Testing
 import XCTest
 
-@_spi(WorkflowRuntimeConfig) @testable import Workflow
+@_spi(WorkflowRuntimeConfig)
+@_spi(Experimental)
+@testable import Workflow
 
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
@@ -180,6 +182,124 @@ extension WorkflowHostTests {
         }
 
         XCTAssertEqual(host.context.runtimeConfig.renderOnlyIfStateChanged, true)
+    }
+}
+
+// MARK: Render Caching Tests
+
+private struct CheapWorkflow: Workflow {
+    typealias State = Void
+
+    struct Rendering {
+        var action: () -> Void
+    }
+
+    var onRender: () -> Void
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        print("(cheap) render")
+        onRender()
+        let sink = context.makeSink(of: AnyWorkflowAction.self)
+        return Rendering {
+            print("(cheap) emit action")
+            sink.send(.noAction)
+        }
+    }
+}
+
+private struct CostlyWorkflow: Workflow {
+    typealias State = Void
+
+    struct Rendering {
+        var action: () -> Void
+    }
+
+    var onRender: () -> Void
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        print("(costly) render")
+        onRender()
+        let sink = context.makeSink(of: AnyWorkflowAction.self)
+        return Rendering {
+            print("(costly) emit action")
+            sink.send(.noAction)
+        }
+    }
+}
+
+struct CachesChildrenWorkflow: Workflow {
+    typealias State = Void
+
+    struct Rendering {
+        var cheapAction: () -> Void
+        var costlyAction: () -> Void
+    }
+
+    var onCheapRender: () -> Void
+    var onExpenisveRender: () -> Void
+
+    func render(state: State, context: RenderContext<Self>) -> Rendering {
+        let cheapRendering = CheapWorkflow(onRender: onCheapRender)
+            .asCacheableWorkflow()
+            .rendered(in: context)
+
+        let expensiveRendering = CostlyWorkflow(onRender: onExpenisveRender)
+            .asCacheableWorkflow()
+            .rendered(in: context)
+
+        return Rendering {
+            cheapRendering.action()
+        } costlyAction: {
+            expensiveRendering.action()
+        }
+    }
+}
+
+final class RenderCachingTests: XCTestCase {
+    func test_renderCaching() {
+        XCTAssert(Runtime.configuration.renderCachingEnabled)
+
+        var rootRenderCount = 0
+        var cheapChildRenderCount = 0
+        var costlyChildRenderCount = 0
+
+        let root = CachesChildrenWorkflow(
+            onCheapRender: { cheapChildRenderCount += 1 },
+            onExpenisveRender: { costlyChildRenderCount += 1 }
+        )
+        let host = WorkflowHost(workflow: root)
+
+        let done = host.rendering.signal.observeValues { _ in
+            rootRenderCount += 1
+        }
+        defer { _ = done }
+
+        let rendering1 = host.rendering.value
+
+        XCTAssertEqual(rootRenderCount, 0)
+        XCTAssertEqual(cheapChildRenderCount, 1)
+        XCTAssertEqual(costlyChildRenderCount, 1)
+
+        // re-render cheap child
+        rendering1.cheapAction()
+
+        XCTAssertEqual(rootRenderCount, 1)
+        XCTAssertEqual(cheapChildRenderCount, 2)
+        XCTAssertEqual(costlyChildRenderCount, 1)
+
+        // re-render expensive child
+        rendering1.costlyAction()
+
+        XCTAssertEqual(rootRenderCount, 2)
+        XCTAssertEqual(cheapChildRenderCount, 2)
+        XCTAssertEqual(costlyChildRenderCount, 2)
+
+        // should still work
+        rendering1.cheapAction()
+
+        XCTAssertEqual(rootRenderCount, 3)
+        XCTAssertEqual(cheapChildRenderCount, 3)
+        XCTAssertEqual(costlyChildRenderCount, 2)
     }
 }
 
