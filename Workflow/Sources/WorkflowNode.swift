@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Perception
-
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
