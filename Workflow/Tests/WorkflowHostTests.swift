@@ -244,7 +244,6 @@ struct CachesChildrenWorkflow: Workflow {
             .rendered(in: context)
 
         let expensiveRendering = CostlyWorkflow(onRender: onExpenisveRender)
-            .asCacheableWorkflow()
             .rendered(in: context)
 
         return Rendering {
@@ -285,21 +284,21 @@ final class RenderCachingTests: XCTestCase {
 
         XCTAssertEqual(rootRenderCount, 1)
         XCTAssertEqual(cheapChildRenderCount, 2)
-        XCTAssertEqual(costlyChildRenderCount, 1)
+        XCTAssertEqual(costlyChildRenderCount, 2)
 
         // re-render expensive child
         rendering1.costlyAction()
 
         XCTAssertEqual(rootRenderCount, 2)
         XCTAssertEqual(cheapChildRenderCount, 2)
-        XCTAssertEqual(costlyChildRenderCount, 2)
+        XCTAssertEqual(costlyChildRenderCount, 3)
 
         // should still work
         rendering1.cheapAction()
 
         XCTAssertEqual(rootRenderCount, 3)
         XCTAssertEqual(cheapChildRenderCount, 3)
-        XCTAssertEqual(costlyChildRenderCount, 2)
+        XCTAssertEqual(costlyChildRenderCount, 4)
     }
 }
 
