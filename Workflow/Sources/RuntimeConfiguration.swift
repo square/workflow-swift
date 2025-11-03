@@ -91,7 +91,7 @@ extension Runtime {
 
         /// Whether action handling should be delegated to the `SinkEventHandler` type.
         /// This is expected to eventually be removed and become the default behavior.
-        public var useSinkEventHandler: Bool = false
+        public var useSinkEventHandler: Bool = true
 
         /// When `true`, supported nodes in the tree can cache their rendering
         /// and track invalidation such that it will re-use the cached rendering
