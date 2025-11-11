@@ -102,8 +102,9 @@ extension ApplyContext {
 // MARK: - Runtime.Config
 
 extension Runtime {
+    @MainActor
     static func resetConfig() {
-        Runtime._bootstrapConfiguration = .init()
+        Runtime.updateDefaultConfiguration { $0 = Configuration() }
     }
 }
 

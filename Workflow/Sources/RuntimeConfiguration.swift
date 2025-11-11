@@ -22,30 +22,29 @@ public enum Runtime {
     @TaskLocal
     static var _currentConfiguration: Configuration?
 
-    static var _bootstrapConfiguration = BootstrappableConfiguration()
-
-    /// Bootstrap the workflow runtime with the given configuration.
-    /// This can only be called once per process and must be called from the main thread.
+    /// Update the base configuration used by the workflow runtime when creating
+    /// new `WorkflowHost` instances.
+    /// - Note: Updating this does not affect the existing configuration values used by
+    /// extant `WorkflowHost` instances.
     ///
     /// - Parameter configuration: The runtime configuration to use.
     @MainActor
-    public static func bootstrap(
+    public static func updateDefaultConfiguration(
         _ configureBlock: (inout Configuration) -> Void
     ) {
         MainActor.preconditionIsolated(
-            "The Workflow runtime must be bootstrapped from the main actor."
+            "Must be called from the main actor."
         )
-        guard !_isBootstrapped else {
-            fatalError("The Workflow runtime can only be bootstrapped once.")
-        }
 
-        var config = _bootstrapConfiguration.currentConfiguration
+        var config = Configuration()
         configureBlock(&config)
-        _bootstrapConfiguration._bootstrapConfig = config
+        _defaultConfiguration = config
     }
 
+    private static var _defaultConfiguration = Configuration()
+
     static var configuration: Configuration {
-        _currentConfiguration ?? _bootstrapConfiguration.currentConfiguration
+        _currentConfiguration ?? _defaultConfiguration
     }
 
     /// Allows temporary customization of the runtime configuration during the execution of the `operation`.
@@ -67,17 +66,6 @@ public enum Runtime {
                 operation: operation
             )
     }
-
-    // MARK: -
-
-    private static var _isBootstrapped: Bool {
-        _bootstrapConfiguration._bootstrapConfig != nil
-    }
-
-    /// The current runtime configuration that may have been set via `bootstrap()`.
-    private static var _currentBootstrapConfiguration: Configuration {
-        _bootstrapConfiguration.currentConfiguration
-    }
 }
 
 extension Runtime {
@@ -92,15 +80,5 @@ extension Runtime {
         /// Whether action handling should be delegated to the `SinkEventHandler` type.
         /// This is expected to eventually be removed and become the default behavior.
         public var useSinkEventHandler: Bool = false
-    }
-
-    struct BootstrappableConfiguration {
-        var _bootstrapConfig: Configuration?
-        let _defaultConfig: Configuration = .default
-
-        /// The current runtime configuration that may have been set via `Runtime.bootstrap()`.
-        var currentConfiguration: Configuration {
-            _bootstrapConfig ?? _defaultConfig
-        }
     }
 }

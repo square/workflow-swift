@@ -39,7 +39,7 @@ struct RuntimeConfigTests {
             // reset global state...
             Runtime.resetConfig()
         }
-        Runtime.bootstrap { cfg in
+        Runtime.updateDefaultConfiguration { cfg in
             cfg.renderOnlyIfStateChanged = true
         }
 
