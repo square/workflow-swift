@@ -130,6 +130,16 @@ extension WorkflowNode {
             }
         }
 
+        func prepareEventPipesForReuse() {
+            for eventPipe in eventPipes {
+                eventPipe.prepareForReuse()
+            }
+
+            for child in childWorkflows {
+                child.value.prepareEventPipesForReuse()
+            }
+        }
+
         func makeDebugSnapshot() -> [WorkflowHierarchyDebugSnapshot.Child] {
             childWorkflows
                 .sorted(by: { lhs, rhs -> Bool in
@@ -505,6 +515,18 @@ extension WorkflowNode.SubtreeManager {
         func invalidate() {
             validationState = .invalid
         }
+
+        /// In the case in which a cached rendering is being used, we simulate
+        /// the state change sequence that would be applied if the entire tree
+        /// was re-rendered. For our purposes, this means simulating creation
+        /// of a new pipe in the `preparing` state. When the root rendering is
+        /// produced, the entire tree will be walked to re-enable the event handlers.
+        func prepareForReuse() {
+            guard case .valid = validationState else {
+                fatalError("Expected event pipe already be valid when preparing for reuse. Actual state was: \(validationState)")
+            }
+            validationState = .pending
+        }
     }
 }
 
@@ -537,6 +559,10 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func enableEvents() {
+            fatalError()
+        }
+
+        func prepareEventPipesForReuse() {
             fatalError()
         }
 
@@ -574,6 +600,10 @@ extension WorkflowNode.SubtreeManager {
 
         override func enableEvents() {
             node.enableEvents()
+        }
+
+        override func prepareEventPipesForReuse() {
+            node.prepareEventPipesForReuse()
         }
 
         func render() -> W.Rendering {

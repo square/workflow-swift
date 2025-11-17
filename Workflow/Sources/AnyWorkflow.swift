@@ -60,20 +60,6 @@ extension AnyWorkflow: Workflow {
     }
 }
 
-// TODO: can/should we forward stuff here, or not?
-// @_spi(Experimental)
-// extension AnyWorkflow: CacheableWorkflow {
-//    public static func isWorkflowEquivalent(_ workflow: AnyWorkflow<Rendering, Output>, to otherWorkflow: AnyWorkflow<Rendering, Output>) -> Bool {
-//        // TODO: what to do here?
-//        false
-//    }
-//
-//    public static func isStateEquivalent(_ state: Void, to otherState: Void) -> Bool {
-//        // TODO: what to do here?
-//        false
-//    }
-// }
-
 extension AnyWorkflow {
     /// Returns a new AnyWorkflow whose `Output` type has been transformed into the given type.
     ///

@@ -187,6 +187,12 @@ extension WorkflowHostTests {
 
 // MARK: Render Caching Tests
 
+protocol AlwaysCacheWorkflow: CacheableWorkflow {}
+
+extension AlwaysCacheWorkflow {
+    static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool { true }
+}
+
 private struct CheapWorkflow: Workflow {
     typealias State = Void
 
@@ -206,6 +212,8 @@ private struct CheapWorkflow: Workflow {
         }
     }
 }
+
+extension CheapWorkflow: AlwaysCacheWorkflow {}
 
 private struct CostlyWorkflow: Workflow {
     typealias State = Void
@@ -227,6 +235,8 @@ private struct CostlyWorkflow: Workflow {
     }
 }
 
+extension CostlyWorkflow: AlwaysCacheWorkflow {}
+
 struct CachesChildrenWorkflow: Workflow {
     typealias State = Void
 
@@ -240,11 +250,9 @@ struct CachesChildrenWorkflow: Workflow {
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
         let cheapRendering = CheapWorkflow(onRender: onCheapRender)
-            .asCacheableWorkflow()
             .rendered(in: context)
 
         let expensiveRendering = CostlyWorkflow(onRender: onExpenisveRender)
-            .asCacheableWorkflow()
             .rendered(in: context)
 
         return Rendering {

@@ -99,7 +99,7 @@ extension Workflow {
     }
 }
 
-// MARK: - CacheableWorkflow (Render Skipping Support)
+// MARK: - CacheableWorkflow (Render Caching Support)
 
 @_spi(Experimental)
 public protocol CacheableWorkflow: Workflow {
@@ -107,17 +107,6 @@ public protocol CacheableWorkflow: Workflow {
 
     static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool
 }
-
-// TODO: look into this
-// extension Workflow {
-//    public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
-//        false
-//    }
-//
-//    public static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool {
-//        false
-//    }
-// }
 
 extension CacheableWorkflow where Self: Equatable {
     public static func isWorkflowEquivalent(_ workflow: Self, to otherWorkflow: Self) -> Bool {
@@ -133,42 +122,4 @@ extension CacheableWorkflow where State: Equatable {
 
 extension CacheableWorkflow where Self.State == Void {
     public static func isStateEquivalent(_ state: Self.State, to otherState: Self.State) -> Bool { true }
-}
-
-@_spi(Experimental)
-extension AnyWorkflowConvertible {
-    /// Returns a type-erased `Workflow` that will cache the underlying `Rendering`
-    /// until an event in the subtree rooted at this node is received.
-    public func asCacheableWorkflow() -> some AnyWorkflowConvertible<Rendering, Output> {
-        if let alreadyCacheable = self as? AnyCacheableWorkflow<Rendering, Output> {
-            alreadyCacheable
-        } else {
-            AnyCacheableWorkflow(storage: asAnyWorkflow())
-        }
-    }
-}
-
-struct AnyCacheableWorkflow<Rendering, Output>: CacheableWorkflow {
-    typealias State = Void
-
-    static func isWorkflowEquivalent(
-        _ workflow: AnyCacheableWorkflow<Rendering, Output>,
-        to otherWorkflow: AnyCacheableWorkflow<Rendering, Output>
-    ) -> Bool {
-        true
-    }
-
-    let storage: AnyWorkflow<Rendering, Output>
-
-    init(storage: AnyWorkflow<Rendering, Output>) {
-        self.storage = storage
-    }
-
-    func render(state: State, context: RenderContext<Self>) -> Rendering {
-        context.render(
-            workflow: storage,
-            key: "",
-            outputMap: { AnyWorkflowAction(sendingOutput: $0) }
-        )
-    }
 }

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Perception
-
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
@@ -42,26 +40,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     var cachedRendering: WorkflowType.Rendering?
-//    {
-//        didSet {
-//            if cachedRendering != nil {
-//                print("caching rendering for: \(session.sessionID.rawIdentifier)")
-//            } else {
-//                print("removed cached rendering for: \(session.sessionID.rawIdentifier)")
-//            }
-//        }
-//    }
     var isInvalidated: Bool = true
-//    {
-//        didSet {
-//            if isInvalidated {
-//                print("cache marked invalid for: \(session.sessionID.rawIdentifier)")
-//            } else {
-//                print("cache marked valid for: \(session.sessionID.rawIdentifier)")
-//            }
-//        }
-//    }
-    var skipNextEnableEvents = false
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
 
@@ -79,9 +58,6 @@ final class WorkflowNode<WorkflowType: Workflow> {
             renderKey: key,
             parent: parentSession
         )
-//        print("instantiating node: \(session.sessionID.rawIdentifier)")
-//        print("    type: \(type(of: workflow))")
-//        print("    parent: ", parentSession?.sessionID.rawIdentifier.description ?? "(none)")
         self.subtreeManager = SubtreeManager(
             session: session,
             hostContext: hostContext
@@ -184,15 +160,6 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         let config = hostContext.runtimeConfig
 
-//        let hasCache = cachedRendering != nil
-//        let cachingOn = config.renderCachingEnabled
-//        let cacheValid = !isInvalidated
-//        print("rendering node: \(session.sessionID.rawIdentifier)")
-//        print("hasCache: \(hasCache)")
-//        print("cachingOn: \(cachingOn)")
-//        print("cacheValid: \(cacheValid)")
-//        print("\n====\n")
-
         // We will reuse an existing cached rendering in cases where:
         //  1. We have a cached rendering
         //  2. The runtime config supports caching
@@ -205,8 +172,14 @@ final class WorkflowNode<WorkflowType: Workflow> {
             newRendering = cachedRendering
             // We have to do something like this otherwise we violate
             // an invariant that event pipes are invalid until a new
-            // rendering is produced.
-            skipNextEnableEvents = true
+            // rendering is produced. This walks the subtree rooted at
+            // this node and transitions the existing event pipes so
+            // that they behave analogously to the 'normal' render case.
+            // Specifically, they are transitioned into the `preparing`
+            // state and then after the root render is complete, their
+            // event handlers will be enabled.
+            // FIXME: this could probably be more efficient
+            prepareEventPipesForReuse()
         } else {
             // Otherwise, produce a new rendering, cache it if
             // supported, and update the node validation info.
@@ -226,12 +199,11 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     func enableEvents() {
-        // TODO: can we model this better?
-        if skipNextEnableEvents {
-            skipNextEnableEvents = false
-            return
-        }
         subtreeManager.enableEvents()
+    }
+
+    func prepareEventPipesForReuse() {
+        subtreeManager.prepareEventPipesForReuse()
     }
 
     /// Updates the existing workflow. Responsible for calling `workflowDidChange()`
