@@ -35,11 +35,9 @@ final class ObservableScreenTests: XCTestCase {
                 var store: Store<Model>
 
                 var body: some View {
-                    WithPerceptionTracking {
-                        let _ = { store.emittedValue = testValue }()
-                        Color.clear
-                            .frame(width: 1, height: 1)
-                    }
+                    let _ = { store.emittedValue = testValue }()
+                    Color.clear
+                        .frame(width: 1, height: 1)
                 }
             }
         }

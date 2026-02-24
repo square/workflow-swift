@@ -1,6 +1,6 @@
 import CasePaths
 import IdentifiedCollections
-import Perception
+import Observation
 import SwiftUI
 import Workflow
 
@@ -24,11 +24,11 @@ import Workflow
 /// sink.
 ///
 @dynamicMemberLookup
-public final class Store<Model: ObservableModel>: Perceptible {
+public final class Store<Model: ObservableModel>: Observable {
     public typealias State = Model.State
 
     private var model: Model
-    private let _$observationRegistrar = PerceptionRegistrar()
+    private let _$observationRegistrar = ObservationRegistrar()
 
     private var childStores: [AnyHashable: ChildStore] = [:]
     private var childModelAccesses: [AnyHashable: ChildModelAccess] = [:]
@@ -616,10 +616,3 @@ extension Store: Hashable {
 }
 
 extension Store: Identifiable {}
-
-#if canImport(Observation)
-import Observation
-
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-extension Store: Observable {}
-#endif

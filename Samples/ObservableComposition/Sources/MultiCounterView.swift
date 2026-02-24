@@ -1,55 +1,52 @@
 import Foundation
-import Perception
 import SwiftUI
 import ViewEnvironment
 import Workflow
 import WorkflowSwiftUI
 
 struct MultiCounterView: View {
-    @Perception.Bindable var store: Store<MultiCounterModel>
+    @Bindable var store: Store<MultiCounterModel>
 
     var body: some View {
-        WithPerceptionTracking {
-            let _ = print("Evaluated MultiCounterView body")
-            VStack {
-                Text("Multi Counter Demo")
-                    .font(.title)
+        let _ = print("Evaluated MultiCounterView body")
+        VStack {
+            Text("Multi Counter Demo")
+                .font(.title)
 
-                controls
+            controls
 
-                if let maxCounter = store.maxCounter {
-                    CounterView(store: maxCounter, key: "max")
-                }
-
-                ForEach(
-                    Array(store.counters.enumerated()),
-                    id: \.element.id
-                ) { index, counter in
-                    HStack {
-                        Button {
-                            store.counterAction.send(.removeCounter(counter.info.id))
-                        } label: {
-                            Image(systemName: "xmark.circle")
-                        }
-
-                        CounterView(store: counter, key: "\(index)")
-                    }
-                    .padding(.vertical, 4)
-                }
-
-                // When showSum is false, changes to counters do not invalidate this body
-                if store.showSum {
-                    HStack {
-                        Text("Sum")
-                        Spacer()
-                        Text("\(store.counters.map(\.count).reduce(0, +))")
-                    }
-                }
-
-                Spacer()
+            if let maxCounter = store.maxCounter {
+                CounterView(store: maxCounter, key: "max")
             }
-            .padding()
+
+            ForEach(
+                Array(store.counters.enumerated()),
+                id: \.element.id
+            ) { index, counter in
+                HStack {
+                    Button {
+                        store.counterAction.send(.removeCounter(counter.info.id))
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                    }
+
+                    CounterView(store: counter, key: "\(index)")
+                }
+                .padding(.vertical, 4)
+            }
+
+            // When showSum is false, changes to counters do not invalidate this body
+            if store.showSum {
+                HStack {
+                    Text("Sum")
+                    Spacer()
+                    Text("\(store.counters.map(\.count).reduce(0, +))")
+                }
+            }
+
+            Spacer()
         }
+        .padding()
     }
 
     @ViewBuilder

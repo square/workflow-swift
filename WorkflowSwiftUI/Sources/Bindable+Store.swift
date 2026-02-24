@@ -1,9 +1,8 @@
 import CasePaths
-import Perception
 import SwiftUI
 import Workflow
 
-extension Perception.Bindable {
+extension Bindable {
     @_disfavoredOverload
     public subscript<Model: ObservableModel, Member>(
         dynamicMember keyPath: KeyPath<Model.State, Member>
@@ -61,7 +60,7 @@ extension Perception.Bindable {
 /// }
 ///
 /// public struct MyWorkflowView: View {
-///     @Perception.Bindable var store: Store<MyWorkflow.Rendering>
+///     @Bindable var store: Store<MyWorkflow.Rendering>
 ///
 ///     public var body: some View {
 ///         Toggle(
@@ -76,7 +75,7 @@ extension Perception.Bindable {
 /// it directly.
 @dynamicMemberLookup
 public struct _StoreBindable<Model: ObservableModel, Value> {
-    fileprivate let bindable: Perception.Bindable<Store<Model>>
+    fileprivate let bindable: Bindable<Store<Model>>
     fileprivate let keyPath: KeyPath<Model.State, Value>
 
     public subscript<Member>(

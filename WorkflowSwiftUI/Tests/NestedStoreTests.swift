@@ -1,4 +1,5 @@
 import IdentifiedCollections
+import Observation
 import XCTest
 @testable import WorkflowSwiftUI
 
@@ -13,7 +14,7 @@ final class NestedStoreTests: XCTestCase {
         let (store, setModel) = Store.make(model: makeModel())
 
         let nestedNameDidChange = expectation(description: "nested.name.didChange")
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.scope(keyPath: \.nested).name
         } onChange: {
             nestedNameDidChange.fulfill()
@@ -38,7 +39,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let optionalDidChange = expectation(description: "optional.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(keyPath: \.optional)?.name
             } onChange: {
                 optionalDidChange.fulfill()
@@ -61,7 +62,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let optionalDidChange = expectation(description: "optional.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(keyPath: \.optional)?.name
             } onChange: {
                 optionalDidChange.fulfill()
@@ -83,7 +84,7 @@ final class NestedStoreTests: XCTestCase {
             }
             let (store, setModel) = Store.make(model: makeModel())
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(keyPath: \.optional)
             } onChange: {
                 XCTFail("optional should not change")
@@ -104,7 +105,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let optionalNameDidChange = expectation(description: "optional.name.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(keyPath: \.optional)?.name
             } onChange: {
                 optionalNameDidChange.fulfill()
@@ -128,7 +129,7 @@ final class NestedStoreTests: XCTestCase {
             }
             let (store, setModel) = Store.make(model: makeModel())
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(keyPath: \.optional)?.name
             } onChange: {
                 XCTFail("optional should not change")
@@ -151,7 +152,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)
             } onChange: {
                 arrayDidChange.fulfill()
@@ -174,7 +175,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)
             } onChange: {
                 arrayDidChange.fulfill()
@@ -198,7 +199,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "array.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)
             } onChange: {
                 arrayDidChange.fulfill()
@@ -206,7 +207,7 @@ final class NestedStoreTests: XCTestCase {
 
             let store0NameDidChange = expectation(description: "array[0].name.didChange")
             let store0 = store.scope(collection: \.array)[0]
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store0.name
             } onChange: {
                 store0NameDidChange.fulfill()
@@ -230,20 +231,20 @@ final class NestedStoreTests: XCTestCase {
             }
             let (store, setModel) = Store.make(model: makeModel())
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)
             } onChange: {
                 XCTFail("Array should not change")
             }
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)[0]
             } onChange: {
                 XCTFail("Array element 0 should not change")
             }
 
             let array0NameDidChange = expectation(description: "array[0].didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.array)[0].name
             } onChange: {
                 array0NameDidChange.fulfill()
@@ -268,7 +269,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let identifiedDidChange = expectation(description: "identified.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)
             } onChange: {
                 identifiedDidChange.fulfill()
@@ -291,7 +292,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let arrayDidChange = expectation(description: "identified.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)
             } onChange: {
                 arrayDidChange.fulfill()
@@ -315,7 +316,7 @@ final class NestedStoreTests: XCTestCase {
             let (store, setModel) = Store.make(model: makeModel())
 
             let identifiedDidChange = expectation(description: "identified.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)
             } onChange: {
                 identifiedDidChange.fulfill()
@@ -323,7 +324,7 @@ final class NestedStoreTests: XCTestCase {
 
             // this store is keyed by ID so moving it to a different index does not cause a mutation
             let store0 = store.scope(collection: \.identified)[0]
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store0.name
             } onChange: {
                 XCTFail("identified[0].name should not change")
@@ -347,20 +348,20 @@ final class NestedStoreTests: XCTestCase {
             }
             let (store, setModel) = Store.make(model: makeModel())
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)
             } onChange: {
                 XCTFail("Identified array should not change")
             }
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)[0]
             } onChange: {
                 XCTFail("Identified array element 0 should not change")
             }
 
             let identified0NameDidChange = expectation(description: "identified[0].name.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.scope(collection: \.identified)[0].name
             } onChange: {
                 identified0NameDidChange.fulfill()

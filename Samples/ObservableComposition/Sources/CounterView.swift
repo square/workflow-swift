@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import ViewEnvironment
 import WorkflowSwiftUI
@@ -10,31 +11,29 @@ struct CounterView: View {
 
     var body: some View {
         let _ = Self._printChanges()
-        WithPerceptionTracking {
-            let _ = print("Evaluated CounterView[\(key)] body")
-            HStack {
-                Text(store.info.name)
+        let _ = print("Evaluated CounterView[\(key)] body")
+        HStack {
+            Text(store.info.name)
 
-                Spacer()
+            Spacer()
 
-                Button {
-                    store.send(.decrement)
-                } label: {
-                    Image(systemName: "minus")
-                }
+            Button {
+                store.send(.decrement)
+            } label: {
+                Image(systemName: "minus")
+            }
 
-                Text("\(store.count)")
-                    .monospacedDigit()
+            Text("\(store.count)")
+                .monospacedDigit()
 
-                Button {
-                    store.send(.increment)
-                } label: {
-                    Image(systemName: "plus")
-                }
+            Button {
+                store.send(.increment)
+            } label: {
+                Image(systemName: "plus")
+            }
 
-                if let maxValue = store.maxValue {
-                    Text("(max \(maxValue))")
-                }
+            if let maxValue = store.maxValue {
+                Text("(max \(maxValue))")
             }
         }
     }

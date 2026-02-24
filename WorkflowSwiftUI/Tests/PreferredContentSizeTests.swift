@@ -113,16 +113,15 @@ private struct TestView: View {
     var store: Store<StateAccessor<State>>
 
     var body: some View {
-        WithPerceptionTracking {
-            if store.axes.isEmpty {
+        if store.axes.isEmpty {
+            box
+                .ignoresSafeArea()
+        } else {
+            ScrollView(store.axes) {
                 box
-            } else {
-                ScrollView(store.axes) {
-                    box
-                }
             }
+            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
     }
 
     var box: some View {

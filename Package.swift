@@ -7,8 +7,8 @@ import PackageDescription
 let package = Package(
     name: "Workflow",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v12),
+        .iOS(.v17),
+        .macOS(.v14),
         .watchOS(.v8),
         .macCatalyst(.v16),
         .tvOS(.v12),
@@ -59,7 +59,6 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.5.5"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
-        .package(url: "https://github.com/pointfreeco/swift-perception", "1.5.0" ..< "3.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
         // 'xctest-dynamic-overlay' is actually for "IssueReporting"
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.2.2"),
@@ -104,7 +103,6 @@ let package = Package(
                 "WorkflowSwiftUIMacros",
                 .product(name: "CasePaths", package: "swift-case-paths"),
                 .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
-                .product(name: "Perception", package: "swift-perception"),
             ],
             path: "WorkflowSwiftUI/Sources"
         ),
