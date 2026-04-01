@@ -11,7 +11,7 @@ on:
   pull_request:
 
 env:
-  XCODE_VERSION: 16.4.0
+  XCODE_VERSION: 26.3
   TUIST_TEST_DEVICE: iPad (10th generation)
   TUIST_TEST_PLATFORM: iOS
 
@@ -22,7 +22,7 @@ env:
 
 jobs:
   development-tests:
-    runs-on: macos-15
+    runs-on: macos-26
 
     name: "development-tests [iOS ${{ matrix.sdk }}]"
 
@@ -41,8 +41,8 @@ jobs:
             simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-17-5"
             installation_required: true
 
-          - sdk: "18.5"
-            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
+          - sdk: "26.2"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-26-2"
             installation_required: false
 
     steps:
@@ -54,7 +54,9 @@ jobs:
 
     - name: Install iOS ${{ matrix.sdk }}
       if: ${{ matrix.installation_required }}
-      run: sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+      run: |
+        sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+        xcrun simctl list
 
     - name: Ensure sim exists
       run: |
@@ -69,16 +71,22 @@ jobs:
     - name: Run Tests
       run: tuist test --path Samples ${{ matrix.scheme }} --os "${{ matrix.sdk }}"
 
-  # FIXME: these should probably be run with a matrix too
   snapshot-tests:
-    runs-on: macos-15
+    runs-on: macos-26
 
     env:
-      TUIST_TEST_OS: 18.5
+      TUIST_TEST_OS: 26.2
       TUIST_TEST_SCHEME: SnapshotTests
+
+    name: "snapshot-tests [iOS ${{ matrix.sdk }}]"
 
     strategy:
       fail-fast: false # Don’t fail-fast so that we get all snapshot test changes
+      matrix:
+        include:
+          - sdk: "26.2"
+            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-26-2"
+            installation_required: false
 
     steps:
     - uses: actions/checkout@v4
@@ -87,6 +95,19 @@ jobs:
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
+    - name: Install iOS ${{ matrix.sdk }}
+      if: ${{ matrix.installation_required }}
+      run: |
+        sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+        xcrun simctl list
+
+    - name: Ensure sim exists
+      run: |
+        xcrun simctl create \
+          "${{ env.TUIST_TEST_DEVICE }}" \
+          "${{ env.TUIST_TEST_DEVICE }}" \
+          "${{ matrix.simctl_runtime }}"
+
     - name: Install dependencies
       run: tuist install --path Samples
 
@@ -94,7 +115,7 @@ jobs:
       run: tuist test --path Samples
 
   package-tests:
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
     - uses: actions/checkout@v4
@@ -102,13 +123,24 @@ jobs:
     - name: Switch Xcode
       run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
+    - name: Clear cache
+      run: swift package clean
+
+    # Workaround for https://github.com/swiftlang/swift-package-manager/issues/9495
+    - name: Setup SwiftSyntax
+      run: |
+        swift package edit swift-syntax
+        swift build --triple arm64-darwin-macosx --build-tests --jobs 2
+
     # Command line swift runs on the host platform.
     # On macOS we can run macro tests.
     - name: Test macOS
       run: swift test
 
   tutorial:
-    runs-on: macos-15
+    runs-on: macos-26
+    env:
+      TUIST_TEST_DEVICE: iPad Air 11-inch (M3)
 
     steps:
     - uses: actions/checkout@v4
@@ -124,7 +156,7 @@ jobs:
       run: tuist test --path Samples/Tutorial TutorialTests
 
   swiftformat:
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
     - uses: actions/checkout@v4

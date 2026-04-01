@@ -8,14 +8,12 @@ on:
     branches: [ main ]
 
 env:
-  # Xcode 16.3 gets us Swift 6.1, required for docc merge
-  XCODE_VERSION: 16.3
+  XCODE_VERSION: 26.3
 
 jobs:
   build:
     name: Generate API docs and publish to GitHub pages
-    # macos-15 is required for Xcode 16.3
-    runs-on: macos-15
+    runs-on: macos-26
 
     permissions:
       # Needed to push to gh-pages branch

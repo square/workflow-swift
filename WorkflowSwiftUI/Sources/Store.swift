@@ -402,7 +402,7 @@ extension Store {
             endIndex: models.endIndex
         ) { index in
             self.scope(
-                key: collection.appending(path: \.[_offset: index]),
+                key: collection.appending(path: \.[index]),
                 getModel: { model in
                     model[keyPath: collection][index]
                 },
