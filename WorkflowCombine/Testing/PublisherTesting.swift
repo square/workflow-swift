@@ -28,16 +28,14 @@ extension RenderTester {
     /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
     ///
     /// - Parameters:
-    ///   - publisher: Type of the Publisher-based Workflow to expect
     ///   - producingOutput: An output that will be returned when this worker is requested, if any.
     ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expect<PublisherType: Publisher>(
-        publisher: PublisherType.Type,
-        producingOutput output: PublisherType.Output? = nil,
+    public func expectPublisher<Output>(
+        producingOutput output: Output? = nil,
         key: String = ""
-    ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
+    ) -> RenderTester<WorkflowType> {
         expectWorkflow(
-            type: PublisherWorkflow<PublisherType>.self,
+            type: PublisherWorkflow<Output>.self,
             key: key,
             producingRendering: (),
             producingOutput: output,
@@ -45,7 +43,30 @@ extension RenderTester {
         )
     }
 
-    @available(*, deprecated, renamed: "expect(publisher:producingOutput:key:)")
+    /// Expect a `Publisher`-based Workflow.
+    ///
+    /// `PublisherWorkflow` is used to subscribe to `Publisher`s.
+    ///
+    /// - Parameters:
+    ///   - publisher: Type of the Publisher-based Workflow to expect
+    ///   - producingOutput: An output that will be returned when this worker is requested, if any.
+    ///   - key: Key to expect this `Workflow` to be rendered with.
+    @available(*, deprecated, message: "Use expectPublisher(producingOutput:key:) instead")
+    public func expect<PublisherType: Publisher>(
+        publisher: PublisherType.Type,
+        producingOutput output: PublisherType.Output? = nil,
+        key: String = ""
+    ) -> RenderTester<WorkflowType> where PublisherType.Failure == Never {
+        expectWorkflow(
+            type: PublisherWorkflow<PublisherType.Output>.self,
+            key: key,
+            producingRendering: (),
+            producingOutput: output,
+            assertions: { _ in }
+        )
+    }
+
+    @available(*, deprecated, message: "Use expectPublisher(producingOutput:key:) instead")
     public func expect<PublisherType: Publisher>(
         publisher: PublisherType.Type,
         output: PublisherType.Output,

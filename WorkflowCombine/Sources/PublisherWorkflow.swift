@@ -20,15 +20,14 @@ import Combine
 import Foundation
 import Workflow
 
-struct PublisherWorkflow<WorkflowPublisher: Publisher>: Workflow where WorkflowPublisher.Failure == Never {
-    typealias Output = WorkflowPublisher.Output
+struct PublisherWorkflow<Output>: Workflow {
     typealias State = Void
     typealias Rendering = Void
 
-    let publisher: WorkflowPublisher
+    let publisher: AnyPublisher<Output, Never>
 
-    init(publisher: WorkflowPublisher) {
-        self.publisher = publisher
+    init<WorkflowPublisher: Publisher>(publisher: WorkflowPublisher) where WorkflowPublisher.Failure == Never, WorkflowPublisher.Output == Output {
+        self.publisher = publisher.eraseToAnyPublisher()
     }
 
     func render(state: State, context: RenderContext<Self>) -> Rendering {
