@@ -67,6 +67,40 @@ class PublisherTests: XCTestCase {
         disposable?.dispose()
     }
 
+    func test_switchingConcretePublisherType_cancelsAndResubscribes() {
+        let firstSubscribed = expectation(description: "first publisher subscribed")
+        let firstCancelled = expectation(description: "first publisher cancelled")
+        let secondSubscribed = expectation(description: "second publisher subscribed")
+
+        let first = PassthroughSubject<Int, Never>()
+        let second = PassthroughSubject<Int, Never>()
+        let host = WorkflowHost(
+            workflow: SwitchingPublisherTypeWorkflow(
+                mode: .first,
+                first: first,
+                second: second,
+                firstSubscribed: firstSubscribed,
+                firstCancelled: firstCancelled,
+                secondSubscribed: secondSubscribed
+            )
+        )
+
+        wait(for: [firstSubscribed], timeout: 1)
+
+        host.update(
+            workflow: SwitchingPublisherTypeWorkflow(
+                mode: .second,
+                first: first,
+                second: second,
+                firstSubscribed: firstSubscribed,
+                firstCancelled: firstCancelled,
+                secondSubscribed: secondSubscribed
+            )
+        )
+
+        wait(for: [firstCancelled, secondSubscribed], timeout: 1)
+    }
+
     func test_publisher_isDisposedIfNotUsedInWorkflow() {
         let expectation = XCTestExpectation(description: "SignalProducer should be disposed if no longer used.")
         let publisher = [1, 2, 3]
@@ -84,5 +118,48 @@ class PublisherTests: XCTestCase {
         host.update(workflow: PublisherWorkflow(publisher: publisherTwo))
 
         wait(for: [expectation], timeout: 1)
+    }
+}
+
+private struct SwitchingPublisherTypeWorkflow: Workflow {
+    typealias State = Void
+    typealias Rendering = Void
+    typealias Output = Int
+
+    enum Mode {
+        case first
+        case second
+    }
+
+    let mode: Mode
+    let first: PassthroughSubject<Int, Never>
+    let second: PassthroughSubject<Int, Never>
+    let firstSubscribed: XCTestExpectation
+    let firstCancelled: XCTestExpectation
+    let secondSubscribed: XCTestExpectation
+
+    func render(state: State, context: RenderContext<Self>) {
+        switch mode {
+        case .first:
+            first
+                .handleEvents(
+                    receiveSubscription: { _ in
+                        firstSubscribed.fulfill()
+                    },
+                    receiveCancel: {
+                        firstCancelled.fulfill()
+                    }
+                )
+                .mapOutput { AnyWorkflowAction<Self>(sendingOutput: $0) }
+                .running(in: context, key: "publisher")
+        case .second:
+            second
+                .map { $0 }
+                .handleEvents(receiveSubscription: { _ in
+                    secondSubscribed.fulfill()
+                })
+                .mapOutput { AnyWorkflowAction<Self>(sendingOutput: $0) }
+                .running(in: context, key: "publisher")
+        }
     }
 }
