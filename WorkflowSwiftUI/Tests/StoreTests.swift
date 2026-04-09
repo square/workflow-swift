@@ -772,9 +772,9 @@ final class StoreTests: XCTestCase {
         await fulfillment(of: [countDidChange], timeout: 0)
         XCTAssertEqual(state.count, 1)
     }
-    
+
     // MARK: - Native SwiftUI Bindings
-    
+
     @MainActor
     func test_nativeBindings() async throws {
         guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
