@@ -14,13 +14,13 @@ struct NativeMultiCounterView: View {
         VStack {
             Text("Multi Counter Demo")
                 .font(.title)
-            
+
             controls
-            
+
             if let maxCounter = store.maxCounter {
                 CounterView(store: maxCounter, key: "max")
             }
-            
+
             ForEach(
                 Array(store.counters.enumerated()),
                 id: \.element.id
@@ -31,12 +31,12 @@ struct NativeMultiCounterView: View {
                     } label: {
                         Image(systemName: "xmark.circle")
                     }
-                    
+
                     CounterView(store: counter, key: "\(index)")
                 }
                 .padding(.vertical, 4)
             }
-            
+
             // When showSum is false, changes to counters do not invalidate this body
             if store.showSum {
                 HStack {
@@ -45,7 +45,7 @@ struct NativeMultiCounterView: View {
                     Text("\(store.counters.map(\.count).reduce(0, +))")
                 }
             }
-            
+
             Spacer()
         }
         .padding()
