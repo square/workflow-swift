@@ -9,6 +9,10 @@ struct MultiCounterScreen: ObservableScreen {
     let model: MultiCounterModel
 
     static func makeView(store: Store<MultiCounterModel>) -> some View {
-        MultiCounterView(store: store)
+        if #available(iOS 17, *) {
+            NativeMultiCounterView(store: store)
+        } else {
+            MultiCounterView(store: store)
+        }
     }
 }

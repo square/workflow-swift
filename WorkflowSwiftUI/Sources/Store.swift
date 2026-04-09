@@ -57,6 +57,28 @@ public final class Store<Model: ObservableModel>: Perceptible {
         }
     }
 
+    /// Reads a value from the state, suppressing Perception's runtime warning on iOS 17+.
+    ///
+    /// On iOS 17+, `Store` conforms to `Observable` and SwiftUI's native observation tracks state
+    /// access. However, `PerceptionRegistrar.access` resolves to the `Perceptible` overload at
+    /// compile time (the `Observable` overload is unavailable since `Store.state` is not
+    /// `@available(iOS 17, *)`). That overload calls `check()`, which fires a debug warning when
+    /// state is accessed outside of `WithPerceptionTracking` — even though native observation is
+    /// tracking the access. `WithPerceptionTracking` does not suppress the warning either, because
+    /// binding getters and child store scoping are evaluated by SwiftUI's attribute graph outside
+    /// of the `WithPerceptionTracking` closure. Setting `skipPerceptionChecking` directly bypasses
+    /// the `check()` gate on iOS 17+ while preserving the warning on earlier OS versions.
+    private func readState<T>(keyPath: KeyPath<State, T>) -> T {
+        #if canImport(Observation)
+        if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+            return _PerceptionLocals.$skipPerceptionChecking.withValue(true) {
+                state[keyPath: keyPath]
+            }
+        }
+        #endif
+        return state[keyPath: keyPath]
+    }
+
     fileprivate func setModel(_ newModel: Model) {
         // Make a list of any child store accesses that are mutated as a result of this set. We'll
         // use this list to wrap the update with appropriate willSet/didSet calls.
@@ -114,12 +136,12 @@ public final class Store<Model: ObservableModel>: Perceptible {
 
 extension Store {
     public subscript<T>(dynamicMember keyPath: KeyPath<State, T>) -> T {
-        state[keyPath: keyPath]
+        readState(keyPath: keyPath)
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<State, T>) -> T {
         get {
-            state[keyPath: keyPath]
+            readState(keyPath: keyPath)
         }
         set {
             send(keyPath: keyPath, value: newValue)
@@ -135,7 +157,7 @@ extension Store {
         send send: KeyPath<Model, (Value) -> Void>
     ) -> Value {
         get {
-            self.state[keyPath: state]
+            readState(keyPath: state)
         }
         set {
             model[keyPath: send](newValue)
@@ -148,7 +170,7 @@ extension Store {
         action action: CaseKeyPath<Action, Value>
     ) -> Value {
         get {
-            self.state[keyPath: state]
+            readState(keyPath: state)
         }
         set {
             model[keyPath: sink].send(action(newValue))
@@ -214,12 +236,25 @@ extension Store {
     }
 
     /// Track access to a child store wrapper.
+    ///
+    /// On iOS 17+, `skipPerceptionChecking` is set for the same reason as ``readState(keyPath:)``
+    /// — the `Perceptible` overload is selected at compile time and fires a false-positive warning.
     func access(
         keyPath key: KeyPath<Model, some Any>,
         isChanged: @escaping (Model, Model) -> Bool,
         isInvalid: @escaping (Model) -> Bool = { _ in false }
     ) {
+        #if canImport(Observation)
+        if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+            _PerceptionLocals.$skipPerceptionChecking.withValue(true) {
+                _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
+            }
+        } else {
+            _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
+        }
+        #else
         _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
+        #endif
         if childModelAccesses[key] == nil {
             childModelAccesses[key] = ChildModelAccess(
                 keyPath: key,
@@ -596,7 +631,7 @@ extension Store where Model: SingleActionModel {
         state keyPath: KeyPath<State, Value>,
         action action: CaseKeyPath<Model.Action, Value>
     ) -> Value {
-        get { state[keyPath: keyPath] }
+        get { readState(keyPath: keyPath) }
         set { send(action(newValue)) }
     }
 }

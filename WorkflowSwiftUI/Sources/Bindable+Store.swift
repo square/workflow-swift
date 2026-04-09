@@ -14,6 +14,68 @@ extension Perception.Bindable {
     }
 }
 
+#if canImport(Observation)
+import Observation
+
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+extension SwiftUI.Bindable {
+    @_disfavoredOverload
+    public subscript<Model: ObservableModel, Member>(
+        dynamicMember keyPath: KeyPath<Model.State, Member>
+    ) -> _NativeStoreBindable<Model, Member>
+        where Value == Store<Model>
+    {
+        _NativeStoreBindable(bindable: self, keyPath: keyPath)
+    }
+}
+
+/// Native `@Bindable` equivalent of `_StoreBindable` for iOS 17+.
+///
+/// Provides the same `.sending(action:)` API as `_StoreBindable` but works with
+/// SwiftUI's native `@Bindable` property wrapper instead of `@Perception.Bindable`.
+/// Bindings are derived through `Store`'s subscript key paths for stable identity.
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@dynamicMemberLookup
+public struct _NativeStoreBindable<Model: ObservableModel, Value> {
+    fileprivate let bindable: SwiftUI.Bindable<Store<Model>>
+    fileprivate let keyPath: KeyPath<Model.State, Value>
+
+    public subscript<Member>(
+        dynamicMember keyPath: KeyPath<Value, Member>
+    ) -> _NativeStoreBindable<Model, Member> {
+        _NativeStoreBindable<Model, Member>(
+            bindable: bindable,
+            keyPath: self.keyPath.appending(path: keyPath)
+        )
+    }
+
+    /// Creates a binding to the value by sending new values through the given sink.
+    public func sending<Action>(
+        sink: KeyPath<Model, Sink<Action>>,
+        action: CaseKeyPath<Action, Value>
+    ) -> Binding<Value> {
+        bindable[state: keyPath, sink: sink, action: action]
+    }
+
+    /// Creates a binding to the value by sending new values through a closure.
+    public func sending(
+        closure: KeyPath<Model, (Value) -> Void>
+    ) -> Binding<Value> {
+        bindable[state: keyPath, send: closure]
+    }
+}
+
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+extension _NativeStoreBindable where Model: SingleActionModel {
+    /// Creates a binding to the value by sending new values through the model's action.
+    public func sending(
+        action: CaseKeyPath<Model.Action, Value>
+    ) -> Binding<Value> {
+        bindable[state: keyPath, action: action]
+    }
+}
+#endif
+
 /// Provides custom action redirection on bindings chained from the root model.
 ///
 /// ## Example
