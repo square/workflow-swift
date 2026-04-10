@@ -223,6 +223,8 @@ struct PersonView: View {
 
 If you forget to wrap your view's body in `WithPerceptionTracking`, a runtime warning will remind you.
 
+If your minimum deployment target is iOS 17 or later, `WithPerceptionTracking` is not needed — SwiftUI's native observation system will track `Store` access automatically.
+
 ## Screens
 
 In `WorkflowSwiftUI`, we recommend that workflows render models rather than screens. This strategy will help you to build smaller workflows and views that are more composable and reusable.
@@ -493,6 +495,25 @@ struct ContentView: View {
   }
 }
 ```
+
+### iOS 17+
+
+If your minimum deployment target is iOS 17 or later, you can use SwiftUI's native `@Bindable` instead of `@Perception.Bindable`, and you no longer need `WithPerceptionTracking`:
+
+```swift
+struct ContentView: View {
+  @Bindable var store: Store<Model>
+
+  var body: some View {
+    // synthesized binding
+    Toggle("X?", isOn: $store.isX)
+    // binding with a custom setter action
+    Toggle("Y?", isOn: $store.isY.sending(action: \.setY))
+  }
+}
+```
+
+The `.sending()` API works the same way with both `@Perception.Bindable` and `@Bindable`.
 
 ## Parent dependencies
 
