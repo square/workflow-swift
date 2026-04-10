@@ -911,6 +911,39 @@ final class StoreTests: XCTestCase {
         await fulfillment(of: [countDidChange], timeout: 0)
         XCTAssertEqual(state.count, 1)
     }
+
+    @MainActor
+    func test_nativeChildStoreObservation() async throws {
+        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
+            throw XCTSkip("Requires iOS 17+")
+        }
+
+        var childState = ParentModel.ChildState(age: 0)
+
+        let model = ParentModel(
+            accessor: StateAccessor(state: State()) { _ in
+                XCTFail("parent state should not be mutated")
+            },
+            child: StateAccessor(state: childState) { update in
+                update(&childState)
+            },
+            array: [],
+            identified: []
+        )
+        let (store, _) = Store.make(model: model)
+
+        let childAgeDidChange = expectation(description: "child.age.didChange")
+        withObservationTracking {
+            _ = store.child.age
+        } onChange: {
+            childAgeDidChange.fulfill()
+        }
+
+        store.child.age = 1
+
+        await fulfillment(of: [childAgeDidChange], timeout: 0)
+        XCTAssertEqual(childState.age, 1)
+    }
 }
 
 @ObservableState
