@@ -22,6 +22,14 @@ class PublisherTests: XCTestCase {
                 key: "123"
             )
             .render {}
+
+        TestWorkflow()
+            .renderTester()
+            .expectPublisher(
+                producingOutput: 1,
+                key: "123"
+            )
+            .render {}
     }
 
     func test_publisher_no_output() {
@@ -30,6 +38,15 @@ class PublisherTests: XCTestCase {
             .expect(
                 publisher: Publishers.Sequence<[Int], Never>.self,
                 producingOutput: nil,
+                key: "123"
+            )
+            .render {}
+            .assertNoAction()
+
+        TestWorkflow()
+            .renderTester()
+            .expectPublisher(
+                producingOutput: Int?.none,
                 key: "123"
             )
             .render {}
