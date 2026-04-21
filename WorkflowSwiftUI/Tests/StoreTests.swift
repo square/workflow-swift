@@ -944,6 +944,45 @@ final class StoreTests: XCTestCase {
         await fulfillment(of: [childAgeDidChange], timeout: 0)
         XCTAssertEqual(childState.age, 1)
     }
+
+    @MainActor
+    func test_nativeOptionalChildStoreObservation() async throws {
+        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
+            throw XCTSkip("Requires iOS 17+")
+        }
+
+        var childState = ParentModel.ChildState(age: 0)
+        let childModel = StateAccessor(state: childState) { update in
+            update(&childState)
+        }
+
+        var model = ParentModel(
+            accessor: StateAccessor(state: State()) { _ in
+                XCTFail("parent state should not be mutated")
+            },
+            child: StateAccessor(state: .init()) { _ in
+                XCTFail("child state should not be mutated")
+            },
+            array: [],
+            identified: []
+        )
+        model.optional = childModel
+
+        let (store, setModel) = Store.make(model: model)
+
+        let optionalDidChange = expectation(description: "optional.didChange")
+        withObservationTracking {
+            // Reading the optional wrapper exercises Store.access(...).
+            _ = store.optional
+        } onChange: {
+            optionalDidChange.fulfill()
+        }
+
+        model.optional = nil
+        setModel(model)
+
+        await fulfillment(of: [optionalDidChange], timeout: 0)
+    }
 }
 
 @ObservableState
