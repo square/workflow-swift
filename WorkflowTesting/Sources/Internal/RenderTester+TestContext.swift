@@ -17,7 +17,6 @@
 #if DEBUG
 
 import IssueReporting
-import XCTest
 
 @testable import Workflow
 

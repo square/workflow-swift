@@ -17,7 +17,6 @@
 import CustomDump
 import IssueReporting
 import Workflow
-import XCTest
 
 /// The result of a `RenderTester` rendering. Used to verify state, output, and actions that were produced as a result of
 /// actions performed during the render (such as child workflow output being produced).

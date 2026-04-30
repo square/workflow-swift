@@ -18,7 +18,6 @@
 import IssueReporting
 import Workflow
 import WorkflowTesting
-import XCTest
 @testable import WorkflowRxSwift
 
 extension RenderTester {

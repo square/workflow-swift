@@ -19,7 +19,6 @@
 import Combine
 import Workflow
 import WorkflowTesting
-import XCTest
 @testable import WorkflowCombine
 
 extension RenderTester {

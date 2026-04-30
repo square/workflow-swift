@@ -16,7 +16,6 @@
 
 import IssueReporting
 import Workflow
-import XCTest
 
 struct AppliedAction<WorkflowType: Workflow> {
     let erasedAction: Any

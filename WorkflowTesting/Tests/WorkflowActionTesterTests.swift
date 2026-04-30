@@ -15,92 +15,91 @@
  */
 
 import IssueReporting
+import Testing
 import Workflow
-import XCTest
-
 @testable import WorkflowTesting
 
-final class WorkflowActionTesterTests: XCTestCase {
-    func test_stateTransitions() {
+struct WorkflowActionTesterTests {
+    @Test func stateTransitions() {
         TestAction
             .tester(withState: false)
             .send(action: .toggleTapped)
-            .verifyState { XCTAssertTrue($0) }
+            .verifyState { #expect($0) }
     }
 
-    func test_stateTransitions_throw() throws {
+    @Test func stateTransitions_throw() throws {
         try TestAction
             .tester(withState: false)
             .send(action: .toggleTapped)
             .verifyState {
                 try throwingNoop()
-                XCTAssertTrue($0)
+                #expect($0)
             }
     }
 
-    func test_stateTransitions_equatable() {
+    @Test func stateTransitions_equatable() {
         TestAction
             .tester(withState: false)
             .send(action: .toggleTapped)
             .assert(state: true)
     }
 
-    func test_noOutputs() {
+    @Test func noOutputs() {
         TestAction
             .tester(withState: false)
             .send(action: .toggleTapped)
             .assertNoOutput()
     }
 
-    func test_outputs() {
+    @Test func outputs() {
         TestAction
             .tester(withState: false)
             .send(action: .exitTapped)
             .verifyOutput { output in
-                XCTAssertEqual(output, .finished)
+                #expect(output == .finished)
             }
     }
 
-    func test_outputs_throw() throws {
+    @Test func outputs_throw() throws {
         try TestAction
             .tester(withState: false)
             .send(action: .exitTapped)
             .verifyOutput { output in
                 try throwingNoop()
-                XCTAssertEqual(output, .finished)
+                #expect(output == .finished)
             }
     }
 
-    func test_outputs_equatable() {
+    @Test func outputs_equatable() {
         TestAction
             .tester(withState: false)
             .send(action: .exitTapped)
             .assert(output: .finished)
     }
 
-    func test_deprecated_methods() {
+    @Test func deprecated_methods() {
         TestAction
             .tester(withState: false)
             .send(action: .exitTapped)
             .assert(output: .finished)
             .verifyState { state in
-                XCTAssertFalse(state)
+                #expect(!state)
             }
     }
 
-    func test_testerExtension() {
+    @Test func erExtension() {
         let state = true
         let tester = TestAction
             .tester(withState: true)
-        XCTAssertEqual(state, tester.state)
-        XCTAssertNil(tester.output)
+        #expect(state == tester.state)
+        #expect(tester.output == nil)
     }
 }
 
 // MARK: - ApplyContext Tests
 
 extension WorkflowActionTesterTests {
-    func test_old_api_still_work_if_props_arent_read() {
+    @Test func old_api_still_work_if_props_arent_read() {
         TestActionWithProps
             .tester(withState: true)
             .send(action: .dontReadProps)
@@ -108,7 +107,7 @@ extension WorkflowActionTesterTests {
             .assert(output: .value("did not read props"))
     }
 
-    func test_new_api_works_if_you_provide_props() {
+    @Test func new_api_works_if_you_provide_props() {
         TestActionWithProps
             .tester(
                 withState: true,
@@ -119,7 +118,7 @@ extension WorkflowActionTesterTests {
             .assert(output: .value("read prop: 42"))
     }
 
-    func test_new_api_works_with_optional_props() {
+    @Test func new_api_works_with_optional_props() {
         TestActionWithProps
             .tester(
                 withState: true,
@@ -138,19 +137,14 @@ extension WorkflowActionTesterTests {
             .assert(state: true)
             .assert(output: .value("read optional prop: <nil>"))
     }
+}
 
-    // FIXME: ideally an 'exit/death test' would somehow be used for this...
-    /*
-     func test_old_api_explodes_if_accessing_through_apply_context() {
-         XCTExpectFailure("This test should fail")
+// withExpectedIssue records a known issue under Swift Testing, which
+// causes xcodebuild to exit with code 65. Keep this as XCTest until
+// that xcodebuild bug is resolved.
+import XCTest
 
-         TestActionWithProps
-             .tester(withState: true)
-             .send(action: .readProps)
-             .assert(state: true)
-     }
-      */
-
+final class WorkflowActionTesterExpectedFailureTests: XCTestCase {
     func test_old_api_errors_accessing_optional_through_apply_context_without_proper_setup() {
         withExpectedIssue("reading optional value through context without workflow should fail but not crash") {
             TestActionWithProps

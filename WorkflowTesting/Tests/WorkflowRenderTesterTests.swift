@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
+import IssueReporting
+import Testing
 import Workflow
 import WorkflowTesting
-import XCTest
 
-final class WorkflowRenderTesterTests: XCTestCase {
-    func test_render() {
+struct WorkflowRenderTesterTests {
+    @Test func render() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
         var testedAssertion = false
 
         renderTester
             .render { screen in
-                XCTAssertEqual("initial", screen.text)
+                #expect(screen.text == "initial")
                 testedAssertion = true
             }
             .assert(
@@ -35,36 +36,36 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 )
             )
 
-        XCTAssertTrue(testedAssertion)
+        #expect(testedAssertion)
     }
 
-    func test_simple_render() {
+    @Test func simple_render() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
         renderTester
             .render { screen in
-                XCTAssertEqual("initial", screen.text)
+                #expect(screen.text == "initial")
             }
             .assertNoAction()
     }
 
-    func test_simple_render_throw() throws {
+    @Test func simple_render_throw() throws {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
         try renderTester
             .render { screen in
-                let text = try XCTUnwrap(screen.text)
-                XCTAssertEqual("initial", text)
+                let text = try #require(screen.text)
+                #expect(text == "initial")
             }
             .assertNoAction()
     }
 
-    func test_action() {
+    @Test func action() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
         renderTester
             .render { screen in
-                XCTAssertEqual("initial", screen.text)
+                #expect(screen.text == "initial")
                 screen.tapped()
             }
             .assert(
@@ -75,7 +76,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             )
     }
 
-    func test_sideEffects() {
+    @Test func sideEffects() {
         let renderTester = SideEffectWorkflow().renderTester()
 
         renderTester
@@ -87,7 +88,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assert(state: .success)
     }
 
-    func test_output() {
+    @Test func output() {
         OutputWorkflow()
             .renderTester()
             .render { rendering in
@@ -96,7 +97,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
             .assert(output: .success)
     }
 
-    func test_ignoredOutput() {
+    @Test func ignoredOutput() {
         OutputIgnoringWorkflow(text: "hello")
             .renderTester()
             .expectWorkflowIgnoringOutput(
@@ -104,12 +105,12 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 producingRendering: "olleh"
             )
             .render { rendering in
-                XCTAssertEqual("olleh", rendering)
+                #expect(rendering == "olleh")
             }
             .assertNoOutput()
     }
 
-    func test_ignoredOutput_opaqueChild() {
+    @Test func ignoredOutput_opaqueChild() {
         OpaqueChildOutputIgnoringWorkflow(
             childProvider: {
                 OutputWorkflow()
@@ -123,11 +124,11 @@ final class WorkflowRenderTesterTests: XCTestCase {
             producingRendering: "test"
         )
         .render { rendering in
-            XCTAssertEqual(rendering, "test")
+            #expect(rendering == "test")
         }
     }
 
-    func test_opaqueChild() {
+    @Test func opaqueChild() {
         OpaqueChildWorkflow(
             childProvider: {
                 MockChildWorkflow().asAnyWorkflow()
@@ -139,11 +140,11 @@ final class WorkflowRenderTesterTests: XCTestCase {
             producingRendering: "test"
         )
         .render { rendering in
-            XCTAssertEqual(rendering, "test")
+            #expect(rendering == "test")
         }
     }
 
-    func test_childWorkflow() {
+    @Test func childWorkflow() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
             .expectWorkflow(
@@ -151,12 +152,12 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 producingRendering: "olleh"
             )
             .render { rendering in
-                XCTAssertEqual("olleh", rendering)
+                #expect(rendering == "olleh")
             }
             .assertNoAction()
     }
 
-    func test_childWorkflowAction() {
+    @Test func childWorkflowAction() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
             .expectWorkflow(
@@ -165,12 +166,11 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 producingOutput: ChildWorkflow.Output.success
             )
             .render { rendering in
-                XCTAssertEqual("olleh", rendering)
+                #expect(rendering == "olleh")
             }.assert(action: ParentWorkflow.Action.childSuccess)
     }
 
-    func test_childWorkflowOutput() {
-        // Test that a child emitting an output is handled as an action by the parent
+    @Test func childWorkflowOutput() {
         ParentWorkflow(initialText: "hello")
             .renderTester()
             .expectWorkflow(
@@ -179,11 +179,11 @@ final class WorkflowRenderTesterTests: XCTestCase {
                 producingOutput: .failure
             )
             .render { rendering in
-                XCTAssertEqual("olleh", rendering)
+                #expect(rendering == "olleh")
             }
             .assertNoOutput()
             .verifyState { state in
-                XCTAssertEqual("Failed", state.text)
+                #expect(state.text == "Failed")
             }
             .assertStateModifications { state in
                 state.text = "Failed"
@@ -194,7 +194,7 @@ final class WorkflowRenderTesterTests: XCTestCase {
 // MARK: - ApplyContext Tests
 
 extension WorkflowRenderTesterTests {
-    func test_applyContext_exposesProps() {
+    @Test func applyContext_exposesProps() {
         PropsWorkflow(prop1: "ichi", prop2: 42)
             .renderTester()
             .expectSideEffect(
@@ -202,13 +202,13 @@ extension WorkflowRenderTesterTests {
                 producingAction: PropsWorkflow.Action.emit
             )
             .render { rendering in
-                XCTAssertEqual(rendering, "")
+                #expect(rendering == "")
             }
             .verifyAction { (action: PropsWorkflow.Action) in
-                XCTAssertEqual(action, .emit)
+                #expect(action == .emit)
             }
             .verifyState { newState in
-                XCTAssertEqual(newState, "prop1: ichi, prop2: 42")
+                #expect(newState == "prop1: ichi, prop2: 42")
             }
     }
 }
@@ -220,7 +220,9 @@ struct PropsWorkflow: Workflow {
     var prop1 = ""
     var prop2 = 0
 
-    func makeInitialState() -> String { "" }
+    func makeInitialState() -> String {
+        ""
+    }
 
     func render(state: State, context: RenderContext<PropsWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
@@ -366,7 +368,7 @@ private struct MockChildWorkflow: Workflow {
     typealias Rendering = String
 
     func render(state: Void, context: RenderContext<MockChildWorkflow>) -> String {
-        XCTFail("should never be rendered")
+        Issue.record("should never be rendered")
         return ""
     }
 }

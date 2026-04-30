@@ -16,7 +16,6 @@
 
 import CustomDump
 import IssueReporting
-import XCTest
 
 @testable import Workflow
 

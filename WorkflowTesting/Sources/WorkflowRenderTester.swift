@@ -19,7 +19,6 @@
 // `@testable import Workflow` will fail compilation in Release mode.
 #if DEBUG
 
-import XCTest
 @testable import Workflow
 
 extension Workflow {
