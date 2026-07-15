@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Combine
 import Foundation
 import ReactiveSwift
 import RxSwift
@@ -28,7 +29,7 @@ class Rx_ReactiveWorkersTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             if output.reactiveOutputReceived, output.rxOutputReceived {
                 expectation.fulfill()
             }
@@ -36,7 +37,7 @@ class Rx_ReactiveWorkersTests: XCTestCase {
 
         wait(for: [expectation], timeout: 1.0)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_observes_on_main_queue() {
@@ -77,14 +78,14 @@ class Rx_ReactiveWorkersTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             if output == .finished {
                 expectation.fulfill()
             }
         }
 
         wait(for: [expectation], timeout: 1.0)
-        disposable?.dispose()
+        cancellable.cancel()
     }
 }
 

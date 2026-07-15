@@ -14,54 +14,55 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
+import Combine
 import Workflow
 import XCTest
 
 final class StateMutationSinkTests: XCTestCase {
-    var output: Signal<Int, Never>!
-    var input: Signal<Int, Never>.Observer!
+    var input: PassthroughSubject<Int, Never>!
 
     override func setUp() {
-        (output, input) = Signal<Int, Never>.pipe()
+        input = PassthroughSubject()
     }
 
     func test_initialValue() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
-        XCTAssertEqual(0, host.rendering.value)
+        let host = WorkflowHost(workflow: TestWorkflow(value: 100, publisher: input.eraseToAnyPublisher()))
+        XCTAssertEqual(0, host.rendering)
     }
 
     func test_singleUpdate() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
+        let host = WorkflowHost(workflow: TestWorkflow(value: 100, publisher: input.eraseToAnyPublisher()))
 
         let gotValueExpectation = expectation(description: "Got expected value")
-        host.rendering.producer.startWithValues { val in
+        let cancellable = host.renderingPublisher.dropFirst().sink { val in
             if val == 100 {
                 gotValueExpectation.fulfill()
             }
         }
+        defer { cancellable.cancel() }
 
-        input.send(value: 100)
+        input.send(100)
         waitForExpectations(timeout: 1, handler: nil)
     }
 
     func test_multipleUpdates() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
+        let host = WorkflowHost(workflow: TestWorkflow(value: 100, publisher: input.eraseToAnyPublisher()))
 
         let gotValueExpectation = expectation(description: "Got expected value")
 
         var values: [Int] = []
-        host.rendering.producer.startWithValues { val in
+        let cancellable = host.renderingPublisher.dropFirst().sink { val in
             values.append(val)
             if val == 300 {
                 gotValueExpectation.fulfill()
             }
         }
+        defer { cancellable.cancel() }
 
-        input.send(value: 100)
-        input.send(value: 200)
-        input.send(value: 300)
-        XCTAssertEqual(values, [0, 100, 200, 300])
+        input.send(100)
+        input.send(200)
+        input.send(300)
+        XCTAssertEqual(values, [100, 200, 300])
         waitForExpectations(timeout: 1, handler: nil)
     }
 
@@ -70,7 +71,7 @@ final class StateMutationSinkTests: XCTestCase {
         typealias Rendering = Int
 
         let value: Int
-        let signal: Signal<Int, Never>
+        let publisher: AnyPublisher<Int, Never>
 
         func makeInitialState() -> Int {
             0
@@ -79,11 +80,11 @@ final class StateMutationSinkTests: XCTestCase {
         func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
             let stateMutationSink = context.makeStateMutationSink()
             context.runSideEffect(key: "") { lifetime in
-                let disposable = signal.observeValues { val in
+                let cancellable = publisher.sink { val in
                     stateMutationSink.send(\State.self, value: val)
                 }
                 lifetime.onEnded {
-                    disposable?.dispose()
+                    cancellable.cancel()
                 }
             }
             return state

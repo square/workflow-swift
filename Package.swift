@@ -11,7 +11,7 @@ let package = Package(
         .macOS(.v12),
         .watchOS(.v8),
         .macCatalyst(.v16),
-        .tvOS(.v12),
+        .tvOS(.v13),
     ],
     products: [
         // MARK: Workflow
@@ -71,7 +71,6 @@ let package = Package(
             name: "Workflow",
             dependencies: [
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
-                .product(name: "ReactiveSwift", package: "ReactiveSwift"),
             ],
             path: "Workflow/Sources"
         ),

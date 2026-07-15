@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Combine
 import Workflow
 import WorkflowTesting
 import XCTest
@@ -26,16 +27,16 @@ class WorkerTests: XCTestCase {
         )
 
         let expectation = XCTestExpectation()
-        let disposable = host.rendering.signal.observeValues { rendering in
+        let cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func testWorkflowUpdate() {
@@ -48,26 +49,26 @@ class WorkerTests: XCTestCase {
         // Set to observe renderings
         // This expectation should be called after the TaskTestWorker runs and
         // updates the state.
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
         // Test to make sure the initial state of the workflow is correct.
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         // Wait for the worker to run.
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering after the worker runs is correct.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
 
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called after the workflow is updated.
         // After the host is updated with a new workflow instance the
         // initial state should be 1.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
@@ -77,20 +78,20 @@ class WorkerTests: XCTestCase {
         // Wait for the workflow to render after being updated.
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering matches the initial state.
-        XCTAssertEqual(7, host.rendering.value)
+        XCTAssertEqual(7, host.rendering)
 
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called when the worker runs.
         // The worker isEquivalent is false because we have changed the initialState.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
         // Wait for the worker to trigger a rendering.
         wait(for: [expectation], timeout: 1.0)
         // Check to make sure the rendering is correct.
-        XCTAssertEqual(8, host.rendering.value)
+        XCTAssertEqual(8, host.rendering)
     }
 
     func testWorkflowKeyChange() {
@@ -103,26 +104,26 @@ class WorkerTests: XCTestCase {
         // Set to observe renderings
         // This expectation should be called after the TaskTestWorker runs and
         // updates the state.
-        var disposable = host.rendering.signal.observeValues { rendering in
+        var cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
         // Test to make sure the initial state of the workflow is correct.
-        XCTAssertEqual(0, host.rendering.value)
+        XCTAssertEqual(0, host.rendering)
 
         // Wait for the worker to run.
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering after the worker runs is correct.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
-        disposable?.dispose()
+        cancellable.cancel()
 
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called after the workflow is updated.
         // After the host is updated with a new workflow instance the
         // initial state should be 1.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
@@ -133,13 +134,13 @@ class WorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         // Test to make sure the rendering matches the existing state
         // since the inititalState didn't change.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         expectation = XCTestExpectation()
         // Set to observe renderings
         // This expectation should be called when the worker runs.
         // The worker should run because the key was changed for the workflow.
-        disposable = host.rendering.signal.observeValues { rendering in
+        cancellable = host.renderingPublisher.dropFirst().sink { rendering in
             expectation.fulfill()
         }
 
@@ -147,7 +148,7 @@ class WorkerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         // Check to make sure the rendering is correct.
         // The worker adds one to the initialState so this should be 1.
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
     }
 
     func testExpectedWorker() {
