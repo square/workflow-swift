@@ -44,7 +44,7 @@ public enum Runtime {
     private static var _defaultConfiguration = Configuration()
 
     /// The configuration active for the current task, falling back to the default configuration.
-    public static var configuration: Configuration {
+    package static var configuration: Configuration {
         _currentConfiguration ?? _defaultConfiguration
     }
 
