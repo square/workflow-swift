@@ -812,6 +812,9 @@ final class StoreTests: XCTestCase {
         )
         let (store, _) = Store.make(model: model)
 
+        // Rendering evaluates the Store reads inside the override. If suppression fails,
+        // Perception reports an unexpected XCTest failure, so the absence of a failure is the
+        // assertion.
         let image = Runtime.withConfiguration(
             override: { $0.suppressPerceptionCheckingWhenUsingObservation = true },
             operation: {
