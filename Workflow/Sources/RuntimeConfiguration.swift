@@ -43,7 +43,8 @@ public enum Runtime {
 
     private static var _defaultConfiguration = Configuration()
 
-    static var configuration: Configuration {
+    /// The configuration active for the current task, falling back to the default configuration.
+    package static var configuration: Configuration {
         _currentConfiguration ?? _defaultConfiguration
     }
 
@@ -80,5 +81,11 @@ extension Runtime {
         /// Whether action handling should be delegated to the `SinkEventHandler` type.
         /// This is expected to eventually be removed and become the default behavior.
         public var useSinkEventHandler: Bool = false
+
+        /// Whether WorkflowSwiftUI suppresses Perception's debug-only runtime warning when using
+        /// native Observation.
+        ///
+        /// Defaults to `false`, so Store access continues through Perception normally.
+        public var suppressPerceptionCheckingWhenUsingObservation: Bool = false
     }
 }

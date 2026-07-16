@@ -55,7 +55,8 @@ jobs:
     - name: Install iOS ${{ matrix.sdk }}
       if: ${{ matrix.installation_required }}
       run: |
-        sudo xcodes runtimes install "iOS ${{ matrix.sdk }}"
+        sudo xcodebuild -downloadPlatform iOS -buildVersion "${{ matrix.sdk }}"
+        sudo xcodebuild -runFirstLaunch
         xcrun simctl list
 
     - name: Ensure sim exists

@@ -2,7 +2,7 @@ import CasePaths
 import IdentifiedCollections
 import Perception
 import SwiftUI
-import Workflow
+@_spi(WorkflowRuntimeConfig) import Workflow
 import XCTest
 @testable import WorkflowSwiftUI
 
@@ -776,6 +776,58 @@ final class StoreTests: XCTestCase {
     // MARK: - Native SwiftUI Bindings
 
     @MainActor
+    func test_perceptionRuntimeWarningsWhenUsingObservation() throws {
+        #if DEBUG
+        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
+            throw XCTSkip("Requires native Observation")
+        }
+
+        let child = StateAccessor(state: ParentModel.ChildState()) { _ in }
+        let model = ParentModel(
+            accessor: StateAccessor(state: State()) { _ in },
+            child: child,
+            optional: child
+        )
+        let (store, _) = Store.make(model: model)
+
+        let image = ImageRenderer(content: PerceptionRuntimeWarningView(store: store)).cgImage
+        _ = image
+        #else
+        throw XCTSkip("Perception runtime warnings are debug-only")
+        #endif
+    }
+
+    @MainActor
+    func test_perceptionRuntimeWarningsCanBeSuppressedWhenUsingObservation() throws {
+        #if DEBUG
+        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
+            throw XCTSkip("Requires native Observation")
+        }
+
+        let child = StateAccessor(state: ParentModel.ChildState()) { _ in }
+        let model = ParentModel(
+            accessor: StateAccessor(state: State()) { _ in },
+            child: child,
+            optional: child
+        )
+        let (store, _) = Store.make(model: model)
+
+        // Rendering evaluates the Store reads inside the override. If suppression fails,
+        // Perception reports an unexpected XCTest failure, so the absence of a failure is the
+        // assertion.
+        let image = Runtime.withConfiguration(
+            override: { $0.suppressPerceptionCheckingWhenUsingObservation = true },
+            operation: {
+                ImageRenderer(content: SuppressedPerceptionRuntimeWarningView(store: store)).cgImage
+            }
+        )
+        _ = image
+        #else
+        throw XCTSkip("Perception runtime warnings are debug-only")
+        #endif
+    }
+
+    @MainActor
     func test_nativeBindings() async throws {
         guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
             throw XCTSkip("Requires iOS 17+")
@@ -982,6 +1034,52 @@ final class StoreTests: XCTestCase {
         setModel(model)
 
         await fulfillment(of: [optionalDidChange], timeout: 0)
+    }
+}
+
+/// Reads Store values from SwiftUI so Perception recognizes the AttributeGraph call stack.
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+private struct PerceptionRuntimeWarningView: View {
+    let store: Store<ParentModel>
+
+    var body: some View {
+        VStack {
+            Text(
+                expectPerceptionRuntimeWarning {
+                    store.count
+                }.description
+            )
+            Text(
+                expectPerceptionRuntimeWarning {
+                    store.optional == nil
+                }.description
+            )
+        }
+    }
+}
+
+/// Reads Store values from SwiftUI without expecting Perception runtime warnings.
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+private struct SuppressedPerceptionRuntimeWarningView: View {
+    let store: Store<ParentModel>
+
+    var body: some View {
+        VStack {
+            Text(store.count.description)
+            Text((store.optional == nil).description)
+        }
+    }
+}
+
+/// Runs a Store read and verifies Perception reports the untracked-state runtime warning.
+private func expectPerceptionRuntimeWarning<Result>(
+    _ operation: () -> Result
+) -> Result {
+    XCTExpectFailure(failingBlock: operation) {
+        $0.compactDescription.contains("Perceptible state")
+            && $0.compactDescription.contains(
+                "was accessed from a view but is not being tracked"
+            )
     }
 }
 

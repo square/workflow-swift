@@ -2,7 +2,7 @@ import CasePaths
 import IdentifiedCollections
 import Perception
 import SwiftUI
-import Workflow
+@_spi(WorkflowRuntimeConfig) import Workflow
 
 /// Provides access to a workflow's state and actions from within an ``ObservableScreen``.
 ///
@@ -57,28 +57,23 @@ public final class Store<Model: ObservableModel>: Perceptible {
         }
     }
 
-    /// Suppresses Perception's debug-only runtime warning on iOS 17+.
+    /// Funnel point for suppressing Perception's debug-only runtime warning when state is accessed
+    /// outside of `WithPerceptionTracking`.
     ///
-    /// On iOS 17+, `Store` conforms to `Observable` and SwiftUI's native observation tracks state
-    /// access. However, `PerceptionRegistrar.access` resolves to the `Perceptible` overload at
-    /// compile time (the `Observable` overload is unavailable since `Store.state` is not
-    /// `@available(iOS 17, *)`). That overload calls `check()`, which fires a debug warning when
-    /// state is accessed outside of `WithPerceptionTracking` — even though native observation is
-    /// tracking the access. `WithPerceptionTracking` does not suppress the warning either, because
-    /// binding getters and child store scoping are evaluated by SwiftUI's attribute graph outside
-    /// of the `WithPerceptionTracking` closure. Setting `skipPerceptionChecking` directly bypasses
-    /// the debug-only `check()` gate on iOS 17+ while preserving the warning on earlier OS
-    /// versions.
+    /// Suppression is opt-in through
+    /// `Runtime.Configuration.suppressPerceptionCheckingWhenUsingObservation`, so Store access
+    /// executes normally by default.
     private func withPerceptionCheckSuppressed<T>(_ operation: () -> T) -> T {
         #if DEBUG && canImport(Observation)
-        if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+        if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *),
+           Runtime.configuration.suppressPerceptionCheckingWhenUsingObservation
+        {
             return _PerceptionLocals.$skipPerceptionChecking.withValue(true, operation: operation)
         }
         #endif
         return operation()
     }
 
-    /// Reads a value from the state, suppressing Perception's debug-only runtime warning on iOS 17+.
     private func readState<T>(keyPath: KeyPath<State, T>) -> T {
         withPerceptionCheckSuppressed {
             state[keyPath: keyPath]
@@ -242,10 +237,6 @@ extension Store {
     }
 
     /// Track access to a child store wrapper.
-    ///
-    /// On iOS 17+, `skipPerceptionChecking` is set for the same reason as
-    /// ``readState(keyPath:)`` — the `Perceptible` overload is selected at compile time and fires
-    /// a false-positive warning in debug builds.
     func access(
         keyPath key: KeyPath<Model, some Any>,
         isChanged: @escaping (Model, Model) -> Bool,
