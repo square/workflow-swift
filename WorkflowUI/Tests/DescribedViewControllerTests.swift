@@ -18,7 +18,7 @@
 
 import XCTest
 
-import ReactiveSwift
+import Combine
 import Workflow
 @testable import WorkflowUI
 
@@ -184,12 +184,12 @@ class DescribedViewControllerTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
 
         var observedSizes: [CGSize] = []
-        let disposable = WorkflowHostingController.preferredContentSizeSignal.observeValues {
+        let cancellable = WorkflowHostingController.preferredContentSizePublisher.sink {
             observedSizes.append($0)
             expectation.fulfill()
         }
 
-        defer { disposable?.dispose() }
+        defer { cancellable.cancel() }
 
         _ = WorkflowHostingController.view
         describedViewController.update(screen: screenB, environment: .empty)
@@ -214,12 +214,12 @@ class DescribedViewControllerTests: XCTestCase {
         expectation.expectedFulfillmentCount = 3
 
         var observedSizes: [CGSize] = []
-        let disposable = WorkflowHostingController.preferredContentSizeSignal.observeValues {
+        let cancellable = WorkflowHostingController.preferredContentSizePublisher.sink {
             observedSizes.append($0)
             expectation.fulfill()
         }
 
-        defer { disposable?.dispose() }
+        defer { cancellable.cancel() }
 
         _ = WorkflowHostingController.view
         describedViewController.update(screen: screenB, environment: .empty)
@@ -265,9 +265,11 @@ fileprivate enum TestScreen: Screen, Equatable {
 fileprivate class WorkflowHostingController: UIViewController {
     let describedViewController: DescribedViewController
 
-    var preferredContentSizeSignal: Signal<CGSize, Never> { signal.skipRepeats() }
+    var preferredContentSizePublisher: AnyPublisher<CGSize, Never> {
+        subject.removeDuplicates().eraseToAnyPublisher()
+    }
 
-    private let (signal, sink) = Signal<CGSize, Never>.pipe()
+    private let subject = PassthroughSubject<CGSize, Never>()
 
     init(describedViewController: DescribedViewController) {
         self.describedViewController = describedViewController
@@ -293,7 +295,7 @@ fileprivate class WorkflowHostingController: UIViewController {
 
         guard container === describedViewController else { return }
 
-        sink.send(value: container.preferredContentSize)
+        subject.send(container.preferredContentSize)
     }
 }
 

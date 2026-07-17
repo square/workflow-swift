@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
+import Combine
 import XCTest
 @testable import Workflow
 
@@ -40,18 +40,21 @@ public class AnyWorkflowTests: XCTestCase {
         let host = WorkflowHost(workflow: OnOutputWorkflow())
 
         let renderingExpectation = expectation(description: "Waiting for rendering")
-        host.rendering.producer.startWithValues { rendering in
+        let renderingCancellable = host.renderingPublisher.dropFirst().sink { rendering in
             if rendering {
                 renderingExpectation.fulfill()
             }
         }
+        defer { renderingCancellable.cancel() }
 
         let outputExpectation = expectation(description: "Waiting for output")
-        host.output.observeValues { output in
+        let outputCancellable = host.outputPublisher.sink { output in
             if output {
                 outputExpectation.fulfill()
             }
         }
+        defer { outputCancellable.cancel() }
+
         wait(for: [renderingExpectation, outputExpectation], timeout: 1)
     }
 

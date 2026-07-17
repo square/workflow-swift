@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Combine
 import ReactiveSwift
 import WorkflowTesting
 import XCTest
@@ -38,7 +39,7 @@ class SignalProducerTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValue: Int?
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             outputValue = output
             expectation.fulfill()
         }
@@ -46,7 +47,7 @@ class SignalProducerTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual(1, outputValue)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_multipleOutputs() {
@@ -58,7 +59,7 @@ class SignalProducerTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValues = [Int]()
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             outputValues.append(output)
             expectation.fulfill()
         }
@@ -66,7 +67,7 @@ class SignalProducerTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
         XCTAssertEqual([1, 2, 3], outputValues)
 
-        disposable?.dispose()
+        cancellable.cancel()
     }
 
     func test_signalProducer_isDisposedIfNotUsedInWorkflow() {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Combine
 import Foundation
 import ReactiveSwift
 import XCTest
@@ -28,12 +29,12 @@ class SignalTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValue: Int?
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             outputValue = output
             expectation.fulfill()
         }
         defer {
-            disposable?.dispose()
+            cancellable.cancel()
         }
 
         observer.send(value: 1)
@@ -50,14 +51,14 @@ class SignalTests: XCTestCase {
 
         let expectation = XCTestExpectation()
         var outputValues = [Int]()
-        let disposable = host.output.signal.observeValues { output in
+        let cancellable = host.outputPublisher.sink { output in
             outputValues.append(output)
             if outputValues.count == 3 {
                 expectation.fulfill()
             }
         }
         defer {
-            disposable?.dispose()
+            cancellable.cancel()
         }
 
         observer.send(value: 1)

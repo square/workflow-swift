@@ -18,7 +18,7 @@
 
 import XCTest
 
-import ReactiveSwift
+import Combine
 import Workflow
 @testable import WorkflowUI
 

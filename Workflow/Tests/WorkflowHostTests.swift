@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
+import Combine
 import Testing
 import XCTest
 
@@ -24,11 +24,11 @@ final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
-        XCTAssertEqual(1, host.rendering.value)
+        XCTAssertEqual(1, host.rendering)
 
         host.update(workflow: TestWorkflow(step: .second))
 
-        XCTAssertEqual(2, host.rendering.value)
+        XCTAssertEqual(2, host.rendering)
     }
 
     fileprivate struct TestWorkflow: Workflow {
@@ -62,18 +62,15 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
     // Previous versions of Workflow would fatalError under this scenario
     func test_event_sent_to_invalidated_sink_during_action_handling() {
         let host = WorkflowHost(workflow: Parent())
-        let (lifetime, token) = ReactiveSwift.Lifetime.make()
-        defer { _ = token }
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
         var observedRenderCount = 0
 
         XCTAssertEqual(initialRendering.eventCount, 0)
 
-        host
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { rendering in
+        let cancellable = host
+            .renderingPublisher
+            .dropFirst()
+            .sink { rendering in
                 XCTAssertEqual(rendering.eventCount, 1)
 
                 // emit another event using an old rendering
@@ -86,6 +83,7 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
 
                 observedRenderCount += 1
             }
+        defer { cancellable.cancel() }
 
         // send an event and cause a re-render
         initialRendering.eventHandler()
@@ -95,7 +93,7 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         drainMainQueueBySpinningRunLoop()
 
         // Ensure the invalidated sink doesn't process the event
-        let nextRendering = host.rendering.value
+        let nextRendering = host.rendering
         XCTAssertEqual(nextRendering.eventCount, 1)
         XCTAssertEqual(observedRenderCount, 1)
     }
@@ -108,20 +106,17 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
             WorkflowHost(workflow: ReentrancyWorkflow())
         }
 
-        let (lifetime, token) = ReactiveSwift.Lifetime.make()
-        defer { _ = token }
-        let initialRendering = host.rendering.value
+        let initialRendering = host.rendering
 
         var emitReentrantEvent = false
 
         let renderExpectation = expectation(description: "render")
         renderExpectation.expectedFulfillmentCount = 2
 
-        host
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { val in
+        let cancellable = host
+            .renderingPublisher
+            .dropFirst()
+            .sink { val in
                 defer { renderExpectation.fulfill() }
                 defer { emitReentrantEvent = true }
                 guard !emitReentrantEvent else { return }
@@ -145,6 +140,8 @@ final class WorkflowHost_EventEmissionTests: XCTestCase {
         initialRendering.sink.send(.event)
 
         waitForExpectations(timeout: 1)
+
+        cancellable.cancel()
     }
 }
 
@@ -205,7 +202,7 @@ struct WorkflowHost_SinkEventHandlerTests {
             )
         }
 
-        let rendering = host.rendering.value
+        let rendering = host.rendering
 
         let eventHandler = host.sinkEventHandler
         #expect(eventHandler.state == .ready)
@@ -254,7 +251,7 @@ struct WorkflowHost_SinkEventHandlerTests {
             )
         }
 
-        let rendering = host.rendering.value
+        let rendering = host.rendering
         let eventHandler = host.sinkEventHandler
 
         var didEmit = false
@@ -392,6 +389,96 @@ extension WorkflowHost_EventEmissionTests {
 
             func apply(toState state: inout Void, context: ApplyContext<WorkflowType>) -> Child.Output? {
                 .eventOccurred
+            }
+        }
+    }
+}
+
+// MARK: Lifecycle Tests
+
+final class WorkflowHost_LifecycleTests: XCTestCase {
+    func test_renderingPublisherCompletesWhenHostIsReleased() {
+        var host: WorkflowHost<OutputWorkflow>? = WorkflowHost(workflow: OutputWorkflow())
+
+        var receivedValueCount = 0
+        var receivedCompletion = false
+        let cancellable = host!.renderingPublisher.sink(
+            receiveCompletion: { _ in receivedCompletion = true },
+            receiveValue: { _ in receivedValueCount += 1 }
+        )
+        defer { cancellable.cancel() }
+
+        // The initial rendering is replayed on subscription.
+        XCTAssertEqual(receivedValueCount, 1)
+        XCTAssertFalse(receivedCompletion)
+
+        host = nil
+
+        // The subscription retains the underlying subject, so the host must
+        // explicitly complete the stream when it deinitializes.
+        XCTAssertTrue(receivedCompletion)
+        XCTAssertEqual(receivedValueCount, 1)
+    }
+
+    func test_outputPublisherCompletesWhenHostIsReleased() {
+        var host: WorkflowHost<OutputWorkflow>? = WorkflowHost(workflow: OutputWorkflow())
+
+        var receivedOutputs: [Int] = []
+        var receivedCompletion = false
+        let cancellable = host!.outputPublisher.sink(
+            receiveCompletion: { _ in receivedCompletion = true },
+            receiveValue: { receivedOutputs.append($0) }
+        )
+        defer { cancellable.cancel() }
+
+        host!.rendering.sendOutput(42)
+        XCTAssertEqual(receivedOutputs, [42])
+        XCTAssertFalse(receivedCompletion)
+
+        host = nil
+
+        XCTAssertTrue(receivedCompletion)
+        XCTAssertEqual(receivedOutputs, [42])
+    }
+
+    func test_hostIsReleasedWhileSubscriptionsAreRetained() {
+        var cancellables: [AnyCancellable] = []
+        weak var weakHost: WorkflowHost<OutputWorkflow>?
+
+        autoreleasepool {
+            let host = WorkflowHost(workflow: OutputWorkflow())
+            weakHost = host
+            cancellables.append(host.renderingPublisher.sink { _ in })
+            cancellables.append(host.outputPublisher.sink { _ in })
+        }
+
+        XCTAssertNil(weakHost, "Retained sinks should not keep the host alive")
+        cancellables.removeAll()
+    }
+
+    fileprivate struct OutputWorkflow: Workflow {
+        typealias State = Void
+        typealias Output = Int
+
+        struct Rendering {
+            var sendOutput: (Int) -> Void
+        }
+
+        func render(state: Void, context: RenderContext<OutputWorkflow>) -> Rendering {
+            let sink = context.makeSink(of: Action.self)
+            return Rendering(sendOutput: { sink.send(Action.emit($0)) })
+        }
+
+        enum Action: WorkflowAction {
+            typealias WorkflowType = OutputWorkflow
+
+            case emit(Int)
+
+            func apply(toState state: inout Void, context: ApplyContext<WorkflowType>) -> Int? {
+                switch self {
+                case .emit(let value):
+                    value
+                }
             }
         }
     }

@@ -1,8 +1,8 @@
 #if canImport(UIKit)
 #if DEBUG
 
+import Combine
 import Foundation
-import ReactiveSwift
 import SwiftUI
 import Workflow
 import WorkflowUI
@@ -49,8 +49,7 @@ private struct PreviewView<WorkflowType: Workflow>: UIViewControllerRepresentabl
         )
         let coordinator = context.coordinator
 
-        coordinator.outputDisposable?.dispose()
-        coordinator.outputDisposable = controller.output.observeValues(onOutput)
+        coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
 
         return controller
     }
@@ -61,8 +60,7 @@ private struct PreviewView<WorkflowType: Workflow>: UIViewControllerRepresentabl
     ) {
         let coordinator = context.coordinator
 
-        coordinator.outputDisposable?.dispose()
-        coordinator.outputDisposable = controller.output.observeValues(onOutput)
+        coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
 
         controller.customizeEnvironment = customizeEnvironment
         controller.update(workflow: workflow)
@@ -73,9 +71,9 @@ private struct PreviewView<WorkflowType: Workflow>: UIViewControllerRepresentabl
     }
 
     // This coordinator allows us to manage the lifetime of the WorkflowHostingController's `output`
-    // signal observation that's used to provide an `onOutput` callback to consumers.
+    // subscription that's used to provide an `onOutput` callback to consumers.
     final class Coordinator {
-        var outputDisposable: Disposable?
+        var outputCancellable: AnyCancellable?
     }
 }
 

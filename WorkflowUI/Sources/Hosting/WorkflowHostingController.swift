@@ -16,7 +16,7 @@
 
 #if canImport(UIKit)
 
-import ReactiveSwift
+import Combine
 import UIKit
 @_spi(ViewEnvironmentWiring) import ViewEnvironmentUI
 import Workflow
@@ -26,8 +26,8 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
     public typealias CustomizeEnvironment = (inout ViewEnvironment) -> Void
 
     /// Emits output events from the bound workflow.
-    public var output: Signal<Output, Never> {
-        workflowHost.output
+    public var outputPublisher: AnyPublisher<Output, Never> {
+        workflowHost.outputPublisher
     }
 
     /// An environment customization that will be applied to the environment of the root screen.
@@ -37,14 +37,14 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
     /// The currently displayed screen - the most recent rendering from the hosted workflow
     public var screen: ScreenType {
-        workflowHost.rendering.value
+        workflowHost.rendering
     }
 
     private(set) var rootViewController: UIViewController
 
     private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>
 
-    private let (lifetime, token) = Lifetime.make()
+    private var renderingCancellable: AnyCancellable?
 
     private var lastEnvironmentAncestorPath: EnvironmentAncestorPath?
 
@@ -65,7 +65,6 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
 
         self.rootViewController = workflowHost
             .rendering
-            .value
             .viewControllerDescription(environment: customizedEnvironment)
             .buildViewController()
 
@@ -79,11 +78,11 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         addChild(rootViewController)
         rootViewController.didMove(toParent: self)
 
-        workflowHost
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { [weak self] screen in
+        // Drop the initial replayed rendering; it was already consumed above to build the root view controller.
+        self.renderingCancellable = workflowHost
+            .renderingPublisher
+            .dropFirst()
+            .sink { [weak self] screen in
                 guard let self else { return }
 
                 update(
@@ -138,7 +137,7 @@ public final class WorkflowHostingController<ScreenType, Output>: WorkflowUIView
         let environmentAncestorPath = environmentAncestorPath
         if environmentAncestorPath != lastEnvironmentAncestorPath {
             update(
-                screen: workflowHost.rendering.value,
+                screen: workflowHost.rendering,
                 environmentAncestorPath: environmentAncestorPath
             )
         }
@@ -203,7 +202,7 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
 
     public func environmentDidChange() {
         update(
-            screen: workflowHost.rendering.value,
+            screen: workflowHost.rendering,
             environmentAncestorPath: environmentAncestorPath
         )
     }
@@ -213,7 +212,7 @@ extension WorkflowHostingController: ViewEnvironmentObserving {
 
 extension WorkflowHostingController: SingleScreenContaining {
     public var primaryScreen: any Screen {
-        workflowHost.rendering.value
+        workflowHost.rendering
     }
 }
 
