@@ -21,6 +21,7 @@ import WorkflowReactiveSwiftTesting
 import WorkflowTesting
 import XCTest
 
+@MainActor
 class WorkflowReactiveSwiftTestingTests: XCTestCase {
     func test_workers() {
         let renderTester = TestWorkflow()

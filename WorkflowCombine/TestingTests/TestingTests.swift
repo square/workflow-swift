@@ -21,6 +21,7 @@ import WorkflowCombineTesting
 import WorkflowTesting
 import XCTest
 
+@MainActor
 class WorkflowCombineTestingTests: XCTestCase {
     func test_workers() {
         let renderTester = TestWorkflow()

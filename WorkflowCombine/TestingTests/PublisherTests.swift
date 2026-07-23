@@ -12,6 +12,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowCombineTesting
 
+@MainActor
 class PublisherTests: XCTestCase {
     func testPublisherWorkflow() {
         TestWorkflow()
