@@ -336,6 +336,7 @@ private struct TestWorkflow: Workflow {
 // MARK: Testing conveniences
 
 extension WorkflowSession {
+    @MainActor
     fileprivate static func testing() -> WorkflowSession {
         struct SessionTestWorkflow: Workflow {
             typealias State = Void

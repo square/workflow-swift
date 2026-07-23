@@ -104,14 +104,22 @@ public protocol WorkflowObserver {
 /// - An optional reference to a parent `WorkflowSession`, to differentiate root nodes.
 public struct WorkflowSession {
     public struct Identifier: Hashable {
+        @MainActor
         private static var _nextRawID: UInt64 = 0
+
+        @MainActor
         private static func _makeNextSessionID() -> UInt64 {
             let nextID = _nextRawID
             _nextRawID &+= 1
             return nextID
         }
 
-        let rawIdentifier: UInt64 = Self._makeNextSessionID()
+        let rawIdentifier: UInt64
+
+        @MainActor
+        init() {
+            self.rawIdentifier = Self._makeNextSessionID()
+        }
     }
 
     /// As structs cannot contain stored properties of their own type, we use an indirect enum
@@ -134,7 +142,7 @@ public struct WorkflowSession {
 
     public let renderKey: String
 
-    public let sessionID = Identifier()
+    public let sessionID: Identifier
 
     private let _indirectParent: IndirectParent
     public var parent: WorkflowSession? {
@@ -152,6 +160,7 @@ public struct WorkflowSession {
     ///   - workflow: The associated `Workflow` instance
     ///   - renderKey: The string key used to render `workflow`
     ///   - parent: The parent Workflow's session, if any
+    @MainActor
     init<WorkflowType: Workflow>(
         workflow: WorkflowType,
         renderKey: String,
@@ -159,6 +168,7 @@ public struct WorkflowSession {
     ) {
         self.workflowType = WorkflowType.self
         self.renderKey = renderKey
+        self.sessionID = Identifier()
         self._indirectParent = IndirectParent(parent)
     }
 }
@@ -346,9 +356,11 @@ public protocol ObserversInterceptor {
 
 @_spi(WorkflowGlobalObservation)
 public enum WorkflowObservation {
+    @MainActor
     private static var _sharedInterceptorStorage: ObserversInterceptor = NoOpObserversInterceptor()
 
     /// The `DefaultObserversProvider` used by all runtimes.
+    @MainActor
     public static var sharedObserversInterceptor: ObserversInterceptor! {
         get {
             _sharedInterceptorStorage

@@ -161,6 +161,7 @@ extension RunGameWorkflow {
         return AlertContainerScreen(baseScreen: modalContainerScreen, alert: alert)
     }
 
+    @MainActor
     private func newGameScreen(sink: Sink<Action>, playerX: String, playerO: String) -> NewGameScreen {
         NewGameScreen(
             playerX: playerX,

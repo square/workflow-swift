@@ -44,6 +44,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     private let renderingMulticaster = AsyncMulticaster<WorkflowType.Rendering>()
     private let outputMulticaster = AsyncMulticaster<WorkflowType.Output>()
 
+    /// Erased hooks into the multicasters, installed lazily by the `renderings`
+    /// and `outputs` accessors (whose extensions know the element types are
+    /// `Sendable`). `nil` until the corresponding stream is first requested.
+    private var yieldRendering: ((WorkflowType.Rendering) -> Void)?
+    private var yieldOutput: ((WorkflowType.Output) -> Void)?
+
     /// The current `Rendering` produced by the root workflow in the hierarchy. A new `Rendering` value is produced
     /// as state transitions occur within the hierarchy.
     public var rendering: WorkflowType.Rendering {
@@ -55,21 +61,6 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// `dropFirst()` to observe only changes.
     public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
         renderingSubject.eraseToAnyPublisher()
-    }
-
-    /// An asynchronous sequence of the `Rendering` values produced by the root
-    /// workflow in the hierarchy. Yields the most recent `Rendering` when
-    /// iteration begins, followed by a new value after each subsequent render
-    /// pass. A slow consumer only ever observes the latest rendering; stale
-    /// intermediate values are dropped.
-    ///
-    /// Each access returns an independent stream. Obtain a fresh stream per
-    /// consumer; a single stream must not be iterated more than once.
-    public var renderings: AsyncStream<WorkflowType.Rendering> {
-        renderingMulticaster.makeStream(
-            bufferingPolicy: .bufferingNewest(1),
-            initial: renderingSubject.value
-        )
     }
 
     /// Context object to pass down to descendant nodes in the tree.
@@ -126,7 +117,7 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         }
     }
 
-    deinit {
+    isolated deinit {
         renderingSubject.send(completion: .finished)
         outputSubject.send(completion: .finished)
     }
@@ -164,13 +155,13 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         if shouldRender {
             let rendering = rootNode.render()
             renderingSubject.send(rendering)
-            renderingMulticaster.yield(rendering)
+            yieldRendering?(rendering)
         }
 
         // Always emit an output, regardless of whether a render occurs
         if let outputEvent = output.outputEvent {
             outputSubject.send(outputEvent)
-            outputMulticaster.yield(outputEvent)
+            yieldOutput?(outputEvent)
         }
 
         debugger?.didUpdate(
@@ -190,6 +181,28 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 }
 
+extension WorkflowHost where WorkflowType.Rendering: Sendable {
+    /// An asynchronous sequence of the `Rendering` values produced by the root
+    /// workflow in the hierarchy. Yields the most recent `Rendering` when
+    /// iteration begins, followed by a new value after each subsequent render
+    /// pass. A slow consumer only ever observes the latest rendering; stale
+    /// intermediate values are dropped.
+    ///
+    /// Each access returns an independent stream. Obtain a fresh stream per
+    /// consumer; a single stream must not be iterated more than once.
+    public var renderings: AsyncStream<WorkflowType.Rendering> {
+        if yieldRendering == nil {
+            yieldRendering = { [renderingMulticaster] in
+                renderingMulticaster.yield($0)
+            }
+        }
+        return renderingMulticaster.makeStream(
+            bufferingPolicy: .bufferingNewest(1),
+            initial: renderingSubject.value
+        )
+    }
+}
+
 extension WorkflowHost where WorkflowType.Output: Sendable {
     /// An asynchronous sequence of the output events emitted by the root
     /// workflow in the hierarchy. Every output emitted after the stream is
@@ -198,7 +211,12 @@ extension WorkflowHost where WorkflowType.Output: Sendable {
     /// Each access returns an independent stream. Obtain a fresh stream per
     /// consumer; a single stream must not be iterated more than once.
     public var outputs: AsyncStream<WorkflowType.Output> {
-        outputMulticaster.makeStream(bufferingPolicy: .unbounded)
+        if yieldOutput == nil {
+            yieldOutput = { [outputMulticaster] in
+                outputMulticaster.yield($0)
+            }
+        }
+        return outputMulticaster.makeStream(bufferingPolicy: .unbounded)
     }
 }
 

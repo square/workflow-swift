@@ -36,7 +36,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     var onOutput: ((Output) -> Void)?
 
     /// An optional `WorkflowObserver` instance
-    nonisolated var observer: WorkflowObserver? {
+    var observer: WorkflowObserver? {
         hostContext.observer
     }
 
@@ -78,7 +78,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
         }
     }
 
-    deinit {
+    isolated deinit {
         observer?.sessionDidEnd(session)
         WorkflowLogger.logWorkflowFinished(ref: self)
     }

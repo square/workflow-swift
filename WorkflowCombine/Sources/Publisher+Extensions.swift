@@ -23,7 +23,7 @@ extension Publisher where Failure == Never {
         asAnyWorkflow().rendered(in: context, key: key, outputMap: { $0 })
     }
 
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Void, NewOutput> {
+    public func mapOutput<NewOutput>(_ transform: @escaping @MainActor @Sendable (Output) -> NewOutput) -> AnyWorkflow<Void, NewOutput> {
         asAnyWorkflow().mapOutput(transform)
     }
 

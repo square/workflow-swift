@@ -18,7 +18,7 @@
 import IssueReporting
 #endif
 
-public struct WorkflowUpdateDebugInfo: Codable, Equatable {
+public struct WorkflowUpdateDebugInfo: Codable, Equatable, Sendable {
     public var workflowType: String
     public var kind: Kind
 
@@ -29,7 +29,7 @@ public struct WorkflowUpdateDebugInfo: Codable, Equatable {
 }
 
 extension WorkflowUpdateDebugInfo {
-    public indirect enum Kind: Equatable {
+    public indirect enum Kind: Equatable, Sendable {
         case didUpdate(source: Source)
         case childDidUpdate(WorkflowUpdateDebugInfo)
     }
@@ -76,7 +76,7 @@ extension WorkflowUpdateDebugInfo.Kind: Codable {
 }
 
 extension WorkflowUpdateDebugInfo {
-    public indirect enum Source: Equatable {
+    public indirect enum Source: Equatable, Sendable {
         case external
         case worker
         case sideEffect

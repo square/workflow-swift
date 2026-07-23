@@ -67,7 +67,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     func render<Child: Workflow, Action: WorkflowAction>(
         workflow: Child,
         key: String,
-        outputMap: @escaping (Child.Output) -> Action
+        outputMap: @escaping @MainActor (Child.Output) -> Action
     ) -> Child.Rendering where WorkflowType == Action.WorkflowType {
         fatalError()
     }
@@ -128,7 +128,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         override func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
-            outputMap: @escaping (Child.Output) -> Action
+            outputMap: @escaping @MainActor (Child.Output) -> Action
         ) -> Child.Rendering
             where WorkflowType == Action.WorkflowType
         {
@@ -166,7 +166,7 @@ protocol RenderContextType: AnyObject {
     func render<Child: Workflow, Action: WorkflowAction>(
         workflow: Child,
         key: String,
-        outputMap: @escaping (Child.Output) -> Action
+        outputMap: @escaping @MainActor (Child.Output) -> Action
     ) -> Child.Rendering where Action.WorkflowType == WorkflowType
 
     func makeSink<Action: WorkflowAction>(

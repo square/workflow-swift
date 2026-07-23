@@ -57,6 +57,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// Creates a type-erased workflow action that wraps the given instance.
     ///
     /// - Parameter base: A workflow action to wrap.
+    @MainActor
     public init<E: WorkflowAction>(_ base: E) where E.WorkflowType == WorkflowType {
         if let anyEvent = base as? AnyWorkflowAction<WorkflowType> {
             self = anyEvent
@@ -90,7 +91,7 @@ public struct AnyWorkflowAction<WorkflowType: Workflow>: WorkflowAction {
     /// - Parameter apply: the apply function for the resulting action.
     @_disfavoredOverload
     public init(
-        _ apply: @escaping (inout WorkflowType.State) -> WorkflowType.Output?,
+        _ apply: @escaping @MainActor (inout WorkflowType.State) -> WorkflowType.Output?,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -121,6 +122,7 @@ extension AnyWorkflowAction {
     /// Creates a type-erased workflow action that simply sends the given output event.
     ///
     /// - Parameter output: The output event to send when this action is applied.
+    @MainActor
     public init(sendingOutput output: WorkflowType.Output) {
         self = AnyWorkflowAction { _, _ in
             output

@@ -67,7 +67,7 @@ extension AnyWorkflow {
     ///
     /// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
     public func mapOutput<NewOutput>(
-        _ transform: @escaping (Output) -> NewOutput
+        _ transform: @escaping @MainActor (Output) -> NewOutput
     ) -> AnyWorkflow<Rendering, NewOutput> {
         let storage = storage.mapOutput(transform: transform)
         return AnyWorkflow<Rendering, NewOutput>(storage: storage)
@@ -99,7 +99,7 @@ extension AnyWorkflow {
     func render<Parent, Action: WorkflowAction>(
         context: RenderContext<Parent>,
         key: String,
-        outputMap: @escaping (Output) -> Action
+        outputMap: @escaping @MainActor (Output) -> Action
     ) -> Rendering where Action.WorkflowType == Parent {
         storage.render(context: context, key: key, outputMap: outputMap)
     }
@@ -116,7 +116,7 @@ extension AnyWorkflow {
         func render<Parent, Action: WorkflowAction>(
             context: RenderContext<Parent>,
             key: String,
-            outputMap: @escaping (Output) -> Action
+            outputMap: @escaping @MainActor (Output) -> Action
         ) -> Rendering where Action.WorkflowType == Parent {
             fatalError()
         }
@@ -125,7 +125,7 @@ extension AnyWorkflow {
             fatalError()
         }
 
-        func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
+        func mapOutput<NewOutput>(transform: @escaping @MainActor (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             fatalError()
         }
 
@@ -140,9 +140,9 @@ extension AnyWorkflow {
     fileprivate final class Storage<T: Workflow>: AnyStorage {
         let workflow: T
         let renderingTransform: (T.Rendering) -> Rendering
-        let outputTransform: (T.Output) -> Output
+        let outputTransform: @MainActor (T.Output) -> Output
 
-        init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping (T.Output) -> Output) {
+        init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping @MainActor (T.Output) -> Output) {
             self.workflow = workflow
             self.renderingTransform = renderingTransform
             self.outputTransform = outputTransform
@@ -158,16 +158,16 @@ extension AnyWorkflow {
         override func render<Parent, Action: WorkflowAction>(
             context: RenderContext<Parent>,
             key: String,
-            outputMap: @escaping (Output) -> Action
+            outputMap: @escaping @MainActor (Output) -> Action
         ) -> Rendering where Action.WorkflowType == Parent {
-            let outputMap: (T.Output) -> Action = { [outputTransform] output in
+            let outputMap: @MainActor (T.Output) -> Action = { [outputTransform] output in
                 outputMap(outputTransform(output))
             }
             let rendering = context.render(workflow: workflow, key: key, outputMap: outputMap)
             return renderingTransform(rendering)
         }
 
-        override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
+        override func mapOutput<NewOutput>(transform: @escaping @MainActor (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
             AnyWorkflow<Rendering, NewOutput>.Storage<T>(
                 workflow: workflow,
                 renderingTransform: renderingTransform,
@@ -190,7 +190,7 @@ extension AnyWorkflow {
 }
 
 extension AnyWorkflowConvertible {
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+    public func mapOutput<NewOutput>(_ transform: @escaping @MainActor (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
         asAnyWorkflow().mapOutput(transform)
     }
 

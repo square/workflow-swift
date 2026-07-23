@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import CompilerPluginSupport
@@ -209,7 +209,7 @@ let package = Package(
             path: "ViewEnvironmentUI/Sources"
         ),
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageModes: [.v5]
 )
 
 // MARK: Helpers
@@ -222,8 +222,14 @@ extension PackageDescription.Product {
     }
 }
 
+let swift6Targets: Set<String> = ["Workflow"]
+
 for target in package.targets {
     var settings = target.swiftSettings ?? []
-    settings.append(.enableExperimentalFeature("StrictConcurrency=targeted"))
+    if swift6Targets.contains(target.name) {
+        settings.append(.swiftLanguageMode(.v6))
+    } else {
+        settings.append(.enableExperimentalFeature("StrictConcurrency=targeted"))
+    }
     target.swiftSettings = settings
 }

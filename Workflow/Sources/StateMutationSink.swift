@@ -42,6 +42,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
+    @MainActor
     public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
         sink.send(
             AnyWorkflowAction<WorkflowType> { state, _ in
@@ -56,6 +57,7 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     /// - Parameters:
     ///   - keyPath: Key path of `State` whose value needs to be mutated.
     ///   - value: Value to update `State` with.
+    @MainActor
     public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
         send { $0[keyPath: keyPath] = value }
     }

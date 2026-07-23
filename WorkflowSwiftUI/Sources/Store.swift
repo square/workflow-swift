@@ -178,7 +178,11 @@ extension Store {
             readState(keyPath: state)
         }
         set {
-            model[keyPath: sink].send(action(newValue))
+            // SwiftUI bindings are written on the main thread; `Sink.send`
+            // is main-actor-isolated.
+            MainActor.assumeIsolated {
+                model[keyPath: sink].send(action(newValue))
+            }
         }
     }
 }

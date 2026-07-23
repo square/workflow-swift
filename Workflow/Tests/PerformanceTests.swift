@@ -18,6 +18,7 @@ import XCTest
 
 @testable import Workflow
 
+@MainActor
 class PerformanceTests: XCTestCase {
     var noOpObserver: WorkflowObserver {
         struct NoOpObserverImpl: WorkflowObserver {}

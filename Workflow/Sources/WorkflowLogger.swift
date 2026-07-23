@@ -24,6 +24,7 @@ extension OSLog {
     /// The active log handle to use when logging. If `WorkflowLogging.osLoggingSupported` is
     /// `true`, defaults to the `workflow` handle, otherwise defaults to the shared `.disabled`
     /// handle.
+    @MainActor
     fileprivate static var active: OSLog = WorkflowLogging.isOSLoggingAllowed ? .workflow : .disabled
 }
 
@@ -47,9 +48,9 @@ extension WorkflowLogging {
 }
 
 extension WorkflowLogging {
-    public struct Config {
+    public struct Config: Sendable {
         /// Configuration options to control logging during a render pass.
-        public enum RenderLoggingMode {
+        public enum RenderLoggingMode: Sendable {
             /// No data will be recorded for WorkflowNode render timings.
             case none
 
@@ -81,6 +82,7 @@ extension WorkflowLogging {
     ///
     /// If you wish for more control over what the runtime will log, you may additionally specify
     /// a custom value for `WorkflowLogging.config`.
+    @MainActor
     public static var enabled: Bool {
         get { OSLog.active === OSLog.workflow }
         set {
@@ -90,6 +92,7 @@ extension WorkflowLogging {
     }
 
     /// Configuration options used to determine which activities are logged.
+    @MainActor
     public static var config: Config = .rootRendersAndActions
 }
 
@@ -114,6 +117,7 @@ final class SignpostRef {
 enum WorkflowLogger {
     // MARK: Workflows
 
+    @MainActor
     static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
@@ -131,6 +135,7 @@ enum WorkflowLogger {
         )
     }
 
+    @MainActor
     static func logWorkflowFinished(ref: WorkflowNode<some Any>) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
@@ -141,6 +146,7 @@ enum WorkflowLogger {
         os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
     }
 
+    @MainActor
     static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
@@ -193,6 +199,7 @@ enum WorkflowLogger {
 
     // MARK: - Utilities
 
+    @MainActor
     private static func shouldLogRenderTimings(
         isRootNode: @autoclosure () -> Bool
     ) -> Bool {

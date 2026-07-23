@@ -654,6 +654,7 @@ private struct InjectableWorkflow: Workflow {
 extension WorkflowSession {
     fileprivate var workflowTypeString: String { String(describing: workflowType) }
 
+    @MainActor
     fileprivate static var testingSession: Self {
         WorkflowSession(
             workflow: Parent(),

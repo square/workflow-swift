@@ -236,6 +236,7 @@ extension AuthenticationWorkflow {
         )
     }
 
+    @MainActor
     private func twoFactorScreen(error: AuthenticationService.AuthenticationError?, intermediateSession: String, sink: Sink<Action>) -> BackStackScreen<AnyScreen>.Item {
         let title: String = if let authenticationError = error {
             authenticationError.localizedDescription

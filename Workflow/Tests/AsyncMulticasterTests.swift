@@ -14,9 +14,13 @@ final class AsyncMulticasterTests: XCTestCase {
         multicaster.finish()
 
         var receivedA: [Int] = []
-        for await value in streamA { receivedA.append(value) }
+        for await value in streamA {
+            receivedA.append(value)
+        }
         var receivedB: [Int] = []
-        for await value in streamB { receivedB.append(value) }
+        for await value in streamB {
+            receivedB.append(value)
+        }
 
         XCTAssertEqual(receivedA, [1, 2])
         XCTAssertEqual(receivedB, [1, 2])
@@ -30,7 +34,9 @@ final class AsyncMulticasterTests: XCTestCase {
         multicaster.finish()
 
         var received: [Int] = []
-        for await value in stream { received.append(value) }
+        for await value in stream {
+            received.append(value)
+        }
         XCTAssertEqual(received, [0, 1])
     }
 
@@ -45,7 +51,9 @@ final class AsyncMulticasterTests: XCTestCase {
         multicaster.finish()
 
         var received: [Int] = []
-        for await value in stream { received.append(value) }
+        for await value in stream {
+            received.append(value)
+        }
         XCTAssertEqual(received, [3])
     }
 
@@ -55,7 +63,9 @@ final class AsyncMulticasterTests: XCTestCase {
 
         let stream = multicaster.makeStream(bufferingPolicy: .unbounded)
         var received: [Int] = []
-        for await value in stream { received.append(value) }
+        for await value in stream {
+            received.append(value)
+        }
         XCTAssertEqual(received, [])
     }
 
@@ -65,7 +75,9 @@ final class AsyncMulticasterTests: XCTestCase {
 
         let stream = multicaster.makeStream(bufferingPolicy: .unbounded, initial: 42)
         var received: [Int] = []
-        for await value in stream { received.append(value) }
+        for await value in stream {
+            received.append(value)
+        }
         XCTAssertEqual(received, [])
     }
 
@@ -76,7 +88,9 @@ final class AsyncMulticasterTests: XCTestCase {
         multicaster = nil
 
         var received: [Int] = []
-        for await value in stream { received.append(value) }
+        for await value in stream {
+            received.append(value)
+        }
         XCTAssertEqual(received, [1])
     }
 }

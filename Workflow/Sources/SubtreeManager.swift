@@ -242,7 +242,7 @@ extension WorkflowNode.SubtreeManager {
         func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
-            outputMap: @escaping (Child.Output) -> Action
+            outputMap: @escaping @MainActor (Child.Output) -> Action
         ) -> Child.Rendering
             where WorkflowType == Action.WorkflowType
         {
@@ -380,17 +380,9 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
-        /// Nonisolated entry point: `Sink` closures are nonisolated by design
-        /// (they are captured into arbitrary consumer event handlers). Entering
-        /// the runtime requires the main actor; `assumeIsolated` preserves the
-        /// previous `dispatchPrecondition` crash-on-misuse contract.
-        nonisolated func handle(action: Action) {
-            MainActor.assumeIsolated {
-                handleIsolated(action: action)
-            }
-        }
-
-        private func handleIsolated(action: Action) {
+        /// Main-actor entry point: `Sink.send` is main-actor-isolated, so
+        /// actions always enter the runtime on the main actor.
+        func handle(action: Action) {
             if let onSinkEvent {
                 handleWithSinkEventHandler(action: action, onSinkEvent: onSinkEvent)
                 return
@@ -431,7 +423,7 @@ extension WorkflowNode.SubtreeManager {
 
             // Otherwise, try to recurse again in the future
             let deferredPerform: () -> Void = { [weak self] in
-                self?.handleIsolated(action: action)
+                self?.handle(action: action)
             }
 
             onSinkEvent(immediatePerform, deferredPerform)
@@ -558,11 +550,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
-        private var outputMap: (W.Output) -> any WorkflowAction<WorkflowType>
+        private var outputMap: @MainActor (W.Output) -> any WorkflowAction<WorkflowType>
 
         init(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping @MainActor (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe,
             key: String,
             hostContext: HostContext,
@@ -593,7 +585,7 @@ extension WorkflowNode.SubtreeManager {
 
         func update(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping @MainActor (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe
         ) {
             self.outputMap = outputMap

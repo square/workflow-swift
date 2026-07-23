@@ -30,6 +30,28 @@ final class AsyncMulticaster<Element> {
 
     nonisolated init() {}
 
+    func finish() {
+        isFinished = true
+        let existing = continuations
+        continuations.removeAll()
+        for continuation in existing.values {
+            continuation.finish()
+        }
+    }
+
+    deinit {
+        // Continuations are Sendable; finishing them from a nonisolated
+        // deinit is safe. (Stored-property access is permitted in deinit.)
+        for continuation in continuations.values {
+            continuation.finish()
+        }
+    }
+}
+
+// Yielding values into the fan-out streams requires `Element` to be `Sendable`:
+// consumers may iterate their streams from arbitrary isolation domains, and a
+// single value is delivered to every consumer.
+extension AsyncMulticaster where Element: Sendable {
     func makeStream(
         bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy,
         initial: Element? = nil
@@ -62,23 +84,6 @@ final class AsyncMulticaster<Element> {
     func yield(_ element: Element) {
         for continuation in continuations.values {
             continuation.yield(element)
-        }
-    }
-
-    func finish() {
-        isFinished = true
-        let existing = continuations
-        continuations.removeAll()
-        for continuation in existing.values {
-            continuation.finish()
-        }
-    }
-
-    deinit {
-        // Continuations are Sendable; finishing them from a nonisolated
-        // deinit is safe. (Stored-property access is permitted in deinit.)
-        for continuation in continuations.values {
-            continuation.finish()
         }
     }
 }
