@@ -41,6 +41,9 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     private let renderingSubject: CurrentValueSubject<WorkflowType.Rendering, Never>
 
+    private let renderingMulticaster = AsyncMulticaster<WorkflowType.Rendering>()
+    private let outputMulticaster = AsyncMulticaster<WorkflowType.Output>()
+
     /// The current `Rendering` produced by the root workflow in the hierarchy. A new `Rendering` value is produced
     /// as state transitions occur within the hierarchy.
     public var rendering: WorkflowType.Rendering {
@@ -52,6 +55,21 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// `dropFirst()` to observe only changes.
     public var renderingPublisher: AnyPublisher<WorkflowType.Rendering, Never> {
         renderingSubject.eraseToAnyPublisher()
+    }
+
+    /// An asynchronous sequence of the `Rendering` values produced by the root
+    /// workflow in the hierarchy. Yields the most recent `Rendering` when
+    /// iteration begins, followed by a new value after each subsequent render
+    /// pass. A slow consumer only ever observes the latest rendering; stale
+    /// intermediate values are dropped.
+    ///
+    /// Each access returns an independent stream. Obtain a fresh stream per
+    /// consumer; a single stream must not be iterated more than once.
+    public var renderings: AsyncStream<WorkflowType.Rendering> {
+        renderingMulticaster.makeStream(
+            bufferingPolicy: .bufferingNewest(1),
+            initial: renderingSubject.value
+        )
     }
 
     /// Context object to pass down to descendant nodes in the tree.
@@ -144,12 +162,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
         let shouldRender = !shouldSkipRenderForOutput(output)
         if shouldRender {
-            renderingSubject.send(rootNode.render())
+            let rendering = rootNode.render()
+            renderingSubject.send(rendering)
+            renderingMulticaster.yield(rendering)
         }
 
         // Always emit an output, regardless of whether a render occurs
         if let outputEvent = output.outputEvent {
             outputSubject.send(outputEvent)
+            outputMulticaster.yield(outputEvent)
         }
 
         debugger?.didUpdate(
@@ -166,6 +187,18 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// A publisher of the output events emitted by the root workflow in the hierarchy.
     public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
         outputSubject.eraseToAnyPublisher()
+    }
+}
+
+extension WorkflowHost where WorkflowType.Output: Sendable {
+    /// An asynchronous sequence of the output events emitted by the root
+    /// workflow in the hierarchy. Every output emitted after the stream is
+    /// created is delivered, in order — the stream buffers without dropping.
+    ///
+    /// Each access returns an independent stream. Obtain a fresh stream per
+    /// consumer; a single stream must not be iterated more than once.
+    public var outputs: AsyncStream<WorkflowType.Output> {
+        outputMulticaster.makeStream(bufferingPolicy: .unbounded)
     }
 }
 
