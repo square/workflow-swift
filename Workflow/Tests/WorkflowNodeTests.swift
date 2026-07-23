@@ -17,6 +17,7 @@
 import XCTest
 @testable import Workflow
 
+@MainActor
 final class WorkflowNodeTests: XCTestCase {
     func test_rendersSimpleWorkflow() {
         let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))

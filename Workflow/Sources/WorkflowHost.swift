@@ -32,6 +32,7 @@ public protocol WorkflowDebugger {
 }
 
 /// Manages an active workflow hierarchy.
+@MainActor
 public final class WorkflowHost<WorkflowType: Workflow> {
     private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
@@ -228,6 +229,7 @@ typealias OnSinkEvent = (
 
 /// Handles events from 'Sinks' such that runtime-level event handling state is appropriately
 /// managed, and attempts to perform reentrant action handling can be detected and dealt with.
+@MainActor
 final class SinkEventHandler {
     enum State {
         /// Ready to handle an event.
@@ -259,7 +261,12 @@ final class SinkEventHandler {
             withEventHandlingSuspended(immediate)
 
         case .busy:
-            DispatchQueue.workflowExecution.async(execute: deferred)
+            // Main-actor Task preserves the previous DispatchQueue.main.async
+            // FIFO ordering; non-Sendable captures are legal because creation
+            // context and Task isolation are both MainActor (no region crossing).
+            Task { @MainActor in
+                deferred()
+            }
         }
     }
 

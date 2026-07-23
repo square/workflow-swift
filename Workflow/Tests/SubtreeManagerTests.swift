@@ -19,6 +19,7 @@ import XCTest
 
 @testable import Workflow
 
+@MainActor
 final class SubtreeManagerTests: XCTestCase {
     func test_maintainsChildrenBetweenRenderPasses() {
         let manager = WorkflowNode<ParentWorkflow>.SubtreeManager()

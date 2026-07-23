@@ -18,6 +18,7 @@ import Combine
 import XCTest
 @testable import Workflow
 
+@MainActor
 public class AnyWorkflowTests: XCTestCase {
     func testRendersWrappedWorkflow() {
         let workflow = AnyWorkflow(SimpleWorkflow(string: "asdf"))

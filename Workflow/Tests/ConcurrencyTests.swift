@@ -18,6 +18,7 @@ import Combine
 import XCTest
 @testable import Workflow
 
+@MainActor
 final class ConcurrencyTests: XCTestCase {
     // Applying an action from a sink must synchronously update the rendering.
     func test_sinkRenderLoopIsSynchronous() {

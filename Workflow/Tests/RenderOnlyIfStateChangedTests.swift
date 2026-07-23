@@ -20,6 +20,7 @@ import XCTest
 @_spi(WorkflowRuntimeConfig)
 @testable import Workflow
 
+@MainActor
 final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
     override func invokeTest() {
         Runtime.withConfiguration { cfg in
@@ -208,6 +209,7 @@ final class RenderOnlyIfStateChangedEnabledTests: XCTestCase {
     }
 }
 
+@MainActor
 private func withRenderOnlyIfStateChangedDisabled(
     _ perform: () -> Void
 ) {

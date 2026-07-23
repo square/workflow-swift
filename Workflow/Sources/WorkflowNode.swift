@@ -15,6 +15,7 @@
  */
 
 /// Manages a running workflow.
+@MainActor
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
@@ -35,7 +36,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     var onOutput: ((Output) -> Void)?
 
     /// An optional `WorkflowObserver` instance
-    var observer: WorkflowObserver? {
+    nonisolated var observer: WorkflowObserver? {
         hostContext.observer
     }
 

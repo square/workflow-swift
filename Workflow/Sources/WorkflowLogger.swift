@@ -160,6 +160,7 @@ enum WorkflowLogger {
 
     // MARK: Rendering
 
+    @MainActor
     static func logWorkflowStartedRendering<WorkflowType>(
         ref: WorkflowNode<WorkflowType>
     ) {
@@ -178,6 +179,7 @@ enum WorkflowLogger {
         )
     }
 
+    @MainActor
     static func logWorkflowFinishedRendering(
         ref: WorkflowNode<some Any>
     ) {
