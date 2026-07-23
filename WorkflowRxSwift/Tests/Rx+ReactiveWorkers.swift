@@ -22,6 +22,7 @@ import Workflow
 import WorkflowReactiveSwift
 import XCTest
 
+@MainActor
 class Rx_ReactiveWorkersTests: XCTestCase {
     func test_outputs_fromRxSwiftAndReactiveSwift() {
         let host = WorkflowHost(

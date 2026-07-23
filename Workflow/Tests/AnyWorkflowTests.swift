@@ -107,6 +107,7 @@ extension PassthroughWorkflow {
         State()
     }
 
+    @MainActor
     func render(state: State, context: RenderContext<PassthroughWorkflow<Rendering>>) -> Rendering {
         child.rendered(in: context)
     }

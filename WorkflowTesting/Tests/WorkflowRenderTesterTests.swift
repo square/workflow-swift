@@ -19,6 +19,7 @@ import Testing
 import Workflow
 import WorkflowTesting
 
+@MainActor
 struct WorkflowRenderTesterTests {
     @Test func render() {
         let renderTester = TestWorkflow(initialText: "initial").renderTester()

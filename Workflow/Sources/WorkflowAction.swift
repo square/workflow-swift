@@ -30,6 +30,7 @@ public protocol WorkflowAction<WorkflowType> {
     ///            the workflow hierarchy to this workflow's parent.
     /// > Warning: The `context` parameter should not escape from implementations of this requirement.
     /// Attempting to access the instance after `apply()` has returned is a client error and will crash.
+    @MainActor
     func apply(
         toState state: inout WorkflowType.State,
         context: ApplyContext<WorkflowType>
@@ -38,7 +39,7 @@ public protocol WorkflowAction<WorkflowType> {
 
 extension WorkflowAction {
     /// Closure type signature matching `WorkflowAction`'s `apply()` method.
-    public typealias ActionApplyClosure = (inout WorkflowType.State, ApplyContext<WorkflowType>) -> WorkflowType.Output?
+    public typealias ActionApplyClosure = @MainActor (inout WorkflowType.State, ApplyContext<WorkflowType>) -> WorkflowType.Output?
 }
 
 /// A type-erased workflow action.

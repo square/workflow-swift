@@ -4,6 +4,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
+@MainActor
 class AsyncSequenceWorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(

@@ -335,6 +335,7 @@ extension CompositeWorkflow {
         State()
     }
 
+    @MainActor
     func render(state: State, context: RenderContext<CompositeWorkflow<A, B>>) -> Rendering {
         Rendering(
             aRendering: a
@@ -415,6 +416,7 @@ extension EventEmittingWorkflow {
         case helloWorld
     }
 
+    @MainActor
     func render(state: State, context: RenderContext<EventEmittingWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Event.self)
 

@@ -21,6 +21,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowRxSwift
 
+@MainActor
 class ObservableTests: XCTestCase {
     func test_observableWorkflow_usesSideEffectWithKey() {
         let observable = Observable.just(1)

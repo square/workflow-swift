@@ -46,6 +46,7 @@ import Foundation
 ///
 /// The infrastructure then performs a render pass on the child to obtain its
 /// `Rendering` value, which is then returned to the caller.
+@MainActor
 public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     private(set) var isValid = true
 
@@ -158,6 +159,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 }
 
+@MainActor
 protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 

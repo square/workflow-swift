@@ -16,6 +16,7 @@ import Workflow
 /// but was limited in the fact that rendering was only available to `AnyPublisher`s.
 /// this solutions makes it so that all publishers can render its view.
 extension Publisher where Failure == Never {
+    @MainActor
     public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where
         Output == AnyWorkflowAction<Parent>
     {

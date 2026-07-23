@@ -19,6 +19,7 @@ import Workflow
 import XCTest
 @testable import WorkflowCombine
 
+@MainActor
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         PublisherTestWorkflow(key: "123")

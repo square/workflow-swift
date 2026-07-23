@@ -17,6 +17,7 @@
 import XCTest
 @testable import Workflow
 
+@MainActor
 final class AnyWorkflowActionTests: XCTestCase {
     func testRetainsBaseActionTypeInfo() {
         let action = ExampleAction()
