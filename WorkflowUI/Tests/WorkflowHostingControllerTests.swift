@@ -99,6 +99,20 @@ class WorkflowHostingControllerTests: XCTestCase {
         cancellable.cancel()
     }
 
+    func test_outputs_asyncStream_deliversWorkflowOutput() async {
+        let (signal, observer) = Signal<Int, Never>.pipe()
+        let workflow = SubscribingWorkflow(subscription: signal)
+        let container = WorkflowHostingController(workflow: workflow)
+
+        var iterator = container.outputs.makeAsyncIterator()
+
+        observer.send(value: 3)
+
+        let output = await iterator.next()
+
+        XCTAssertEqual(3, output)
+    }
+
     func test_container_with_anyworkflow() {
         let (signal, observer) = Signal<Int, Never>.pipe()
         let workflow = SubscribingWorkflow(subscription: signal)
