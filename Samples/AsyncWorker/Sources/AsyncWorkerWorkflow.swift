@@ -55,6 +55,7 @@ extension AsyncWorkerWorkflow {
 extension AsyncWorkerWorkflow {
     typealias Rendering = MessageScreen
 
+    @MainActor
     func render(state: AsyncWorkerWorkflow.State, context: RenderContext<AsyncWorkerWorkflow>) -> Rendering {
         NetworkRequestWorker()
             .mapOutput { result in

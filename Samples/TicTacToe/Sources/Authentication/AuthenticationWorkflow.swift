@@ -165,6 +165,7 @@ extension AuthenticationWorkflow {
 extension AuthenticationWorkflow {
     typealias Rendering = AlertContainerScreen<ModalContainerScreen<BackStackScreen<AnyScreen>>>
 
+    @MainActor
     func render(state: AuthenticationWorkflow.State, context: RenderContext<AuthenticationWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 

@@ -63,6 +63,7 @@ extension DemoWorkflow {
     private static let colors: [UIColor] = [.red, .blue, .green, .yellow]
     private static let complimentaryColors: [UIColor] = [.blue, .green, .yellow, .purple]
 
+    @MainActor
     func render(state: State, context: RenderContext<DemoWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
@@ -75,6 +76,7 @@ extension DemoWorkflow {
         )
     }
 
+    @MainActor
     private func leadingScreenFor(state: State, context: RenderContext<DemoWorkflow>) -> AnyScreen {
         let sink = context.makeSink(of: Action.self)
 

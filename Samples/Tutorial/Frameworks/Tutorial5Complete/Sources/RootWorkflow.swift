@@ -88,6 +88,7 @@ extension RootWorkflow {
 extension RootWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>
 
+    @MainActor
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         // Our list of back stack items. Will always include the "WelcomeScreen".
         var backStackItems: [BackStackScreen<AnyScreen>.Item] = []

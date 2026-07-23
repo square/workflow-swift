@@ -61,6 +61,7 @@ extension RootWorkflow {
 extension RootWorkflow {
     typealias Rendering = CrossFadeScreen
 
+    @MainActor
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         switch state {
         case .welcome:

@@ -86,6 +86,7 @@ extension RunGameWorkflow {
 extension RunGameWorkflow {
     typealias Rendering = AlertContainerScreen<ModalContainerScreen<BackStackScreen<AnyScreen>>>
 
+    @MainActor
     func render(state: RunGameWorkflow.State, context: RenderContext<RunGameWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
         var modals: [ModalContainerScreenModal] = []

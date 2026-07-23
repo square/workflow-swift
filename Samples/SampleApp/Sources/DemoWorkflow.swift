@@ -133,6 +133,7 @@ struct RefreshWorker: Worker {
 extension DemoWorkflow {
     typealias Rendering = DemoScreen
 
+    @MainActor
     func render(state: DemoWorkflow.State, context: RenderContext<DemoWorkflow>) -> Rendering {
         let color: UIColor = switch state.colorState {
         case .red:

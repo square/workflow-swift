@@ -49,6 +49,7 @@ extension DemoWorkflow {
 extension DemoWorkflow {
     typealias Rendering = DemoScreen
 
+    @MainActor
     func render(state: DemoWorkflow.State, context: RenderContext<DemoWorkflow>) -> Rendering {
         // Combine-based worker example
         DemoWorker()

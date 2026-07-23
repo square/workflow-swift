@@ -20,6 +20,7 @@ import XCTest
 
 @testable import TicTacToe
 
+@MainActor
 class ConfirmQuitWorkflowTests: XCTestCase {
     // MARK: Action Tests
 

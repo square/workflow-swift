@@ -80,6 +80,7 @@ extension WelcomeWorkflow {
 extension WelcomeWorkflow {
     typealias Rendering = WelcomeScreen
 
+    @MainActor
     func render(state: WelcomeWorkflow.State, context: RenderContext<WelcomeWorkflow>) -> Rendering {
         // Create a "sink" of type `Action`. A sink is what we use to send actions to the workflow.
         let sink = context.makeSink(of: Action.self)

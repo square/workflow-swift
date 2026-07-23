@@ -97,6 +97,7 @@ extension TodoListWorkflow {
 extension TodoListWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>.Item
 
+    @MainActor
     func render(state: TodoListWorkflow.State, context: RenderContext<TodoListWorkflow>) -> Rendering {
         // Define a sink to be able to send actions.
         let sink = context.makeSink(of: Action.self)

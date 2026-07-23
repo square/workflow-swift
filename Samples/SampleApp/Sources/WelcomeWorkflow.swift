@@ -64,6 +64,7 @@ extension WelcomeWorkflow {
 extension WelcomeWorkflow {
     typealias Rendering = WelcomeScreen
 
+    @MainActor
     func render(state: WelcomeWorkflow.State, context: RenderContext<WelcomeWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
         return WelcomeScreen(

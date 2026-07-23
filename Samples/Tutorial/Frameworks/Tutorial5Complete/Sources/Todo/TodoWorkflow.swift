@@ -139,6 +139,7 @@ extension TodoWorkflow {
 extension TodoWorkflow {
     typealias Rendering = [BackStackScreen<AnyScreen>.Item]
 
+    @MainActor
     func render(state: TodoWorkflow.State, context: RenderContext<TodoWorkflow>) -> Rendering {
         let todoListItem = TodoListWorkflow(name: name, todos: state.todos)
             .mapOutput { output -> ListAction in
