@@ -312,9 +312,10 @@ final class SinkEventHandler {
             withEventHandlingSuspended(immediate)
 
         case .busy:
-            // Main-actor Task preserves the previous DispatchQueue.main.async
-            // FIFO ordering; non-Sendable captures are legal because creation
-            // context and Task isolation are both MainActor (no region crossing).
+            // Delivery stays on the main actor; relative ordering with other
+            // main-queue work is best-effort per Task scheduling semantics.
+            // Non-Sendable captures are legal because creation context and
+            // Task isolation are both MainActor (no region crossing).
             Task { @MainActor in
                 deferred()
             }

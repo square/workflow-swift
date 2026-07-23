@@ -23,6 +23,9 @@ extension Publisher where Failure == Never {
         asAnyWorkflow().rendered(in: context, key: key, outputMap: { $0 })
     }
 
+    // Note: `@Sendable` is spelled explicitly here because this module compiles in Swift 5 mode;
+    // in the core module's Swift 6 mode, `@MainActor` function types are implicitly `Sendable`,
+    // so this is the same type as `AnyWorkflow.mapOutput`'s parameter.
     public func mapOutput<NewOutput>(_ transform: @escaping @MainActor @Sendable (Output) -> NewOutput) -> AnyWorkflow<Void, NewOutput> {
         asAnyWorkflow().mapOutput(transform)
     }
