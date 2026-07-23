@@ -180,6 +180,36 @@ protocol RenderContextType: AnyObject {
 }
 
 extension RenderContext {
+    /// Execute an asynchronous side-effect action.
+    ///
+    /// `action` runs in a `Task` owned by the workflow node the first time a
+    /// side-effect is run with a given `key`. Calls with the same `key` on
+    /// subsequent renders are ignored. If, after a render pass, a previously
+    /// used `key` is no longer used, the `Task` is cancelled — cancellation is
+    /// cooperative, so long-running work should check `Task.isCancelled` or
+    /// use cancellation-aware APIs.
+    ///
+    /// Prefer this over the `Lifetime`-based variant for new code.
+    ///
+    /// - Parameters:
+    ///   - key: represents the block of work that needs to be executed.
+    ///   - action: an async block of work to execute.
+    public func runSideEffect(
+        key: AnyHashable,
+        action: @escaping @Sendable () async -> Void
+    ) {
+        runSideEffect(key: key) { lifetime in
+            let task = Task {
+                await action()
+            }
+            lifetime.onEnded {
+                task.cancel()
+            }
+        }
+    }
+}
+
+extension RenderContext {
     public func makeSink<Event>(
         of eventType: Event.Type,
         onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?
