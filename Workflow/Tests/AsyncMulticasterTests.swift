@@ -59,6 +59,16 @@ final class AsyncMulticasterTests: XCTestCase {
         XCTAssertEqual(received, [])
     }
 
+    func test_streamsMadeAfterFinishAreImmediatelyFinished_evenWithInitialValue() async {
+        let multicaster = AsyncMulticaster<Int>()
+        multicaster.finish()
+
+        let stream = multicaster.makeStream(bufferingPolicy: .unbounded, initial: 42)
+        var received: [Int] = []
+        for await value in stream { received.append(value) }
+        XCTAssertEqual(received, [])
+    }
+
     func test_deallocation_finishesStreams() async {
         var multicaster: AsyncMulticaster<Int>? = AsyncMulticaster<Int>()
         let stream = multicaster!.makeStream(bufferingPolicy: .unbounded)

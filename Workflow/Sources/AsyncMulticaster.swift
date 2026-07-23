@@ -39,13 +39,13 @@ final class AsyncMulticaster<Element> {
             bufferingPolicy: bufferingPolicy
         )
 
-        if let initial {
-            continuation.yield(initial)
-        }
-
         guard !isFinished else {
             continuation.finish()
             return stream
+        }
+
+        if let initial {
+            continuation.yield(initial)
         }
 
         let id = UUID()
