@@ -154,8 +154,7 @@ public struct WorkflowSession {
         }
     }
 
-    /// Creates a new `WorkflowSession` instance. Note, construction of this type
-    /// is not safe to perform concurrently with respect to other instance initialization.
+    /// Creates a new `WorkflowSession` instance.
     /// - Parameters:
     ///   - workflow: The associated `Workflow` instance
     ///   - renderKey: The string key used to render `workflow`

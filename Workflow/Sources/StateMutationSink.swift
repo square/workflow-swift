@@ -40,6 +40,9 @@ public struct StateMutationSink<WorkflowType: Workflow> {
 
     /// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
     ///
+    /// Sinks deliver values into the Workflow runtime, which runs on the main actor, so `send`
+    /// is main-actor-isolated.
+    ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
     @MainActor
@@ -53,6 +56,9 @@ public struct StateMutationSink<WorkflowType: Workflow> {
     }
 
     /// Sends message to `StateMutationSink` to update `State`'s value at `KeyPath` with `Value`.
+    ///
+    /// Sinks deliver values into the Workflow runtime, which runs on the main actor, so `send`
+    /// is main-actor-isolated.
     ///
     /// - Parameters:
     ///   - keyPath: Key path of `State` whose value needs to be mutated.
