@@ -117,9 +117,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         }
     }
 
-    isolated deinit {
-        renderingSubject.send(completion: .finished)
-        outputSubject.send(completion: .finished)
+    deinit {
+        // Not an `isolated deinit`: the Swift 6.3.2 optimizer crashes when
+        // compiling isolated deinits of generic classes in release builds.
+        // The host is main-actor-isolated, so the last reference is expected
+        // to be released on the main actor.
+        MainActor.assumeIsolated {
+            renderingSubject.send(completion: .finished)
+            outputSubject.send(completion: .finished)
+        }
     }
 
     /// Update the input for the workflow. Will cause a render pass.

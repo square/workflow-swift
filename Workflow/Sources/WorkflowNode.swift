@@ -78,9 +78,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
         }
     }
 
-    isolated deinit {
-        observer?.sessionDidEnd(session)
-        WorkflowLogger.logWorkflowFinished(ref: self)
+    deinit {
+        // Not an `isolated deinit`: the Swift 6.3.2 optimizer crashes when
+        // compiling isolated deinits of generic classes in release builds.
+        // Node lifetimes are managed by the main-actor runtime, so the last
+        // reference is always released on the main actor.
+        MainActor.assumeIsolated {
+            observer?.sessionDidEnd(session)
+            WorkflowLogger.logWorkflowFinished(ref: self)
+        }
     }
 
     /// Handles an event produced by the subtree manager
