@@ -102,15 +102,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     deinit {
-        // Not an `isolated deinit`: the Swift 6.3.2 optimizer crashes when
-        // compiling isolated deinits of generic classes in release builds.
-        // The finalization is enqueued (matching isolated-deinit semantics)
-        // rather than run inline so observer callbacks never interleave with
-        // whatever main-actor operation released the last reference.
-        let finalize = finalizeOnMainActor
-        Task { @MainActor in
-            finalize()
-        }
+        finalizeFromDeinit(finalizeOnMainActor)
     }
 
     /// Handles an event produced by the subtree manager
