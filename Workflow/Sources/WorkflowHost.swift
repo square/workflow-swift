@@ -106,13 +106,16 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             onSinkEvent: sinkEventCallback
         )
 
-        self.rootNode = WorkflowNode(
+        let rootNode = WorkflowNode(
             workflow: workflow,
             hostContext: context,
             parentSession: nil
         )
+        self.rootNode = rootNode
 
-        self.renderingSubject = CurrentValueSubject(rootNode.render())
+        self.renderingSubject = WorkflowRuntimeActivity.perform {
+            CurrentValueSubject(rootNode.render())
+        }
 
         self.finalizeOnMainActor = { [renderingSubject, outputSubject] in
             renderingSubject.send(completion: .finished)
@@ -134,12 +137,14 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
-        if context.runtimeConfig.useSinkEventHandler {
-            sinkEventHandler.withEventHandlingSuspended {
+        WorkflowRuntimeActivity.perform {
+            if context.runtimeConfig.useSinkEventHandler {
+                sinkEventHandler.withEventHandlingSuspended {
+                    updateRootNode(workflow: workflow)
+                }
+            } else {
                 updateRootNode(workflow: workflow)
             }
-        } else {
-            updateRootNode(workflow: workflow)
         }
     }
 
@@ -161,6 +166,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
+        WorkflowRuntimeActivity.perform {
+            handleMarkedActive(output: output)
+        }
+    }
+
+    private func handleMarkedActive(output: WorkflowNode<WorkflowType>.Output) {
         let shouldRender = !shouldSkipRenderForOutput(output)
         if shouldRender {
             let rendering = rootNode.render()

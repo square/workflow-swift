@@ -452,6 +452,16 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func handle(event: Output) {
+            // Every event cascade (sink sends, worker outputs, child output
+            // bubbling) enters the runtime here, so this marks the whole
+            // cascade — action application through the resulting render —
+            // as active for deinit-finalization dispatch.
+            WorkflowRuntimeActivity.perform {
+                handleMarkedActive(event: event)
+            }
+        }
+
+        private func handleMarkedActive(event: Output) {
             let isReentrantCall = isHandlingEvent
             isHandlingEvent = true
             defer { isHandlingEvent = isReentrantCall }
