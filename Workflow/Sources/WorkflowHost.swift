@@ -114,9 +114,14 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
         self.renderingSubject = CurrentValueSubject(rootNode.render())
 
-        self.finalizeOnMainActor = { [renderingSubject, outputSubject] in
-            renderingSubject.send(completion: .finished)
-            outputSubject.send(completion: .finished)
+        self.finalizeOnMainActor = { [renderingSubject, outputSubject, rootNode] in
+            // Capturing the root node defers the workflow tree's teardown to
+            // this scheduled finalization, so it can't interleave with the
+            // main-actor work that released the host.
+            withExtendedLifetime(rootNode) {
+                renderingSubject.send(completion: .finished)
+                outputSubject.send(completion: .finished)
+            }
         }
 
         rootNode.enableEvents()

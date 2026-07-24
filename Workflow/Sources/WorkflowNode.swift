@@ -74,9 +74,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         self.state = workflow.makeInitialState()
 
-        self.finalizeOnMainActor = { [observer = hostContext.observer, session, signpostRef] in
-            observer?.sessionDidEnd(session)
-            WorkflowLogger.logWorkflowFinished(ref: signpostRef)
+        self.finalizeOnMainActor = { [subtreeManager, observer = hostContext.observer, session, signpostRef] in
+            // Capturing the subtree manager defers the subtree's teardown
+            // (child deinits, side-effect terminations) to this scheduled
+            // finalization, so it can't interleave with the main-actor work
+            // that released the node — e.g. an in-progress render pass.
+            withExtendedLifetime(subtreeManager) {
+                observer?.sessionDidEnd(session)
+                WorkflowLogger.logWorkflowFinished(ref: signpostRef)
+            }
         }
 
         observer?.workflowDidMakeInitialState(
