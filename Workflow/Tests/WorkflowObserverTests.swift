@@ -57,6 +57,11 @@ final class WorkflowObserverTests: XCTestCase {
         }
 
         XCTAssertNil(weakHost, "host expected to deallocate")
+
+        // Deinit finalization (including `sessionDidEnd`) is scheduled onto
+        // the main actor rather than run inline; let it run.
+        drainMainQueueBySpinningRunLoop()
+
         XCTAssertNotNil(beganSession)
         XCTAssertNotNil(beganSession?.sessionID)
         XCTAssertEqual(beganSession?.sessionID, endedSession?.sessionID)

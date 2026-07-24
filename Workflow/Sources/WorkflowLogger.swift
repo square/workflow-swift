@@ -117,8 +117,12 @@ final class SignpostRef {
 enum WorkflowLogger {
     // MARK: Workflows
 
+    /// Logs the start of a node's "Alive" interval. `ref` anchors the signpost
+    /// identity and must be the same object later passed to
+    /// `logWorkflowFinished(ref:)`; a `SignpostRef` owned by the node lets the
+    /// end of the interval be logged after the node itself is gone.
     @MainActor
-    static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
+    static func logWorkflowStarted(ref: AnyObject, workflowType: String) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
             WorkflowLogging.config.logLifetimes
@@ -131,12 +135,12 @@ enum WorkflowLogger {
             name: "Alive",
             signpostID: signpostID,
             "Workflow: %{public}@",
-            String(describing: WorkflowType.self)
+            workflowType
         )
     }
 
     @MainActor
-    static func logWorkflowFinished(ref: WorkflowNode<some Any>) {
+    static func logWorkflowFinished(ref: AnyObject) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
             WorkflowLogging.config.logLifetimes

@@ -72,6 +72,11 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 
     let sinkEventHandler: SinkEventHandler
 
+    /// Finalization work to perform when the host deinits. Stored as a
+    /// main-actor closure so the (nonisolated) deinit can schedule it on the
+    /// main actor without capturing the non-Sendable subjects directly.
+    private let finalizeOnMainActor: @MainActor () -> Void
+
     /// Initializes a new host with the given workflow at the root.
     ///
     /// - Parameter workflow: The root workflow in the hierarchy
@@ -108,6 +113,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
         )
 
         self.renderingSubject = CurrentValueSubject(rootNode.render())
+
+        self.finalizeOnMainActor = { [renderingSubject, outputSubject] in
+            renderingSubject.send(completion: .finished)
+            outputSubject.send(completion: .finished)
+        }
+
         rootNode.enableEvents()
 
         debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
@@ -120,11 +131,12 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     deinit {
         // Not an `isolated deinit`: the Swift 6.3.2 optimizer crashes when
         // compiling isolated deinits of generic classes in release builds.
-        // The host is main-actor-isolated, so the last reference is expected
-        // to be released on the main actor.
-        MainActor.assumeIsolated {
-            renderingSubject.send(completion: .finished)
-            outputSubject.send(completion: .finished)
+        // The finalization is enqueued (matching isolated-deinit semantics)
+        // rather than run inline so subject completions never interleave with
+        // whatever main-actor operation released the last reference.
+        let finalize = finalizeOnMainActor
+        Task { @MainActor in
+            finalize()
         }
     }
 

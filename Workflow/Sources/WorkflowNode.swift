@@ -42,6 +42,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
 
+    /// Anchors the node's "Alive" signpost interval to a pointer identity
+    /// that the deinit-scheduled finalization can safely outlive `self` with.
+    private let signpostRef = SignpostRef()
+
+    /// Finalization work to perform when the node deinits. Stored as a
+    /// main-actor closure so the (nonisolated) deinit can schedule it on the
+    /// main actor without capturing `self` or its non-Sendable dependencies.
+    private let finalizeOnMainActor: @MainActor () -> Void
+
     init(
         workflow: WorkflowType,
         key: String = "",
@@ -65,13 +74,21 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         self.state = workflow.makeInitialState()
 
+        self.finalizeOnMainActor = { [observer = hostContext.observer, session, signpostRef] in
+            observer?.sessionDidEnd(session)
+            WorkflowLogger.logWorkflowFinished(ref: signpostRef)
+        }
+
         observer?.workflowDidMakeInitialState(
             workflow,
             initialState: state,
             session: session
         )
 
-        WorkflowLogger.logWorkflowStarted(ref: self)
+        WorkflowLogger.logWorkflowStarted(
+            ref: signpostRef,
+            workflowType: String(describing: WorkflowType.self)
+        )
 
         subtreeManager.onUpdate = { [weak self] output in
             self?.handle(subtreeOutput: output)
@@ -81,11 +98,12 @@ final class WorkflowNode<WorkflowType: Workflow> {
     deinit {
         // Not an `isolated deinit`: the Swift 6.3.2 optimizer crashes when
         // compiling isolated deinits of generic classes in release builds.
-        // Node lifetimes are managed by the main-actor runtime, so the last
-        // reference is always released on the main actor.
-        MainActor.assumeIsolated {
-            observer?.sessionDidEnd(session)
-            WorkflowLogger.logWorkflowFinished(ref: self)
+        // The finalization is enqueued (matching isolated-deinit semantics)
+        // rather than run inline so observer callbacks never interleave with
+        // whatever main-actor operation released the last reference.
+        let finalize = finalizeOnMainActor
+        Task { @MainActor in
+            finalize()
         }
     }
 
