@@ -30,12 +30,42 @@ import Foundation
 enum WorkflowRuntimeActivity {
     private(set) static var depth = 0
 
+    private static var pendingFinalizations: [@MainActor () -> Void] = []
+
     /// Runs `operation` with the runtime marked as active. Nesting is
     /// expected: event cascades re-enter through multiple entry points.
+    /// When the outermost operation exits, finalizations deferred during it
+    /// run immediately — still within the same runloop callout, so teardown
+    /// timing stays at pre-deferral runloop granularity rather than slipping
+    /// to a later main-queue drain.
     static func perform<T>(_ operation: () throws -> T) rethrows -> T {
         depth += 1
-        defer { depth -= 1 }
+        defer {
+            depth -= 1
+            if depth == 0 {
+                drainPendingFinalizations()
+            }
+        }
         return try operation()
+    }
+
+    /// Defers `finalize` until the outermost in-flight operation exits.
+    /// Must only be called while the runtime is active (`depth > 0`).
+    static func enqueueFinalization(_ finalize: @escaping @MainActor () -> Void) {
+        pendingFinalizations.append(finalize)
+    }
+
+    private static func drainPendingFinalizations() {
+        // A finalization can release references whose deinits enqueue more
+        // finalizations (via a nested `perform`, drained there) or run
+        // inline (depth is 0 here); loop until no stragglers remain.
+        while !pendingFinalizations.isEmpty {
+            let pending = pendingFinalizations
+            pendingFinalizations.removeAll()
+            for finalize in pending {
+                finalize()
+            }
+        }
     }
 }
 
@@ -55,13 +85,17 @@ enum WorkflowRuntimeActivity {
 /// - On the main thread with the runtime quiescent, finalize inline —
 ///   teardown is synchronously observable, matching a plain `deinit`.
 /// - If the runtime is mid-operation (the release happened during a render
-///   pass or action cascade) or the release is off the main thread, enqueue
-///   onto the main actor so teardown can't interleave with the in-flight
-///   operation.
+///   pass or action cascade), defer until the outermost operation exits, so
+///   teardown can't interleave with the in-flight operation but still
+///   completes within the same runloop callout. Deferring to a `Task`
+///   instead would push teardown to a later main-queue drain, which lets
+///   unrelated main-queue work interleave with it and shifts the runloop
+///   timing that snapshot tests and leak detectors observe.
+/// - If the release happened off the main thread, hop onto the main actor.
 ///
-/// An enqueued finalization runs with the runtime quiescent, so the child
-/// deinits it triggers take the inline path: an entire subtree tears down
-/// within that one main-actor job rather than one job per tree level.
+/// A deferred finalization runs with the runtime quiescent, so the child
+/// deinits it triggers finalize inline: an entire subtree tears down at a
+/// single point rather than one deferral hop per tree level.
 func finalizeFromDeinit(_ finalize: @escaping @MainActor () -> Void) {
     if Thread.isMainThread {
         // Dynamically safe: the main thread is the main actor's executor.
@@ -69,9 +103,7 @@ func finalizeFromDeinit(_ finalize: @escaping @MainActor () -> Void) {
             if WorkflowRuntimeActivity.depth == 0 {
                 finalize()
             } else {
-                Task { @MainActor in
-                    finalize()
-                }
+                WorkflowRuntimeActivity.enqueueFinalization(finalize)
             }
         }
     } else {
