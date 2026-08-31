@@ -57,29 +57,6 @@ public final class Store<Model: ObservableModel>: Perceptible {
         }
     }
 
-    /// Funnel point for suppressing Perception's debug-only runtime warning when state is accessed
-    /// outside of `WithPerceptionTracking`.
-    ///
-    /// Suppression is opt-in through
-    /// `Runtime.Configuration.suppressPerceptionCheckingWhenUsingObservation`, so Store access
-    /// executes normally by default.
-    ///
-    /// It is additionally applied whenever the process is rendering Xcode previews. That opt-in is
-    /// meant to be set once at app startup, and a preview has no equivalent entry point — the
-    /// canvas instantiates a view directly, with no app delegate and no runtime to configure — so
-    /// a preview would otherwise have no way to reach the configuration at all.
-    private func withPerceptionCheckSuppressed<T>(_ operation: () -> T) -> T {
-        #if DEBUG && canImport(Observation)
-        if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *),
-           Runtime.configuration.suppressPerceptionCheckingWhenUsingObservation
-           || XcodePreviews.isRunning
-        {
-            return _PerceptionLocals.$skipPerceptionChecking.withValue(true, operation: operation)
-        }
-        #endif
-        return operation()
-    }
-
     private func readState<T>(keyPath: KeyPath<State, T>) -> T {
         withPerceptionCheckSuppressed {
             state[keyPath: keyPath]
