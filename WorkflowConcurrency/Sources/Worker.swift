@@ -74,7 +74,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
                 }
                 logger.logOutput()
                 logger.logFinished(status: "Finished")
-                await send(output)
+                send(output)
             }
             lifetime.onEnded {
                 task.cancel()

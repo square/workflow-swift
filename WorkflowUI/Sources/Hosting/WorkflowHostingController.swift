@@ -216,4 +216,15 @@ extension WorkflowHostingController: SingleScreenContaining {
     }
 }
 
+// MARK: - Async Output Stream
+
+extension WorkflowHostingController where Output: Sendable {
+    /// An asynchronous sequence of output events from the bound workflow.
+    /// Each access returns an independent stream; obtain a fresh stream per
+    /// consumer.
+    public var outputs: AsyncStream<Output> {
+        workflowHost.outputs
+    }
+}
+
 #endif

@@ -21,6 +21,7 @@ import WorkflowUI
 import XCTest
 @testable import Tutorial5Complete
 
+@MainActor
 class TodoWorkflowTests: XCTestCase {
     func testSelectingTodo() throws {
         let todos: [TodoModel] = [TodoModel(title: "Title", note: "Note")]

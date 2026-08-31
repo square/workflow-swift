@@ -16,13 +16,17 @@ import Workflow
 /// but was limited in the fact that rendering was only available to `AnyPublisher`s.
 /// this solutions makes it so that all publishers can render its view.
 extension Publisher where Failure == Never {
+    @MainActor
     public func running<Parent>(in context: RenderContext<Parent>, key: String = "") where
         Output == AnyWorkflowAction<Parent>
     {
         asAnyWorkflow().rendered(in: context, key: key, outputMap: { $0 })
     }
 
-    public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Void, NewOutput> {
+    // Note: `@Sendable` is spelled explicitly here because this module compiles in Swift 5 mode;
+    // in the core module's Swift 6 mode, `@MainActor` function types are implicitly `Sendable`,
+    // so this is the same type as `AnyWorkflow.mapOutput`'s parameter.
+    public func mapOutput<NewOutput>(_ transform: @escaping @MainActor @Sendable (Output) -> NewOutput) -> AnyWorkflow<Void, NewOutput> {
         asAnyWorkflow().mapOutput(transform)
     }
 

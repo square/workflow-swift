@@ -18,6 +18,7 @@ import Testing
 
 @testable import Workflow
 
+@MainActor
 struct SinkEventHandlerTests {
     @Test
     func initialState() async throws {

@@ -18,6 +18,7 @@ import Combine
 import Workflow
 import XCTest
 
+@MainActor
 final class StateMutationSinkTests: XCTestCase {
     var input: PassthroughSubject<Int, Never>!
 

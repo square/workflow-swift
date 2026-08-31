@@ -165,6 +165,7 @@ extension AuthenticationWorkflow {
 extension AuthenticationWorkflow {
     typealias Rendering = AlertContainerScreen<ModalContainerScreen<BackStackScreen<AnyScreen>>>
 
+    @MainActor
     func render(state: AuthenticationWorkflow.State, context: RenderContext<AuthenticationWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 
@@ -235,6 +236,7 @@ extension AuthenticationWorkflow {
         )
     }
 
+    @MainActor
     private func twoFactorScreen(error: AuthenticationService.AuthenticationError?, intermediateSession: String, sink: Sink<Action>) -> BackStackScreen<AnyScreen>.Item {
         let title: String = if let authenticationError = error {
             authenticationError.localizedDescription

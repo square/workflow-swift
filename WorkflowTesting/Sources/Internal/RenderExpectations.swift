@@ -59,6 +59,7 @@ extension RenderTester {
             self.line = line
         }
 
+        @MainActor
         func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {}
     }
 
@@ -70,6 +71,7 @@ extension RenderTester {
             super.init(key: key, file: file, line: line)
         }
 
+        @MainActor
         override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {
             let sink = context.makeSink(of: ActionType.self)
             sink.send(action)

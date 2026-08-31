@@ -6,6 +6,7 @@ import SwiftUI
 import XCTest
 @testable import WorkflowSwiftUI
 
+@MainActor
 final class StoreTests: XCTestCase {
     func test_stateRead() {
         var state = State()

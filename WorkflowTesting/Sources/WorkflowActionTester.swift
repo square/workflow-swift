@@ -110,6 +110,7 @@ public struct WorkflowActionTester<WorkflowType, Action: WorkflowAction> where A
     ///
     /// - returns: A new state tester containing the state and output (if any) after the update.
     @discardableResult
+    @MainActor
     public func send(action: Action) -> WorkflowActionTester<WorkflowType, Action>
         where Action.WorkflowType == WorkflowType
     {

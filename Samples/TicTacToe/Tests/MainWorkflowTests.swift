@@ -22,6 +22,7 @@ import XCTest
 
 @testable import TicTacToe
 
+@MainActor
 class MainWorkflowTests: XCTestCase {
     // MARK: Action Tests
 

@@ -21,6 +21,7 @@ import XCTest
 @testable import Workflow
 @testable import WorkflowReactiveSwift
 
+@MainActor
 class SignalProducerTests: XCTestCase {
     func test_signalProducerWorkflow_usesSideEffectWithKey() {
         let signalProducer = SignalProducer(value: 1)

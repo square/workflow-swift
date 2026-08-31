@@ -85,6 +85,7 @@ extension TakeTurnsWorkflow {
 extension TakeTurnsWorkflow {
     typealias Rendering = GamePlayScreen
 
+    @MainActor
     func render(state: TakeTurnsWorkflow.State, context: RenderContext<TakeTurnsWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 

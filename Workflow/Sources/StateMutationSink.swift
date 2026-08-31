@@ -40,8 +40,12 @@ public struct StateMutationSink<WorkflowType: Workflow> {
 
     /// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
     ///
+    /// Sinks deliver values into the Workflow runtime, which runs on the main actor, so `send`
+    /// is main-actor-isolated.
+    ///
     /// - Parameters:
     ///   - update: The `State` mutation to perform.
+    @MainActor
     public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
         sink.send(
             AnyWorkflowAction<WorkflowType> { state, _ in
@@ -53,9 +57,13 @@ public struct StateMutationSink<WorkflowType: Workflow> {
 
     /// Sends message to `StateMutationSink` to update `State`'s value at `KeyPath` with `Value`.
     ///
+    /// Sinks deliver values into the Workflow runtime, which runs on the main actor, so `send`
+    /// is main-actor-isolated.
+    ///
     /// - Parameters:
     ///   - keyPath: Key path of `State` whose value needs to be mutated.
     ///   - value: Value to update `State` with.
+    @MainActor
     public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
         send { $0[keyPath: keyPath] = value }
     }

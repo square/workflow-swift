@@ -63,12 +63,14 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     /// This method is invoked once when a workflow node comes into existence.
     ///
     /// - Returns: The initial state for the workflow.
+    @MainActor
     func makeInitialState() -> State
 
     /// Called when a new workflow is passed down from the parent to an existing workflow node.
     ///
     /// - Parameter previousWorkflow: The workflow before the update.
     /// - Parameter state: The current state.
+    @MainActor
     func workflowDidChange(from previousWorkflow: Self, state: inout State)
 
     /// Called by the internal Workflow infrastructure to "render" the current state into `Rendering`.
@@ -78,16 +80,19 @@ public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
     /// - Parameter context: The workflow context is the composition point for the workflow tree. To use a nested
     ///                      workflow, instantiate it based on the current state, then call `rendered(in:key:outputMap:)`.
     ///                      This will return the child's `Rendering` type after creating or updating the nested workflow.
+    @MainActor
     func render(state: State, context: RenderContext<Self>) -> Rendering
 }
 
 extension Workflow {
+    @MainActor
     public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
 extension Workflow where State == Void {
+    @MainActor
     public func makeInitialState() -> State {
         ()
     }

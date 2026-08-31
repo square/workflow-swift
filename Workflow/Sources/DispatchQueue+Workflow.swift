@@ -17,6 +17,10 @@
 import Foundation
 
 extension DispatchQueue {
+    /// The queue the Workflow runtime historically executed on. The runtime is
+    /// now `@MainActor`-isolated; this alias is retained for source
+    /// compatibility with existing schedulers (e.g. WorkflowReactiveSwift) and
+    /// will be formally deprecated in a future release.
     @_spi(WorkflowInternals)
     public static let workflowExecution: DispatchQueue = .main
 }

@@ -71,6 +71,7 @@ extension LoginWorkflow {
 extension LoginWorkflow {
     typealias Rendering = LoginScreen
 
+    @MainActor
     func render(state: LoginWorkflow.State, context: RenderContext<LoginWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
 

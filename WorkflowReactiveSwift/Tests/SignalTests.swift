@@ -20,6 +20,7 @@ import ReactiveSwift
 import XCTest
 @testable import Workflow
 
+@MainActor
 class SignalTests: XCTestCase {
     func test_output() {
         let (signal, observer) = Signal<Int, Never>.pipe()

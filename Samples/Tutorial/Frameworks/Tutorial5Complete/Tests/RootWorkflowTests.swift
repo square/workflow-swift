@@ -25,6 +25,7 @@ import XCTest
 // Import `WorkflowUI` as testable so that the wrappedScreen in `AnyScreen` can be accessed.
 @testable import WorkflowUI
 
+@MainActor
 class RootWorkflowTests: XCTestCase {
     func testWelcomeRendering() throws {
         RootWorkflow()

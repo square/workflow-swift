@@ -65,8 +65,12 @@ public final class Store<Model: ObservableModel>: Perceptible {
     /// executes normally by default.
     private func withPerceptionCheckSuppressed<T>(_ operation: () -> T) -> T {
         #if DEBUG && canImport(Observation)
+        // `Runtime.configuration` is main-actor-isolated. Store state is read
+        // from SwiftUI view bodies on the main actor in practice; if a debug
+        // read happens elsewhere, skip suppression rather than trap.
         if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *),
-           Runtime.configuration.suppressPerceptionCheckingWhenUsingObservation
+           Thread.isMainThread,
+           MainActor.assumeIsolated({ Runtime.configuration.suppressPerceptionCheckingWhenUsingObservation })
         {
             return _PerceptionLocals.$skipPerceptionChecking.withValue(true, operation: operation)
         }
@@ -174,7 +178,11 @@ extension Store {
             readState(keyPath: state)
         }
         set {
-            model[keyPath: sink].send(action(newValue))
+            // SwiftUI bindings are written on the main thread; `Sink.send`
+            // is main-actor-isolated.
+            MainActor.assumeIsolated {
+                model[keyPath: sink].send(action(newValue))
+            }
         }
     }
 }

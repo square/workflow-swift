@@ -20,6 +20,7 @@ import XCTest
 
 @_spi(WorkflowRuntimeConfig) @testable import Workflow
 
+@MainActor
 final class WorkflowHostTests: XCTestCase {
     func test_updatedInputCausesRenderPass() {
         let host = WorkflowHost(workflow: TestWorkflow(step: .first))
@@ -58,6 +59,7 @@ final class WorkflowHostTests: XCTestCase {
 
 // MARK: Event Emission Tests
 
+@MainActor
 final class WorkflowHost_EventEmissionTests: XCTestCase {
     // Previous versions of Workflow would fatalError under this scenario
     func test_event_sent_to_invalidated_sink_during_action_handling() {
@@ -396,6 +398,7 @@ extension WorkflowHost_EventEmissionTests {
 
 // MARK: Lifecycle Tests
 
+@MainActor
 final class WorkflowHost_LifecycleTests: XCTestCase {
     func test_renderingPublisherCompletesWhenHostIsReleased() {
         var host: WorkflowHost<OutputWorkflow>? = WorkflowHost(workflow: OutputWorkflow())

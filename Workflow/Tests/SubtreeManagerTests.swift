@@ -19,6 +19,7 @@ import XCTest
 
 @testable import Workflow
 
+@MainActor
 final class SubtreeManagerTests: XCTestCase {
     func test_maintainsChildrenBetweenRenderPasses() {
         let manager = WorkflowNode<ParentWorkflow>.SubtreeManager()
@@ -335,6 +336,7 @@ private struct TestWorkflow: Workflow {
 // MARK: Testing conveniences
 
 extension WorkflowSession {
+    @MainActor
     fileprivate static func testing() -> WorkflowSession {
         struct SessionTestWorkflow: Workflow {
             typealias State = Void

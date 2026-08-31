@@ -28,6 +28,7 @@ extension Workflow {
     }
 
     /// Returns a `RenderTester` with an initial state provided by `self.makeInitialState()`
+    @MainActor
     public func renderTester() -> RenderTester<Self> {
         renderTester(initialState: makeInitialState())
     }
@@ -257,6 +258,7 @@ public struct RenderTester<WorkflowType: Workflow> {
     ///   - assertions: A closure called with the produced rendering for verification
     /// - Returns: A `RenderTesterResult` that can be used to verify expected resulting state or outputs.
     @discardableResult
+    @MainActor
     public func render(
         file: StaticString = #file, line: UInt = #line,
         assertions: (WorkflowType.Rendering) throws -> Void

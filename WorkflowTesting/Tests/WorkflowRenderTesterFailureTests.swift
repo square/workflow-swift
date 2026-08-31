@@ -23,6 +23,7 @@ import XCTest
 /// WorkflowRenderTesterFailureTests does.
 ///
 /// Tests that the assertion failures actually assert failures.
+@MainActor
 final class WorkflowRenderTesterFailureTests: XCTestCase {
     var expectedFailureStrings: [String] = []
 

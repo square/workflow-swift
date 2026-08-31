@@ -22,6 +22,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowRxSwift
 
+@MainActor
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         ObservableTestWorkflow(key: "123")

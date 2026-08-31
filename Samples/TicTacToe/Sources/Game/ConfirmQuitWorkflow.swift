@@ -77,6 +77,7 @@ extension ConfirmQuitWorkflow {
 extension ConfirmQuitWorkflow {
     typealias Rendering = (ConfirmQuitScreen, Alert?)
 
+    @MainActor
     func render(state: ConfirmQuitWorkflow.State, context: RenderContext<ConfirmQuitWorkflow>) -> Rendering {
         let sink = context.makeSink(of: Action.self)
         var alert: Alert?

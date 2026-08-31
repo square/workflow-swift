@@ -23,6 +23,7 @@ import IssueReporting
 extension WorkflowNode {
     /// Manages the subtree of a workflow. Specifically, this type encapsulates the logic required to update and manage
     /// the lifecycle of nested workflows across multiple render passes.
+    @MainActor
     final class SubtreeManager {
         var onUpdate: ((Output) -> Void)?
 
@@ -199,6 +200,7 @@ extension WorkflowNode.SubtreeManager {
 
 extension WorkflowNode.SubtreeManager {
     /// The workflow context implementation used by the subtree manager.
+    @MainActor
     fileprivate final class Context: RenderContextType {
         private(set) var eventPipes: [EventPipe]
 
@@ -240,7 +242,7 @@ extension WorkflowNode.SubtreeManager {
         func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
-            outputMap: @escaping (Child.Output) -> Action
+            outputMap: @escaping @MainActor (Child.Output) -> Action
         ) -> Child.Rendering
             where WorkflowType == Action.WorkflowType
         {
@@ -328,6 +330,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - Reusable Sink
 
 extension WorkflowNode.SubtreeManager {
+    @MainActor
     fileprivate struct SinkStore {
         private var previousSinks: [ObjectIdentifier: AnyReusableSink]
         private(set) var usedSinks: [ObjectIdentifier: AnyReusableSink]
@@ -364,6 +367,7 @@ extension WorkflowNode.SubtreeManager {
     }
 
     /// Type-erased base class for reusable sinks.
+    @MainActor
     fileprivate class AnyReusableSink {
         /// The callback to invoke when an event is to be handled.
         let onSinkEvent: OnSinkEvent?
@@ -376,6 +380,8 @@ extension WorkflowNode.SubtreeManager {
     }
 
     fileprivate final class ReusableSink<Action: WorkflowAction>: AnyReusableSink where Action.WorkflowType == WorkflowType {
+        /// Main-actor entry point: `Sink.send` is main-actor-isolated, so
+        /// actions always enter the runtime on the main actor.
         func handle(action: Action) {
             if let onSinkEvent {
                 handleWithSinkEventHandler(action: action, onSinkEvent: onSinkEvent)
@@ -392,7 +398,7 @@ extension WorkflowNode.SubtreeManager {
             if case .pending = eventPipe.validationState {
                 // Workflow is currently processing an `event`.
                 // Scheduling it to be processed after.
-                DispatchQueue.workflowExecution.async { [weak self] in
+                Task { @MainActor [weak self] in
                     self?.eventPipe.handle(event: output)
                 }
                 return
@@ -404,9 +410,6 @@ extension WorkflowNode.SubtreeManager {
             action: Action,
             onSinkEvent: OnSinkEvent
         ) {
-            // new `SinkEventHandler` logic
-            dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
-
             // If we can process now, forward through the `EventPipe`
             let immediatePerform: () -> Void = {
                 let output = Output.update(
@@ -431,6 +434,7 @@ extension WorkflowNode.SubtreeManager {
 // MARK: - EventPipe
 
 extension WorkflowNode.SubtreeManager {
+    @MainActor
     final class EventPipe {
         var validationState: ValidationState
         enum ValidationState {
@@ -448,8 +452,16 @@ extension WorkflowNode.SubtreeManager {
         }
 
         func handle(event: Output) {
-            dispatchPrecondition(condition: .onQueue(DispatchQueue.workflowExecution))
+            // Every event cascade (sink sends, worker outputs, child output
+            // bubbling) enters the runtime here, so this marks the whole
+            // cascade — action application through the resulting render —
+            // as active for deinit-finalization dispatch.
+            WorkflowRuntimeActivity.perform {
+                handleMarkedActive(event: event)
+            }
+        }
 
+        private func handleMarkedActive(event: Output) {
             let isReentrantCall = isHandlingEvent
             isHandlingEvent = true
             defer { isHandlingEvent = isReentrantCall }
@@ -529,6 +541,7 @@ extension WorkflowNode.SubtreeManager {
 
 extension WorkflowNode.SubtreeManager {
     /// Abstract base class for running children in the subtree.
+    @MainActor
     class AnyChildWorkflow {
         fileprivate var eventPipe: EventPipe
 
@@ -547,11 +560,11 @@ extension WorkflowNode.SubtreeManager {
 
     fileprivate final class ChildWorkflow<W: Workflow>: AnyChildWorkflow {
         private let node: WorkflowNode<W>
-        private var outputMap: (W.Output) -> any WorkflowAction<WorkflowType>
+        private var outputMap: @MainActor (W.Output) -> any WorkflowAction<WorkflowType>
 
         init(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping @MainActor (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe,
             key: String,
             hostContext: HostContext,
@@ -582,7 +595,7 @@ extension WorkflowNode.SubtreeManager {
 
         func update(
             workflow: W,
-            outputMap: @escaping (W.Output) -> any WorkflowAction<WorkflowType>,
+            outputMap: @escaping @MainActor (W.Output) -> any WorkflowAction<WorkflowType>,
             eventPipe: EventPipe
         ) {
             self.outputMap = outputMap

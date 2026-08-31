@@ -20,6 +20,7 @@ import Workflow
 import WorkflowRxSwiftTesting
 import XCTest
 
+@MainActor
 class ObservableTests: XCTestCase {
     func testObservableWorkflow() {
         TestWorkflow()

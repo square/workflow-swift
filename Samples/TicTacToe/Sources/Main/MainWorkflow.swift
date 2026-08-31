@@ -67,6 +67,7 @@ extension MainWorkflow {
 extension MainWorkflow {
     typealias Rendering = AlertContainerScreen<ModalContainerScreen<BackStackScreen<AnyScreen>>>
 
+    @MainActor
     func render(state: MainWorkflow.State, context: RenderContext<MainWorkflow>) -> Rendering {
         switch state {
         case .authenticating:

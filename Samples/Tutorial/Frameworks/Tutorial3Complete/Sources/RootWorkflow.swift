@@ -88,6 +88,7 @@ extension RootWorkflow {
 extension RootWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>
 
+    @MainActor
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         // Delete the `let sink = context.makeSink(of: ...) as we no longer need a sink.
 

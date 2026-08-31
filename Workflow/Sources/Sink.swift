@@ -17,17 +17,22 @@
 /// Sink is a type that receives incoming values (commonly events or `WorkflowAction`)
 ///
 /// Use `RenderContext.makeSink` to create instances.
-public struct Sink<Value> {
-    private let onValue: (Value) -> Void
+///
+/// Sinks deliver values into the Workflow runtime, which runs on the main
+/// actor, so `send` is main-actor-isolated. A `Sink` value itself is
+/// `Sendable` and may be captured and stored anywhere.
+public struct Sink<Value>: Sendable {
+    private let onValue: @MainActor (Value) -> Void
 
     /// Initializes a new sink with the given closure.
-    public init(_ onValue: @escaping (Value) -> Void) {
+    public init(_ onValue: @escaping @MainActor (Value) -> Void) {
         self.onValue = onValue
     }
 
     /// Sends a new event into the sink.
     ///
     /// - Parameter event: The value to send into the sink.
+    @MainActor
     public func send(_ value: Value) {
         onValue(value)
     }
@@ -52,7 +57,7 @@ public struct Sink<Value> {
     /// *input* types of its API.
     ///
     /// - Parameter transform: An escaping closure that transforms `T` into `Event`.
-    public func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
+    public func contraMap<NewValue>(_ transform: @escaping @MainActor (NewValue) -> Value) -> Sink<NewValue> {
         Sink<NewValue> { value in
             send(transform(value))
         }

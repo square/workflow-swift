@@ -46,6 +46,7 @@ import Foundation
 ///
 /// The infrastructure then performs a render pass on the child to obtain its
 /// `Rendering` value, which is then returned to the caller.
+@MainActor
 public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     private(set) var isValid = true
 
@@ -66,7 +67,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     func render<Child: Workflow, Action: WorkflowAction>(
         workflow: Child,
         key: String,
-        outputMap: @escaping (Child.Output) -> Action
+        outputMap: @escaping @MainActor (Child.Output) -> Action
     ) -> Child.Rendering where WorkflowType == Action.WorkflowType {
         fatalError()
     }
@@ -127,7 +128,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
         override func render<Child: Workflow, Action: WorkflowAction>(
             workflow: Child,
             key: String,
-            outputMap: @escaping (Child.Output) -> Action
+            outputMap: @escaping @MainActor (Child.Output) -> Action
         ) -> Child.Rendering
             where WorkflowType == Action.WorkflowType
         {
@@ -158,13 +159,14 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
     }
 }
 
+@MainActor
 protocol RenderContextType: AnyObject {
     associatedtype WorkflowType: Workflow
 
     func render<Child: Workflow, Action: WorkflowAction>(
         workflow: Child,
         key: String,
-        outputMap: @escaping (Child.Output) -> Action
+        outputMap: @escaping @MainActor (Child.Output) -> Action
     ) -> Child.Rendering where Action.WorkflowType == WorkflowType
 
     func makeSink<Action: WorkflowAction>(
@@ -175,6 +177,36 @@ protocol RenderContextType: AnyObject {
         key: AnyHashable,
         action: (_ lifetime: Lifetime) -> Void
     )
+}
+
+extension RenderContext {
+    /// Execute an asynchronous side-effect action.
+    ///
+    /// `action` runs in a `Task` owned by the workflow node the first time a
+    /// side-effect is run with a given `key`. Calls with the same `key` on
+    /// subsequent renders are ignored. If, after a render pass, a previously
+    /// used `key` is no longer used, the `Task` is cancelled — cancellation is
+    /// cooperative, so long-running work should check `Task.isCancelled` or
+    /// use cancellation-aware APIs.
+    ///
+    /// Prefer this over the `Lifetime`-based variant for new code.
+    ///
+    /// - Parameters:
+    ///   - key: represents the block of work that needs to be executed.
+    ///   - action: an async block of work to execute.
+    public func runSideEffect(
+        key: AnyHashable,
+        action: @escaping @Sendable () async -> Void
+    ) {
+        runSideEffect(key: key) { lifetime in
+            let task = Task {
+                await action()
+            }
+            lifetime.onEnded {
+                task.cancel()
+            }
+        }
+    }
 }
 
 extension RenderContext {

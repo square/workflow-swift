@@ -20,6 +20,7 @@ import WorkflowConcurrencyTesting
 import WorkflowTesting
 import XCTest
 
+@MainActor
 class WorkflowConcurrencyTestingTests: XCTestCase {
     func test_workers() {
         let renderTester = TestWorkflow()

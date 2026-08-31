@@ -20,6 +20,7 @@ import Workflow
 import WorkflowReactiveSwiftTesting
 import XCTest
 
+@MainActor
 class SignalProducerTests: XCTestCase {
     func test_signalProducerWorkflow() {
         TestWorkflow()

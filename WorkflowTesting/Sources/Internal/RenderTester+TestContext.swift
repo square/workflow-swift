@@ -49,7 +49,7 @@ extension RenderTester {
             self.applyContext = applyContext
         }
 
-        func render<Child: Workflow, Action: WorkflowAction>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
+        func render<Child: Workflow, Action: WorkflowAction>(workflow: Child, key: String, outputMap: @escaping @MainActor (Child.Output) -> Action) -> Child.Rendering where Action.WorkflowType == WorkflowType {
             let matchingTypes = expectedWorkflows.compactMap { $0 as? ExpectedWorkflow<Child> }
             guard let expectedWorkflow = matchingTypes.first(where: { $0.key == key }) else {
                 let sameTypeDifferentKeys = matchingTypes.map(\.key)

@@ -20,6 +20,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowConcurrency
 
+@MainActor
 class WorkerTests: XCTestCase {
     func testWorkerOutput() {
         let host = WorkflowHost(

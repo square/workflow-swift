@@ -2,6 +2,7 @@ import XCTest
 
 @testable import Workflow
 
+@MainActor
 final class HostContextTests: XCTestCase {
     func test_conditional_debug_info_no_debugger() {
         let subject = HostContext.testing(debugger: nil)

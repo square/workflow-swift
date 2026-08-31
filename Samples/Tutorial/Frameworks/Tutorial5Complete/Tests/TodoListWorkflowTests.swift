@@ -18,6 +18,7 @@ import WorkflowTesting
 import XCTest
 @testable import Tutorial5Complete
 
+@MainActor
 class TodoListWorkflowTests: XCTestCase {
     func testActions() throws {
         TodoListWorkflow.Action

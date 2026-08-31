@@ -60,15 +60,16 @@ struct StateTransitioningWorkflow: Workflow {
 // MARK: - HostContext
 
 extension HostContext {
+    @MainActor
     static func testing(
         observer: WorkflowObserver? = nil,
         debugger: WorkflowDebugger? = nil,
-        runtimeConfig: Runtime.Configuration = Runtime.configuration
+        runtimeConfig: Runtime.Configuration? = nil
     ) -> HostContext {
         HostContext(
             observer: observer,
             debugger: debugger,
-            runtimeConfig: runtimeConfig,
+            runtimeConfig: runtimeConfig ?? Runtime.configuration,
             onSinkEvent: { perform, _ in perform() }
         )
     }

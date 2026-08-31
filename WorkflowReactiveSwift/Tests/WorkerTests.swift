@@ -21,6 +21,7 @@ import WorkflowTesting
 import XCTest
 @testable import WorkflowReactiveSwift
 
+@MainActor
 class WorkerTests: XCTestCase {
     func testExpectedWorker() {
         SignalProducerTestWorkflow(key: "123")

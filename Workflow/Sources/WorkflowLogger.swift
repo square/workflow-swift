@@ -24,6 +24,7 @@ extension OSLog {
     /// The active log handle to use when logging. If `WorkflowLogging.osLoggingSupported` is
     /// `true`, defaults to the `workflow` handle, otherwise defaults to the shared `.disabled`
     /// handle.
+    @MainActor
     fileprivate static var active: OSLog = WorkflowLogging.isOSLoggingAllowed ? .workflow : .disabled
 }
 
@@ -47,9 +48,9 @@ extension WorkflowLogging {
 }
 
 extension WorkflowLogging {
-    public struct Config {
+    public struct Config: Sendable {
         /// Configuration options to control logging during a render pass.
-        public enum RenderLoggingMode {
+        public enum RenderLoggingMode: Sendable {
             /// No data will be recorded for WorkflowNode render timings.
             case none
 
@@ -81,6 +82,7 @@ extension WorkflowLogging {
     ///
     /// If you wish for more control over what the runtime will log, you may additionally specify
     /// a custom value for `WorkflowLogging.config`.
+    @MainActor
     public static var enabled: Bool {
         get { OSLog.active === OSLog.workflow }
         set {
@@ -90,6 +92,7 @@ extension WorkflowLogging {
     }
 
     /// Configuration options used to determine which activities are logged.
+    @MainActor
     public static var config: Config = .rootRendersAndActions
 }
 
@@ -114,7 +117,12 @@ final class SignpostRef {
 enum WorkflowLogger {
     // MARK: Workflows
 
-    static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
+    /// Logs the start of a node's "Alive" interval. `ref` anchors the signpost
+    /// identity and must be the same object later passed to
+    /// `logWorkflowFinished(ref:)`; a `SignpostRef` owned by the node lets the
+    /// end of the interval be logged after the node itself is gone.
+    @MainActor
+    static func logWorkflowStarted(ref: AnyObject, workflowType: String) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
             WorkflowLogging.config.logLifetimes
@@ -127,11 +135,12 @@ enum WorkflowLogger {
             name: "Alive",
             signpostID: signpostID,
             "Workflow: %{public}@",
-            String(describing: WorkflowType.self)
+            workflowType
         )
     }
 
-    static func logWorkflowFinished(ref: WorkflowNode<some Any>) {
+    @MainActor
+    static func logWorkflowFinished(ref: AnyObject) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
             WorkflowLogging.config.logLifetimes
@@ -141,6 +150,7 @@ enum WorkflowLogger {
         os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
     }
 
+    @MainActor
     static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
         guard
             WorkflowLogging.isOSLoggingAllowed,
@@ -160,6 +170,7 @@ enum WorkflowLogger {
 
     // MARK: Rendering
 
+    @MainActor
     static func logWorkflowStartedRendering<WorkflowType>(
         ref: WorkflowNode<WorkflowType>
     ) {
@@ -178,6 +189,7 @@ enum WorkflowLogger {
         )
     }
 
+    @MainActor
     static func logWorkflowFinishedRendering(
         ref: WorkflowNode<some Any>
     ) {
@@ -191,6 +203,7 @@ enum WorkflowLogger {
 
     // MARK: - Utilities
 
+    @MainActor
     private static func shouldLogRenderTimings(
         isRootNode: @autoclosure () -> Bool
     ) -> Bool {

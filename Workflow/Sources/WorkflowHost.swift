@@ -32,6 +32,7 @@ public protocol WorkflowDebugger {
 }
 
 /// Manages an active workflow hierarchy.
+@MainActor
 public final class WorkflowHost<WorkflowType: Workflow> {
     private let outputSubject = PassthroughSubject<WorkflowType.Output, Never>()
 
@@ -39,6 +40,15 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     let rootNode: WorkflowNode<WorkflowType>
 
     private let renderingSubject: CurrentValueSubject<WorkflowType.Rendering, Never>
+
+    private let renderingMulticaster = AsyncMulticaster<WorkflowType.Rendering>()
+    private let outputMulticaster = AsyncMulticaster<WorkflowType.Output>()
+
+    /// Erased hooks into the multicasters, installed lazily by the `renderings`
+    /// and `outputs` accessors (whose extensions know the element types are
+    /// `Sendable`). `nil` until the corresponding stream is first requested.
+    private var yieldRendering: ((WorkflowType.Rendering) -> Void)?
+    private var yieldOutput: ((WorkflowType.Output) -> Void)?
 
     /// The current `Rendering` produced by the root workflow in the hierarchy. A new `Rendering` value is produced
     /// as state transitions occur within the hierarchy.
@@ -61,6 +71,11 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     let sinkEventHandler: SinkEventHandler
+
+    /// Finalization work to perform when the host deinits. Stored as a
+    /// main-actor closure so the (nonisolated) deinit can schedule it on the
+    /// main actor without capturing the non-Sendable subjects directly.
+    private let finalizeOnMainActor: @MainActor () -> Void
 
     /// Initializes a new host with the given workflow at the root.
     ///
@@ -91,13 +106,22 @@ public final class WorkflowHost<WorkflowType: Workflow> {
             onSinkEvent: sinkEventCallback
         )
 
-        self.rootNode = WorkflowNode(
+        let rootNode = WorkflowNode(
             workflow: workflow,
             hostContext: context,
             parentSession: nil
         )
+        self.rootNode = rootNode
 
-        self.renderingSubject = CurrentValueSubject(rootNode.render())
+        self.renderingSubject = WorkflowRuntimeActivity.perform {
+            CurrentValueSubject(rootNode.render())
+        }
+
+        self.finalizeOnMainActor = { [renderingSubject, outputSubject] in
+            renderingSubject.send(completion: .finished)
+            outputSubject.send(completion: .finished)
+        }
+
         rootNode.enableEvents()
 
         debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
@@ -108,18 +132,19 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     deinit {
-        renderingSubject.send(completion: .finished)
-        outputSubject.send(completion: .finished)
+        finalizeFromDeinit(finalizeOnMainActor)
     }
 
     /// Update the input for the workflow. Will cause a render pass.
     public func update(workflow: WorkflowType) {
-        if context.runtimeConfig.useSinkEventHandler {
-            sinkEventHandler.withEventHandlingSuspended {
+        WorkflowRuntimeActivity.perform {
+            if context.runtimeConfig.useSinkEventHandler {
+                sinkEventHandler.withEventHandlingSuspended {
+                    updateRootNode(workflow: workflow)
+                }
+            } else {
                 updateRootNode(workflow: workflow)
             }
-        } else {
-            updateRootNode(workflow: workflow)
         }
     }
 
@@ -141,14 +166,23 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     }
 
     private func handle(output: WorkflowNode<WorkflowType>.Output) {
+        WorkflowRuntimeActivity.perform {
+            handleMarkedActive(output: output)
+        }
+    }
+
+    private func handleMarkedActive(output: WorkflowNode<WorkflowType>.Output) {
         let shouldRender = !shouldSkipRenderForOutput(output)
         if shouldRender {
-            renderingSubject.send(rootNode.render())
+            let rendering = rootNode.render()
+            renderingSubject.send(rendering)
+            yieldRendering?(rendering)
         }
 
         // Always emit an output, regardless of whether a render occurs
         if let outputEvent = output.outputEvent {
             outputSubject.send(outputEvent)
+            yieldOutput?(outputEvent)
         }
 
         debugger?.didUpdate(
@@ -165,6 +199,45 @@ public final class WorkflowHost<WorkflowType: Workflow> {
     /// A publisher of the output events emitted by the root workflow in the hierarchy.
     public var outputPublisher: AnyPublisher<WorkflowType.Output, Never> {
         outputSubject.eraseToAnyPublisher()
+    }
+}
+
+extension WorkflowHost where WorkflowType.Rendering: Sendable {
+    /// An asynchronous sequence of the `Rendering` values produced by the root
+    /// workflow in the hierarchy. Yields the most recent `Rendering` when
+    /// iteration begins, followed by a new value after each subsequent render
+    /// pass. A slow consumer only ever observes the latest rendering; stale
+    /// intermediate values are dropped.
+    ///
+    /// Each access returns an independent stream. Obtain a fresh stream per
+    /// consumer; a single stream must not be iterated more than once.
+    public var renderings: AsyncStream<WorkflowType.Rendering> {
+        if yieldRendering == nil {
+            yieldRendering = { [renderingMulticaster] in
+                renderingMulticaster.yield($0)
+            }
+        }
+        return renderingMulticaster.makeStream(
+            bufferingPolicy: .bufferingNewest(1),
+            initial: renderingSubject.value
+        )
+    }
+}
+
+extension WorkflowHost where WorkflowType.Output: Sendable {
+    /// An asynchronous sequence of the output events emitted by the root
+    /// workflow in the hierarchy. Every output emitted after the stream is
+    /// created is delivered, in order — the stream buffers without dropping.
+    ///
+    /// Each access returns an independent stream. Obtain a fresh stream per
+    /// consumer; a single stream must not be iterated more than once.
+    public var outputs: AsyncStream<WorkflowType.Output> {
+        if yieldOutput == nil {
+            yieldOutput = { [outputMulticaster] in
+                outputMulticaster.yield($0)
+            }
+        }
+        return outputMulticaster.makeStream(bufferingPolicy: .unbounded)
     }
 }
 
@@ -228,6 +301,7 @@ typealias OnSinkEvent = (
 
 /// Handles events from 'Sinks' such that runtime-level event handling state is appropriately
 /// managed, and attempts to perform reentrant action handling can be detected and dealt with.
+@MainActor
 final class SinkEventHandler {
     enum State {
         /// Ready to handle an event.
@@ -259,7 +333,13 @@ final class SinkEventHandler {
             withEventHandlingSuspended(immediate)
 
         case .busy:
-            DispatchQueue.workflowExecution.async(execute: deferred)
+            // Delivery stays on the main actor; relative ordering with other
+            // main-queue work is best-effort per Task scheduling semantics.
+            // Non-Sendable captures are legal because creation context and
+            // Task isolation are both MainActor (no region crossing).
+            Task { @MainActor in
+                deferred()
+            }
         }
     }
 

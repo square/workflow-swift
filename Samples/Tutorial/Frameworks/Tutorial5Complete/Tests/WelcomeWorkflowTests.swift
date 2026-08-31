@@ -18,6 +18,7 @@ import WorkflowTesting
 import XCTest
 @testable import Tutorial5Complete
 
+@MainActor
 class WelcomeWorkflowTests: XCTestCase {
     func testNameUpdates() throws {
         WelcomeWorkflow.Action

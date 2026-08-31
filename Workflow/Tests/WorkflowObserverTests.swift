@@ -18,6 +18,7 @@ import XCTest
 
 @testable @_spi(WorkflowGlobalObservation) import Workflow
 
+@MainActor
 final class WorkflowObserverTests: XCTestCase {
     private var observer: TestObserver!
 
@@ -56,6 +57,11 @@ final class WorkflowObserverTests: XCTestCase {
         }
 
         XCTAssertNil(weakHost, "host expected to deallocate")
+
+        // Deinit finalization (including `sessionDidEnd`) is scheduled onto
+        // the main actor rather than run inline; let it run.
+        drainMainQueueBySpinningRunLoop()
+
         XCTAssertNotNil(beganSession)
         XCTAssertNotNil(beganSession?.sessionID)
         XCTAssertEqual(beganSession?.sessionID, endedSession?.sessionID)
@@ -653,6 +659,7 @@ private struct InjectableWorkflow: Workflow {
 extension WorkflowSession {
     fileprivate var workflowTypeString: String { String(describing: workflowType) }
 
+    @MainActor
     fileprivate static var testingSession: Self {
         WorkflowSession(
             workflow: Parent(),

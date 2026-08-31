@@ -20,6 +20,7 @@ import XCTest
 
 @testable import WorkflowTesting
 
+@MainActor
 struct SwiftTestingCompatibilityTests {
     @Test
     func testInternalFailureRecordsExpectationFailure_swiftTesting() {
@@ -32,6 +33,7 @@ struct SwiftTestingCompatibilityTests {
     }
 }
 
+@MainActor
 final class XCTestCompatibilityTests: XCTestCase {
     func testInternalFailureRecordsExpectationFailure_xctest() {
         XCTExpectFailure {

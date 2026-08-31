@@ -19,6 +19,7 @@ import Testing
 import Workflow
 @testable import WorkflowTesting
 
+@MainActor
 struct WorkflowActionTesterTests {
     @Test func stateTransitions() {
         TestAction
@@ -144,6 +145,7 @@ extension WorkflowActionTesterTests {
 // that xcodebuild bug is resolved.
 import XCTest
 
+@MainActor
 final class WorkflowActionTesterExpectedFailureTests: XCTestCase {
     func test_old_api_errors_accessing_optional_through_apply_context_without_proper_setup() {
         withExpectedIssue("reading optional value through context without workflow should fail but not crash") {

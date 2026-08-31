@@ -41,9 +41,11 @@ public enum Runtime {
         _defaultConfiguration = config
     }
 
+    @MainActor
     private static var _defaultConfiguration = Configuration()
 
     /// The configuration active for the current task, falling back to the default configuration.
+    @MainActor
     package static var configuration: Configuration {
         _currentConfiguration ?? _defaultConfiguration
     }
@@ -53,6 +55,7 @@ public enum Runtime {
     /// - Parameters:
     ///   - override: An option block to reconfigure the current configuration value.
     ///   - operation: The operation to perform with the customized configuration.
+    @MainActor
     public static func withConfiguration<T>(
         override: ((inout Configuration) -> Void)? = nil,
         operation: () -> T
@@ -71,7 +74,7 @@ public enum Runtime {
 
 extension Runtime {
     /// Configuration options for the Workflow runtime.
-    public struct Configuration: Equatable {
+    public struct Configuration: Equatable, Sendable {
         /// The default runtime configuration.
         static let `default` = Configuration()
 

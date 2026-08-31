@@ -18,6 +18,7 @@ import WorkflowTesting
 import XCTest
 @testable import Tutorial5Complete
 
+@MainActor
 class TodoEditWorkflowTests: XCTestCase {
     func testAction() throws {
         TodoEditWorkflow.Action

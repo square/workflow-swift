@@ -15,6 +15,7 @@
  */
 
 /// Manages a running workflow.
+@MainActor
 final class WorkflowNode<WorkflowType: Workflow> {
     /// The current `State` of the node's `Workflow`.
     private var state: WorkflowType.State
@@ -41,6 +42,15 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     lazy var hasVoidState: Bool = WorkflowType.State.self == Void.self
 
+    /// Anchors the node's "Alive" signpost interval to a pointer identity
+    /// that the deinit-scheduled finalization can safely outlive `self` with.
+    private let signpostRef = SignpostRef()
+
+    /// Finalization work to perform when the node deinits. Stored as a
+    /// main-actor closure so the (nonisolated) deinit can schedule it on the
+    /// main actor without capturing `self` or its non-Sendable dependencies.
+    private let finalizeOnMainActor: @MainActor () -> Void
+
     init(
         workflow: WorkflowType,
         key: String = "",
@@ -64,13 +74,27 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
         self.state = workflow.makeInitialState()
 
+        self.finalizeOnMainActor = { [subtreeManager, observer = hostContext.observer, session, signpostRef] in
+            // Capturing the subtree manager defers the subtree's teardown
+            // (child deinits, side-effect terminations) to this scheduled
+            // finalization, so it can't interleave with the main-actor work
+            // that released the node — e.g. an in-progress render pass.
+            withExtendedLifetime(subtreeManager) {
+                observer?.sessionDidEnd(session)
+                WorkflowLogger.logWorkflowFinished(ref: signpostRef)
+            }
+        }
+
         observer?.workflowDidMakeInitialState(
             workflow,
             initialState: state,
             session: session
         )
 
-        WorkflowLogger.logWorkflowStarted(ref: self)
+        WorkflowLogger.logWorkflowStarted(
+            ref: signpostRef,
+            workflowType: String(describing: WorkflowType.self)
+        )
 
         subtreeManager.onUpdate = { [weak self] output in
             self?.handle(subtreeOutput: output)
@@ -78,8 +102,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
     }
 
     deinit {
-        observer?.sessionDidEnd(session)
-        WorkflowLogger.logWorkflowFinished(ref: self)
+        finalizeFromDeinit(finalizeOnMainActor)
     }
 
     /// Handles an event produced by the subtree manager

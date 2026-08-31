@@ -18,6 +18,7 @@ import Combine
 import XCTest
 @testable import Workflow
 
+@MainActor
 public class AnyWorkflowTests: XCTestCase {
     func testRendersWrappedWorkflow() {
         let workflow = AnyWorkflow(SimpleWorkflow(string: "asdf"))
@@ -106,6 +107,7 @@ extension PassthroughWorkflow {
         State()
     }
 
+    @MainActor
     func render(state: State, context: RenderContext<PassthroughWorkflow<Rendering>>) -> Rendering {
         child.rendered(in: context)
     }

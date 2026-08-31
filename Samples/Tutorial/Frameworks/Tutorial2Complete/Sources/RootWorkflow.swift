@@ -90,6 +90,7 @@ extension RootWorkflow {
 extension RootWorkflow {
     typealias Rendering = BackStackScreen<AnyScreen>
 
+    @MainActor
     func render(state: RootWorkflow.State, context: RenderContext<RootWorkflow>) -> Rendering {
         // Create a sink to handle the back action from the TodoListWorkflow to log out.
         let sink = context.makeSink(of: Action.self)
