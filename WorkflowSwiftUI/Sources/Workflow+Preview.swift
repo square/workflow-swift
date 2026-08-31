@@ -42,28 +42,43 @@ private struct PreviewView<WorkflowType: Workflow>: UIViewControllerRepresentabl
     let customizeEnvironment: (inout ViewEnvironment) -> Void
     let onOutput: (WorkflowType.Output) -> Void
 
+    // Both representable callbacks drive a workflow render pass synchronously, and the check
+    // Perception performs there decides whether it is looking at a SwiftUI view body by walking the
+    // call stack for AttributeGraph frames. SwiftUI is what calls these methods, so those frames are
+    // present and every observable read the render pass makes is misreported — including reads a
+    // workflow makes of its own state, which never pass through a `Store` and so cannot be covered
+    // by the suppression there.
+    //
+    // These warnings are unique to previews. The same workflow running in an app renders off a
+    // runtime update rather than a SwiftUI one, so no AttributeGraph frame is on the stack and the
+    // check correctly stays quiet.
+
     func makeUIViewController(context: Context) -> UIViewControllerType {
-        let controller = WorkflowHostingController(
-            workflow: workflow,
-            customizeEnvironment: customizeEnvironment
-        )
-        let coordinator = context.coordinator
+        withPerceptionCheckSuppressed {
+            let controller = WorkflowHostingController(
+                workflow: workflow,
+                customizeEnvironment: customizeEnvironment
+            )
+            let coordinator = context.coordinator
 
-        coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
+            coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
 
-        return controller
+            return controller
+        }
     }
 
     func updateUIViewController(
         _ controller: UIViewControllerType,
         context: Context
     ) {
-        let coordinator = context.coordinator
+        withPerceptionCheckSuppressed {
+            let coordinator = context.coordinator
 
-        coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
+            coordinator.outputCancellable = controller.outputPublisher.sink(receiveValue: onOutput)
 
-        controller.customizeEnvironment = customizeEnvironment
-        controller.update(workflow: workflow)
+            controller.customizeEnvironment = customizeEnvironment
+            controller.update(workflow: workflow)
+        }
     }
 
     func makeCoordinator() -> Coordinator {
