@@ -776,7 +776,7 @@ final class StoreTests: XCTestCase {
     // MARK: - Native SwiftUI Bindings
 
     @MainActor
-    func test_perceptionRuntimeWarningsWhenUsingObservation() throws {
+    func test_perceptionRuntimeWarningsWhenCheckingIsEnabled() throws {
         #if DEBUG
         guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
             throw XCTSkip("Requires native Observation")
@@ -790,7 +790,12 @@ final class StoreTests: XCTestCase {
         )
         let (store, _) = Store.make(model: model)
 
-        let image = ImageRenderer(content: PerceptionRuntimeWarningView(store: store)).cgImage
+        let image = Runtime.withConfiguration(
+            override: { $0.enablePerceptionChecking = true },
+            operation: {
+                ImageRenderer(content: PerceptionRuntimeWarningView(store: store)).cgImage
+            }
+        )
         _ = image
         #else
         throw XCTSkip("Perception runtime warnings are debug-only")
@@ -798,7 +803,7 @@ final class StoreTests: XCTestCase {
     }
 
     @MainActor
-    func test_perceptionRuntimeWarningsCanBeSuppressedWhenUsingObservation() throws {
+    func test_perceptionRuntimeWarningsAreDisabledByDefault() throws {
         #if DEBUG
         guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
             throw XCTSkip("Requires native Observation")
@@ -812,15 +817,12 @@ final class StoreTests: XCTestCase {
         )
         let (store, _) = Store.make(model: model)
 
-        // Rendering evaluates the Store reads inside the override. If suppression fails,
-        // Perception reports an unexpected XCTest failure, so the absence of a failure is the
-        // assertion.
-        let image = Runtime.withConfiguration(
-            override: { $0.suppressPerceptionCheckingWhenUsingObservation = true },
-            operation: {
-                ImageRenderer(content: SuppressedPerceptionRuntimeWarningView(store: store)).cgImage
-            }
-        )
+        // Rendering evaluates the Store reads with no configuration override at all. If the check
+        // runs, Perception reports an unexpected XCTest failure, so the absence of a failure is
+        // the assertion.
+        let image = ImageRenderer(
+            content: SuppressedPerceptionRuntimeWarningView(store: store)
+        ).cgImage
         _ = image
         #else
         throw XCTSkip("Perception runtime warnings are debug-only")
