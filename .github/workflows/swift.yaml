@@ -55,8 +55,11 @@ jobs:
     - name: Install iOS ${{ matrix.sdk }}
       if: ${{ matrix.installation_required }}
       run: |
-        sudo xcodebuild -downloadPlatform iOS -buildVersion "${{ matrix.sdk }}"
         sudo xcodebuild -runFirstLaunch
+        # Start CoreSimulator in the runner's session before downloading a runtime.
+        # https://github.com/actions/runner-images/issues/12862
+        xcrun simctl list runtimes
+        xcodebuild -downloadPlatform iOS -buildVersion "${{ matrix.sdk }}"
         xcrun simctl list
 
     - name: Ensure sim exists
