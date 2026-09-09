@@ -198,6 +198,48 @@ public struct SwiftUIScreenSizingOptions: OptionSet {
     public static let preferredContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 0)
 }
 
+extension UIViewController {
+    /// Decorates the complete SwiftUI content of an `ObservableScreen` host before it renders.
+    ///
+    /// A container can use this to install a root preference collector or environment bridge
+    /// without changing the screen's conformance, content type, model, or customization hooks.
+    /// Call once, immediately after building the screen's view controller and before loading
+    /// its view. The modifier remains installed for the lifetime of that hosting controller,
+    /// including across screen and model updates. It does not decorate separate child hosts.
+    ///
+    /// ```swift
+    /// let controller = screen.buildViewController(in: environment)
+    /// controller.decorateObservableScreenContent(with: ContainerPreferenceCollector())
+    /// // Configure containment and load the view after installing the modifier.
+    /// ```
+    ///
+    /// - Returns: `true` if installed. Returns `false`, without changing the controller, when
+    ///   the controller is not an `ObservableScreen` host, its view has already loaded, or a
+    ///   decorator has already been installed. Custom hosts must provide their own integration.
+    @discardableResult
+    public func decorateObservableScreenContent(with modifier: some ViewModifier) -> Bool {
+        guard let host = self as? ObservableScreenContentHosting else { return false }
+        return host.installContentDecorator { AnyView($0.modifier(modifier)) }
+    }
+}
+
+private protocol ObservableScreenContentHosting: AnyObject {
+    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> Bool
+}
+
+private struct ObservableScreenRoot<Content: View>: View {
+    var content: Content
+    var decorate: ((AnyView) -> AnyView)?
+
+    var body: some View {
+        if let decorate {
+            decorate(AnyView(content))
+        } else {
+            content
+        }
+    }
+}
+
 private struct ViewEnvironmentModifier: ViewModifier {
     @ObservedObject var holder: ViewEnvironmentHolder
 
@@ -216,8 +258,9 @@ private final class ViewEnvironmentHolder: ObservableObject {
 }
 
 private final class ObservableScreenViewController<ScreenType: ObservableScreen, Content: View>:
-    UIHostingController<ModifiedContent<Content, ViewEnvironmentModifier>>,
-    ViewEnvironmentObserving
+    UIHostingController<ModifiedContent<ObservableScreenRoot<Content>, ViewEnvironmentModifier>>,
+    ViewEnvironmentObserving,
+    ObservableScreenContentHosting
 {
     typealias Model = ScreenType.Model
 
@@ -246,7 +289,7 @@ private final class ObservableScreenViewController<ScreenType: ObservableScreen,
         self.screen = screen
 
         super.init(
-            rootView: rootView
+            rootView: ObservableScreenRoot(content: rootView)
                 .modifier(ViewEnvironmentModifier(holder: viewEnvironmentHolder))
         )
 
@@ -256,6 +299,12 @@ private final class ObservableScreenViewController<ScreenType: ObservableScreen,
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("not implemented")
+    }
+
+    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> Bool {
+        guard !isViewLoaded, rootView.content.decorate == nil else { return false }
+        rootView.content.decorate = decorate
+        return true
     }
 
     func update(screen: ScreenType) {
