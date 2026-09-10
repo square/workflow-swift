@@ -209,7 +209,6 @@ class TakeTurnsWorkflowTests: XCTestCase {
         TakeTurnsWorkflow(playerX: "X", playerO: "O")
             .renderTester(initialState: emptyBoardState)
             .render { screen in
-
                 // The display value for player X should match what was passed to the workflow.
                 XCTAssertEqual(screen.playerX, "X")
 
@@ -272,7 +271,6 @@ class TakeTurnsWorkflowTests: XCTestCase {
         TakeTurnsWorkflow(playerX: "X", playerO: "O")
             .renderTester(initialState: boardState)
             .render { screen in
-
                 // The display value for player X should match what was passed to the workflow.
                 XCTAssertEqual(screen.playerX, "X")
 
