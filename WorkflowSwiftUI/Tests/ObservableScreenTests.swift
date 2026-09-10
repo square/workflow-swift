@@ -7,6 +7,82 @@ import WorkflowSwiftUI
 import XCTest
 
 final class ObservableScreenTests: XCTestCase {
+    func test_contentDecoratorCollectsPreferencesFromAnErasedScreen() {
+        let probe = ContentDecorationProbe()
+        let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
+        let viewController = screen.asAnyScreen().buildViewController(in: .empty)
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
+
+        show(viewController: viewController) { controller in
+            controller.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
+            controller.view.layoutIfNeeded()
+            XCTAssertEqual(probe.preference, 7)
+            XCTAssertEqual(probe.identities.count, 1)
+        }
+    }
+
+    func test_contentDecoratorSurvivesUpdatesWithoutReplacingLocalState() {
+        let probe = ContentDecorationProbe()
+        let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
+        let viewController = screen.buildViewController(in: .empty)
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
+
+        show(viewController: viewController) { controller in
+            controller.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
+            controller.view.layoutIfNeeded()
+            let identities = probe.identities
+            let replacement = ContentDecorationScreen(model: .constant(state: .init(value: 9, probe: probe)))
+            XCTAssertTrue(replacement.canUpdate(viewController: controller, with: .empty))
+            replacement.update(viewController: controller, with: .empty)
+            controller.view.setNeedsLayout()
+            controller.view.layoutIfNeeded()
+            XCTAssertEqual(probe.preference, 9)
+            XCTAssertEqual(probe.identities, identities)
+            XCTAssertEqual(identities.count, 1)
+        }
+    }
+
+    func test_contentDecoratorCanOnlyBeInstalledOnceAndBeforeLoading() {
+        let probe = ContentDecorationProbe()
+        let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
+        let decorated = screen.buildViewController(in: .empty)
+        XCTAssertEqual(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
+        XCTAssertFalse(decorated.isViewLoaded)
+        XCTAssertEqual(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .alreadyDecorated)
+
+        let loaded = screen.buildViewController(in: .empty)
+        loaded.loadViewIfNeeded()
+        XCTAssertEqual(loaded.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .viewAlreadyLoaded)
+
+        let unsupported = UIViewController()
+        XCTAssertEqual(unsupported.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .unsupportedHost)
+        XCTAssertFalse(unsupported.isViewLoaded)
+    }
+
+    func test_contentDecoratorDoesNotApplyToAChildHost() {
+        let probe = ContentDecorationProbe()
+        let parent = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
+            .buildViewController(in: .empty)
+        XCTAssertEqual(parent.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
+        let child = ContentDecorationScreen(model: .constant(state: .init(value: 9, probe: probe)))
+            .buildViewController(in: .empty)
+
+        show(viewController: parent) { controller in
+            controller.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
+            controller.view.layoutIfNeeded()
+            XCTAssertEqual(probe.preference, 7)
+            controller.addChild(child)
+            controller.view.addSubview(child.view)
+            child.didMove(toParent: controller)
+            child.view.frame = controller.view.bounds
+            child.view.layoutIfNeeded()
+            XCTAssertEqual(probe.preference, 7)
+            child.willMove(toParent: nil)
+            child.view.removeFromSuperview()
+            child.removeFromParent()
+        }
+    }
+
     func test_viewEnvironmentObservation() {
         // Ensure that environment customizations made on the view controller
         // are propagated to the SwiftUI view environment.
@@ -55,6 +131,8 @@ final class ObservableScreenTests: XCTestCase {
             )
         )
         .buildViewController(in: .empty)
+
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())), .installed)
 
         let lifetime = viewController.addEnvironmentCustomization { environment in
             environment[TestKey.self] = 1
@@ -161,6 +239,7 @@ final class ObservableScreenTests: XCTestCase {
         )
 
         let viewController = screen.buildViewController(in: .empty)
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())), .installed)
 
         XCTAssertEqual(viewController.preferredStatusBarStyle, screen._statusBarStyle)
         XCTAssertEqual(viewController.prefersStatusBarHidden, screen._prefersStatusBarHidden)
@@ -205,5 +284,53 @@ private struct KeyCapturingState {
 
 @ObservableState
 private struct DummyState {}
+
+private final class ContentDecorationProbe {
+    var preference: Int?
+    var identities: Set<UUID> = []
+}
+
+@ObservableState
+private struct ContentDecorationState {
+    var value: Int
+    var probe: ContentDecorationProbe
+}
+
+private struct ContentDecorationScreen: ObservableScreen {
+    var model: StateAccessor<ContentDecorationState>
+
+    static func makeView(store: Store<StateAccessor<ContentDecorationState>>) -> some View {
+        ContentDecorationView(store: store)
+    }
+}
+
+private struct ContentDecorationView: View {
+    var store: Store<StateAccessor<ContentDecorationState>>
+    @State private var identity = UUID()
+
+    var body: some View {
+        WithPerceptionTracking {
+            let _ = store.probe.identities.insert(identity)
+            Text("Content")
+                .preference(key: ContentDecorationPreference.self, value: store.value)
+        }
+    }
+}
+
+private struct ContentDecorationPreference: PreferenceKey {
+    static var defaultValue = 0
+    static func reduce(value: inout Int, nextValue: () -> Int) { value = nextValue() }
+}
+
+private struct CollectContentPreference: ViewModifier {
+    var probe: ContentDecorationProbe
+
+    func body(content: Content) -> some View {
+        content.backgroundPreferenceValue(ContentDecorationPreference.self) { value in
+            let _ = { probe.preference = value }()
+            Color.clear
+        }
+    }
+}
 
 #endif

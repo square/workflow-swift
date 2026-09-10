@@ -30,12 +30,16 @@ extension UpdateChildScreenViewController where Self: UIViewController {
     /// - parameter child: The `KeyPath` which describes what view controller to update. This view controller must be a direct child of `self`.
     /// - parameter screen: The `Screen` instance to apply to the view controller.
     /// - parameter environment: The `environment` to used when updating the view controller.
+    /// - parameter prepareReplacement: Called with a newly built replacement before containment or
+    ///   view loading by this method. Not called for in-place updates. The description's build/update
+    ///   closures may themselves load a custom controller's view; check before installing integrations.
     /// - parameter onChange: A callback called if the view controller instance changed.
     ///
     public func update<VC: UIViewController>(
         child: ReferenceWritableKeyPath<Self, VC>,
         with screen: some Screen,
         in environment: ViewEnvironment,
+        prepareReplacement: (VC) -> Void = { _ in },
         onChange: (VC) -> Void = { _ in }
     ) {
         let description = screen.viewControllerDescription(environment: environment)
@@ -54,6 +58,8 @@ extension UpdateChildScreenViewController where Self: UIViewController {
             // Make the new view controller.
 
             let new = description.buildViewController() as! VC
+
+            prepareReplacement(new)
 
             // We already have a reference to the old vc above, update the keypath to the new one.
 

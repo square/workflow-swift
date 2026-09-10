@@ -10,12 +10,12 @@ final class PreferredContentSizeTests: XCTestCase {
         let maxWidth: CGFloat = 50
         let maxHeight: CGFloat = 50
 
-        // fudged offset to avoid safe area interference
-        let origin = CGPoint(x: 50, y: 50)
-
-        func assertPreferredContentSize(in axes: Axis.Set) {
+        func assertPreferredContentSize(in axes: Axis.Set, decorated: Bool) {
             let screen = TestScreen(model: .constant(state: State(axes: axes)))
             let viewController = screen.buildViewController(in: .empty)
+            if decorated {
+                XCTAssertEqual(viewController.decorateObservableScreenContent(with: EmptyModifier()), .installed)
+            }
 
             func assertContentSize(
                 _ contentSize: CGSize,
@@ -33,15 +33,18 @@ final class PreferredContentSizeTests: XCTestCase {
                 XCTAssertEqual(
                     pcs,
                     expected ?? contentSize,
-                    "Axes: \(axes.testDescription)",
+                    "Axes: \(axes.testDescription), decorated: \(decorated)",
                     file: file,
                     line: line
                 )
             }
 
             show(viewController: viewController) { _ in
+                // Keep the test frame inside the window's safe area on both iPad and iPhone.
+                // A fixed 50-point offset still overlaps the sensor housing on some phones.
+                let insets = viewController.view.window?.safeAreaInsets ?? .zero
                 viewController.view.frame = CGRect(
-                    origin: origin,
+                    origin: CGPoint(x: insets.left + 50, y: insets.top + 50),
                     size: CGSize(width: maxWidth, height: maxHeight)
                 )
                 viewController.view.layoutIfNeeded()
@@ -59,10 +62,12 @@ final class PreferredContentSizeTests: XCTestCase {
             }
         }
 
-        assertPreferredContentSize(in: [])
-        assertPreferredContentSize(in: .horizontal)
-        assertPreferredContentSize(in: .vertical)
-        assertPreferredContentSize(in: [.horizontal, .vertical])
+        for decorated in [false, true] {
+            assertPreferredContentSize(in: [], decorated: decorated)
+            assertPreferredContentSize(in: .horizontal, decorated: decorated)
+            assertPreferredContentSize(in: .vertical, decorated: decorated)
+            assertPreferredContentSize(in: [.horizontal, .vertical], decorated: decorated)
+        }
     }
 }
 
