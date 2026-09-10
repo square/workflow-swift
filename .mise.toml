@@ -1,6 +1,6 @@
 [tools]
 tuist = "4.23.0"
-swiftformat = "0.54.2"
+swiftformat = "0.58.7"
 
 [settings]
 # do not try to read versions from .nvmrc, .ruby-version, etc.

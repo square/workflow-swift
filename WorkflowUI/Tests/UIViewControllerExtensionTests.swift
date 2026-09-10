@@ -72,7 +72,6 @@ class UIViewControllerExtensionTests: XCTestCase {
         let fixture = TestFixture(screen: Screen1(), environment: .empty)
 
         show(vc: fixture.root) { root in
-
             fixture.clearAllEvents()
 
             // Update to the same screen type should do nothing.

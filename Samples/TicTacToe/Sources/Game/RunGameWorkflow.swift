@@ -123,7 +123,6 @@ extension RunGameWorkflow {
             ))
 
         case .maybeQuit:
-
             let takeTurnsScreen = TakeTurnsWorkflow(
                 playerX: state.playerX,
                 playerO: state.playerO

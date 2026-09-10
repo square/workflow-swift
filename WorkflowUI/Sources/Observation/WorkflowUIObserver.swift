@@ -21,7 +21,7 @@ import Foundation
 /// **N.B. This is currently part of an experimental interface, and may have breaking changes in the future.**
 @_spi(ExperimentalObservation)
 public protocol WorkflowUIObserver {
-    func observeEvent<E: WorkflowUIEvent>(_ event: E)
+    func observeEvent(_ event: some WorkflowUIEvent)
 }
 
 // MARK: - Global Observation
