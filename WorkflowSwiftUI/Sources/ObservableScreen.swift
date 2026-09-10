@@ -198,6 +198,18 @@ public struct SwiftUIScreenSizingOptions: OptionSet {
     public static let preferredContentSize: SwiftUIScreenSizingOptions = .init(rawValue: 1 << 0)
 }
 
+/// The outcome of installing a decorator without loading or changing an unsupported host.
+public enum ObservableScreenContentDecorationResult: Equatable {
+    /// The decorator will wrap the host's complete content for its lifetime.
+    case installed
+    /// The controller is not the standard host built by `ObservableScreen`.
+    case unsupportedHost
+    /// Installing now could reset already-rendered SwiftUI state.
+    case viewAlreadyLoaded
+    /// A container already installed the host's single content decorator.
+    case alreadyDecorated
+}
+
 extension UIViewController {
     /// Decorates the complete SwiftUI content of an `ObservableScreen` host before it renders.
     ///
@@ -213,18 +225,18 @@ extension UIViewController {
     /// // Configure containment and load the view after installing the modifier.
     /// ```
     ///
-    /// - Returns: `true` if installed. Returns `false`, without changing the controller, when
-    ///   the controller is not an `ObservableScreen` host, its view has already loaded, or a
-    ///   decorator has already been installed. Custom hosts must provide their own integration.
+    /// - Returns: The installation outcome. An unsuccessful result leaves the host unchanged.
+    ///   Custom hosts must provide their own integration. Containers may follow an explicit
+    ///   `ScreenContentProviding` lifecycle to reach a wrapper's base; this method never traverses children.
     @discardableResult
-    public func decorateObservableScreenContent(with modifier: some ViewModifier) -> Bool {
-        guard let host = self as? ObservableScreenContentHosting else { return false }
+    public func decorateObservableScreenContent(with modifier: some ViewModifier) -> ObservableScreenContentDecorationResult {
+        guard let host = self as? ObservableScreenContentHosting else { return .unsupportedHost }
         return host.installContentDecorator { AnyView($0.modifier(modifier)) }
     }
 }
 
 private protocol ObservableScreenContentHosting: AnyObject {
-    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> Bool
+    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> ObservableScreenContentDecorationResult
 }
 
 private struct ObservableScreenRoot<Content: View>: View {
@@ -301,10 +313,11 @@ private final class ObservableScreenViewController<ScreenType: ObservableScreen,
         fatalError("not implemented")
     }
 
-    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> Bool {
-        guard !isViewLoaded, rootView.content.decorate == nil else { return false }
+    func installContentDecorator(_ decorate: @escaping (AnyView) -> AnyView) -> ObservableScreenContentDecorationResult {
+        guard !isViewLoaded else { return .viewAlreadyLoaded }
+        guard rootView.content.decorate == nil else { return .alreadyDecorated }
         rootView.content.decorate = decorate
-        return true
+        return .installed
     }
 
     func update(screen: ScreenType) {

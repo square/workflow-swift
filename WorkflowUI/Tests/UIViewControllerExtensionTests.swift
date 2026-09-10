@@ -21,6 +21,22 @@ import XCTest
 @testable import WorkflowUI
 
 class UIViewControllerExtensionTests: XCTestCase {
+    func test_prepareReplacement_precedesContainmentAndViewLoading() {
+        let fixture = TestFixture(screen: Screen1(), environment: .empty)
+        fixture.root.loadViewIfNeeded()
+        var replacements = 0
+        fixture.root.prepareReplacement = { replacement in
+            replacements += 1
+            XCTAssertFalse(replacement.isViewLoaded)
+            XCTAssertNil(replacement.parent)
+        }
+        fixture.root.update(with: Screen1(), environment: .empty)
+        XCTAssertEqual(replacements, 0)
+        fixture.root.update(with: Screen2(), environment: .empty)
+        XCTAssertEqual(replacements, 1)
+        XCTAssertTrue(fixture.root.content.isViewLoaded)
+    }
+
     func test_update_viewNotLoaded() {
         let fixture = TestFixture(loadView: false, screen: Screen1(), environment: .empty)
 
@@ -115,6 +131,7 @@ fileprivate enum TestingEvent: Equatable {
 
 private final class RootVC: UIViewController {
     var content: VCBase
+    var prepareReplacement: (VCBase) -> Void = { _ in }
 
     init(screen: Screen, environment: ViewEnvironment) {
         self.content = screen
@@ -145,7 +162,7 @@ private final class RootVC: UIViewController {
     }
 
     func update(with screen: Screen, environment: ViewEnvironment) {
-        update(child: \.content, with: screen.asAnyScreen(), in: environment)
+        update(child: \.content, with: screen.asAnyScreen(), in: environment, prepareReplacement: prepareReplacement)
     }
 }
 

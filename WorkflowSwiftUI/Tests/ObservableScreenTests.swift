@@ -11,7 +11,7 @@ final class ObservableScreenTests: XCTestCase {
         let probe = ContentDecorationProbe()
         let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
         let viewController = screen.asAnyScreen().buildViewController(in: .empty)
-        XCTAssertTrue(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
 
         show(viewController: viewController) { controller in
             controller.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
@@ -25,7 +25,7 @@ final class ObservableScreenTests: XCTestCase {
         let probe = ContentDecorationProbe()
         let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
         let viewController = screen.buildViewController(in: .empty)
-        XCTAssertTrue(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
 
         show(viewController: viewController) { controller in
             controller.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
@@ -46,16 +46,16 @@ final class ObservableScreenTests: XCTestCase {
         let probe = ContentDecorationProbe()
         let screen = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
         let decorated = screen.buildViewController(in: .empty)
-        XCTAssertTrue(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
         XCTAssertFalse(decorated.isViewLoaded)
-        XCTAssertFalse(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(decorated.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .alreadyDecorated)
 
         let loaded = screen.buildViewController(in: .empty)
         loaded.loadViewIfNeeded()
-        XCTAssertFalse(loaded.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(loaded.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .viewAlreadyLoaded)
 
         let unsupported = UIViewController()
-        XCTAssertFalse(unsupported.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(unsupported.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .unsupportedHost)
         XCTAssertFalse(unsupported.isViewLoaded)
     }
 
@@ -63,7 +63,7 @@ final class ObservableScreenTests: XCTestCase {
         let probe = ContentDecorationProbe()
         let parent = ContentDecorationScreen(model: .constant(state: .init(value: 7, probe: probe)))
             .buildViewController(in: .empty)
-        XCTAssertTrue(parent.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)))
+        XCTAssertEqual(parent.decorateObservableScreenContent(with: CollectContentPreference(probe: probe)), .installed)
         let child = ContentDecorationScreen(model: .constant(state: .init(value: 9, probe: probe)))
             .buildViewController(in: .empty)
 
@@ -132,7 +132,7 @@ final class ObservableScreenTests: XCTestCase {
         )
         .buildViewController(in: .empty)
 
-        XCTAssertTrue(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())))
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())), .installed)
 
         let lifetime = viewController.addEnvironmentCustomization { environment in
             environment[TestKey.self] = 1
@@ -239,7 +239,7 @@ final class ObservableScreenTests: XCTestCase {
         )
 
         let viewController = screen.buildViewController(in: .empty)
-        XCTAssertTrue(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())))
+        XCTAssertEqual(viewController.decorateObservableScreenContent(with: CollectContentPreference(probe: .init())), .installed)
 
         XCTAssertEqual(viewController.preferredStatusBarStyle, screen._statusBarStyle)
         XCTAssertEqual(viewController.prefersStatusBarHidden, screen._prefersStatusBarHidden)

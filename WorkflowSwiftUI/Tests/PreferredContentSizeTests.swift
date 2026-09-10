@@ -14,7 +14,7 @@ final class PreferredContentSizeTests: XCTestCase {
             let screen = TestScreen(model: .constant(state: State(axes: axes)))
             let viewController = screen.buildViewController(in: .empty)
             if decorated {
-                XCTAssertTrue(viewController.decorateObservableScreenContent(with: EmptyModifier()))
+                XCTAssertEqual(viewController.decorateObservableScreenContent(with: EmptyModifier()), .installed)
             }
 
             func assertContentSize(
