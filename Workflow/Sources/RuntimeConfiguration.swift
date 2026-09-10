@@ -82,10 +82,17 @@ extension Runtime {
         /// This is expected to eventually be removed and become the default behavior.
         public var useSinkEventHandler: Bool = false
 
-        /// Whether WorkflowSwiftUI suppresses Perception's debug-only runtime warning when using
-        /// native Observation.
+        /// Whether WorkflowSwiftUI runs Perception's debug-only runtime check on `Store` reads.
         ///
-        /// Defaults to `false`, so Store access continues through Perception normally.
-        public var suppressPerceptionCheckingWhenUsingObservation: Bool = false
+        /// Defaults to `false`. The check reports state read from a view body that is not wrapped
+        /// in `WithPerceptionTracking`. That modifier is required for observation to work below
+        /// iOS 17, but is unnecessary at iOS 17 and above, where native Observation tracks the read
+        /// on its own — and the check cannot tell the two situations apart, so it reports reads
+        /// that are already working correctly.
+        ///
+        /// Opt in when using WorkflowSwiftUI with a deployment target below iOS 17, where an
+        /// untracked read is a real defect: without `WithPerceptionTracking`, a view does not
+        /// update when the state it reads changes.
+        public var enablePerceptionChecking: Bool = false
     }
 }

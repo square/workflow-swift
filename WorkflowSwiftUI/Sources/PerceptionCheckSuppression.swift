@@ -1,22 +1,16 @@
 import Perception
 @_spi(WorkflowRuntimeConfig) import Workflow
 
-/// Runs `operation` with Perception's debug-only runtime check suppressed, if suppression applies.
+/// Runs `operation` with Perception's debug-only runtime check suppressed, unless the check has
+/// been opted into.
 ///
-/// Suppression is opt-in through
-/// `Runtime.Configuration.suppressPerceptionCheckingWhenUsingObservation`, so `operation` executes
-/// normally by default.
-///
-/// It is additionally applied whenever the process is rendering Xcode previews. That opt-in is
-/// meant to be set once at app startup, and a preview has no equivalent entry point — the canvas
-/// instantiates a view directly, with no app delegate and no runtime to configure — so a preview
-/// would otherwise have no way to reach the configuration at all.
+/// The check is off by default — see `Runtime.Configuration.enablePerceptionChecking` — because at
+/// iOS 17 and above it reports `Store` reads that native Observation is already tracking
+/// correctly. Clients below iOS 17 opt in, where an untracked read is a real defect rather than a
+/// false positive.
 func withPerceptionCheckSuppressed<T>(_ operation: () -> T) -> T {
-    #if DEBUG && canImport(Observation)
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *),
-       Runtime.configuration.suppressPerceptionCheckingWhenUsingObservation
-       || XcodePreviews.isRunning
-    {
+    #if DEBUG
+    if !Runtime.configuration.enablePerceptionChecking {
         return _PerceptionLocals.$skipPerceptionChecking.withValue(true, operation: operation)
     }
     #endif
