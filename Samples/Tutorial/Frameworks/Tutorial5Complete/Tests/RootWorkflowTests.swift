@@ -188,7 +188,6 @@ class RootWorkflowTests: XCTestCase {
                     XCTFail("Expected a right bar button")
 
                 case .button(let button):
-
                     switch button.content {
                     case .text(let text):
                         XCTAssertEqual("Save", text)

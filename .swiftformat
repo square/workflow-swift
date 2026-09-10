@@ -62,3 +62,7 @@
 --xcodeindentation disabled
 
 --disable unusedArguments
+
+# Preserve the existing rule set when upgrading from SwiftFormat 0.54.2.
+# Adopting these newer default rules is a separate style decision.
+--disable docCommentsBeforeModifiers,fileMacro,modifiersOnSameLine,preferCountWhere,redundantPublic,swiftTestingTestCaseNames
