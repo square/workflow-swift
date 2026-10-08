@@ -33,10 +33,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - sdk: "16.4"
-            simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-16-4"
-            installation_required: true
-
           - sdk: "17.5"
             simctl_runtime: "com.apple.CoreSimulator.SimRuntime.iOS-17-5"
             installation_required: true

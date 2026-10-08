@@ -1,8 +1,8 @@
 import CasePaths
 import IdentifiedCollections
-import Perception
+import Observation
 import SwiftUI
-@_spi(WorkflowRuntimeConfig) import Workflow
+import Workflow
 import XCTest
 @testable import WorkflowSwiftUI
 
@@ -14,7 +14,7 @@ final class StoreTests: XCTestCase {
         }
         let (store, _) = Store.make(model: model)
 
-        withPerceptionTracking {
+        withObservationTracking {
             XCTAssertEqual(store.count, 0)
         } onChange: {
             XCTFail("State should not have been mutated")
@@ -30,13 +30,13 @@ final class StoreTests: XCTestCase {
 
         let countDidChange = expectation(description: "count.didChange")
 
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.count
         } onChange: {
             countDidChange.fulfill()
         }
 
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.child.name
         } onChange: {
             XCTFail("child.name should not change")
@@ -56,13 +56,13 @@ final class StoreTests: XCTestCase {
 
         let childNameDidChange = expectation(description: "child.name.didChange")
 
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.count
         } onChange: {
             XCTFail("count should not change")
         }
 
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.child.name
         } onChange: {
             childNameDidChange.fulfill()
@@ -83,7 +83,7 @@ final class StoreTests: XCTestCase {
 
         let countDidChange = expectation(description: "count.didChange")
 
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.count
         } onChange: {
             countDidChange.fulfill()
@@ -136,7 +136,7 @@ final class StoreTests: XCTestCase {
         let (store, _) = Store.make(model: model)
 
         let countDidChange = expectation(description: "count.didChange")
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.count
         } onChange: {
             countDidChange.fulfill()
@@ -167,7 +167,7 @@ final class StoreTests: XCTestCase {
         let (store, _) = Store.make(model: model)
 
         let countDidChange = expectation(description: "count.didChange")
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.count
         } onChange: {
             countDidChange.fulfill()
@@ -205,7 +205,7 @@ final class StoreTests: XCTestCase {
             let (store, _) = Store.make(model: model)
 
             let countDidChange = expectation(description: "count.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.count
             } onChange: {
                 countDidChange.fulfill()
@@ -231,7 +231,7 @@ final class StoreTests: XCTestCase {
             let (store, _) = Store.make(model: model)
 
             let countDidChange = expectation(description: "count.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.count
             } onChange: {
                 countDidChange.fulfill()
@@ -260,7 +260,7 @@ final class StoreTests: XCTestCase {
             let (store, _) = Store.make(model: model)
 
             let countDidChange = expectation(description: "count.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.count
             } onChange: {
                 countDidChange.fulfill()
@@ -291,7 +291,7 @@ final class StoreTests: XCTestCase {
         let (store, _) = Store.make(model: model)
 
         let childAgeDidChange = expectation(description: "child.age.didChange")
-        withPerceptionTracking {
+        withObservationTracking {
             _ = store.child.age
         } onChange: {
             childAgeDidChange.fulfill()
@@ -330,7 +330,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let optionalDidChange = expectation(description: "optional.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.optional
             } onChange: {
                 optionalDidChange.fulfill()
@@ -355,7 +355,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let optionalDidChange = expectation(description: "optional.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.optional
             } onChange: {
                 optionalDidChange.fulfill()
@@ -379,14 +379,14 @@ final class StoreTests: XCTestCase {
             model.optional = childModel
             setModel(model)
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.optional
             } onChange: {
                 XCTFail("optional should not change")
             }
 
             let optionalAgeDidChange = expectation(description: "optional.age.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.optional?.age
             } onChange: {
                 optionalAgeDidChange.fulfill()
@@ -413,7 +413,7 @@ final class StoreTests: XCTestCase {
             model.optional = nil
             setModel(model)
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.optional
             } onChange: {
                 XCTFail("optional should not change")
@@ -465,7 +465,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let arrayDidChange = expectation(description: "array.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.array
             } onChange: {
                 arrayDidChange.fulfill()
@@ -488,7 +488,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let arrayDidChange = expectation(description: "array.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.array
             } onChange: {
                 arrayDidChange.fulfill()
@@ -510,14 +510,14 @@ final class StoreTests: XCTestCase {
             model.array = childModels
             setModel(model)
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.array
             } onChange: {
                 XCTFail("array should not change")
             }
 
             let array0AgeDidChange = expectation(description: "array[0].age.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.array[0].age
             } onChange: {
                 array0AgeDidChange.fulfill()
@@ -569,7 +569,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let identifiedDidChange = expectation(description: "identified.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.identified
             } onChange: {
                 identifiedDidChange.fulfill()
@@ -598,7 +598,7 @@ final class StoreTests: XCTestCase {
             setModel(model)
 
             let arrayDidChange = expectation(description: "identified.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.identified
             } onChange: {
                 arrayDidChange.fulfill()
@@ -626,14 +626,14 @@ final class StoreTests: XCTestCase {
             model.identified = childModels
             setModel(model)
 
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.identified
             } onChange: {
                 XCTFail("identified should not change")
             }
 
             let identified0AgeDidChange = expectation(description: "identified[0].age.didChange")
-            withPerceptionTracking {
+            withObservationTracking {
                 _ = store.identified[0].age
             } onChange: {
                 identified0AgeDidChange.fulfill()
@@ -650,138 +650,10 @@ final class StoreTests: XCTestCase {
         // TODO:
     }
 
-    // MARK: - Bindings
-
-    @MainActor
-    func test_bindings() async {
-        var state = State()
-        let model = StateAccessor(state: state) { update in
-            update(&state)
-        }
-        let (_store, _) = Store.make(model: model)
-        @Perception.Bindable var store = _store
-
-        let countDidChange = expectation(description: "count.didChange")
-
-        withPerceptionTracking {
-            _ = store.count
-        } onChange: {
-            countDidChange.fulfill()
-        }
-
-        let binding = $store.count
-        binding.wrappedValue = 1
-
-        await fulfillment(of: [countDidChange], timeout: 0)
-        XCTAssertEqual(state.count, 1)
-    }
-
-    @MainActor
-    func test_bindingSendingCustomAction() async {
-        var state = State()
-        let model = CustomActionModel(
-            accessor: StateAccessor(state: state) { _ in
-                XCTFail("state should not be mutated through accessor")
-            },
-            sink: Sink { action in
-                switch action {
-                case .onCountChanged(let count):
-                    state.count = count
-                case .foo:
-                    XCTFail("unexpected action: \(action)")
-                }
-            }
-        )
-        let (_store, _) = Store.make(model: model)
-        @Perception.Bindable var store = _store
-
-        let countDidChange = expectation(description: "count.didChange")
-
-        withPerceptionTracking {
-            _ = store.count
-        } onChange: {
-            countDidChange.fulfill()
-        }
-
-        let binding = $store.count.sending(sink: \.sink, action: \.onCountChanged)
-        binding.wrappedValue = 1
-
-        await fulfillment(of: [countDidChange], timeout: 0)
-        XCTAssertEqual(state.count, 1)
-    }
-
-    @MainActor
-    func test_bindingSendingClosure() async {
-        var state = State()
-        let model = ClosureModel(
-            accessor: StateAccessor(state: state) { _ in
-                XCTFail("state should not be mutated through accessor")
-            },
-            onCountChanged: { count in
-                state.count = count
-            }
-        )
-        let (_store, _) = Store.make(model: model)
-        @Perception.Bindable var store = _store
-
-        let countDidChange = expectation(description: "count.didChange")
-
-        withPerceptionTracking {
-            _ = store.count
-        } onChange: {
-            countDidChange.fulfill()
-        }
-
-        let binding = $store.count.sending(closure: \.onCountChanged)
-        binding.wrappedValue = 1
-
-        await fulfillment(of: [countDidChange], timeout: 0)
-        XCTAssertEqual(state.count, 1)
-    }
-
-    @MainActor
-    func test_bindingSendingSingleAction() async {
-        var state = State()
-        let model = ActionModel(
-            accessor: StateAccessor(state: state) { _ in
-                XCTFail("state should not be mutated through accessor")
-            },
-            sendAction: Sink<Action> { action in
-                switch action {
-                case .onCountChanged(let count):
-                    state.count = count
-                case .foo:
-                    XCTFail("unexpected action: \(action)")
-                }
-            }.send
-        )
-        let (_store, _) = Store.make(model: model)
-        @Perception.Bindable var store = _store
-
-        let countDidChange = expectation(description: "count.didChange")
-
-        withPerceptionTracking {
-            _ = store.count
-        } onChange: {
-            countDidChange.fulfill()
-        }
-
-        let binding = $store.count.sending(action: \.onCountChanged)
-        binding.wrappedValue = 1
-
-        await fulfillment(of: [countDidChange], timeout: 0)
-        XCTAssertEqual(state.count, 1)
-    }
-
     // MARK: - Native SwiftUI Bindings
 
     @MainActor
-    func test_perceptionRuntimeWarningsWhenUsingObservation() throws {
-        #if DEBUG
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires native Observation")
-        }
-
+    func test_storeRendersWithNativeObservation() {
         let child = StateAccessor(state: ParentModel.ChildState()) { _ in }
         let model = ParentModel(
             accessor: StateAccessor(state: State()) { _ in },
@@ -790,49 +662,12 @@ final class StoreTests: XCTestCase {
         )
         let (store, _) = Store.make(model: model)
 
-        let image = ImageRenderer(content: PerceptionRuntimeWarningView(store: store)).cgImage
-        _ = image
-        #else
-        throw XCTSkip("Perception runtime warnings are debug-only")
-        #endif
-    }
-
-    @MainActor
-    func test_perceptionRuntimeWarningsCanBeSuppressedWhenUsingObservation() throws {
-        #if DEBUG
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires native Observation")
-        }
-
-        let child = StateAccessor(state: ParentModel.ChildState()) { _ in }
-        let model = ParentModel(
-            accessor: StateAccessor(state: State()) { _ in },
-            child: child,
-            optional: child
-        )
-        let (store, _) = Store.make(model: model)
-
-        // Rendering evaluates the Store reads inside the override. If suppression fails,
-        // Perception reports an unexpected XCTest failure, so the absence of a failure is the
-        // assertion.
-        let image = Runtime.withConfiguration(
-            override: { $0.suppressPerceptionCheckingWhenUsingObservation = true },
-            operation: {
-                ImageRenderer(content: SuppressedPerceptionRuntimeWarningView(store: store)).cgImage
-            }
-        )
-        _ = image
-        #else
-        throw XCTSkip("Perception runtime warnings are debug-only")
-        #endif
+        let image = ImageRenderer(content: NativeObservationView(store: store)).cgImage
+        XCTAssertNotNil(image)
     }
 
     @MainActor
     func test_nativeBindings() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var state = State()
         let model = StateAccessor(state: state) { update in
             update(&state)
@@ -857,10 +692,6 @@ final class StoreTests: XCTestCase {
 
     @MainActor
     func test_nativeBindingSendingCustomAction() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var state = State()
         let model = CustomActionModel(
             accessor: StateAccessor(state: state) { _ in
@@ -895,10 +726,6 @@ final class StoreTests: XCTestCase {
 
     @MainActor
     func test_nativeBindingSendingClosure() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var state = State()
         let model = ClosureModel(
             accessor: StateAccessor(state: state) { _ in
@@ -928,10 +755,6 @@ final class StoreTests: XCTestCase {
 
     @MainActor
     func test_nativeBindingSendingSingleAction() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var state = State()
         let model = ActionModel(
             accessor: StateAccessor(state: state) { _ in
@@ -966,10 +789,6 @@ final class StoreTests: XCTestCase {
 
     @MainActor
     func test_nativeChildStoreObservation() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var childState = ParentModel.ChildState(age: 0)
 
         let model = ParentModel(
@@ -999,10 +818,6 @@ final class StoreTests: XCTestCase {
 
     @MainActor
     func test_nativeOptionalChildStoreObservation() async throws {
-        guard #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) else {
-            throw XCTSkip("Requires iOS 17+")
-        }
-
         var childState = ParentModel.ChildState(age: 0)
         let childModel = StateAccessor(state: childState) { update in
             update(&childState)
@@ -1037,30 +852,8 @@ final class StoreTests: XCTestCase {
     }
 }
 
-/// Reads Store values from SwiftUI so Perception recognizes the AttributeGraph call stack.
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-private struct PerceptionRuntimeWarningView: View {
-    let store: Store<ParentModel>
-
-    var body: some View {
-        VStack {
-            Text(
-                expectPerceptionRuntimeWarning {
-                    store.count
-                }.description
-            )
-            Text(
-                expectPerceptionRuntimeWarning {
-                    store.optional == nil
-                }.description
-            )
-        }
-    }
-}
-
-/// Reads Store values from SwiftUI without expecting Perception runtime warnings.
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-private struct SuppressedPerceptionRuntimeWarningView: View {
+/// Reads Store values from SwiftUI using native Observation.
+private struct NativeObservationView: View {
     let store: Store<ParentModel>
 
     var body: some View {
@@ -1068,18 +861,6 @@ private struct SuppressedPerceptionRuntimeWarningView: View {
             Text(store.count.description)
             Text((store.optional == nil).description)
         }
-    }
-}
-
-/// Runs a Store read and verifies Perception reports the untracked-state runtime warning.
-private func expectPerceptionRuntimeWarning<Result>(
-    _ operation: () -> Result
-) -> Result {
-    XCTExpectFailure(failingBlock: operation) {
-        $0.compactDescription.contains("Perceptible state")
-            && $0.compactDescription.contains(
-                "was accessed from a view but is not being tracked"
-            )
     }
 }
 

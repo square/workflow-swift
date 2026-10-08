@@ -113,7 +113,7 @@ private struct TestView: View {
     var store: Store<StateAccessor<State>>
 
     var body: some View {
-        WithPerceptionTracking {
+        Group {
             if store.axes.isEmpty {
                 box
             } else {
