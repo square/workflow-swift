@@ -11,6 +11,8 @@ A unidirectional data flow library for Swift and [Kotlin](https://github.com/squ
 
 ## Using Workflows in your project
 
+The minimum supported versions are iOS 17.1, macOS 14, watchOS 10, Mac Catalyst 17, and tvOS 17.
+
 ### Swift Package Manager
 
 [![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-orange.svg)](#swift-package-manager)

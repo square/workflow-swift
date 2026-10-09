@@ -1,8 +1,8 @@
 import CasePaths
 import IdentifiedCollections
-import Perception
+import Observation
 import SwiftUI
-@_spi(WorkflowRuntimeConfig) import Workflow
+import Workflow
 
 /// Provides access to a workflow's state and actions from within an ``ObservableScreen``.
 ///
@@ -24,11 +24,11 @@ import SwiftUI
 /// sink.
 ///
 @dynamicMemberLookup
-public final class Store<Model: ObservableModel>: Perceptible {
+public final class Store<Model: ObservableModel>: Observable {
     public typealias State = Model.State
 
     private var model: Model
-    private let _$observationRegistrar = PerceptionRegistrar()
+    private let _$observationRegistrar = ObservationRegistrar()
 
     private var childStores: [AnyHashable: ChildStore] = [:]
     private var childModelAccesses: [AnyHashable: ChildModelAccess] = [:]
@@ -58,9 +58,7 @@ public final class Store<Model: ObservableModel>: Perceptible {
     }
 
     private func readState<T>(keyPath: KeyPath<State, T>) -> T {
-        withPerceptionCheckSuppressed {
-            state[keyPath: keyPath]
-        }
+        state[keyPath: keyPath]
     }
 
     fileprivate func setModel(_ newModel: Model) {
@@ -225,9 +223,7 @@ extension Store {
         isChanged: @escaping (Model, Model) -> Bool,
         isInvalid: @escaping (Model) -> Bool = { _ in false }
     ) {
-        withPerceptionCheckSuppressed {
-            _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
-        }
+        _$observationRegistrar.access(self, keyPath: (\Store.model).appending(path: key))
         if childModelAccesses[key] == nil {
             childModelAccesses[key] = ChildModelAccess(
                 keyPath: key,
@@ -624,10 +620,3 @@ extension Store: Hashable {
 }
 
 extension Store: Identifiable {}
-
-#if canImport(Observation)
-import Observation
-
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-extension Store: Observable {}
-#endif

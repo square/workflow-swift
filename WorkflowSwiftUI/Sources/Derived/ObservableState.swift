@@ -3,6 +3,7 @@
 
 import Foundation
 import IdentifiedCollections
+import Observation
 
 /// A type that emits notifications to observers when underlying data changes.
 ///
@@ -10,17 +11,10 @@ import IdentifiedCollections
 /// However, applying the ``ObservableState`` protocol by itself to a type doesn’t add observation
 /// functionality to the type. Instead, always use the ``ObservableState()`` macro when adding
 /// observation support to a type.
-#if !os(visionOS)
-public protocol ObservableState: Perceptible {
-    var _$id: ObservableStateID { get }
-    mutating func _$willModify()
-}
-#else
 public protocol ObservableState: Observable {
     var _$id: ObservableStateID { get }
     mutating func _$willModify()
 }
-#endif
 
 /// A unique identifier for a observed value.
 public struct ObservableStateID: Equatable, Hashable, Sendable {

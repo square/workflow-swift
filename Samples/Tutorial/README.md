@@ -40,7 +40,6 @@ Generating project xctest-dynamic-overlay
 Generating project swift-identified-collections
 Generating project ReactiveSwift
 Generating project swift-collections
-Generating project swift-perception
 Generating project iOSSnapshotTestCase
 Generating project RxSwift
 Generating project swift-syntax

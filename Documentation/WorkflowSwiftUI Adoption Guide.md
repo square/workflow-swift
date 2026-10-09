@@ -1,6 +1,6 @@
 # WorkflowSwiftUI Adoption Guide
 
-`WorkflowSwiftUI` is designed with performance in mind. Instead of updating the entire UI on every render loop, `WorkflowSwiftUI` uses the [Perception](https://github.com/pointfreeco/swift-perception) framework (a backport of Apple's Observation), to detect the data that each view is dependent on, and to only re-evaluate those views when that data has changed.
+`WorkflowSwiftUI` is designed with performance in mind. Instead of updating the entire UI on every render loop, `WorkflowSwiftUI` uses Apple's [Observation](https://developer.apple.com/documentation/observation) framework to detect the data that each view is dependent on, and to only re-evaluate those views when that data has changed.
 
 In order to support this, `WorkflowSwiftUI` has some additional restrictions and subtle departures from practices you may be used to.
 
@@ -187,7 +187,7 @@ struct CustomModel: ObservableModel {
 
 In your View, you’ll access state and sinks via a property of type `Store<Model>`. This type wraps the model that your workflow renders, and provides conveniences for access the state, sinks, and child stores.
 
-If targeting iOS 16 or below, you’ll need to wrap your view’s body in `WithPerceptionTracking`. This is a component of the `Perception` backport that allows observation to work on iOS before iOS 17.
+All supported platforms provide native Observation. SwiftUI tracks `Store` access automatically. No tracking wrapper or runtime configuration is required.
 
 ```swift
 struct PersonState {
@@ -205,25 +205,17 @@ struct PersonView: View {
   let store: Store<PersonModel>
   
   var body: some View {
-    WithPerceptionTracking {
-      VStack {
-        Text("Name: \(store.name)")
-        Text("Age: \(store.age)")
+    VStack {
+      Text("Name: \(store.name)")
+      Text("Age: \(store.age)")
 
-        Button("✋") {
-          store.send(.giveHighFive)
-        }
+      Button("✋") {
+        store.send(.giveHighFive)
       }
     }
   }
 }
 ```
-
-`WithPerceptionTracking` is necessary in any view that accesses a `Store`, as well as inside many containers that lazily evaluate their content, including `ForEach`, `GeometryReader`, `List`, `LazyVStack`, and `LazyHStack`.
-
-If you forget to wrap your view's body in `WithPerceptionTracking`, a runtime warning will remind you.
-
-If your minimum deployment target is iOS 17 or later, `WithPerceptionTracking` is not needed — SwiftUI's native observation system will track `Store` access automatically.
 
 ## Screens
 
@@ -368,48 +360,38 @@ struct State {
 }
 
 struct VariousCounterView: View {
-  @Perception.Bindable
+  @SwiftUI.Bindable
   var store: Store<StateAccessor<CounterState>>
 
   var body: some View {
-    WithPerceptionTracking {
-      // direct access OK
-      CounterView(count: $store.counter.count)
+    // direct access OK
+    CounterView(count: $store.counter.count)
 
-      // nested store, also OK
-      @Perception.Bindable var counter = store.scope(keyPath: \.counter)
+    // nested store, also OK
+    @SwiftUI.Bindable var counter = store.scope(keyPath: \.counter)
+    CounterView(count: $counter.count)
+
+    // required to get `Binding<Int>?` instead of `Binding<Int?>`
+    if let optionalCounter = store.scope(keyPath: \.optionalCounter) {
+      @SwiftUI.Bindable var optionalCounter = optionalCounter
+      CounterView(count: $optionalCounter.count)
+    }
+
+    // ❌ compiles but does not work!
+    ForEach($store.moreCounters) { counter in
+      CounterView(count: counter.count)
+    }
+
+    // required for this collection
+    ForEach(store.scope(collection: \.moreCounters)) { counter in
+      @SwiftUI.Bindable var counter = counter
       CounterView(count: $counter.count)
+    }
 
-      // required to get `Binding<Int>?` instead of `Binding<Int?>`
-      if let optionalCounter = store.scope(keyPath: \.optionalCounter) {
-        @Perception.Bindable var optionalCounter = optionalCounter
-        WithPerceptionTracking {
-          CounterView(count: $optionalCounter.count)
-        }
-      }
-
-      // ❌ compiles but does not work!
-      ForEach($store.moreCounters) { counter in
-        WithPerceptionTracking {
-          CounterView(count: counter.count)
-        }
-      }
-
-      // required for this collection
-      ForEach(store.scope(collection: \.moreCounters)) { counter in
-        @Perception.Bindable var counter = counter
-        WithPerceptionTracking {
-          CounterView(count: $counter.count)
-        }
-      }
-
-      // also required for this collection
-      ForEach(store.scope(collection: \.evenMoreCounters)) { counter in
-        @Perception.Bindable var counter = counter
-        WithPerceptionTracking {
-          CounterView(count: $counter.count)
-        }
-      }
+    // also required for this collection
+    ForEach(store.scope(collection: \.evenMoreCounters)) { counter in
+      @SwiftUI.Bindable var counter = counter
+      CounterView(count: $counter.count)
     }
   }
 }
@@ -440,14 +422,12 @@ struct CustomView: View {
   let store: Store<Model>
   
   var body: some View {
-    WithPerceptionTracking {
-      VStack {
-        Button("Increment") {
-          store.up.send(.increment)
-        }
-        Button("Decrement") {
-          store.down.send(.decrement)
-        }
+    VStack {
+      Button("Increment") {
+        store.up.send(.increment)
+      }
+      Button("Decrement") {
+        store.down.send(.decrement)
       }
     }
   }
@@ -456,7 +436,7 @@ struct CustomView: View {
 
 ## Bindings
 
-For state properties that are writable, an automatic `Binding` can be derived by annotating the store with `@Bindable`. These bindings will use the workflow's state mutation sink. If you’re targeting iOS 16 or lower, you should use `@Perception.Bindable`.
+For state properties that are writable, an automatic `Binding` can be derived by annotating the store with `@Bindable`. These bindings will use the workflow's state mutation sink.
 
 All properties can be turned into bindings by appending the `sending()` function to specify the “write” action. For properties that are already writable, this will refine the binding to send a custom action instead of the built-in state mutation sink.
 
@@ -483,26 +463,7 @@ enum Action: WorkflowAction {
 typealias Model = ActionModel<State, Action>
 
 struct ContentView: View {
-  @Perception.Bindable var store: Store<Model>
-
-  var body: some View {
-    WithPerceptionTracking {
-      // synthesized binding
-      Toggle("X?", isOn: $store.isX)
-      // binding with a custom setter action
-      Toggle("Y?", isOn: $store.isY.sending(action: \.setY))
-    }
-  }
-}
-```
-
-### iOS 17+
-
-If your minimum deployment target is iOS 17 or later, you can use SwiftUI's native `@Bindable` instead of `@Perception.Bindable`, and you no longer need `WithPerceptionTracking`:
-
-```swift
-struct ContentView: View {
-  @Bindable var store: Store<Model>
+  @SwiftUI.Bindable var store: Store<Model>
 
   var body: some View {
     // synthesized binding
@@ -512,8 +473,6 @@ struct ContentView: View {
   }
 }
 ```
-
-The `.sending()` API works the same way with both `@Perception.Bindable` and `@Bindable`.
 
 ## Parent dependencies
 
